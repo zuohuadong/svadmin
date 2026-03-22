@@ -1,26 +1,57 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
   import { useIsAuthenticated } from '@svadmin/core';
+  import { onMount, type Snippet } from 'svelte';
+  import { navigate } from '@svadmin/core';
 
-  let { children, fallback, loading } = $props<{
-    children: Snippet;
+  let {
+    children,
+    fallback,
+    loading,
+    redirectTo = '/login',
+    appendCurrentPathToQuery = true,
+  } = $props<{
+    children?: Snippet;
     fallback?: Snippet;
     loading?: Snippet;
+    redirectTo?: string;
+    appendCurrentPathToQuery?: boolean;
   }>();
 
-  const auth = useIsAuthenticated();
+  const isAuth = useIsAuthenticated();
+
+  function triggerRedirect() {
+    if (fallback) return;
+    let url = redirectTo;
+    if (appendCurrentPathToQuery && typeof window !== 'undefined') {
+      const current = encodeURIComponent(window.location.pathname + window.location.search);
+      url += `?to=${current}`;
+    }
+    navigate(url);
+  }
+
+  onMount(() => {
+    if (!isAuth.isLoading && !isAuth.isAuthenticated) {
+      triggerRedirect();
+    }
+  });
+
+  $effect(() => {
+    if (!isAuth.isLoading && !isAuth.isAuthenticated) {
+      triggerRedirect();
+    }
+  });
 </script>
 
-{#if auth.isLoading}
+{#if isAuth.isLoading}
   {#if loading}
     {@render loading()}
-  {:else}
-    <div class="flex items-center justify-center min-h-[200px]">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
   {/if}
-{:else if auth.isAuthenticated}
-  {@render children()}
-{:else if fallback}
-  {@render fallback()}
+{:else if isAuth.isAuthenticated}
+  {#if children}
+    {@render children()}
+  {/if}
+{:else}
+  {#if fallback}
+    {@render fallback()}
+  {/if}
 {/if}

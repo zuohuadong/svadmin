@@ -17,6 +17,10 @@ const ROUTES = [
   '/:resource/create',
   '/:resource/edit/:id',
   '/:resource/show/:id',
+  '/:parent/:parentId/:resource',
+  '/:parent/:parentId/:resource/create',
+  '/:parent/:parentId/:resource/edit/:id',
+  '/:parent/:parentId/:resource/show/:id',
 ];
 
 function sync() {
@@ -29,7 +33,7 @@ function sync() {
     _route = m?.route ?? '/';
     _params = { ...(m?.params ?? {}), ...parsed.params };
   } else {
-    path = window.location.hash.replace(/^#/, '') || '/';
+    path = typeof window !== 'undefined' ? window.location.hash.replace(/^#/, '') || '/' : '/';
     const m = matchRoute(path, ROUTES);
     _route = m?.route ?? '/';
     _params = m?.params ?? {};
@@ -42,8 +46,10 @@ export function initRouter(provider?: RouterProvider) {
   _provider = provider;
   setActiveRouterProvider(provider);
   sync();
-  window.addEventListener('hashchange', sync);
-  window.addEventListener('popstate', sync);
+  if (typeof window !== 'undefined') {
+    window.addEventListener('hashchange', sync);
+    window.addEventListener('popstate', sync);
+  }
 }
 
 export function getRoute(): string {

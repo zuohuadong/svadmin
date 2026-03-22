@@ -1,12 +1,14 @@
 // Toast notification system — Svelte 5 runes-based
 
-export type ToastType = 'success' | 'error' | 'info' | 'warning';
+export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'undoable';
 
 export interface Toast {
   id: number;
   type: ToastType;
   message: string;
   duration: number;
+  onUndo?: () => void;
+  onTimeout?: () => void;
 }
 
 let nextId = 0;
@@ -16,10 +18,10 @@ export function getToasts(): Toast[] {
   return toasts;
 }
 
-export function addToast(type: ToastType, message: string, duration = 3000): void {
+export function addToast(type: ToastType, message: string, duration = 3000, options?: { onUndo?: () => void, onTimeout?: () => void }): void {
   const id = nextId++;
-  toasts = [...toasts, { id, type, message, duration }];
-  if (duration > 0) {
+  toasts = [...toasts, { id, type, message, duration, ...options }];
+  if (duration > 0 && type !== 'undoable') {
     setTimeout(() => removeToast(id), duration);
   }
 }
@@ -34,4 +36,6 @@ export const toast = {
   error: (msg: string, duration?: number) => addToast('error', msg, duration ?? 5000),
   info: (msg: string, duration?: number) => addToast('info', msg, duration),
   warning: (msg: string, duration?: number) => addToast('warning', msg, duration ?? 4000),
+  undoable: (msg: string, duration: number, onUndo: () => void, onTimeout: () => void) => 
+    addToast('undoable', msg, duration, { onUndo, onTimeout }),
 };

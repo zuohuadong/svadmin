@@ -16,6 +16,13 @@ export class HttpError extends Error {
   }
 }
 
+export class UndoError extends Error {
+  constructor() {
+    super('Mutation undone');
+    this.name = 'UndoError';
+  }
+}
+
 // ─── DataProvider ─────────────────────────────────────────────
 
 export interface Pagination {

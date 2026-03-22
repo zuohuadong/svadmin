@@ -40,9 +40,46 @@ export function useParsed(): ParsedRoute {
     const segments = pathname.split('/').filter(Boolean);
     if (segments.length === 0) return result;
 
-    // First segment is typically the resource name
+    // Find the rightmost segment that matches a known resource name
     const resourceNames = resources.map(r => r.name);
-    if (resourceNames.includes(segments[0])) {
+    let resourceIndex = -1;
+    for (let i = segments.length - 1; i >= 0; i--) {
+      if (resourceNames.includes(segments[i])) {
+        resourceIndex = i;
+        break;
+      }
+    }
+
+    if (resourceIndex !== -1) {
+      result.resource = segments[resourceIndex];
+
+      // Add parent path params based on `<parentResource>/<parentId>` structure
+      for (let i = 0; i < resourceIndex; i += 2) {
+        if (segments[i] && segments[i + 1]) {
+          const parentName = segments[i];
+          const singular = parentName.endsWith('s') ? parentName.slice(0, -1) : parentName;
+          result.params[`${singular}Id`] = segments[i + 1];
+        }
+      }
+
+      const restSegments = segments.slice(resourceIndex + 1);
+      if (restSegments.length === 0) {
+        result.action = 'list';
+      } else if (restSegments[0] === 'create') {
+        result.action = 'create';
+      } else if (restSegments[0] === 'edit' && restSegments[1]) {
+        result.action = 'edit';
+        result.id = restSegments[1];
+      } else if (restSegments[0] === 'show' && restSegments[1]) {
+        result.action = 'show';
+        result.id = restSegments[1];
+      } else if (restSegments[0]) {
+        // Legacy: /:resource/:id
+        result.action = 'show';
+        result.id = restSegments[0];
+      }
+    } else {
+      // Fallback if resource definitions are not loaded yet
       result.resource = segments[0];
 
       if (segments.length === 1) {
@@ -56,7 +93,6 @@ export function useParsed(): ParsedRoute {
         result.action = 'show';
         result.id = segments[2];
       } else if (segments[1]) {
-        // Legacy: /:resource/:id
         result.action = 'show';
         result.id = segments[1];
       }

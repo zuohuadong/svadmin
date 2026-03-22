@@ -3,7 +3,7 @@
   import type { Identity } from '@svadmin/core';
   import { currentPath, navigate } from '@svadmin/core/router';
   import { t, getLocale, setLocale, getAvailableLocales } from '@svadmin/core/i18n';
-  import { toggleTheme, getResolvedTheme, colorThemes, getColorTheme, setColorTheme } from '@svadmin/core';
+  import { toggleTheme, getResolvedTheme, colorThemes, getColorTheme, setColorTheme, canAccessAsync } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
   import * as Tooltip from './ui/tooltip/index.js';
   import { Separator } from './ui/separator/index.js';
@@ -36,15 +36,34 @@
     Icon: typeof LayoutDashboard;
   }
 
-  // Use $derived so navItems rebuild when locale changes
-  const navItems: NavItem[] = $derived([
-    { path: '/', label: t('common.home'), Icon: LayoutDashboard },
-    ...resources.map(r => ({
-      path: `/${r.name}`,
-      label: r.label,
-      Icon: iconMap[r.name] ?? Settings,
-    })),
-  ]);
+  // Use effect to build nav items, taking access control into account
+  let navItems = $state<NavItem[]>([]);
+
+  $effect(() => {
+    // Re-run when locale or resources change
+    const localeVal = getLocale();
+    
+    Promise.all(resources.map(async (r) => {
+      try {
+        const { can } = await canAccessAsync({ action: 'list', resource: r.name });
+        return { r, can };
+      } catch {
+        return { r, can: false };
+      }
+    })).then(results => {
+      const items: NavItem[] = [{ path: '/', label: t('common.home'), Icon: LayoutDashboard }];
+      for (const { r, can } of results) {
+        if (can) {
+          items.push({
+            path: `/${r.name}`,
+            label: r.label,
+            Icon: iconMap[r.name] ?? Settings,
+          });
+        }
+      }
+      navItems = items;
+    });
+  });
 
   /** Toggle between available locales */
   function toggleLocale() {

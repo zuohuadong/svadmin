@@ -12,12 +12,16 @@ export {
   useOne, useShow,
   useSelect, useMany,
   useCustom, useApiUrl,
+  useCustomMutation, useInvalidate,
   useCreate, useCreateMany,
   useUpdate, useUpdateMany,
   useDelete, useDeleteMany,
   useForm, useTable,
-  useNavigation,
+  useNavigation, useGo, useBack,
   useResource,
+  useLog, useLogList,
+  useModalForm, useDrawerForm,
+  useOvertime, useRelation,
 } from './hooks.svelte';
 export { matchRoute, navigate, currentPath, setActiveRouterProvider } from './router';
 export { readURLState, writeURLState } from './url-sync';
@@ -26,14 +30,20 @@ export { useLive, useSubscription, usePublish } from './live';
 export { toast } from './toast.svelte';
 export { notify, closeNotification, setNotificationProvider, getNotificationProvider } from './notification.svelte';
 export { t, setLocale, getLocale, getAvailableLocales, addTranslations } from './i18n.svelte';
-export { audit, setAuditHandler } from './audit';
+export { audit, setAuditHandler, setAuditLogProvider, getAuditLogProvider } from './audit';
+export type { AuditLogProvider } from './audit';
 export { getTheme, setTheme, toggleTheme, getResolvedTheme, getColorTheme, setColorTheme, colorThemes } from './theme.svelte';
 export type { ThemeMode, ColorTheme } from './theme.svelte';
+export { setUnsavedChanges, getUnsavedChanges, initUnsavedChangesNotifier } from './unsaved-changes.svelte';
+export { setAdminOptions, getAdminOptions } from './options';
+export type { AdminOptions } from './options';
 
+export * from './query-keys';
 export { HttpError } from './types';
 export type {
   DataProvider, AuthProvider, NotificationProvider, MutationMode,
   ValidationErrors, CrudOperator, LogicalFilter,
+  CustomParams, CustomResult,
   GetListParams, GetListResult,
   GetOneParams, GetOneResult,
   GetManyParams, GetManyResult,
@@ -43,11 +53,11 @@ export type {
   UpdateManyParams, UpdateManyResult,
   DeleteParams, DeleteResult,
   DeleteManyParams, DeleteManyResult,
-  CustomParams, CustomResult,
   Pagination, Sort, Filter, Identity,
   ResourceDefinition, FieldDefinition,
   AuthActionResult, CheckResult,
 } from './types';
+export type { InvalidateScope } from './hooks.svelte';
 export type { LiveProvider, LiveEvent, LiveMode } from './live';
 export type { Action, AccessControlResult, AccessControlFn } from './permissions';
 export type { AuditEntry, AuditHandler } from './audit';
@@ -60,6 +70,7 @@ export {
   useOnError, usePermissions,
 } from './auth-hooks.svelte';
 export { useParsed } from './useParsed';
+export * from './useStepsForm.svelte';
 export { createHashRouterProvider, createHistoryRouterProvider } from './router-provider';
 export type { RouterProvider } from './router-provider';
 export { inferFieldType, inferResource } from './inferencer';

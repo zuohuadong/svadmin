@@ -42,14 +42,22 @@ export function getDataProviderNames(): string[] {
   return providers ? Object.keys(providers) : [];
 }
 
-export function getDataProviderForResource(resourceName: string): DataProvider {
+export function getDataProviderForResource(resourceName: string, overrideName?: string): DataProvider {
+  if (overrideName) {
+    try {
+      return getDataProvider(overrideName);
+    } catch {
+      // ignore
+    }
+  }
   try {
     const resource = getResource(resourceName);
     const dpName = resource.meta?.dataProviderName as string | undefined;
-    return getDataProvider(dpName);
+    if (dpName) return getDataProvider(dpName);
   } catch {
-    return getDataProvider();
+    // ignore
   }
+  return getDataProvider();
 }
 
 function isDataProvider(value: unknown): value is DataProvider {
