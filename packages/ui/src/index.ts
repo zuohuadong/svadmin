@@ -26,6 +26,9 @@ export { default as UndoableNotification } from './components/UndoableNotificati
 export { default as ModalForm } from './components/ModalForm.svelte';
 export { default as DrawerForm } from './components/DrawerForm.svelte';
 export { default as DevTools } from './components/DevTools.svelte';
+export { default as Authenticated } from './components/Authenticated.svelte';
+export { default as UpdatePasswordPage } from './components/UpdatePasswordPage.svelte';
+export { default as ConfigErrorScreen } from './components/ConfigErrorScreen.svelte';
 
 // Base UI components (shadcn-svelte)
 export { Button, buttonVariants } from './components/ui/button/index.js';

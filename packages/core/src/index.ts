@@ -49,3 +49,9 @@ export type { Action, AccessControlResult, AccessControlFn } from './permissions
 export type { AuditEntry, AuditHandler } from './audit';
 export { useCan } from './useCan';
 export { useExport, useImport } from './data-transfer';
+export {
+  useLogin, useLogout,
+  useRegister, useForgotPassword, useUpdatePassword,
+  useGetIdentity, useIsAuthenticated,
+} from './auth-hooks.svelte';
+export { useParsed } from './useParsed';

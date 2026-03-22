@@ -9,6 +9,7 @@ const ROUTES = [
   '/login',
   '/register',
   '/forgot-password',
+  '/update-password',
   '/',
   '/:resource',
   '/:resource/create',

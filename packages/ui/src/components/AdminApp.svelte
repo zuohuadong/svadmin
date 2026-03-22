@@ -12,6 +12,8 @@
   import LoginPage from './LoginPage.svelte';
   import RegisterPage from './RegisterPage.svelte';
   import ForgotPasswordPage from './ForgotPasswordPage.svelte';
+  import UpdatePasswordPage from './UpdatePasswordPage.svelte';
+  import ConfigErrorScreen from './ConfigErrorScreen.svelte';
   import DevTools from './DevTools.svelte';
   import { initRouter, getRoute, getParams } from '../router-state.svelte.js';
 
@@ -66,7 +68,7 @@
     authProvider.check().then(result => {
       isAuthenticated = result.authenticated;
       authChecked = true;
-      if (!result.authenticated && route !== '/login' && route !== '/register' && route !== '/forgot-password') {
+      if (!result.authenticated && route !== '/login' && route !== '/register' && route !== '/forgot-password' && route !== '/update-password') {
         navigate(result.redirectTo ?? '/login');
       }
     });
@@ -86,13 +88,10 @@
     <RegisterPage {authProvider} {title} />
   {:else if route === '/forgot-password' && authProvider?.forgotPassword}
     <ForgotPasswordPage {authProvider} {title} />
-  {:else if route === '/login' || route === '/register' || route === '/forgot-password'}
-    <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div class="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl text-center">
-        <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">{title}</h1>
-        <p class="mt-2 text-sm text-gray-500">Please configure an authProvider.</p>
-      </div>
-    </div>
+  {:else if route === '/update-password' && authProvider?.updatePassword}
+    <UpdatePasswordPage {authProvider} {title} />
+  {:else if route === '/login' || route === '/register' || route === '/forgot-password' || route === '/update-password'}
+    <ConfigErrorScreen title="{title} — Configuration Required" />
   {:else if isAuthenticated || !authProvider}
     <Layout {title}>
       {#if route === '/'}
