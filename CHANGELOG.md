@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.5] - 2026-03-22
+
+### Added
+
+- **Router Provider Integration**: `AdminApp` accepts `routerProvider` prop (defaults to `createHashRouterProvider()`), router-state uses RouterProvider for URL parsing, popstate listener for history routing
+- **autoSave for `useForm`**: `autoSave: { enabled, debounce?, onFinish? }` option with reactive `autoSaveStatus` ('idle'|'saving'|'saved'|'error') and `triggerAutoSave(values)` method
+- **CloneButton**: Navigate to create page with prefilled data via `clone_id` query param
+- **`clone()` in `useNavigation()`**: Route to `/:resource/create?clone_id=:id`
+- **i18n keys**: `common.clone`, `common.autoSaving`, `common.autoSaved` in zh-CN and en
+
+### Changed
+
+- `router-state.svelte.ts` now accepts optional `RouterProvider` and listens to both `hashchange` and `popstate` events
+- `context.ts` now supports `setRouterProvider` / `getRouterProvider`
+
 ## [0.0.4] - 2026-03-22
 
 ### Added

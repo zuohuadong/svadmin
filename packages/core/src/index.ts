@@ -4,6 +4,7 @@ export {
   setDataProvider, getDataProvider,
   setAuthProvider, getAuthProvider,
   setResources, getResources, getResource,
+  setRouterProvider, getRouterProvider,
 } from './context';
 export {
   useList, useInfiniteList,

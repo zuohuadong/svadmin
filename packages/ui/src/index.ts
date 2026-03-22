@@ -33,7 +33,7 @@ export { default as ConfigErrorScreen } from './components/ConfigErrorScreen.sve
 // CRUD Buttons
 export {
   CreateButton, EditButton, DeleteButton, ShowButton, ListButton,
-  RefreshButton, ExportButton, ImportButton, SaveButton,
+  RefreshButton, ExportButton, ImportButton, SaveButton, CloneButton,
 } from './components/buttons/index.js';
 
 // Base UI components (shadcn-svelte)

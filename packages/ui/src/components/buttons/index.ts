@@ -7,3 +7,4 @@ export { default as RefreshButton } from './RefreshButton.svelte';
 export { default as ExportButton } from './ExportButton.svelte';
 export { default as ImportButton } from './ImportButton.svelte';
 export { default as SaveButton } from './SaveButton.svelte';
+export { default as CloneButton } from './CloneButton.svelte';

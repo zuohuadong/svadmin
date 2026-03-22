@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode } from '@svadmin/core';
-  import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme, getAuthProvider } from '@svadmin/core';
+  import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode, RouterProvider } from '@svadmin/core';
+  import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme, setRouterProvider, getAuthProvider, createHashRouterProvider } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
   import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
   import Layout from './Layout.svelte';
@@ -20,6 +20,7 @@
   interface Props {
     dataProvider: DataProvider;
     authProvider?: AuthProvider;
+    routerProvider?: RouterProvider;
     resources: ResourceDefinition[];
     locale?: string;
     title?: string;
@@ -31,6 +32,7 @@
   let {
     dataProvider,
     authProvider,
+    routerProvider,
     resources,
     locale,
     title = 'Admin',
@@ -39,10 +41,14 @@
     loginPage,
   }: Props = $props();
 
+  // Resolve router provider (default to hash)
+  const resolvedRouter = routerProvider ?? createHashRouterProvider();
+
   // Set up context
   setDataProvider(dataProvider);
   if (authProvider) setAuthProvider(authProvider);
   setResources(resources);
+  setRouterProvider(resolvedRouter);
   if (locale) setLocale(locale);
   if (defaultTheme) setTheme(defaultTheme);
 
@@ -52,8 +58,8 @@
     },
   });
 
-  // Initialize hash router
-  initRouter();
+  // Initialize router with provider
+  initRouter(resolvedRouter);
 
   // Reactive getters for route state
   const route = $derived(getRoute());

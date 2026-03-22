@@ -2,10 +2,12 @@
 
 import { getContext, setContext } from 'svelte';
 import type { DataProvider, AuthProvider, ResourceDefinition } from './types';
+import type { RouterProvider } from './router-provider';
 
 const DATA_PROVIDER_KEY = Symbol('data-provider');
 const AUTH_PROVIDER_KEY = Symbol('auth-provider');
 const RESOURCES_KEY = Symbol('resources');
+const ROUTER_PROVIDER_KEY = Symbol('router-provider');
 
 // ─── Setters (called once in App.svelte) ────────────────────────
 
@@ -46,4 +48,14 @@ export function getResource(name: string): ResourceDefinition {
   const resource = resources.find(r => r.name === name);
   if (!resource) throw new Error(`Resource "${name}" not found in resource definitions.`);
   return resource;
+}
+
+// ─── Router Provider ────────────────────────────────────────────
+
+export function setRouterProvider(provider: RouterProvider): void {
+  setContext(ROUTER_PROVIDER_KEY, provider);
+}
+
+export function getRouterProvider(): RouterProvider | undefined {
+  return getContext<RouterProvider>(ROUTER_PROVIDER_KEY);
 }

@@ -190,6 +190,7 @@ export function useNavigation() {
     create: (resource: string) => navigate(`/${resource}/create`),
     edit: (resource: string, id: string | number) => navigate(`/${resource}/edit/${id}`),
     show: (resource: string, id: string | number) => navigate(`/${resource}/show/${id}`),
+    clone: (resource: string, id: string | number) => navigate(`/${resource}/create?clone_id=${id}`),
     goBack: () => history.back(),
     push: (path: string) => navigate(path),
   };
@@ -393,12 +394,17 @@ interface UseFormOptions {
   onMutationError?: (error: Error) => void;
   meta?: Record<string, unknown>;
   validate?: (values: Record<string, unknown>) => Record<string, string> | null;
+  autoSave?: {
+    enabled: boolean;
+    debounce?: number; // ms, default 1000
+    onFinish?: (values: Record<string, unknown>) => Record<string, unknown>; // transform before save
+  };
 }
 
 export function useForm<T = Record<string, unknown>>(options: UseFormOptions) {
   const provider = getDataProvider();
   const queryClient = useQueryClient();
-  const { resource, action, id, redirect = 'list', onMutationSuccess, onMutationError, meta, validate } = options;
+  const { resource, action, id, redirect = 'list', onMutationSuccess, onMutationError, meta, validate, autoSave } = options;
 
   // Validation state
   let errors = $state<Record<string, string>>({});
@@ -496,7 +502,7 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions) {
     }
   }
 
-  return {
+  const base = {
     query,
     get formLoading() {
       // @ts-expect-error $ rune prefix — Svelte compiler transforms this
@@ -508,6 +514,35 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions) {
     setFieldError,
     clearErrors,
     clearFieldError,
+  };
+
+  // ─── autoSave ─────────────────────────────────────────────
+  let autoSaveStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function triggerAutoSave(values: Record<string, unknown>) {
+    if (!autoSave?.enabled || action === 'create') return;
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+
+    autoSaveTimer = setTimeout(async () => {
+      const finalValues = autoSave.onFinish ? autoSave.onFinish(values) : values;
+      autoSaveStatus = 'saving';
+      try {
+        await provider.update<T>({ resource, id: id!, variables: finalValues });
+        queryClient.invalidateQueries({ queryKey: [resource] });
+        autoSaveStatus = 'saved';
+        // Reset to idle after 2s
+        setTimeout(() => { autoSaveStatus = 'idle'; }, 2000);
+      } catch {
+        autoSaveStatus = 'error';
+      }
+    }, autoSave.debounce ?? 1000);
+  }
+
+  return {
+    ...base,
+    triggerAutoSave,
+    get autoSaveStatus() { return autoSaveStatus; },
   };
 }
 
