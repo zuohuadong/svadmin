@@ -38,6 +38,18 @@ export { default as AutoSaveIndicator } from './components/AutoSaveIndicator.sve
 export { default as ErrorComponent } from './components/ErrorComponent.svelte';
 export { default as PageSkeleton } from './components/PageSkeleton.svelte';
 
+// Field display components
+export { default as NumberField } from './components/fields/NumberField.svelte';
+export { default as DateField } from './components/fields/DateField.svelte';
+export { default as EmailField } from './components/fields/EmailField.svelte';
+export { default as UrlField } from './components/fields/UrlField.svelte';
+export { default as BooleanField } from './components/fields/BooleanField.svelte';
+export { default as TagField } from './components/fields/TagField.svelte';
+export { default as FileField } from './components/fields/FileField.svelte';
+export { default as MarkdownField } from './components/fields/MarkdownField.svelte';
+export { default as TextField } from './components/fields/TextField.svelte';
+export { default as ImageField } from './components/fields/ImageField.svelte';
+
 // CRUD Buttons
 export {
   CreateButton, EditButton, DeleteButton, ShowButton, ListButton,

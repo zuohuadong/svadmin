@@ -7,8 +7,10 @@ import {
   createInfiniteQuery,
   useQueryClient,
 } from '@tanstack/svelte-query';
-import { getDataProviderForResource, getDataProvider } from './context';
-import type { GetListResult, Sort, Filter, Pagination, MutationMode, CustomParams, CustomResult } from './types';
+import { getDataProviderForResource, getDataProvider, getResources, getResource } from './context';
+import { canAccess } from './permissions';
+import { getTextTransformers } from './options';
+import type { GetListResult, Sort, Filter, Pagination, MutationMode, CustomParams, CustomResult, CrudOperator } from './types';
 import { HttpError, UndoError } from './types';
 import { toast } from './toast.svelte';
 import { audit, getAuditLogProvider } from './audit';
@@ -105,36 +107,156 @@ export function useShow<T = Record<string, unknown>>(options: UseOneOptions) {
   return useOne<T>(options);
 }
 
-// ─── useSelect ──────────────────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────────────────
 
-interface UseSelectOptions {
-  resource: string;
-  optionLabel?: string;
-  optionValue?: string;
-  filters?: Filter[];
-  sorters?: Sort[];
-  enabled?: boolean;
+/** Resolve a nested property via dot path, e.g. "nested.title" */
+function getByPath(obj: Record<string, unknown>, path: string): unknown {
+  return path.split('.').reduce<unknown>((acc, key) => (acc as Record<string, unknown>)?.[key], obj);
 }
 
-export function useSelect(options: UseSelectOptions) {
-  const {
-    resource, optionLabel = 'name', optionValue = 'id',
-    filters, sorters, enabled = true,
-  } = options;
-  const provider = getDataProviderForResource(resource);
+// ─── useSelect ──────────────────────────────────────────────────
 
-  return createQuery(() => ({
-    queryKey: [resource, 'select', { optionLabel, optionValue, filters }],
-    queryFn: async () => {
-      const result = await provider.getList({ resource, pagination: { current: 1, pageSize: 1000 }, filters, sorters });
-      return result.data.map(item => ({
-        label: String(item[optionLabel] ?? ''),
-        value: String(item[optionValue] ?? ''),
-      }));
-    },
-    enabled,
-    staleTime: 10 * 60 * 1000,
+type OptionMapper<T = Record<string, unknown>> = string | ((item: T) => string);
+
+interface UseSelectOptions<T = Record<string, unknown>> {
+  resource: string;
+  optionLabel?: OptionMapper<T>;
+  optionValue?: OptionMapper<T>;
+  searchField?: string;
+  filters?: Filter[];
+  sorters?: Sort[];
+  pagination?: Pagination;
+  enabled?: boolean;
+  defaultValue?: (string | number)[];
+  debounce?: number;
+  selectedOptionsOrder?: 'top' | 'none';
+  dataProviderName?: string;
+  meta?: Record<string, unknown>;
+  queryOptions?: { staleTime?: number; enabled?: boolean };
+  defaultValueQueryOptions?: { enabled?: boolean };
+  onSearch?: (value: string) => Filter[];
+}
+
+interface SelectOption {
+  label: string;
+  value: string;
+}
+
+export function useSelect<T = Record<string, unknown>>(options: UseSelectOptions<T>) {
+  const {
+    resource,
+    optionLabel = 'title',
+    optionValue = 'id',
+    searchField,
+    filters: staticFilters,
+    sorters,
+    pagination = { current: 1, pageSize: 50 },
+    enabled = true,
+    defaultValue,
+    debounce: debounceMs = 300,
+    selectedOptionsOrder = 'none',
+    dataProviderName,
+    meta,
+    queryOptions,
+    defaultValueQueryOptions,
+    onSearch: onSearchProp,
+  } = options;
+
+  const provider = getDataProviderForResource(resource, dataProviderName);
+
+  // Resolve label/value from an item
+  function resolveLabel(item: T): string {
+    if (typeof optionLabel === 'function') return optionLabel(item);
+    return String(getByPath(item as Record<string, unknown>, optionLabel) ?? '');
+  }
+  function resolveValue(item: T): string {
+    if (typeof optionValue === 'function') return optionValue(item);
+    return String(getByPath(item as Record<string, unknown>, optionValue) ?? '');
+  }
+
+  function toOptions(data: T[]): SelectOption[] {
+    return data.map(item => ({ label: resolveLabel(item), value: resolveValue(item) }));
+  }
+
+  // Search state
+  let searchFilters = $state<Filter[]>([]);
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function onSearch(value: string) {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      if (onSearchProp) {
+        searchFilters = onSearchProp(value);
+      } else {
+        const field = searchField ?? (typeof optionLabel === 'string' ? optionLabel : 'title');
+        searchFilters = value ? [{ field, operator: 'contains' as CrudOperator, value }] : [];
+      }
+    }, debounceMs);
+  }
+
+  // Combined filters
+  const allFilters = $derived([...(staticFilters ?? []), ...searchFilters]);
+
+  // Main query
+  const query = createQuery<GetListResult<T>>(() => ({
+    queryKey: [resource, 'select', { optionLabel: String(optionLabel), optionValue: String(optionValue), filters: allFilters, pagination }],
+    queryFn: () => provider.getList<T>({ resource, pagination, sorters, filters: allFilters, meta }),
+    enabled: (queryOptions?.enabled ?? enabled),
+    staleTime: queryOptions?.staleTime ?? 5 * 60 * 1000,
   }));
+
+  // Default value query — fetch selected records separately to ensure they appear in options
+  const defaultValueQuery = defaultValue && defaultValue.length > 0
+    ? createQuery<T[]>(() => ({
+        queryKey: [resource, 'select-default', defaultValue],
+        queryFn: async () => {
+          if (provider.getMany) {
+            const result = await provider.getMany<T>({ resource, ids: defaultValue!, meta });
+            return result.data;
+          }
+          const results = await Promise.all(defaultValue!.map(id => provider.getOne<T>({ resource, id, meta })));
+          return results.map(r => r.data);
+        },
+        enabled: defaultValueQueryOptions?.enabled ?? true,
+        staleTime: Infinity,
+      }))
+    : null;
+
+  return {
+    query,
+    defaultValueQuery,
+    onSearch,
+    /** Merged options: main query results + defaultValue results, deduplicated */
+    get options(): SelectOption[] {
+      // @ts-expect-error $ rune prefix
+      const mainData = ($query.data?.data ?? []) as T[];
+      // @ts-expect-error $ rune prefix
+      const defaultData = (defaultValueQuery ? ($defaultValueQuery?.data ?? []) : []) as T[];
+
+      const mainOptions = toOptions(mainData);
+      const defaultOptions = toOptions(defaultData);
+
+      // Deduplicate: merge default into main
+      const seenValues = new Set(mainOptions.map(o => o.value));
+      const merged = [...mainOptions];
+      for (const opt of defaultOptions) {
+        if (!seenValues.has(opt.value)) {
+          merged.push(opt);
+          seenValues.add(opt.value);
+        }
+      }
+
+      // selectedOptionsOrder: move defaultValue items to top
+      if (selectedOptionsOrder === 'top' && defaultValue && defaultValue.length > 0) {
+        const dvSet = new Set(defaultValue.map(String));
+        const selected = merged.filter(o => dvSet.has(o.value));
+        const rest = merged.filter(o => !dvSet.has(o.value));
+        return [...selected, ...rest];
+      }
+
+      return merged;
+    },
+  };
 }
 
 // ─── useMany ────────────────────────────────────────────────────
@@ -724,7 +846,9 @@ export function useDeleteMany(resource: string, opts?: UseMutationOptions) {
 }
 
 // ─── useForm ────────────────────────────────────────────────────
-// Standalone form hook (like Refine's useForm)
+// Standalone form hook — Refine v5 API compatible
+
+type OptimisticUpdater<TData = unknown> = boolean | ((previous: TData | undefined, variables: Record<string, unknown>, id?: string | number) => TData);
 
 export interface UseFormOptions {
   resource?: string;
@@ -737,20 +861,36 @@ export interface UseFormOptions {
   onMutationSuccess?: (data: unknown) => void;
   onMutationError?: (error: Error) => void;
   meta?: Record<string, unknown>;
+  queryMeta?: Record<string, unknown>;
+  mutationMeta?: Record<string, unknown>;
   disableServerSideValidation?: boolean;
   validate?: (values: Record<string, unknown>) => Record<string, string> | null;
   autoSave?: {
     enabled: boolean;
     debounce?: number;
     onFinish?: (values: Record<string, unknown>) => Record<string, unknown>;
+    invalidateOnUnmount?: boolean;
+    invalidates?: InvalidateScope[];
   };
   mutationMode?: MutationMode;
   undoableTimeout?: number;
+  invalidates?: InvalidateScope[] | false;
+  optimisticUpdateMap?: {
+    list?: OptimisticUpdater;
+    many?: OptimisticUpdater;
+    detail?: OptimisticUpdater;
+  };
+  queryOptions?: { staleTime?: number; enabled?: boolean };
+  createMutationOptions?: Record<string, unknown>;
+  updateMutationOptions?: Record<string, unknown>;
+  liveMode?: 'auto' | 'manual' | 'off';
+  onLiveEvent?: (event: unknown) => void;
+  liveParams?: Record<string, unknown>;
 }
 
 export type UseFormResult<T = Record<string, unknown>> = {
-  readonly query: any;
-  readonly mutation: any;
+  readonly query: unknown;
+  readonly mutation: unknown;
   readonly formLoading: boolean;
   readonly errors: Record<string, string>;
   setFieldError: (field: string, message: string) => void;
@@ -762,23 +902,40 @@ export type UseFormResult<T = Record<string, unknown>> = {
   readonly resource: string;
   readonly action: 'create' | 'edit' | 'clone';
   readonly id: string | number | undefined;
+  setId: (newId: string | number) => void;
   readonly mutationMode: MutationMode;
+  redirect: (to: 'list' | 'edit' | 'show' | false) => void;
 };
 
 export function useForm<T = Record<string, unknown>>(options: UseFormOptions = {}): UseFormResult<T> {
   const queryClient = useQueryClient();
 
-  // #7: Auto-derive from route when not provided
   const parsed = useParsed();
   const resource = options.resource ?? parsed.resource ?? '';
   const action = options.action ?? (parsed.action === 'list' ? 'create' : parsed.action as 'create' | 'edit' | 'clone') ?? 'create';
-  const id = options.id ?? parsed.id;
-  const { redirect = 'list', successNotification, errorNotification, onMutationSuccess, onMutationError, meta: hookMeta, disableServerSideValidation, validate, autoSave, mutationMode = 'pessimistic', undoableTimeout = 5000, dataProviderName } = options;
+  let currentId = $state<string | number | undefined>(options.id ?? parsed.id);
+  const {
+    redirect: redirectDefault = 'list',
+    successNotification, errorNotification,
+    onMutationSuccess, onMutationError,
+    meta: hookMeta, queryMeta: hookQueryMeta, mutationMeta: hookMutationMeta,
+    disableServerSideValidation, validate, autoSave,
+    mutationMode = 'pessimistic', undoableTimeout = 5000,
+    dataProviderName, invalidates: invalidateScopes,
+    optimisticUpdateMap,
+    queryOptions,
+  } = options;
   const provider = getDataProviderForResource(resource, dataProviderName);
 
-  // #8: Merge meta from URL
+  // Meta: split into query-specific and mutation-specific
   const parsedMeta = typeof window !== 'undefined' ? Object.fromEntries(new URLSearchParams(window.location.search).entries()) : {};
-  const meta = { ...parsedMeta, ...hookMeta };
+  const queryMeta = { ...parsedMeta, ...hookMeta, ...hookQueryMeta };
+  const mutationMeta = { ...parsedMeta, ...hookMeta, ...hookMutationMeta };
+
+  // setId — dynamically switch the record being edited
+  function setId(newId: string | number) {
+    currentId = newId;
+  }
 
   // Validation state
   let errors = $state<Record<string, string>>({});
@@ -809,7 +966,6 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions = {
     return true;
   }
 
-  // #5: HttpError integration — maps server validation errors to form fields
   function handleHttpError(error: Error) {
     if (error instanceof HttpError && error.errors && !disableServerSideValidation) {
       for (const [field, messages] of Object.entries(error.errors)) {
@@ -822,28 +978,31 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions = {
     }
   }
 
-  // Fetch existing data for edit/clone
-  const query = (action === 'edit' || action === 'clone') && id != null
+  // Query for edit/clone
+  const query = (action === 'edit' || action === 'clone') && currentId != null
     ? createQuery(() => ({
-        queryKey: [resource, 'one', id],
+        queryKey: [resource, 'one', currentId],
         queryFn: async () => {
-          const result = await provider.getOne<T>({ resource, id, meta });
+          const result = await provider.getOne<T>({ resource, id: currentId!, meta: queryMeta });
           return result.data;
         },
-        enabled: id != null,
+        enabled: (queryOptions?.enabled ?? true) && currentId != null,
+        staleTime: queryOptions?.staleTime,
       }))
     : null;
 
   const createMut = createMutation(() => ({
     mutationFn: (variables: Record<string, unknown>) =>
-      provider.create<T>({ resource, variables }),
+      provider.create<T>({ resource, variables, meta: mutationMeta }),
     onSuccess: (data: { data: T }) => {
-      queryClient.invalidateQueries({ queryKey: [resource] });
+      if (invalidateScopes !== false) {
+        queryClient.invalidateQueries({ queryKey: [resource] });
+      }
       if (successNotification !== false) toast.success(successNotification || t('common.createSuccess'));
       const record = data.data as Record<string, unknown>;
       audit({ action: 'create', resource, recordId: record.id as string });
       onMutationSuccess?.(data);
-      handleRedirect();
+      doRedirect(redirectOverride ?? redirectDefault);
     },
     onError: (error: Error) => {
       handleHttpError(error);
@@ -853,15 +1012,55 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions = {
 
   const updateMut = createMutation(() => ({
     mutationFn: (variables: Record<string, unknown>) =>
-      provider.update<T>({ resource, id: id!, variables }),
+      provider.update<T>({ resource, id: currentId!, variables, meta: mutationMeta }),
+    onMutate: optimisticUpdateMap ? async (variables: Record<string, unknown>) => {
+      await queryClient.cancelQueries({ queryKey: [resource] });
+      const previousDetail = queryClient.getQueryData([resource, 'one', currentId]);
+      const previousList = queryClient.getQueriesData({ queryKey: [resource, 'list'] });
+      const previousMany = queryClient.getQueriesData({ queryKey: [resource, 'many'] });
+
+      // Apply optimistic updates per map
+      const detailUpdater = optimisticUpdateMap.detail;
+      if (detailUpdater !== false) {
+        if (typeof detailUpdater === 'function') {
+          queryClient.setQueryData([resource, 'one', currentId], (old: unknown) => detailUpdater(old, variables, currentId));
+        } else {
+          queryClient.setQueryData([resource, 'one', currentId], (old: Record<string, unknown> | undefined) => old ? { ...old, ...variables } : old);
+        }
+      }
+      const listUpdater = optimisticUpdateMap.list;
+      if (listUpdater !== false) {
+        if (typeof listUpdater === 'function') {
+          queryClient.setQueriesData({ queryKey: [resource, 'list'] }, (old: unknown) => listUpdater(old, variables, currentId));
+        } else {
+          queryClient.setQueriesData({ queryKey: [resource, 'list'] }, (old: { data?: Record<string, unknown>[] } | undefined) => {
+            if (!old?.data) return old;
+            return { ...old, data: old.data.map(item => String(item.id) === String(currentId) ? { ...item, ...variables } : item) };
+          });
+        }
+      }
+
+      return { previousDetail, previousList, previousMany };
+    } : undefined,
     onSuccess: (data: { data: T }) => {
-      queryClient.invalidateQueries({ queryKey: [resource] });
+      if (invalidateScopes !== false) {
+        queryClient.invalidateQueries({ queryKey: [resource] });
+      }
       if (successNotification !== false) toast.success(successNotification || t('common.updateSuccess'));
-      audit({ action: 'update', resource, recordId: id });
+      audit({ action: 'update', resource, recordId: currentId });
       onMutationSuccess?.(data);
-      handleRedirect();
+      doRedirect(redirectOverride ?? redirectDefault);
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _variables: Record<string, unknown>, context: { previousDetail?: unknown; previousList?: [unknown, unknown][]; previousMany?: [unknown, unknown][] } | undefined) => {
+      // Rollback optimistic updates
+      if (context) {
+        if (context.previousDetail) queryClient.setQueryData([resource, 'one', currentId], context.previousDetail);
+        if (context.previousList) {
+          for (const [qk, data] of context.previousList) {
+            queryClient.setQueryData(qk as unknown[], data);
+          }
+        }
+      }
       handleHttpError(error);
       onMutationError?.(error);
     },
@@ -869,15 +1068,13 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions = {
 
   let redirectOverride: 'list' | 'edit' | 'show' | false | undefined;
 
-  function handleRedirect() {
-    const r = redirectOverride !== undefined ? redirectOverride : redirect;
-    if (r === 'list') navigate(`/${resource}`);
-    else if (r === 'edit' && id) navigate(`/${resource}/edit/${id}`);
-    else if (r === 'show' && id) navigate(`/${resource}/show/${id}`);
+  function doRedirect(to: 'list' | 'edit' | 'show' | false) {
+    if (to === 'list') navigate(`/${resource}`);
+    else if (to === 'edit' && currentId) navigate(`/${resource}/edit/${currentId}`);
+    else if (to === 'show' && currentId) navigate(`/${resource}/show/${currentId}`);
   }
 
   async function onFinish(values: Record<string, unknown>, finishOptions?: { redirect?: 'list' | 'edit' | 'show' | false }) {
-    // Run validation before submitting
     if (!runValidation(values)) {
       toast.warning(t('validation.required'));
       return;
@@ -886,27 +1083,13 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions = {
     redirectOverride = finishOptions?.redirect;
 
     if (action === 'create' || action === 'clone') {
-      // @ts-expect-error $ rune prefix — Svelte compiler transforms this
+      // @ts-expect-error $ rune prefix
       await $createMut.mutateAsync(values);
     } else {
-      // @ts-expect-error $ rune prefix — Svelte compiler transforms this
+      // @ts-expect-error $ rune prefix
       await $updateMut.mutateAsync(values);
     }
   }
-
-  const base = {
-    query,
-    get formLoading() {
-      // @ts-expect-error $ rune prefix — Svelte compiler transforms this
-      return (query ? $query?.isLoading : false) || $createMut.isPending || $updateMut.isPending;
-    },
-    mutation: action === 'edit' ? updateMut : createMut,
-    onFinish,
-    get errors() { return errors; },
-    setFieldError,
-    clearErrors,
-    clearFieldError,
-  };
 
   // ─── autoSave ─────────────────────────────────────────────
   let autoSaveStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -920,10 +1103,15 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions = {
       const finalValues = autoSave.onFinish ? autoSave.onFinish(values) : values;
       autoSaveStatus = 'saving';
       try {
-        await provider.update<T>({ resource, id: id!, variables: finalValues });
-        queryClient.invalidateQueries({ queryKey: [resource] });
+        await provider.update<T>({ resource, id: currentId!, variables: finalValues, meta: mutationMeta });
+        // Invalidate per autoSave.invalidates or default
+        const scopes = autoSave.invalidates ?? ['resourceAll'];
+        for (const scope of scopes) {
+          if (scope === 'resourceAll') queryClient.invalidateQueries({ queryKey: [resource] });
+          else if (scope === 'detail' && currentId) queryClient.invalidateQueries({ queryKey: [resource, 'one', currentId] });
+          else if (scope === 'list') queryClient.invalidateQueries({ queryKey: [resource, 'list'] });
+        }
         autoSaveStatus = 'saved';
-        // Reset to idle after 2s
         setTimeout(() => { autoSaveStatus = 'idle'; }, 2000);
       } catch {
         autoSaveStatus = 'error';
@@ -931,10 +1119,19 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions = {
     }, autoSave.debounce ?? 1000);
   }
 
+  // autoSave.invalidateOnUnmount — clean up when component unmounts
+  if (autoSave?.invalidateOnUnmount) {
+    $effect(() => {
+      return () => {
+        queryClient.invalidateQueries({ queryKey: [resource] });
+      };
+    });
+  }
+
   return {
     query,
     get formLoading() {
-      // @ts-expect-error $ rune prefix — Svelte compiler transforms this
+      // @ts-expect-error $ rune prefix
       return (query ? $query?.isLoading : false) || $createMut.isPending || $updateMut.isPending;
     },
     mutation: action === 'edit' ? updateMut : createMut,
@@ -947,88 +1144,180 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions = {
     get autoSaveStatus() { return autoSaveStatus; },
     resource,
     action,
-    id,
+    get id() { return currentId; },
+    setId,
     mutationMode,
+    redirect: doRedirect,
   };
 }
 
 // ─── useTable ───────────────────────────────────────────────────
-// Standalone table hook (like Refine's useTable)
+// Standalone table hook — Refine v5 API compatible
 
-interface UseTableOptions {
+type FilterSetMode = 'merge' | 'replace';
+
+interface UseTableOptions<T = Record<string, unknown>> {
   resource?: string;
   pagination?: Pagination;
-  sorters?: Sort[];
-  filters?: Filter[];
+  sorters?: {
+    initial?: Sort[];
+    permanent?: Sort[];
+    mode?: 'off' | 'server';
+  };
+  filters?: {
+    initial?: Filter[];
+    permanent?: Filter[];
+    mode?: 'off' | 'server';
+    defaultBehavior?: FilterSetMode;
+  };
   syncWithLocation?: boolean;
   meta?: Record<string, unknown>;
+  dataProviderName?: string;
+  queryOptions?: { staleTime?: number; enabled?: boolean };
+  liveMode?: 'auto' | 'manual' | 'off';
+  onLiveEvent?: (event: unknown) => void;
+  liveParams?: Record<string, unknown>;
+  overtimeOptions?: { interval?: number; onInterval?: (elapsed: number) => void };
+  successNotification?: string | false;
+  errorNotification?: string | false;
 }
 
-export function useTable<T = Record<string, unknown>>(options: UseTableOptions = {}) {
-  // #7: Auto-derive from route when not provided
+export function useTable<T = Record<string, unknown>>(options: UseTableOptions<T> = {}) {
   const parsed = useParsed();
   const resource = options.resource ?? parsed.resource ?? '';
-  const { meta, syncWithLocation = false } = options;
+  const { meta, syncWithLocation = false, dataProviderName } = options;
   const paginationMode = options.pagination?.mode ?? 'server';
+  const sortersMode = options.sorters?.mode ?? 'server';
+  const filtersMode = options.filters?.mode ?? 'server';
+  const filterDefaultBehavior = options.filters?.defaultBehavior ?? 'replace';
+
+  const permanentSorters = options.sorters?.permanent ?? [];
+  const permanentFilters = options.filters?.permanent ?? [];
 
   // Read initial state from URL if syncWithLocation
-  let initialPagination = options.pagination ?? { current: 1, pageSize: 10 };
-  let initialSorters = options.sorters ?? [];
-  let initialFilters = options.filters ?? [];
+  let initPagination = options.pagination ?? { current: 1, pageSize: 10 };
+  let initSorters = options.sorters?.initial ?? [];
+  let initFilters = options.filters?.initial ?? [];
 
   if (syncWithLocation) {
     const urlState = readURLState();
     if (urlState.page || urlState.pageSize) {
-      initialPagination = {
-        current: urlState.page ?? initialPagination.current,
-        pageSize: urlState.pageSize ?? initialPagination.pageSize,
+      initPagination = {
+        current: urlState.page ?? initPagination.current,
+        pageSize: urlState.pageSize ?? initPagination.pageSize,
       };
     }
     if (urlState.sortField) {
-      initialSorters = [{ field: urlState.sortField, order: urlState.sortOrder ?? 'asc' }];
+      initSorters = [{ field: urlState.sortField, order: urlState.sortOrder ?? 'asc' }];
     }
     if (urlState.filters) {
-      initialFilters = urlState.filters;
+      initFilters = urlState.filters;
     }
   }
 
-  let pagination = $state<Pagination>(initialPagination);
-  let sorters = $state<Sort[]>(initialSorters);
-  let filters = $state<Filter[]>(initialFilters);
+  let pagination = $state<Pagination>(initPagination);
+  let currentSorters = $state<Sort[]>(initSorters);
+  let currentFilters = $state<Filter[]>(initFilters);
 
-  // For client/off mode, fetch all data (no server pagination)
-  const queryPagination = paginationMode === 'server' ? pagination : { current: 1, pageSize: 999999, mode: paginationMode as 'client' | 'off' };
-  const query = useList<T>({ resource, pagination: queryPagination, sorters: paginationMode === 'server' ? sorters : [], filters, meta });
+  // Effective sorters/filters = current + permanent
+  const effectiveSorters = $derived([...currentSorters, ...permanentSorters]);
+  const effectiveFilters = $derived([...currentFilters, ...permanentFilters]);
 
-  function setSorters(newSorters: Sort[]) { sorters = newSorters; }
-  function setFilters(newFilters: Filter[]) { filters = newFilters; }
-  function setPage(page: number) { pagination = { ...pagination, current: page }; }
-  function setPageSize(size: number) { pagination = { ...pagination, pageSize: size, current: 1 }; }
+  // Build query params based on modes
+  const querySorters = $derived(sortersMode === 'server' ? effectiveSorters : []);
+  const queryFilters = $derived(filtersMode === 'server' ? effectiveFilters : []);
+  const queryPagination = paginationMode === 'server'
+    ? pagination
+    : { current: 1, pageSize: 999999, mode: paginationMode as 'client' | 'off' };
 
-  // Sync state to URL when syncWithLocation is enabled
+  const query = useList<T>({ resource, pagination: queryPagination, sorters: querySorters, filters: queryFilters, meta, dataProviderName });
+
+  function setSorters(newSorters: Sort[]) {
+    currentSorters = newSorters;
+  }
+
+  function setFilters(newFilters: Filter[], mode?: FilterSetMode) {
+    const behavior = mode ?? filterDefaultBehavior;
+    if (behavior === 'merge') {
+      // Merge: update existing by field, add new ones
+      const merged = [...currentFilters];
+      for (const nf of newFilters) {
+        const idx = merged.findIndex(f => f.field === nf.field && f.operator === nf.operator);
+        if (idx >= 0) {
+          if (nf.value === undefined || nf.value === null || nf.value === '') {
+            merged.splice(idx, 1); // Remove filter if value is empty
+          } else {
+            merged[idx] = nf;
+          }
+        } else if (nf.value !== undefined && nf.value !== null && nf.value !== '') {
+          merged.push(nf);
+        }
+      }
+      currentFilters = merged;
+    } else {
+      currentFilters = newFilters;
+    }
+    // Reset to page 1 when filters change
+    pagination = { ...pagination, current: 1 };
+  }
+
+  function setPage(page: number) {
+    pagination = { ...pagination, current: page };
+  }
+
+  function setPageSize(size: number) {
+    pagination = { ...pagination, pageSize: size, current: 1 };
+  }
+
+  // Sync state to URL
   if (syncWithLocation) {
     $effect(() => {
       writeURLState({
         page: pagination.current,
         pageSize: pagination.pageSize,
-        sortField: sorters[0]?.field,
-        sortOrder: sorters[0]?.order,
-        filters: filters,
+        sortField: effectiveSorters[0]?.field,
+        sortOrder: effectiveSorters[0]?.order,
+        filters: effectiveFilters,
       });
     });
   }
 
+  /** Generate a shareable URL string for current table state */
+  function createLinkForSyncWithLocation(): string {
+    const params = new URLSearchParams();
+    if (pagination.current) params.set('page', String(pagination.current));
+    if (pagination.pageSize) params.set('pageSize', String(pagination.pageSize));
+    if (effectiveSorters[0]) {
+      params.set('sortField', effectiveSorters[0].field);
+      params.set('sortOrder', effectiveSorters[0].order);
+    }
+    if (effectiveFilters.length > 0) {
+      params.set('filters', JSON.stringify(effectiveFilters));
+    }
+    return `?${params.toString()}`;
+  }
+
   return {
     query,
-    pagination,
-    sorters,
-    filters,
+    get pagination() { return pagination; },
+    /** Current user-changeable sorters (excludes permanent) */
+    get sorters() { return currentSorters; },
+    /** Current user-changeable filters (excludes permanent) */
+    get filters() { return currentFilters; },
     setSorters,
     setFilters,
     setPage,
     setPageSize,
+    createLinkForSyncWithLocation,
     get totalPages() {
-      // @ts-expect-error $ rune prefix — Svelte compiler transforms this
+      // @ts-expect-error $ rune prefix
+      const total = $query.data?.total ?? 0;
+      return Math.ceil(total / (pagination.pageSize ?? 10));
+    },
+    get current() { return pagination.current ?? 1; },
+    get pageSize() { return pagination.pageSize ?? 10; },
+    get pageCount() {
+      // @ts-expect-error $ rune prefix
       const total = $query.data?.total ?? 0;
       return Math.ceil(total / (pagination.pageSize ?? 10));
     },
@@ -1041,8 +1330,9 @@ export function useTable<T = Record<string, unknown>>(options: UseTableOptions =
       const end = start + (pagination.pageSize ?? 10);
       // Apply client-side sorting
       let sorted = [...allData];
-      if (sorters.length > 0) {
-        const { field, order } = sorters[0];
+      const activeSorters = sortersMode === 'off' ? effectiveSorters : currentSorters;
+      if (activeSorters.length > 0) {
+        const { field, order } = activeSorters[0];
         sorted.sort((a, b) => {
           const va = (a as Record<string, unknown>)[field];
           const vb = (b as Record<string, unknown>)[field];
@@ -1171,5 +1461,122 @@ export function useOvertime(isLoading: boolean, options: UseOvertimeOptions = {}
 
   return {
     get elapsedTime() { return elapsedTime; },
+  };
+}
+
+// ─── useNotification ────────────────────────────────────────────
+
+export function useNotification() {
+  return {
+    open: (params: { type: 'success' | 'error' | 'warning' | 'info'; message: string; description?: string; key?: string }) => {
+      const fn = params.type === 'error' ? toast.error
+        : params.type === 'warning' ? toast.warning
+        : params.type === 'info' ? toast.info
+        : toast.success;
+      fn(params.message);
+    },
+    close: (_key: string) => {
+      // toast system auto-dismisses; no-op for compatibility
+    },
+  };
+}
+
+// ─── useDataProvider ────────────────────────────────────────────
+
+export function useDataProvider(name?: string) {
+  return getDataProvider(name);
+}
+
+// ─── useMenu ────────────────────────────────────────────────────
+
+
+
+interface MenuItem {
+  name: string;
+  label: string;
+  icon?: string;
+  route: string;
+  identifier?: string;
+}
+
+export function useMenu(): { menuItems: MenuItem[]; selectedKey: string } {
+  const resources = getResources();
+  const parsed = useParsed();
+
+  const menuItems: MenuItem[] = resources
+    .filter(r => {
+      try {
+        return canAccess(r.name, 'list').can;
+      } catch {
+        return true; // No access control configured, show all
+      }
+    })
+    .map(r => ({
+      name: r.name,
+      label: r.label,
+      icon: r.icon,
+      route: `/${r.name}`,
+      identifier: r.identifier,
+    }));
+
+  return {
+    menuItems,
+    get selectedKey() { return parsed.resource ?? ''; },
+  };
+}
+
+// ─── useBreadcrumb ──────────────────────────────────────────────
+
+
+
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
+  icon?: string;
+}
+
+export function useBreadcrumb(): { breadcrumbs: BreadcrumbItem[] } {
+  const parsed = useParsed();
+  const { humanize } = getTextTransformers();
+
+  const breadcrumbs: BreadcrumbItem[] = [];
+
+  if (parsed.resource) {
+    try {
+      const resource = getResource(parsed.resource);
+      breadcrumbs.push({
+        label: resource.label || humanize(resource.name),
+        href: `/${resource.name}`,
+        icon: resource.icon,
+      });
+    } catch {
+      breadcrumbs.push({ label: humanize(parsed.resource), href: `/${parsed.resource}` });
+    }
+
+    if (parsed.action && parsed.action !== 'list') {
+      breadcrumbs.push({ label: humanize(parsed.action) });
+    }
+  }
+
+  return { breadcrumbs };
+}
+
+// ─── useThemedLayoutContext ─────────────────────────────────────
+
+export function useThemedLayoutContext() {
+  let sidebarCollapsed = $state(false);
+
+  function setSidebarCollapsed(collapsed: boolean) {
+    sidebarCollapsed = collapsed;
+  }
+
+  function toggleSidebar() {
+    sidebarCollapsed = !sidebarCollapsed;
+  }
+
+  return {
+    get sidebarCollapsed() { return sidebarCollapsed; },
+    setSidebarCollapsed,
+    toggleSidebar,
   };
 }

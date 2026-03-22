@@ -236,6 +236,8 @@ export type MutationMode = 'pessimistic' | 'optimistic' | 'undoable';
 
 export interface ResourceDefinition {
   name: string;
+  /** Unique identifier — use when multiple resources share the same `name` but target different DataProviders */
+  identifier?: string;
   label: string;
   icon?: string;
   primaryKey?: string;
@@ -246,7 +248,7 @@ export interface ResourceDefinition {
   canEdit?: boolean;
   canDelete?: boolean;
   canShow?: boolean;
-  meta?: Record<string, unknown> & { dataProviderName?: string };
+  meta?: Record<string, unknown> & { dataProviderName?: string; parent?: string };
 }
 
 export interface FieldDefinition {

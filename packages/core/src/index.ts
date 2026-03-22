@@ -22,6 +22,8 @@ export {
   useLog, useLogList,
   useModalForm, useDrawerForm,
   useOvertime, useRelation,
+  useNotification, useDataProvider,
+  useMenu, useBreadcrumb, useThemedLayoutContext,
 } from './hooks.svelte';
 export { matchRoute, navigate, currentPath, setActiveRouterProvider } from './router';
 export { readURLState, writeURLState } from './url-sync';
@@ -35,8 +37,8 @@ export type { AuditLogProvider } from './audit';
 export { getTheme, setTheme, toggleTheme, getResolvedTheme, getColorTheme, setColorTheme, colorThemes } from './theme.svelte';
 export type { ThemeMode, ColorTheme } from './theme.svelte';
 export { setUnsavedChanges, getUnsavedChanges, initUnsavedChangesNotifier } from './unsaved-changes.svelte';
-export { setAdminOptions, getAdminOptions } from './options';
-export type { AdminOptions } from './options';
+export { setAdminOptions, getAdminOptions, getTextTransformers } from './options';
+export type { AdminOptions, TextTransformers, OvertimeConfig } from './options';
 
 export * from './query-keys';
 export { HttpError } from './types';

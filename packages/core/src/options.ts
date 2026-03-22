@@ -7,6 +7,18 @@ import type { InvalidateScope } from './hooks.svelte';
 
 const OPTIONS_KEY = Symbol('admin-options');
 
+export interface TextTransformers {
+  humanize: (text: string) => string;
+  plural: (text: string) => string;
+  singular: (text: string) => string;
+}
+
+export interface OvertimeConfig {
+  enabled?: boolean;
+  interval?: number;
+  onInterval?: (elapsedInterval: number, context?: { resource?: string; action?: string; id?: string | number }) => void;
+}
+
 export interface AdminOptions {
   mutationMode?: MutationMode;
   warnWhenUnsavedChanges?: boolean;
@@ -14,7 +26,33 @@ export interface AdminOptions {
   liveMode?: 'auto' | 'manual' | 'off';
   disableServerSideValidation?: boolean;
   undoableTimeout?: number;
+  // v0.2.26 additions
+  textTransformers?: Partial<TextTransformers>;
+  redirect?: {
+    afterCreate?: 'list' | 'edit' | 'show' | false;
+    afterEdit?: 'list' | 'edit' | 'show' | false;
+    afterClone?: 'list' | 'edit' | 'show' | false;
+  };
+  reactQuery?: {
+    staleTime?: number;
+    cacheTime?: number;
+    refetchOnWindowFocus?: boolean;
+  };
+  title?: {
+    text?: string;
+    icon?: string;
+  };
+  overtime?: OvertimeConfig;
+  breadcrumb?: false | 'default';
+  disableRouteChangeHandler?: boolean;
+  onLiveEvent?: (event: unknown) => void;
 }
+
+const defaultTextTransformers: TextTransformers = {
+  humanize: (text: string) => text.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+  plural: (text: string) => text.endsWith('s') ? text : text + 's',
+  singular: (text: string) => text.endsWith('s') ? text.slice(0, -1) : text,
+};
 
 const defaultOptions: AdminOptions = {
   mutationMode: 'pessimistic',
@@ -23,10 +61,19 @@ const defaultOptions: AdminOptions = {
   liveMode: 'auto',
   disableServerSideValidation: false,
   undoableTimeout: 5000,
+  textTransformers: defaultTextTransformers,
+  redirect: { afterCreate: 'list', afterEdit: 'list', afterClone: 'list' },
+  breadcrumb: 'default',
+  disableRouteChangeHandler: false,
 };
 
 export function setAdminOptions(options: AdminOptions): void {
-  setContext(OPTIONS_KEY, { ...defaultOptions, ...options });
+  const merged = {
+    ...defaultOptions,
+    ...options,
+    textTransformers: { ...defaultTextTransformers, ...options.textTransformers },
+  };
+  setContext(OPTIONS_KEY, merged);
 }
 
 export function getAdminOptions(): AdminOptions {
@@ -37,3 +84,10 @@ export function getAdminOptions(): AdminOptions {
     return defaultOptions;
   }
 }
+
+/** Get the resolved text transformers (always returns full set) */
+export function getTextTransformers(): TextTransformers {
+  const opts = getAdminOptions();
+  return { ...defaultTextTransformers, ...opts.textTransformers };
+}
+

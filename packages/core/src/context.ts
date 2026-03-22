@@ -93,10 +93,10 @@ export function getResources(): ResourceDefinition[] {
   return resources;
 }
 
-export function getResource(name: string): ResourceDefinition {
+export function getResource(nameOrIdentifier: string): ResourceDefinition {
   const resources = getResources();
-  const resource = resources.find(r => r.name === name);
-  if (!resource) throw new Error(`Resource "${name}" not found in resource definitions.`);
+  const resource = resources.find(r => r.identifier === nameOrIdentifier || r.name === nameOrIdentifier);
+  if (!resource) throw new Error(`Resource "${nameOrIdentifier}" not found in resource definitions.`);
   return resource;
 }
 
