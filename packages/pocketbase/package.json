@@ -1,0 +1,17 @@
+{
+  "name": "@svadmin/pocketbase",
+  "version": "0.0.1",
+  "description": "PocketBase DataProvider for svadmin",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "keywords": ["svadmin", "pocketbase", "data-provider"],
+  "license": "MIT",
+  "peerDependencies": {
+    "pocketbase": ">=0.21.0"
+  },
+  "devDependencies": {
+    "pocketbase": "^0.25.0",
+    "typescript": "^5.8.0"
+  }
+}
