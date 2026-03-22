@@ -31,6 +31,9 @@ export { default as UpdatePasswordPage } from './components/UpdatePasswordPage.s
 export { default as ConfigErrorScreen } from './components/ConfigErrorScreen.svelte';
 export { default as InferencerPanel } from './components/InferencerPanel.svelte';
 export { default as LiveIndicator } from './components/LiveIndicator.svelte';
+export { default as ListPage } from './components/ListPage.svelte';
+export { default as CreatePage } from './components/CreatePage.svelte';
+export { default as EditPage } from './components/EditPage.svelte';
 
 // CRUD Buttons
 export {

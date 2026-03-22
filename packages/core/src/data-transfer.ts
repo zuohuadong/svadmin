@@ -1,6 +1,6 @@
 // Data transfer utilities — CSV export/import
 
-import { getDataProvider } from './context';
+import { getDataProviderForResource } from './context';
 import type { GetListResult } from './types';
 
 /**
@@ -10,7 +10,7 @@ export function useExport(resource: string) {
   let isExporting = $state(false);
 
   async function exportCSV(opts?: { filename?: string; fields?: string[] }) {
-    const provider = getDataProvider();
+    const provider = getDataProviderForResource(resource);
     isExporting = true;
 
     try {
@@ -65,7 +65,7 @@ export function useImport(resource: string) {
   let importResult = $state<{ success: number; failed: number } | null>(null);
 
   async function importCSV(file: File): Promise<{ success: number; failed: number }> {
-    const provider = getDataProvider();
+    const provider = getDataProviderForResource(resource);
     isImporting = true;
     let success = 0;
     let failed = 0;

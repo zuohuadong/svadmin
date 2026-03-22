@@ -7,13 +7,15 @@ import {
   createInfiniteQuery,
   useQueryClient,
 } from '@tanstack/svelte-query';
-import { getDataProvider } from './context';
+import { getDataProviderForResource, getDataProvider } from './context';
 import type { GetListResult, Sort, Filter, Pagination, MutationMode } from './types';
+import { HttpError } from './types';
 import { toast } from './toast.svelte';
 import { audit } from './audit';
 import { navigate } from './router';
 import { t } from './i18n.svelte';
 import { readURLState, writeURLState } from './url-sync';
+import { useParsed } from './useParsed';
 
 // ─── useList ────────────────────────────────────────────────────
 
@@ -27,8 +29,8 @@ interface UseListOptions {
 }
 
 export function useList<T = Record<string, unknown>>(options: UseListOptions) {
-  const provider = getDataProvider();
   const { resource, pagination, sorters, filters, meta, enabled = true } = options;
+  const provider = getDataProviderForResource(resource);
 
   return createQuery<GetListResult<T>>(() => ({
     queryKey: [resource, 'list', { pagination, sorters, filters }],
@@ -49,8 +51,8 @@ interface UseInfiniteListOptions {
 }
 
 export function useInfiniteList<T = Record<string, unknown>>(options: UseInfiniteListOptions) {
-  const provider = getDataProvider();
   const { resource, pageSize = 10, sorters, filters, meta, enabled = true } = options;
+  const provider = getDataProviderForResource(resource);
 
   return createInfiniteQuery<GetListResult<T>>(() => ({
     queryKey: [resource, 'infinite', { sorters, filters }],
@@ -81,8 +83,8 @@ interface UseOneOptions {
 }
 
 export function useOne<T = Record<string, unknown>>(options: UseOneOptions) {
-  const provider = getDataProvider();
   const { resource, id, meta, enabled = true } = options;
+  const provider = getDataProviderForResource(resource);
 
   return createQuery(() => ({
     queryKey: [resource, 'one', id],
@@ -112,11 +114,11 @@ interface UseSelectOptions {
 }
 
 export function useSelect(options: UseSelectOptions) {
-  const provider = getDataProvider();
   const {
     resource, optionLabel = 'name', optionValue = 'id',
     filters, sorters, enabled = true,
   } = options;
+  const provider = getDataProviderForResource(resource);
 
   return createQuery(() => ({
     queryKey: [resource, 'select', { optionLabel, optionValue, filters }],
@@ -142,8 +144,8 @@ interface UseManyOptions {
 }
 
 export function useMany<T = Record<string, unknown>>(options: UseManyOptions) {
-  const provider = getDataProvider();
   const { resource, ids, meta, enabled = true } = options;
+  const provider = getDataProviderForResource(resource);
 
   return createQuery(() => ({
     queryKey: [resource, 'many', ids],
@@ -177,8 +179,8 @@ export function useCustom<T = unknown>(options: UseCustomQueryOptions<T>) {
 
 // ─── useApiUrl ──────────────────────────────────────────────────
 
-export function useApiUrl(): string {
-  const provider = getDataProvider();
+export function useApiUrl(dataProviderName?: string): string {
+  const provider = dataProviderName ? getDataProvider(dataProviderName) : getDataProvider();
   return provider.getApiUrl();
 }
 
@@ -211,7 +213,7 @@ interface UseMutationOptions {
 // ─── useCreate ──────────────────────────────────────────────────
 
 export function useCreate<T = Record<string, unknown>>(resource: string, opts?: UseMutationOptions) {
-  const provider = getDataProvider();
+  const provider = getDataProviderForResource(resource);
   const queryClient = useQueryClient();
   const { showToast = true, auditLog = true, mutationMode = 'pessimistic' } = opts ?? {};
 
@@ -245,7 +247,7 @@ export function useCreate<T = Record<string, unknown>>(resource: string, opts?: 
 // ─── useCreateMany ──────────────────────────────────────────────
 
 export function useCreateMany<T = Record<string, unknown>>(resource: string, opts?: UseMutationOptions) {
-  const provider = getDataProvider();
+  const provider = getDataProviderForResource(resource);
   const queryClient = useQueryClient();
   const { showToast = true, auditLog = true } = opts ?? {};
 
@@ -276,7 +278,7 @@ interface UpdateVariables {
 }
 
 export function useUpdate<T = Record<string, unknown>>(resource: string, opts?: UseMutationOptions) {
-  const provider = getDataProvider();
+  const provider = getDataProviderForResource(resource);
   const queryClient = useQueryClient();
   const { showToast = true, auditLog = true, mutationMode = 'pessimistic' } = opts ?? {};
 
@@ -304,7 +306,7 @@ export function useUpdate<T = Record<string, unknown>>(resource: string, opts?: 
 // ─── useUpdateMany ──────────────────────────────────────────────
 
 export function useUpdateMany<T = Record<string, unknown>>(resource: string, opts?: UseMutationOptions) {
-  const provider = getDataProvider();
+  const provider = getDataProviderForResource(resource);
   const queryClient = useQueryClient();
   const { showToast = true, auditLog = true } = opts ?? {};
 
@@ -330,7 +332,7 @@ export function useUpdateMany<T = Record<string, unknown>>(resource: string, opt
 // ─── useDelete ──────────────────────────────────────────────────
 
 export function useDelete(resource: string, opts?: UseMutationOptions) {
-  const provider = getDataProvider();
+  const provider = getDataProviderForResource(resource);
   const queryClient = useQueryClient();
   const { showToast = true, auditLog = true, mutationMode = 'pessimistic' } = opts ?? {};
 
@@ -358,7 +360,7 @@ export function useDelete(resource: string, opts?: UseMutationOptions) {
 // ─── useDeleteMany ──────────────────────────────────────────────
 
 export function useDeleteMany(resource: string, opts?: UseMutationOptions) {
-  const provider = getDataProvider();
+  const provider = getDataProviderForResource(resource);
   const queryClient = useQueryClient();
   const { showToast = true, auditLog = true } = opts ?? {};
 
@@ -385,26 +387,33 @@ export function useDeleteMany(resource: string, opts?: UseMutationOptions) {
 // Standalone form hook (like Refine's useForm)
 
 interface UseFormOptions {
-  resource: string;
-  action: 'create' | 'edit' | 'clone';
+  resource?: string;
+  action?: 'create' | 'edit' | 'clone';
   id?: string | number;
   redirect?: 'list' | 'edit' | 'show' | false;
   mutationMode?: MutationMode;
+  undoableTimeout?: number;
   onMutationSuccess?: (data: unknown) => void;
   onMutationError?: (error: Error) => void;
   meta?: Record<string, unknown>;
   validate?: (values: Record<string, unknown>) => Record<string, string> | null;
   autoSave?: {
     enabled: boolean;
-    debounce?: number; // ms, default 1000
-    onFinish?: (values: Record<string, unknown>) => Record<string, unknown>; // transform before save
+    debounce?: number;
+    onFinish?: (values: Record<string, unknown>) => Record<string, unknown>;
   };
 }
 
-export function useForm<T = Record<string, unknown>>(options: UseFormOptions) {
-  const provider = getDataProvider();
+export function useForm<T = Record<string, unknown>>(options: UseFormOptions = {}) {
   const queryClient = useQueryClient();
-  const { resource, action, id, redirect = 'list', onMutationSuccess, onMutationError, meta, validate, autoSave } = options;
+
+  // #7: Auto-derive from route when not provided
+  const parsed = useParsed();
+  const resource = options.resource ?? parsed.resource ?? '';
+  const action = options.action ?? (parsed.action === 'list' ? 'create' : parsed.action as 'create' | 'edit' | 'clone') ?? 'create';
+  const id = options.id ?? parsed.id;
+  const { redirect = 'list', onMutationSuccess, onMutationError, meta, validate, autoSave, mutationMode = 'pessimistic', undoableTimeout = 5000 } = options;
+  const provider = getDataProviderForResource(resource);
 
   // Validation state
   let errors = $state<Record<string, string>>({});
@@ -435,6 +444,19 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions) {
     return true;
   }
 
+  // #5: HttpError integration — maps server validation errors to form fields
+  function handleHttpError(error: Error) {
+    if (error instanceof HttpError && error.errors) {
+      for (const [field, messages] of Object.entries(error.errors)) {
+        const msg = Array.isArray(messages) ? messages[0] : messages;
+        setFieldError(field, msg);
+      }
+      toast.error(error.message || t('common.operationFailed'));
+    } else {
+      toast.error(t('common.operationFailed') + ': ' + error.message);
+    }
+  }
+
   // Fetch existing data for edit/clone
   const query = (action === 'edit' || action === 'clone') && id != null
     ? createQuery(() => ({
@@ -459,7 +481,7 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions) {
       handleRedirect();
     },
     onError: (error: Error) => {
-      toast.error(t('common.operationFailed') + ': ' + error.message);
+      handleHttpError(error);
       onMutationError?.(error);
     },
   }));
@@ -475,7 +497,7 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions) {
       handleRedirect();
     },
     onError: (error: Error) => {
-      toast.error(t('common.operationFailed') + ': ' + error.message);
+      handleHttpError(error);
       onMutationError?.(error);
     },
   }));
@@ -540,9 +562,23 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions) {
   }
 
   return {
-    ...base,
+    query,
+    get formLoading() {
+      // @ts-expect-error $ rune prefix — Svelte compiler transforms this
+      return (query ? $query?.isLoading : false) || $createMut.isPending || $updateMut.isPending;
+    },
+    mutation: action === 'edit' ? updateMut : createMut,
+    onFinish,
+    get errors() { return errors; },
+    setFieldError,
+    clearErrors,
+    clearFieldError,
     triggerAutoSave,
     get autoSaveStatus() { return autoSaveStatus; },
+    resource,
+    action,
+    id,
+    mutationMode,
   };
 }
 
@@ -550,7 +586,7 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions) {
 // Standalone table hook (like Refine's useTable)
 
 interface UseTableOptions {
-  resource: string;
+  resource?: string;
   pagination?: Pagination;
   sorters?: Sort[];
   filters?: Filter[];
@@ -558,8 +594,11 @@ interface UseTableOptions {
   meta?: Record<string, unknown>;
 }
 
-export function useTable<T = Record<string, unknown>>(options: UseTableOptions) {
-  const { resource, meta, syncWithLocation = false } = options;
+export function useTable<T = Record<string, unknown>>(options: UseTableOptions = {}) {
+  // #7: Auto-derive from route when not provided
+  const parsed = useParsed();
+  const resource = options.resource ?? parsed.resource ?? '';
+  const { meta, syncWithLocation = false } = options;
 
   // Read initial state from URL if syncWithLocation
   let initialPagination = options.pagination ?? { current: 1, pageSize: 10 };

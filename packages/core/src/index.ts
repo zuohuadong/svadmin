@@ -1,11 +1,12 @@
 // Core barrel exports
 
 export {
-  setDataProvider, getDataProvider,
+  setDataProvider, getDataProvider, getDataProviderForResource, getDataProviderNames,
   setAuthProvider, getAuthProvider,
   setResources, getResources, getResource,
   setRouterProvider, getRouterProvider,
 } from './context';
+export type { DataProviderInput } from './context';
 export {
   useList, useInfiniteList,
   useOne, useShow,
@@ -18,10 +19,10 @@ export {
   useNavigation,
   useResource,
 } from './hooks.svelte';
-export { matchRoute, navigate, currentPath } from './router';
+export { matchRoute, navigate, currentPath, setActiveRouterProvider } from './router';
 export { readURLState, writeURLState } from './url-sync';
 export { setAccessControl, canAccess, canAccessAsync } from './permissions';
-export { useLive } from './live';
+export { useLive, useSubscription, usePublish } from './live';
 export { toast } from './toast.svelte';
 export { notify, closeNotification, setNotificationProvider, getNotificationProvider } from './notification.svelte';
 export { t, setLocale, getLocale, getAvailableLocales, addTranslations } from './i18n.svelte';
@@ -29,8 +30,10 @@ export { audit, setAuditHandler } from './audit';
 export { getTheme, setTheme, toggleTheme, getResolvedTheme, getColorTheme, setColorTheme, colorThemes } from './theme.svelte';
 export type { ThemeMode, ColorTheme } from './theme.svelte';
 
+export { HttpError } from './types';
 export type {
   DataProvider, AuthProvider, NotificationProvider, MutationMode,
+  ValidationErrors, CrudOperator, LogicalFilter,
   GetListParams, GetListResult,
   GetOneParams, GetOneResult,
   GetManyParams, GetManyResult,
@@ -45,7 +48,7 @@ export type {
   ResourceDefinition, FieldDefinition,
   AuthActionResult, CheckResult,
 } from './types';
-export type { LiveProvider, LiveEvent } from './live';
+export type { LiveProvider, LiveEvent, LiveMode } from './live';
 export type { Action, AccessControlResult, AccessControlFn } from './permissions';
 export type { AuditEntry, AuditHandler } from './audit';
 export { useCan } from './useCan';

@@ -1,5 +1,21 @@
 // Core type definitions — 100% Refine-compatible DataProvider + AuthProvider + Providers
 
+// ─── HttpError ─────────────────────────────────────────────────
+
+export type ValidationErrors = Record<string, string | string[]>;
+
+export class HttpError extends Error {
+  statusCode: number;
+  errors?: ValidationErrors;
+
+  constructor(message: string, statusCode: number, errors?: ValidationErrors) {
+    super(message);
+    this.name = 'HttpError';
+    this.statusCode = statusCode;
+    this.errors = errors;
+  }
+}
+
 // ─── DataProvider ─────────────────────────────────────────────
 
 export interface Pagination {
@@ -13,10 +29,23 @@ export interface Sort {
   order: 'asc' | 'desc';
 }
 
+export type CrudOperator =
+  | 'eq' | 'ne' | 'lt' | 'gt' | 'lte' | 'gte'
+  | 'contains' | 'ncontains'
+  | 'startswith' | 'endswith'
+  | 'in' | 'nin'
+  | 'null' | 'nnull'
+  | 'between' | 'nbetween';
+
 export interface Filter {
   field: string;
-  operator: 'eq' | 'ne' | 'lt' | 'gt' | 'lte' | 'gte' | 'contains' | 'in' | 'null' | 'between';
+  operator: CrudOperator;
   value: unknown;
+}
+
+export interface LogicalFilter {
+  operator: 'or' | 'and';
+  value: Filter[];
 }
 
 export interface GetListParams {
@@ -210,7 +239,7 @@ export interface ResourceDefinition {
   canEdit?: boolean;
   canDelete?: boolean;
   canShow?: boolean;
-  meta?: Record<string, unknown>;
+  meta?: Record<string, unknown> & { dataProviderName?: string };
 }
 
 export interface FieldDefinition {

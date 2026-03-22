@@ -1,5 +1,5 @@
 // Shared reactive hash router state — .svelte.ts enables $state at module level
-import { matchRoute } from '@svadmin/core/router';
+import { matchRoute, setActiveRouterProvider } from '@svadmin/core/router';
 import type { RouterProvider } from '@svadmin/core';
 
 let _route = $state('/');
@@ -20,17 +20,17 @@ const ROUTES = [
 ];
 
 function sync() {
+  let path: string;
+
   if (_provider) {
-    // Use RouterProvider for parsing
     const parsed = _provider.parse();
-    const path = parsed.pathname || '/';
-    const m = matchRoute(path.startsWith('#') ? path : `#${path}`, ROUTES);
+    path = parsed.pathname || '/';
+    const m = matchRoute(path, ROUTES);
     _route = m?.route ?? '/';
     _params = { ...(m?.params ?? {}), ...parsed.params };
   } else {
-    // Fallback: direct hash parsing
-    const hash = window.location.hash;
-    const m = matchRoute(hash, ROUTES);
+    path = window.location.hash.replace(/^#/, '') || '/';
+    const m = matchRoute(path, ROUTES);
     _route = m?.route ?? '/';
     _params = m?.params ?? {};
   }
@@ -40,6 +40,7 @@ export function initRouter(provider?: RouterProvider) {
   if (_initialized) return;
   _initialized = true;
   _provider = provider;
+  setActiveRouterProvider(provider);
   sync();
   window.addEventListener('hashchange', sync);
   window.addEventListener('popstate', sync);
