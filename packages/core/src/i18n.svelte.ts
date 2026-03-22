@@ -1,0 +1,157 @@
+// Minimal i18n — simple key-value translation
+
+type Locale = Record<string, string>;
+
+const locales: Record<string, Locale> = {
+  'zh-CN': {
+    // Common
+    'common.save': '保存',
+    'common.cancel': '取消',
+    'common.create': '新建',
+    'common.edit': '编辑',
+    'common.delete': '删除',
+    'common.search': '搜索...',
+    'common.confirm': '确定',
+    'common.loading': '加载中...',
+    'common.noData': '暂无数据',
+    'common.actions': '操作',
+    'common.total': '共 {total} 条',
+    'common.page': '{current} / {total}',
+    'common.export': '导出',
+    'common.import': '导入',
+    'common.selectAll': '全选',
+    'common.batchDelete': '批量删除 ({count})',
+    'common.unsavedChanges': '有未保存的修改，确定离开吗？',
+    'common.unsaved': '未保存',
+    'common.deleteConfirm': '确定要删除这条记录吗？此操作不可撤销。',
+    'common.batchDeleteConfirm': '确定要删除选中的 {count} 条记录吗？此操作不可撤销。',
+    'common.confirmAction': '确认操作',
+    'common.operationSuccess': '操作成功',
+    'common.operationFailed': '操作失败',
+    'common.createSuccess': '创建成功',
+    'common.updateSuccess': '更新成功',
+    'common.deleteSuccess': '删除成功',
+    'common.loginFailed': '登录失败',
+    'common.home': '首页',
+    'common.logout': '退出登录',
+    'common.toggleTheme': '切换主题',
+    'common.darkMode': '暗色模式',
+    'common.lightMode': '亮色模式',
+    'common.noData': '暂无数据',
+    'common.search': '搜索...',
+    'common.detail': '详情',
+    'common.loadFailed': '加载失败: {message}',
+    'common.pageNotFound': '页面未找到',
+    'common.error': '出错了',
+    'common.retry': '重试',
+    'common.yes': '是',
+    'common.no': '否',
+    // Field
+    'field.enterValue': '输入{label}',
+    'field.selectPlaceholder': '请选择',
+    'field.tagsPlaceholder': '输入标签后按回车...',
+    // Config errors
+    'config.missingEnvTitle': '环境配置缺失',
+    'config.missingEnvDescription': '应用无法启动，因为缺少必要的环境变量。',
+    'config.addToEnvFile': '请在 .env 文件中添加以下内容：',
+    'config.envFilePath': '文件路径: .env',
+    'config.reload': '配置完成后刷新页面',
+  },
+  'en': {
+    // Common
+    'common.save': 'Save',
+    'common.cancel': 'Cancel',
+    'common.create': 'Create',
+    'common.edit': 'Edit',
+    'common.delete': 'Delete',
+    'common.search': 'Search...',
+    'common.confirm': 'Confirm',
+    'common.loading': 'Loading...',
+    'common.noData': 'No data',
+    'common.actions': 'Actions',
+    'common.total': 'Total: {total}',
+    'common.page': '{current} / {total}',
+    'common.export': 'Export',
+    'common.import': 'Import',
+    'common.selectAll': 'Select All',
+    'common.batchDelete': 'Batch Delete ({count})',
+    'common.unsavedChanges': 'You have unsaved changes. Leave anyway?',
+    'common.unsaved': 'Unsaved',
+    'common.deleteConfirm': 'Are you sure you want to delete this record? This cannot be undone.',
+    'common.batchDeleteConfirm': 'Delete {count} selected records? This cannot be undone.',
+    'common.confirmAction': 'Confirm Action',
+    'common.operationSuccess': 'Operation successful',
+    'common.operationFailed': 'Operation failed',
+    'common.createSuccess': 'Created successfully',
+    'common.updateSuccess': 'Updated successfully',
+    'common.deleteSuccess': 'Deleted successfully',
+    'common.loginFailed': 'Login failed',
+    'common.home': 'Home',
+    'common.logout': 'Log out',
+    'common.toggleTheme': 'Toggle theme',
+    'common.darkMode': 'Dark mode',
+    'common.lightMode': 'Light mode',
+    'common.noData': 'No data',
+    'common.search': 'Search...',
+    'common.detail': 'Detail',
+    'common.loadFailed': 'Load failed: {message}',
+    'common.pageNotFound': 'Page not found',
+    'common.error': 'Something went wrong',
+    'common.retry': 'Retry',
+    'common.yes': 'Yes',
+    'common.no': 'No',
+    // Field
+    'field.enterValue': 'Enter {label}',
+    'field.selectPlaceholder': 'Select...',
+    'field.tagsPlaceholder': 'Type a tag and press Enter...',
+    // Config errors
+    'config.missingEnvTitle': 'Missing Configuration',
+    'config.missingEnvDescription': 'The app cannot start because required environment variables are missing.',
+    'config.addToEnvFile': 'Add the following to your .env file:',
+    'config.envFilePath': 'File path: .env',
+    'config.reload': 'Reload after configuration',
+  },
+};
+
+/** Detect best locale from browser language */
+function detectLocale(): string {
+  const browserLang = navigator.language || navigator.languages?.[0] || 'zh-CN';
+  // Exact match
+  if (locales[browserLang]) return browserLang;
+  // Prefix match (e.g., 'zh' → 'zh-CN', 'en-US' → 'en')
+  const prefix = browserLang.split('-')[0];
+  for (const key of Object.keys(locales)) {
+    if (key.startsWith(prefix)) return key;
+  }
+  return 'en';
+}
+
+let currentLocale = $state(detectLocale());
+
+export function setLocale(locale: string): void {
+  currentLocale = locale;
+}
+
+export function getLocale(): string {
+  return currentLocale;
+}
+
+export function getAvailableLocales(): string[] {
+  return Object.keys(locales);
+}
+
+export function t(key: string, params?: Record<string, string | number>): string {
+  const locale = locales[currentLocale] ?? locales['en'];
+  let text = locale[key] ?? key;
+
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      text = text.replace(`{${k}}`, String(v));
+    }
+  }
+  return text;
+}
+
+export function addTranslations(locale: string, translations: Record<string, string>): void {
+  locales[locale] = { ...locales[locale], ...translations };
+}

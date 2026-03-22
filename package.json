@@ -1,0 +1,45 @@
+{
+  "name": "svadmin",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Headless admin framework for Svelte 5 — bring your own backend",
+  "workspaces": [
+    "packages/*",
+    "example"
+  ],
+  "scripts": {
+    "dev": "cd example && bun run dev",
+    "build": "cd example && bun run build",
+    "check": "bun run --filter '*' typecheck",
+    "lint": "eslint .",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "keywords": [
+    "svelte",
+    "svelte5",
+    "admin",
+    "admin-panel",
+    "headless",
+    "crud",
+    "data-provider",
+    "tanstack-query",
+    "shadcn-svelte"
+  ],
+  "license": "MIT",
+  "author": "zuohuadong",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zuohuadong/svadmin.git"
+  },
+  "homepage": "https://github.com/zuohuadong/svadmin#readme",
+  "bugs": {
+    "url": "https://github.com/zuohuadong/svadmin/issues"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.1.0",
+    "eslint-plugin-svelte": "^3.16.0",
+    "svelte-check": "^4.4.5",
+    "typescript-eslint": "^8.57.1"
+  }
+}

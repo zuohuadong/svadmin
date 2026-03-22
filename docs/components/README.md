@@ -1,0 +1,50 @@
+# UI Components / UI 组件
+
+Complete reference for all `@svadmin/ui` components.
+
+`@svadmin/ui` 全部组件参考文档。
+
+---
+
+## Admin Components / 管理组件
+
+| Component | Description / 描述 | Docs |
+|-----------|-------------------|------|
+| [AdminApp](./admin-app.md) | One-stop admin entry / 一站式入口组件 | ✅ |
+| [AutoTable](./auto-table.md) | Auto-generated CRUD table / 自动 CRUD 表格 | ✅ |
+| [AutoForm](./auto-form.md) | Auto-generated create/edit form / 自动表单 | ✅ |
+| [ShowPage](./show-page.md) | Record detail page / 记录详情页 | ✅ |
+| [Layout](./layout.md) | Sidebar + content layout / 侧边栏布局 | ✅ |
+| [Header](./header.md) | Top navigation bar / 顶部导航栏 | ✅ |
+| [Sidebar](./sidebar.md) | Navigation sidebar / 导航侧边栏 | ✅ |
+| [PageHeader](./page-header.md) | Page title + breadcrumbs + actions / 页面标题 | ✅ |
+| [EmptyState](./empty-state.md) | Empty data placeholder / 空数据占位 | ✅ |
+| [StatsCard](./stats-card.md) | Dashboard statistics card / 统计卡片 | ✅ |
+| [Breadcrumbs](./breadcrumbs.md) | Navigation breadcrumbs / 面包屑导航 | ✅ |
+| [Toast](./toast.md) | Notification toasts / 通知提示 | ✅ |
+| [ConfirmDialog](./confirm-dialog.md) | Confirmation modal / 确认对话框 | ✅ |
+| [ErrorBoundary](./error-boundary.md) | Error catch boundary / 错误边界 | ✅ |
+| [FieldRenderer](./field-renderer.md) | Field value renderer / 字段值渲染器 | ✅ |
+
+## Base UI Components / 基础 UI 组件
+
+| Component | Description / 描述 |
+|-----------|-------------------|
+| Button | Clickable button / 按钮 |
+| Input | Text input / 输入框 |
+| Textarea | Multi-line input / 多行输入 |
+| Select | Dropdown select / 下拉选择 |
+| Switch | Toggle switch / 开关 |
+| Checkbox | Checkbox / 复选框 |
+| Badge | Status badge / 状态标签 |
+| Avatar | User avatar / 用户头像 |
+| Skeleton | Loading placeholder / 加载占位 |
+| Alert | Alert message / 提示消息 |
+| Card | Content card / 卡片 |
+| Dialog | Modal dialog / 对话框 |
+| Table | Data table / 数据表格 |
+| Tabs | Tab navigation / 标签页 |
+| Tooltip | Hover tooltip / 悬浮提示 |
+| DropdownMenu | Dropdown menu / 下拉菜单 |
+| Sheet | Side panel / 侧边面板 |
+| Separator | Visual divider / 分隔线 |
