@@ -60,8 +60,8 @@ interface OpenAPIRef {
   $ref: string;
 }
 
-function isRef(obj: any): obj is OpenAPIRef {
-  return obj && typeof obj.$ref === 'string';
+function isRef(obj: unknown): obj is OpenAPIRef {
+  return obj !== null && typeof obj === 'object' && '$ref' in obj && typeof (obj as OpenAPIRef).$ref === 'string';
 }
 
 // ─── Schema Resolution ───────────────────────────────────────
@@ -69,9 +69,10 @@ function isRef(obj: any): obj is OpenAPIRef {
 function resolveRef(ref: string, root: OpenAPISchema): OpenAPISchemaObject | null {
   // $ref format: "#/components/schemas/Post"
   const parts = ref.replace('#/', '').split('/');
-  let current: any = root;
+  let current: unknown = root;
   for (const part of parts) {
-    current = current?.[part];
+    if (current === null || typeof current !== 'object') return null;
+    current = (current as Record<string, unknown>)[part];
     if (!current) return null;
   }
   return current as OpenAPISchemaObject;

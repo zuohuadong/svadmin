@@ -1,5 +1,9 @@
-import type { DataProvider } from '@svadmin/core';
-import { GraphQLClient } from 'graphql-request';
+import type {
+  DataProvider, GetListParams, GetListResult, GetOneParams, GetOneResult,
+  CreateParams, CreateResult, UpdateParams, UpdateResult, DeleteParams, DeleteResult,
+  CustomParams, CustomResult,
+} from '@svadmin/core';
+import type { GraphQLClient, RequestDocument, Variables } from 'graphql-request';
 
 export interface GraphQLDataProviderOptions {
   client: GraphQLClient;
@@ -12,81 +16,74 @@ export interface GraphQLDataProviderOptions {
 export function createGraphQLDataProvider(options: GraphQLDataProviderOptions): DataProvider {
   const { client } = options;
 
+  function getQuery(meta: Record<string, unknown> | undefined, operation: string, resource: string): RequestDocument {
+    if (!meta?.query) {
+      throw new Error(`[svadmin/graphql] ${operation} requires 'meta.query' for resource '${resource}'`);
+    }
+    return meta.query as RequestDocument;
+  }
+
+  function getMetaVars(meta: Record<string, unknown> | undefined): Record<string, unknown> {
+    return (meta?.variables as Record<string, unknown>) || {};
+  }
+
   return {
     getApiUrl: () => 'graphql',
 
-    getList: async ({ resource, pagination, sorters, filters, meta }) => {
-      if (!meta?.query) {
-        throw new Error(`[svadmin/graphql] getList requires 'meta.query' providing the GraphQL query for resource '${resource}'`);
-      }
-
-      const metaVars = (meta.variables as Record<string, unknown>) || {};
-      const variables = {
-        ...metaVars,
+    async getList<T>({ resource, pagination, meta }: GetListParams): Promise<GetListResult<T>> {
+      const query = getQuery(meta, 'getList', resource);
+      const variables: Variables = {
+        ...getMetaVars(meta),
         limit: pagination?.pageSize,
-        offset: pagination && pagination.current && pagination.pageSize ? (pagination.current - 1) * pagination.pageSize : undefined,
+        offset: pagination && pagination.current && pagination.pageSize
+          ? (pagination.current - 1) * pagination.pageSize
+          : undefined,
       };
 
-      const response = await client.request<{ data: any[], total?: number }>(meta.query as any, variables);
-      
+      const response = await client.request<{ data: T[]; total?: number }>(query, variables);
       return {
-        data: response.data || [],
+        data: response.data || ([] as T[]),
         total: response.total || 0,
       };
     },
 
-    getOne: async ({ resource, id, meta }) => {
-      if (!meta?.query) {
-        throw new Error(`[svadmin/graphql] getOne requires 'meta.query' providing the GraphQL query for resource '${resource}'`);
-      }
-
-      const metaVars = (meta.variables as Record<string, unknown>) || {};
-      const variables = { id, ...metaVars };
-      const response = await client.request<{ data: any }>(meta.query as any, variables);
-
-      return {
-        data: response.data,
-      };
-    },
-
-    create: async ({ resource, variables, meta }) => {
-      if (!meta?.query) {
-        throw new Error(`[svadmin/graphql] create requires 'meta.query' providing the GraphQL mutation`);
-      }
-
-      const metaVars = (meta.variables as Record<string, unknown>) || {};
-      const response = await client.request<{ data: any }>(meta.query as any, { ...variables, ...metaVars });
+    async getOne<T>({ resource, id, meta }: GetOneParams): Promise<GetOneResult<T>> {
+      const query = getQuery(meta, 'getOne', resource);
+      const variables: Variables = { id, ...getMetaVars(meta) };
+      const response = await client.request<{ data: T }>(query, variables);
       return { data: response.data };
     },
 
-    update: async ({ resource, id, variables, meta }) => {
-      if (!meta?.query) {
-        throw new Error(`[svadmin/graphql] update requires 'meta.query' providing the GraphQL mutation`);
-      }
-
-      const metaVars = (meta.variables as Record<string, unknown>) || {};
-      const mutationVars = { id, ...variables, ...metaVars };
-      const response = await client.request<{ data: any }>(meta.query as any, mutationVars);
+    async create<T>({ resource, variables, meta }: CreateParams): Promise<CreateResult<T>> {
+      const query = getQuery(meta, 'create', resource);
+      const allVars: Variables = { ...variables, ...getMetaVars(meta) };
+      const response = await client.request<{ data: T }>(query, allVars);
       return { data: response.data };
     },
 
-    deleteOne: async ({ resource, id, meta }) => {
-      if (!meta?.query) {
-        throw new Error(`[svadmin/graphql] deleteOne requires 'meta.query' providing the GraphQL mutation`);
-      }
-
-      const metaVars = (meta.variables as Record<string, unknown>) || {};
-      const variables = { id, ...metaVars };
-      const response = await client.request<{ data: any }>(meta.query as any, variables);
+    async update<T>({ resource, id, variables, meta }: UpdateParams): Promise<UpdateResult<T>> {
+      const query = getQuery(meta, 'update', resource);
+      const allVars: Variables = { id, ...variables, ...getMetaVars(meta) };
+      const response = await client.request<{ data: T }>(query, allVars);
       return { data: response.data };
     },
 
-    custom: async ({ url, method, filters, sorters, payload, headers, meta }) => {
+    async deleteOne<T>({ resource, id, meta }: DeleteParams): Promise<DeleteResult<T>> {
+      const query = getQuery(meta, 'deleteOne', resource);
+      const allVars: Variables = { id, ...getMetaVars(meta) };
+      const response = await client.request<{ data: T }>(query, allVars);
+      return { data: response.data };
+    },
+
+    async custom<T>({ meta, payload, headers }: CustomParams): Promise<CustomResult<T>> {
       if (!meta?.query) {
-        throw new Error(`[svadmin/graphql] custom requires 'meta.query' providing the GraphQL query/mutation`);
+        throw new Error(`[svadmin/graphql] custom requires 'meta.query'`);
       }
-      const response = await client.request<any>(meta.query as any, payload as any, headers as any);
+      const query = meta.query as RequestDocument;
+      const vars = payload as Variables | undefined;
+      const reqHeaders = headers as Record<string, string> | undefined;
+      const response = await client.request<T>(query, vars, reqHeaders);
       return { data: response };
-    }
+    },
   };
 }
