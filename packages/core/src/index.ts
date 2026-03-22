@@ -22,6 +22,7 @@ export { readURLState, writeURLState } from './url-sync';
 export { setAccessControl, canAccess, canAccessAsync } from './permissions';
 export { useLive } from './live';
 export { toast } from './toast.svelte';
+export { notify, closeNotification, setNotificationProvider, getNotificationProvider } from './notification.svelte';
 export { t, setLocale, getLocale, getAvailableLocales, addTranslations } from './i18n.svelte';
 export { audit, setAuditHandler } from './audit';
 export { getTheme, setTheme, toggleTheme, getResolvedTheme, getColorTheme, setColorTheme, colorThemes } from './theme.svelte';
@@ -46,3 +47,5 @@ export type {
 export type { LiveProvider, LiveEvent } from './live';
 export type { Action, AccessControlResult, AccessControlFn } from './permissions';
 export type { AuditEntry, AuditHandler } from './audit';
+export { useCan } from './useCan';
+export { useExport, useImport } from './data-transfer';

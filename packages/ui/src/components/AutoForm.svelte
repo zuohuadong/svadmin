@@ -34,6 +34,7 @@
 
   // Form state
   let formData = $state<Record<string, unknown>>({});
+  let fieldErrors = $state<Record<string, string>>({});
   let submitting = $state(false);
   let error = $state<string | null>(null);
   let initialized = $state(false);
@@ -84,9 +85,35 @@
   const createMut = useCreate(resourceName);
   const updateMut = useUpdate(resourceName);
 
+  function validateFields(): boolean {
+    const errors: Record<string, string> = {};
+    for (const field of formFields) {
+      const value = formData[field.key];
+      // Required check
+      if (field.required) {
+        if (value === undefined || value === null || value === '') {
+          errors[field.key] = t('validation.required');
+          continue;
+        }
+      }
+      // Custom per-field validator
+      if (field.validate) {
+        const msg = field.validate(value);
+        if (msg) { errors[field.key] = msg; }
+      }
+    }
+    fieldErrors = errors;
+    return Object.keys(errors).length === 0;
+  }
+
   async function handleSubmit() {
     submitting = true;
     error = null;
+
+    if (!validateFields()) {
+      submitting = false;
+      return;
+    }
 
     try {
       const cleanData: Record<string, unknown> = {};
@@ -115,6 +142,12 @@
   function handleFieldChange(key: string, val: unknown) {
     formData[key] = val;
     isDirty = true;
+    // Clear field error when user starts typing
+    if (fieldErrors[key]) {
+      const next = { ...fieldErrors };
+      delete next[key];
+      fieldErrors = next;
+    }
   }
 
   const isLoading = $derived(mode === 'edit' && existingQuery ? existingQuery?.isLoading : false);
@@ -158,11 +191,16 @@
       <Card.Root>
         <Card.Content class="space-y-5">
           {#each formFields as field (field.key)}
-            <FieldRenderer
-              {field}
-              value={formData[field.key]}
-              onchange={(val: unknown) => handleFieldChange(field.key, val)}
-            />
+            <div class="field-wrapper" class:has-error={fieldErrors[field.key]}>
+              <FieldRenderer
+                {field}
+                value={formData[field.key]}
+                onchange={(val: unknown) => handleFieldChange(field.key, val)}
+              />
+              {#if fieldErrors[field.key]}
+                <p class="field-error">{fieldErrors[field.key]}</p>
+              {/if}
+            </div>
           {/each}
         </Card.Content>
       </Card.Root>
@@ -190,3 +228,17 @@
     </form>
   {/if}
 </div>
+
+<style>
+  .field-error {
+    color: hsl(var(--destructive));
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+  }
+
+  .field-wrapper.has-error :global(input),
+  .field-wrapper.has-error :global(textarea),
+  .field-wrapper.has-error :global(select) {
+    border-color: hsl(var(--destructive));
+  }
+</style>

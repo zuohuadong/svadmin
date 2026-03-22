@@ -9,6 +9,10 @@
   import AutoForm from './AutoForm.svelte';
   import ShowPage from './ShowPage.svelte';
   import Toast from './Toast.svelte';
+  import LoginPage from './LoginPage.svelte';
+  import RegisterPage from './RegisterPage.svelte';
+  import ForgotPasswordPage from './ForgotPasswordPage.svelte';
+  import DevTools from './DevTools.svelte';
   import { initRouter, getRoute, getParams } from '../router-state.svelte.js';
 
   interface Props {
@@ -62,7 +66,7 @@
     authProvider.check().then(result => {
       isAuthenticated = result.authenticated;
       authChecked = true;
-      if (!result.authenticated && route !== '/login') {
+      if (!result.authenticated && route !== '/login' && route !== '/register' && route !== '/forgot-password') {
         navigate(result.redirectTo ?? '/login');
       }
     });
@@ -76,11 +80,17 @@
     </div>
   {:else if route === '/login' && loginPage}
     {@render loginPage()}
-  {:else if route === '/login'}
-    <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div class="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl text-center">
-        <h1 class="text-xl font-bold text-gray-900">{title}</h1>
-        <p class="mt-2 text-sm text-gray-500">Please configure a loginPage snippet or authProvider.</p>
+  {:else if route === '/login' && authProvider}
+    <LoginPage {authProvider} {title} onSuccess={() => { isAuthenticated = true; navigate('/'); }} />
+  {:else if route === '/register' && authProvider?.register}
+    <RegisterPage {authProvider} {title} />
+  {:else if route === '/forgot-password' && authProvider?.forgotPassword}
+    <ForgotPasswordPage {authProvider} {title} />
+  {:else if route === '/login' || route === '/register' || route === '/forgot-password'}
+    <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <div class="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl text-center">
+        <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">{title}</h1>
+        <p class="mt-2 text-sm text-gray-500">Please configure an authProvider.</p>
       </div>
     </div>
   {:else if isAuthenticated || !authProvider}
@@ -118,4 +128,5 @@
     </div>
   {/if}
   <Toast />
+  <DevTools />
 </QueryClientProvider>

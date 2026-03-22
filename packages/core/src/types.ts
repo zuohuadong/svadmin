@@ -233,4 +233,6 @@ export interface FieldDefinition {
   resource?: string;       // related resource name
   optionLabel?: string;    // field to use as label
   optionValue?: string;    // field to use as value
+  // Validation
+  validate?: (value: unknown) => string | null;
 }

@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.3] - 2026-03-22
+
+### Added
+
+- **Auth Pages**: `LoginPage`, `RegisterPage`, `ForgotPasswordPage` with glassmorphism design
+- **Form Validation**: per-field error display in `AutoForm`, required field checks, custom `validate` callback in `useForm` and `FieldDefinition`
+- **Notification Provider**: pluggable `notify()` / `setNotificationProvider()` with built-in toast fallback
+- **`<CanAccess>` Component**: conditionally render children based on permission checks
+- **`useCan()` Hook**: reactive async permission check returning `{ allowed, reason, isLoading }`
+- **`syncWithLocation`**: `useTable` option to sync pagination/sort/filter with URL hash params
+- **`UndoableNotification`**: countdown toast with undo button for undoable mutations
+- **`useExport` / `useImport`**: CSV export (all records → download) and import (CSV → createMany)
+- **`ModalForm` / `DrawerForm`**: Dialog and Sheet-based inline form components
+- **DevTools Panel**: floating panel showing route, theme, i18n, resources; toggle via `Ctrl+Shift+D`
+- **60+ i18n keys**: auth, validation messages in zh-CN and EN
+
+### Changed
+
+- Enhanced router to support `/register` and `/forgot-password` routes
+- `AdminApp` now auto-renders `LoginPage` when `authProvider` is set
+- `AdminApp` renders DevTools in dev mode
+
 ## [0.0.2] - 2026-03-22
 
 ### Added

@@ -7,6 +7,8 @@ let _initialized = false;
 
 const ROUTES = [
   '/login',
+  '/register',
+  '/forgot-password',
   '/',
   '/:resource',
   '/:resource/create',

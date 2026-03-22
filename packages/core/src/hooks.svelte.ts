@@ -13,6 +13,7 @@ import { toast } from './toast.svelte';
 import { audit } from './audit';
 import { navigate } from './router';
 import { t } from './i18n.svelte';
+import { readURLState, writeURLState } from './url-sync';
 
 // ─── useList ────────────────────────────────────────────────────
 
@@ -391,12 +392,42 @@ interface UseFormOptions {
   onMutationSuccess?: (data: unknown) => void;
   onMutationError?: (error: Error) => void;
   meta?: Record<string, unknown>;
+  validate?: (values: Record<string, unknown>) => Record<string, string> | null;
 }
 
 export function useForm<T = Record<string, unknown>>(options: UseFormOptions) {
   const provider = getDataProvider();
   const queryClient = useQueryClient();
-  const { resource, action, id, redirect = 'list', onMutationSuccess, onMutationError, meta } = options;
+  const { resource, action, id, redirect = 'list', onMutationSuccess, onMutationError, meta, validate } = options;
+
+  // Validation state
+  let errors = $state<Record<string, string>>({});
+
+  function setFieldError(field: string, message: string) {
+    errors = { ...errors, [field]: message };
+  }
+
+  function clearErrors() {
+    errors = {};
+  }
+
+  function clearFieldError(field: string) {
+    const next = { ...errors };
+    delete next[field];
+    errors = next;
+  }
+
+  function runValidation(values: Record<string, unknown>): boolean {
+    clearErrors();
+    if (validate) {
+      const result = validate(values);
+      if (result && Object.keys(result).length > 0) {
+        errors = result;
+        return false;
+      }
+    }
+    return true;
+  }
 
   // Fetch existing data for edit/clone
   const query = (action === 'edit' || action === 'clone') && id != null
@@ -450,6 +481,12 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions) {
   }
 
   async function onFinish(values: Record<string, unknown>) {
+    // Run validation before submitting
+    if (!runValidation(values)) {
+      toast.warning(t('validation.required'));
+      return;
+    }
+
     if (action === 'create' || action === 'clone') {
       // @ts-expect-error $ rune prefix — Svelte compiler transforms this
       await $createMut.mutateAsync(values);
@@ -467,6 +504,10 @@ export function useForm<T = Record<string, unknown>>(options: UseFormOptions) {
     },
     mutation: action === 'edit' ? updateMut : createMut,
     onFinish,
+    get errors() { return errors; },
+    setFieldError,
+    clearErrors,
+    clearFieldError,
   };
 }
 
@@ -483,10 +524,27 @@ interface UseTableOptions {
 }
 
 export function useTable<T = Record<string, unknown>>(options: UseTableOptions) {
-  const { resource, meta } = options;
+  const { resource, meta, syncWithLocation = false } = options;
 
-  let pagination = $state<Pagination>(options.pagination ?? { current: 1, pageSize: 10 });
-  let sorters = $state<Sort[]>(options.sorters ?? []);
+  // Read initial state from URL if syncWithLocation
+  let initialPagination = options.pagination ?? { current: 1, pageSize: 10 };
+  let initialSorters = options.sorters ?? [];
+
+  if (syncWithLocation) {
+    const urlState = readURLState();
+    if (urlState.page || urlState.pageSize) {
+      initialPagination = {
+        current: urlState.page ?? initialPagination.current,
+        pageSize: urlState.pageSize ?? initialPagination.pageSize,
+      };
+    }
+    if (urlState.sortField) {
+      initialSorters = [{ field: urlState.sortField, order: urlState.sortOrder ?? 'asc' }];
+    }
+  }
+
+  let pagination = $state<Pagination>(initialPagination);
+  let sorters = $state<Sort[]>(initialSorters);
   let filters = $state<Filter[]>(options.filters ?? []);
 
   const query = useList<T>({ resource, pagination, sorters, filters, meta });
@@ -495,6 +553,18 @@ export function useTable<T = Record<string, unknown>>(options: UseTableOptions) 
   function setFilters(newFilters: Filter[]) { filters = newFilters; }
   function setPage(page: number) { pagination = { ...pagination, current: page }; }
   function setPageSize(size: number) { pagination = { ...pagination, pageSize: size, current: 1 }; }
+
+  // Sync state to URL when syncWithLocation is enabled
+  if (syncWithLocation) {
+    $effect(() => {
+      writeURLState({
+        page: pagination.current,
+        pageSize: pagination.pageSize,
+        sortField: sorters[0]?.field,
+        sortOrder: sorters[0]?.order,
+      });
+    });
+  }
 
   return {
     query,

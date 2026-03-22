@@ -18,6 +18,14 @@ export { default as FieldRenderer } from './components/FieldRenderer.svelte';
 export { default as EmptyState } from './components/EmptyState.svelte';
 export { default as StatsCard } from './components/StatsCard.svelte';
 export { default as PageHeader } from './components/PageHeader.svelte';
+export { default as LoginPage } from './components/LoginPage.svelte';
+export { default as RegisterPage } from './components/RegisterPage.svelte';
+export { default as ForgotPasswordPage } from './components/ForgotPasswordPage.svelte';
+export { default as CanAccess } from './components/CanAccess.svelte';
+export { default as UndoableNotification } from './components/UndoableNotification.svelte';
+export { default as ModalForm } from './components/ModalForm.svelte';
+export { default as DrawerForm } from './components/DrawerForm.svelte';
+export { default as DevTools } from './components/DevTools.svelte';
 
 // Base UI components (shadcn-svelte)
 export { Button, buttonVariants } from './components/ui/button/index.js';

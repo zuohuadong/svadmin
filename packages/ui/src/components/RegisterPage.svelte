@@ -1,0 +1,252 @@
+<script lang="ts">
+  import type { AuthProvider } from '@svadmin/core';
+  import { t } from '@svadmin/core/i18n';
+  import { navigate } from '@svadmin/core/router';
+  import { toast } from '@svadmin/core/toast';
+  import { Button } from './ui/button/index.js';
+  import { Input } from './ui/input/index.js';
+  import * as Card from './ui/card/index.js';
+  import { UserPlus, Mail, Lock, Eye, EyeOff } from 'lucide-svelte';
+
+  let { authProvider, title = 'Admin', onSuccess } = $props<{
+    authProvider: AuthProvider;
+    title?: string;
+    onSuccess?: () => void;
+  }>();
+
+  let email = $state('');
+  let password = $state('');
+  let confirmPassword = $state('');
+  let loading = $state(false);
+  let showPassword = $state(false);
+  let error = $state('');
+
+  async function handleSubmit(e: SubmitEvent) {
+    e.preventDefault();
+    error = '';
+
+    if (!email) { error = t('auth.emailRequired'); return; }
+    if (!password) { error = t('auth.passwordRequired'); return; }
+    if (password !== confirmPassword) { error = t('auth.passwordMismatch'); return; }
+
+    loading = true;
+    try {
+      const result = await authProvider.register!({ email, password });
+      if (result.success) {
+        toast.success(t('auth.registerSuccess'));
+        onSuccess?.();
+        navigate(result.redirectTo ?? '/login');
+      } else {
+        error = result.error?.message ?? t('common.operationFailed');
+      }
+    } catch (err) {
+      error = err instanceof Error ? err.message : t('common.operationFailed');
+      toast.error(error);
+    } finally {
+      loading = false;
+    }
+  }
+</script>
+
+<div class="register-page">
+  <div class="register-container">
+    <Card.Card class="login-card">
+      <Card.CardHeader class="login-header">
+        <div class="register-icon">
+          <UserPlus class="h-6 w-6" />
+        </div>
+        <Card.CardTitle class="text-2xl font-bold">{t('auth.createAccount')}</Card.CardTitle>
+        <p class="text-sm text-muted-foreground">{t('auth.createAccountMessage')}</p>
+      </Card.CardHeader>
+      <Card.CardContent>
+        <form onsubmit={handleSubmit} class="space-y-4">
+          {#if error}
+            <div class="error-alert">
+              <p>{error}</p>
+            </div>
+          {/if}
+
+          <div class="space-y-2">
+            <label for="register-email" class="text-sm font-medium text-foreground">{t('auth.email')}</label>
+            <div class="input-with-icon">
+              <Mail class="input-icon h-4 w-4" />
+              <Input
+                id="register-email"
+                type="email"
+                placeholder="name@example.com"
+                bind:value={email}
+                class="pl-9"
+                autocomplete="email"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label for="register-password" class="text-sm font-medium text-foreground">{t('auth.password')}</label>
+            <div class="input-with-icon">
+              <Lock class="input-icon h-4 w-4" />
+              <Input
+                id="register-password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                bind:value={password}
+                class="pl-9 pr-9"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                onclick={() => showPassword = !showPassword}
+                tabindex={-1}
+              >
+                {#if showPassword}
+                  <EyeOff class="h-4 w-4" />
+                {:else}
+                  <Eye class="h-4 w-4" />
+                {/if}
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label for="register-confirm" class="text-sm font-medium text-foreground">{t('auth.confirmPassword')}</label>
+            <div class="input-with-icon">
+              <Lock class="input-icon h-4 w-4" />
+              <Input
+                id="register-confirm"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                bind:value={confirmPassword}
+                class="pl-9"
+                autocomplete="new-password"
+              />
+            </div>
+          </div>
+
+          <Button type="submit" class="w-full" disabled={loading}>
+            {#if loading}
+              <span class="loading-spinner"></span>
+            {/if}
+            {t('auth.registerButton')}
+          </Button>
+        </form>
+
+        <div class="auth-link">
+          <span class="text-sm text-muted-foreground">{t('auth.hasAccount')}</span>
+          <button
+            type="button"
+            class="text-sm text-primary hover:underline font-medium"
+            onclick={() => navigate('/login')}
+          >{t('auth.login')}</button>
+        </div>
+      </Card.CardContent>
+    </Card.Card>
+
+    <p class="text-xs text-muted-foreground mt-4 text-center opacity-60">
+      Powered by {title}
+    </p>
+  </div>
+</div>
+
+<style>
+  .register-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--background)) 50%, hsl(var(--primary) / 0.04) 100%);
+    padding: 1rem;
+  }
+
+  .register-container {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .register-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+    margin: 0 auto 0.75rem;
+  }
+
+  :global(.login-card) {
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.5);
+    box-shadow: 0 8px 32px hsl(var(--primary) / 0.08), 0 2px 8px hsl(0 0% 0% / 0.06);
+  }
+
+  :global(.login-header) {
+    text-align: center;
+    padding-bottom: 0.5rem;
+  }
+
+  .input-with-icon {
+    position: relative;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: hsl(var(--muted-foreground));
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    z-index: 1;
+  }
+  .password-toggle:hover {
+    color: hsl(var(--foreground));
+  }
+
+  .error-alert {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background: hsl(var(--destructive) / 0.1);
+    border: 1px solid hsl(var(--destructive) / 0.3);
+    color: hsl(var(--destructive));
+    font-size: 0.875rem;
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 0.5rem;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .auth-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid hsl(var(--border));
+  }
+</style>
