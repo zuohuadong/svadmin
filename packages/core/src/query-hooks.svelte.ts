@@ -140,8 +140,27 @@ export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError
 
   return { query, get overtime() { return overtime; } };
 }
+// ─── useShow ──────────────────────────────────────────────────
+export function useShow<TData extends BaseRecord = BaseRecord, TError = HttpError>(
+  options: UseOneOptions<TData, TError> = {}
+) {
+  const parsed = useParsed();
+  let showId = $state<string | number | undefined>(options.id ?? parsed.id);
 
-export const useShow = useOne;
+  function setShowId(id: string | number) { showId = id; }
+
+  const result = useOne<TData, TError>({
+    ...options,
+    get id() { return showId; },
+  });
+
+  return {
+    get query() { return result.query; },
+    get showId() { return showId; },
+    setShowId,
+    get overtime() { return result.overtime; },
+  };
+}
 
 // ─── useMany ───────────────────────────────────────────────────
 

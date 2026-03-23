@@ -221,3 +221,15 @@ export function t(key: string, params?: Record<string, string | number>): string
 export function addTranslations(locale: string, translations: Record<string, string>): void {
   locales[locale] = { ...locales[locale], ...translations };
 }
+
+/**
+ * useTranslation — Refine v5 compatible i18n hook
+ * Returns { translate, getLocale, changeLocale }
+ */
+export function useTranslation() {
+  return {
+    translate: t,
+    getLocale,
+    changeLocale: setLocale,
+  };
+}
