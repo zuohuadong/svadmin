@@ -1,10 +1,12 @@
 {
   "name": "@svadmin/firebase",
-  "version": "0.3.24",
+  "version": "0.4.0",
   "description": "Firebase DataProvider for svadmin",
   "type": "module",
   "sideEffects": false,
-  "files": ["src/**/*"],
+  "files": [
+    "src/**/*"
+  ],
   "main": "src/index.ts",
   "types": "src/index.ts",
   "exports": {
@@ -14,7 +16,7 @@
     }
   },
   "peerDependencies": {
-    "@svadmin/core": "^0.3.10"
+    "@svadmin/core": "^0.4.0"
   },
   "license": "MIT"
 }

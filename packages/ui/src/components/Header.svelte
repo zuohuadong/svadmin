@@ -4,6 +4,7 @@
   import TooltipButton from './TooltipButton.svelte';
   import { getResolvedTheme, toggleTheme } from '@svadmin/core';
   import Breadcrumbs from './Breadcrumbs.svelte';
+  import { t } from '@svadmin/core/i18n';
 
   let {
     showThemeToggle = true,

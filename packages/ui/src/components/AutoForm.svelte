@@ -48,6 +48,19 @@
     return true;
   });
 
+  const hasGroups = formFields.some(f => f.group);
+  const groups = (() => {
+    if (!hasGroups) return [];
+    const order: string[] = [];
+    const map = new Map<string, typeof formFields>();
+    for (const f of formFields) {
+      const g = f.group ?? '';
+      if (!map.has(g)) { order.push(g); map.set(g, []); }
+      map.get(g)!.push(f);
+    }
+    return order.map(g => ({ name: g, fields: map.get(g)! }));
+  })();
+
   // Load existing data for edit mode
   const existingQuery = mode === 'edit' && id != null
     ? useOne({ resource: resourceName, id })
@@ -235,18 +248,7 @@
         </Alert.Root>
       {/if}
 
-      {@const hasGroups = formFields.some(f => f.group)}
       {#if hasGroups}
-        {@const groups = (() => {
-          const order: string[] = [];
-          const map = new Map<string, typeof formFields>();
-          for (const f of formFields) {
-            const g = f.group ?? '';
-            if (!map.has(g)) { order.push(g); map.set(g, []); }
-            map.get(g)!.push(f);
-          }
-          return order.map(g => ({ name: g, fields: map.get(g)! }));
-        })()}
         {#each groups as group}
           <Card.Root>
             {#if group.name}

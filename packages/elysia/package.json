@@ -1,6 +1,6 @@
 {
   "name": "@svadmin/elysia",
-  "version": "0.3.24",
+  "version": "0.4.0",
   "description": "Elysia DataProvider for svadmin — CRUD convention + InferResourceMap type utility",
   "type": "module",
   "sideEffects": false,
@@ -16,7 +16,7 @@
     }
   },
   "peerDependencies": {
-    "@svadmin/core": "^0.3.10",
+    "@svadmin/core": "^0.4.0",
     "elysia": ">=1.0.0",
     "@elysiajs/eden": ">=1.0.0"
   },
