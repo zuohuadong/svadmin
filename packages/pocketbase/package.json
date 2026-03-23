@@ -1,6 +1,6 @@
 {
   "name": "@svadmin/pocketbase",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "PocketBase adapters — DataProvider, AuthProvider, LiveProvider for svadmin",
   "type": "module",
   "sideEffects": false,
@@ -16,7 +16,7 @@
     }
   },
   "peerDependencies": {
-    "@svadmin/core": "workspace:*",
+    "@svadmin/core": "^0.3.0",
     "pocketbase": ">=0.21.0"
   },
   "keywords": ["svadmin", "pocketbase", "data-provider", "auth-provider", "live-provider"],

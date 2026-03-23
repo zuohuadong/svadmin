@@ -79,9 +79,9 @@ export function useMenu() {
   const parsed = useParsed();
 
   const menuItems = $derived.by<MenuConfig[]>(() => {
-    let items = resources
+    let items: MenuConfig[] = resources
       .filter((r: ResourceDefinition) => r.showInMenu !== false)
-      .map((r: ResourceDefinition) => ({
+      .map((r: ResourceDefinition): MenuConfig => ({
         name: r.name,
         route: `/${r.name}`,
         label: r.label || r.name, // Usually handled by i18n label mapping

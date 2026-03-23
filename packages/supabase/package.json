@@ -1,6 +1,6 @@
 {
   "name": "@svadmin/supabase",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Supabase adapters — DataProvider, AuthProvider, LiveProvider, AuditHandler",
   "type": "module",
   "sideEffects": false,
@@ -16,7 +16,7 @@
     }
   },
   "peerDependencies": {
-    "@svadmin/core": "workspace:*",
+    "@svadmin/core": "^0.3.0",
     "@supabase/supabase-js": "^2.0.0"
   },
   "license": "MIT",

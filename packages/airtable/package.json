@@ -1,6 +1,6 @@
 {
   "name": "@svadmin/airtable",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Airtable DataProvider for svadmin",
   "type": "module",
   "sideEffects": false,
@@ -14,7 +14,7 @@
     }
   },
   "peerDependencies": {
-    "@svadmin/core": "workspace:*"
+    "@svadmin/core": "^0.3.0"
   },
   "license": "MIT"
 }
