@@ -22,6 +22,7 @@
   "peerDependencies": {
     "svelte": "^5.0.0",
     "@svadmin/core": "workspace:*",
+    "@tanstack/svelte-query": "^5.0.0",
     "bits-ui": "^2.0.0",
     "tailwind-variants": "^3.0.0",
     "clsx": "^2.0.0",

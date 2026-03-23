@@ -8,22 +8,26 @@ The `DataProvider` interface defines how svadmin talks to your backend. Implemen
 ## Interface
 
 ```typescript
+import type { BaseRecord } from '@svadmin/core';
+
 interface DataProvider {
-  getList: <T>(params: GetListParams) => Promise<GetListResult<T>>;
-  getOne: <T>(params: GetOneParams) => Promise<GetOneResult<T>>;
-  create: <T>(params: CreateParams) => Promise<CreateResult<T>>;
-  update: <T>(params: UpdateParams) => Promise<UpdateResult<T>>;
-  deleteOne: <T>(params: DeleteParams) => Promise<DeleteResult<T>>;
+  getList: <TData extends BaseRecord>(params: GetListParams) => Promise<GetListResult<TData>>;
+  getOne: <TData extends BaseRecord>(params: GetOneParams) => Promise<GetOneResult<TData>>;
+  create: <TData extends BaseRecord, TVariables>(params: CreateParams<TVariables>) => Promise<CreateResult<TData>>;
+  update: <TData extends BaseRecord, TVariables>(params: UpdateParams<TVariables>) => Promise<UpdateResult<TData>>;
+  deleteOne: <TData extends BaseRecord, TVariables>(params: DeleteParams<TVariables>) => Promise<DeleteResult<TData>>;
   getApiUrl: () => string;
 
   // Optional
-  getMany?: <T>(params: GetManyParams) => Promise<GetManyResult<T>>;
-  createMany?: <T>(params: CreateManyParams) => Promise<CreateManyResult<T>>;
-  updateMany?: <T>(params: UpdateManyParams) => Promise<UpdateManyResult<T>>;
-  deleteMany?: <T>(params: DeleteManyParams) => Promise<DeleteManyResult<T>>;
-  custom?: <T>(params: CustomParams) => Promise<CustomResult<T>>;
+  getMany?: <TData extends BaseRecord>(params: GetManyParams) => Promise<GetManyResult<TData>>;
+  createMany?: <TData extends BaseRecord, TVariables>(params: CreateManyParams<TVariables>) => Promise<CreateManyResult<TData>>;
+  updateMany?: <TData extends BaseRecord, TVariables>(params: UpdateManyParams<TVariables>) => Promise<UpdateManyResult<TData>>;
+  deleteMany?: <TData extends BaseRecord, TVariables>(params: DeleteManyParams<TVariables>) => Promise<DeleteManyResult<TData>>;
+  custom?: <TData, TVariables>(params: CustomParams<TVariables>) => Promise<CustomResult<TData>>;
 }
 ```
+
+> `BaseRecord = Record<string, unknown>` — all data types extend this base type.
 
 ## Built-in Providers
 
@@ -79,6 +83,23 @@ const dataProvider = createPocketBaseDataProvider({ pb });
 ```
 
 Supports sorters, filters, and bulk operations. PocketBase also provides `createPocketBaseAuthProvider` and `createPocketBaseLiveProvider`.
+
+### Elysia (Type-Safe)
+
+```typescript
+import { createElysiaDataProvider } from '@svadmin/elysia';
+import type { InferResourceMap } from '@svadmin/elysia';
+import type { App } from './server';  // your Elysia app type
+
+// Auto-infer resource types from Elysia routes
+declare module '@svadmin/core' {
+  interface ResourceTypeMap extends InferResourceMap<App> {}
+}
+
+const dataProvider = createElysiaDataProvider<App>('http://localhost:3000');
+```
+
+The `@svadmin/elysia` package provides end-to-end type safety by inferring `ResourceTypeMap` directly from your Elysia backend routes.
 
 ## Multiple Data Providers
 

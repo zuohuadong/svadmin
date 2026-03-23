@@ -10,11 +10,11 @@
 
 ## ✨ Features
 
-- 🎯 **Headless Architecture** — DataProvider / AuthProvider interfaces, swap backends freely
-- ⚡ **18 Reactive Hooks** — `useList`, `useOne`, `useCreate`, `useUpdate`, `useDelete`, `useTable`, `useForm`, etc.
+- 🎯 **Headless Architecture** — DataProvider / AuthProvider / RouterProvider / LiveProvider, swap backends freely
+- ⚡ **30+ Reactive Hooks** — `useList`, `useOne`, `useCreate`, `useUpdate`, `useDelete`, `useTable`, `useForm`, `useSelect`, `useInfiniteList`, `useShow`, `useStepsForm`, `useModalForm`, `useDrawerForm`, etc.
 - 🔑 **Auth Hooks** — `useLogin`, `useLogout`, `useRegister`, `useForgotPassword`, `useUpdatePassword`, `useGetIdentity`, `useIsAuthenticated`, `useOnError`, `usePermissions`
 - 🧩 **Pre-built UI** — AdminApp, AutoTable, AutoForm, ShowPage, Sidebar, Layout with shadcn-svelte
-- 🔘 **CRUD Buttons** — CreateButton, EditButton, DeleteButton, ShowButton, ListButton, RefreshButton, ExportButton, ImportButton, SaveButton
+- 🔘 **CRUD Buttons** — CreateButton, EditButton, DeleteButton, ShowButton, ListButton, RefreshButton, ExportButton, ImportButton, SaveButton, CloneButton
 - 🛡️ **`<Authenticated>`** — Conditionally render based on auth state with loading/fallback
 - ⚙️ **ConfigErrorScreen** — Glassmorphism screen for missing env vars with copy-to-clipboard
 - 🌍 **i18n** — Built-in zh-CN/en with browser auto-detection, one-click locale toggle
@@ -22,17 +22,22 @@
 - 🌓 **Dark Mode** — Light / Dark / System with one-click toggle, persisted to localStorage
 - 🎨 **Multi-Color Themes** — 6 color palettes (Blue, Green, Rose, Orange, Violet, Zinc) with sidebar picker
 - 🪟 **Glassmorphism UI** — Translucent sidebar with backdrop blur for a premium look
-- 📡 **Real-time** — LiveProvider interface for real-time subscriptions
+- 📡 **Real-time** — LiveProvider interface with WebSocket & SSE built-in providers
 - 🔀 **RouterProvider** — Pluggable routing with hash and history router providers
 - 📋 **Audit Logging** — Pluggable audit handler for tracking admin operations
+- 🔍 **Inferencer** — Auto-generate admin UI from sample data or OpenAPI 3.x specs
+- 🏷️ **Resource Type Registry** — Compile-time resource name checking via `KnownResources` + auto type inference via `InferData<R>`
+- 🧰 **Helpers** — `unionFilters`, `unionSorters`, `file2Base64`, `getDefaultFilter`, `getDefaultSortOrder`, `generateDefaultDocumentTitle`
+- 📤 **Data Transfer** — `useExport` / `useImport` for CSV export/import with batch support
+- 🔄 **Optimistic Updates** — Built-in pessimistic / optimistic / undoable mutation modes
 
 ## ✨ 特性
 
-- 🎯 **Headless 架构** — DataProvider / AuthProvider 接口，自由切换后端
-- ⚡ **18 个响应式 Hook** — `useList`、`useOne`、`useCreate`、`useUpdate`、`useDelete`、`useTable`、`useForm` 等
+- 🎯 **Headless 架构** — DataProvider / AuthProvider / RouterProvider / LiveProvider，自由切换后端
+- ⚡ **30+ 响应式 Hook** — `useList`、`useOne`、`useCreate`、`useUpdate`、`useDelete`、`useTable`、`useForm`、`useSelect`、`useInfiniteList`、`useShow`、`useStepsForm`、`useModalForm`、`useDrawerForm` 等
 - 🔑 **Auth Hooks** — `useLogin`、`useLogout`、`useRegister`、`useForgotPassword`、`useUpdatePassword`、`useGetIdentity`、`useIsAuthenticated`、`useOnError`、`usePermissions`
 - 🧩 **开箱即用 UI** — AdminApp、AutoTable、AutoForm、ShowPage、Sidebar、Layout（基于 shadcn-svelte）
-- 🔘 **CRUD 按钮** — CreateButton、EditButton、DeleteButton、ShowButton、ListButton、RefreshButton、ExportButton、ImportButton、SaveButton
+- 🔘 **CRUD 按钮** — CreateButton、EditButton、DeleteButton、ShowButton、ListButton、RefreshButton、ExportButton、ImportButton、SaveButton、CloneButton
 - 🛡️ **`<Authenticated>`** — 根据认证状态条件渲染，支持 loading/fallback
 - ⚙️ **ConfigErrorScreen** — 环境变量缺失提示页，毛玻璃风格，支持一键复制
 - 🌍 **国际化** — 内置中英文，浏览器自动检测，侧边栏一键切换语言
@@ -40,18 +45,44 @@
 - 🌓 **暗色模式** — 亮色 / 暗色 / 跟随系统，一键切换，持久化到 localStorage
 - 🎨 **多色主题** — 6 种配色方案（Blue、Green、Rose、Orange、Violet、Zinc），侧边栏选色器切换
 - 🪟 **毛玻璃 UI** — 半透明侧边栏 + 背景模糊，质感拉满
-- 📡 **实时订阅** — LiveProvider 接口支持实时数据
+- 📡 **实时订阅** — LiveProvider 接口，内置 WebSocket 及 SSE 实现，自动重连
 - 🔀 **RouterProvider** — 可插拔路由，内置 Hash 和 History 路由
 - 📋 **审计日志** — 可插拔的审计处理器
+- 🔍 **推断器（Inferencer）** — 从样本数据或 OpenAPI 3.x 自动生成管理 UI
+- 🏷️ **资源类型注册表** — 编译时资源名检查（`KnownResources`）+ 自动类型推断（`InferData<R>`）
+- 🧰 **工具函数** — `unionFilters`、`unionSorters`、`file2Base64`、`getDefaultFilter`、`getDefaultSortOrder`、`generateDefaultDocumentTitle`
+- 📤 **数据导入导出** — `useExport` / `useImport`，支持 CSV 批量导入导出
+- 🔄 **乐观更新** — 内置悲观 / 乐观 / 可撤销三种变更模式
 
 ## 📦 Packages / 包
 
+### Core / 核心
+
 | Package | Description / 描述 |
 |---------|-------------------|
-| `@svadmin/core` | Core SDK — types, hooks, context, router, i18n, permissions, theme |
+| `@svadmin/core` | Hooks, providers, types, utilities, Resource Type Registry |
 | `@svadmin/ui` | Pre-built admin components / 预构建管理组件（shadcn-svelte） |
-| `@svadmin/simple-rest` | REST DataProvider + JWT/Cookie AuthProvider（零依赖） |
-| `@svadmin/supabase` | Supabase DataProvider, AuthProvider, LiveProvider |
+| `create-svadmin` | CLI scaffolding tool / CLI 脚手架工具 |
+
+### Data Providers / 数据适配器
+
+| Package | Backend |
+|---------|---------|
+| `@svadmin/simple-rest` | REST API (zero deps, JWT/Cookie auth) |
+| `@svadmin/supabase` | Supabase (data + auth + live) |
+| `@svadmin/pocketbase` | PocketBase (data + auth + live) |
+| `@svadmin/appwrite` | Appwrite (data + auth + live) |
+| `@svadmin/graphql` | GraphQL |
+| `@svadmin/elysia` | Elysia (auto type inference via Eden Treaty) |
+| `@svadmin/strapi` | Strapi CMS |
+| `@svadmin/directus` | Directus |
+| `@svadmin/firebase` | Firebase / Firestore |
+| `@svadmin/hasura` | Hasura GraphQL |
+| `@svadmin/sanity` | Sanity.io |
+| `@svadmin/airtable` | Airtable |
+| `@svadmin/medusa` | Medusa Commerce |
+| `@svadmin/nestjs-query` | NestJS GraphQL |
+| `@svadmin/nestjsx-crud` | NestJS CRUD |
 
 ## 🚀 Quick Start / 快速开始
 
@@ -124,6 +155,27 @@ export const resources: ResourceDefinition[] = [
 </AdminApp>
 ```
 
+### With Elysia (Type-Safe) / 使用 Elysia（端到端类型安全）
+
+```typescript
+// Server: export your Elysia app type
+import { Elysia } from 'elysia';
+const app = new Elysia().get('/posts', () => db.posts.findMany());
+export type App = typeof app;
+
+// Client: auto-infer resource types
+import { createElysiaDataProvider } from '@svadmin/elysia';
+import type { InferResourceMap } from '@svadmin/elysia';
+import type { App } from './server';
+
+// ResourceTypeMap auto-derived from Elysia routes
+declare module '@svadmin/core' {
+  interface ResourceTypeMap extends InferResourceMap<App> {}
+}
+
+const dataProvider = createElysiaDataProvider<App>('http://localhost:3000');
+```
+
 ## 🏗️ `<AdminApp>` Props
 
 | Prop | Type | Required | Default | Description |
@@ -179,6 +231,26 @@ console.log(colorThemes); // [{ id: 'blue', label: 'Blue', color: '#3b82f6' }, .
 
 Available themes / 可用主题: `blue` (default), `green`, `rose`, `orange`, `violet`, `zinc`
 
+## 🏷️ Resource Type Registry / 资源类型注册表
+
+For end-to-end type safety, register your resource types:
+
+注册资源类型以获得端到端类型安全：
+
+```typescript
+// Extend the ResourceTypeMap interface (declaration merging)
+declare module '@svadmin/core' {
+  interface ResourceTypeMap {
+    posts: { id: number; title: string; body: string };
+    users: { id: number; name: string; email: string };
+  }
+}
+
+// Now all hooks get compile-time checking:
+useList({ resource: 'posts' });  // ✅ OK
+useList({ resource: 'postz' });  // ❌ Compile error — typo caught!
+```
+
 ## 🔌 Custom DataProvider / 自定义数据源
 
 Implement the `DataProvider` interface to connect any backend:
@@ -186,7 +258,7 @@ Implement the `DataProvider` interface to connect any backend:
 实现 `DataProvider` 接口即可接入任意后端：
 
 ```typescript
-import type { DataProvider } from '@svadmin/core';
+import type { DataProvider, BaseRecord } from '@svadmin/core';
 
 const myProvider: DataProvider = {
   getApiUrl: () => 'https://api.example.com',
@@ -210,10 +282,12 @@ const myProvider: DataProvider = {
 │  ShowPage · Layout · shadcn-svelte   │
 ├──────────────────────────────────────┤
 │          @svadmin/core               │
-│  Hooks · Context · Router · i18n     │
+│  30+ Hooks · Context · Router · i18n │
 │  Permissions · Audit · Theme         │
+│  Resource Type Registry · Helpers    │
 ├──────────┬───────────┬───────────────┤
-│ /supabase│/simple-rest│ Your Provider │
+│ /supabase│/simple-rest│ /pocketbase  │
+│ /appwrite│ /graphql  │ /elysia  ... │
 └──────────┴───────────┴───────────────┘
 ```
 
