@@ -55,7 +55,8 @@ export function createAppwriteAuthProvider(options: AppwriteAuthOptions): AuthPr
       try {
         await account.get();
         return { authenticated: true };
-      } catch {
+      } catch (e) {
+        console.warn('[svadmin] appwrite check failed:', e);
         return { authenticated: false, redirectTo: '/login', logout: true };
       }
     },
@@ -69,7 +70,8 @@ export function createAppwriteAuthProvider(options: AppwriteAuthOptions): AuthPr
           email: user.email,
           avatar: user.prefs?.avatar as string | undefined,
         };
-      } catch {
+      } catch (e) {
+        console.warn('[svadmin] appwrite getIdentity failed:', e);
         return null;
       }
     },

@@ -203,7 +203,7 @@ export function useCustom<TData = unknown, TError = HttpError>(options: UseCusto
       return provider.custom<TData>({
         url: options.url,
         method: options.method,
-        payload: options.config?.payload as any,
+        payload: options.config?.payload,
         query: options.config?.query,
         headers: options.config?.headers,
         sorters: options.config?.sorters,
@@ -229,7 +229,7 @@ export function useCustomMutation<TData = unknown, TError = HttpError, TVariable
   const mutation = createMutation<{ data: TData }, TError, { url: string; method: 'get' | 'post' | 'put' | 'patch' | 'delete'; values?: TVariables; meta?: Record<string, unknown> }>(() => ({
     mutationFn: async (params) => {
       if (!provider.custom) throw new Error('DataProvider does not support custom method');
-      return provider.custom<TData>({ url: params.url, method: params.method, payload: params.values as any, meta: params.meta });
+      return provider.custom<TData>({ url: params.url, method: params.method, payload: params.values, meta: params.meta });
     },
   }));
 

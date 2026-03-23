@@ -4,7 +4,7 @@
 import { useParsed } from './useParsed';
 import { useList } from './query-hooks.svelte';
 import { readURLState, writeURLState } from './url-sync';
-import type { Pagination, Sort, Filter, BaseRecord, HttpError, KnownResources } from './types';
+import type { Pagination, Sort, Filter, BaseRecord, HttpError, KnownResources, GetListResult } from './types';
 import type { UseListOptions } from './query-hooks.svelte';
 
 export type FilterSetMode = 'merge' | 'replace';
@@ -133,10 +133,10 @@ export class TableState<TData extends BaseRecord = BaseRecord, TError = HttpErro
   get query() { return this._queryResult.query; }
 
   /** Table data rows */
-  get data(): TData[] { return (this.query.data as any)?.data ?? []; }
+  get data(): TData[] { return (this.query.data as GetListResult<TData> | undefined)?.data ?? []; }
 
   /** Total record count */
-  get total(): number { return (this.query.data as any)?.total ?? 0; }
+  get total(): number { return (this.query.data as GetListResult<TData> | undefined)?.total ?? 0; }
 
   /** Is data loading */
   get isLoading(): boolean { return this.query.isLoading; }

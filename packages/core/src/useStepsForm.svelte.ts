@@ -35,7 +35,7 @@ export function useStepsForm<
   TError = HttpError,
   TVariables = Record<string, unknown>,
   TData extends BaseRecord = TQueryFnData
->(options: UseStepsFormOptions<TQueryFnData, TError, TVariables, TData> = {} as any): UseStepsFormResult<TQueryFnData, TError, TVariables, TData> {
+>(options: UseStepsFormOptions<TQueryFnData, TError, TVariables, TData> = ({} as UseStepsFormOptions<TQueryFnData, TError, TVariables, TData>): UseStepsFormResult<TQueryFnData, TError, TVariables, TData> {
   const form = useForm<TQueryFnData, TError, TVariables, TData>(options);
   
   let currentStep = $state(options.defaultStep ?? 0);

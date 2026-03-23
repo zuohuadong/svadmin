@@ -1,6 +1,6 @@
 import { createQuery, createInfiniteQuery } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options';
-import { getDataProviderForResource, getDataProvider } from './context.svelte';
+import { getDataProviderForResource, getDataProvider, getLiveProvider } from './context.svelte';
 import { useParsed } from './useParsed';
 import {
   createOvertimeTracker,
@@ -64,7 +64,7 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
 
   createLiveSubscription({
     resource,
-    liveProvider: (globalThis as any).__svadminLiveProvider, // Handle via context ideally, or skip if not needed. Wait, in live.ts we pass liveProvider. Let's fix this in hook-utils.
+    liveProvider: getLiveProvider(),
     liveMode: options.liveMode ?? adminOptions.liveMode,
     onLiveEvent: (e) => {
       options.onLiveEvent?.(e);

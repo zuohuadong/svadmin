@@ -1,7 +1,7 @@
 import { useParsed } from './useParsed';
 import { useList } from './query-hooks.svelte';
 import { readURLState, writeURLState } from './url-sync';
-import type { Pagination, Sort, Filter, BaseRecord, HttpError, KnownResources } from './types';
+import type { Pagination, Sort, Filter, BaseRecord, HttpError, KnownResources, GetListResult } from './types';
 import type { UseListOptions } from './query-hooks.svelte';
 
 export type FilterSetMode = 'merge' | 'replace';
@@ -148,15 +148,15 @@ export function useTable<
     createLinkForSyncWithLocation,
     get totalPages() {
       // ts-expect-error reactive access
-      const total = (query as any).data?.total ?? 0;
+      const total = (query.data as GetListResult<TQueryFnData> | undefined)?.total ?? 0;
       return Math.ceil(total / (pagination.pageSize ?? 10));
     },
     get current() { return pagination.current ?? 1; },
     get pageSize() { return pagination.pageSize ?? 10; },
-    get pageCount() { return Math.ceil(((query as any).data?.total ?? 0) / (pagination.pageSize ?? 10)); },
+    get pageCount() { return Math.ceil(((query.data as GetListResult<TQueryFnData> | undefined)?.total ?? 0) / (pagination.pageSize ?? 10)); },
     get clientData(): TQueryFnData[] {
       if (paginationMode !== 'client') return [];
-      const allData = ((query as any).data?.data ?? []) as TQueryFnData[];
+      const allData = ((query.data as GetListResult<TQueryFnData> | undefined)?.data ?? []) as TQueryFnData[];
       const start = ((pagination.current ?? 1) - 1) * (pagination.pageSize ?? 10);
       const end = start + (pagination.pageSize ?? 10);
       let sorted = [...allData];

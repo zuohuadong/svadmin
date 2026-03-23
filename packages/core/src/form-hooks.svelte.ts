@@ -178,14 +178,14 @@ export function useForm<
   async function onFinish(values: TVariables, finishOptions?: { redirect?: 'list' | 'edit' | 'show' | false }) {
     if (!runValidation(values)) { toast.warning(t('validation.required')); return; }
     redirectOverride = finishOptions?.redirect;
-    if (action === 'create' || action === 'clone') await (createMut as any).mutateAsync(values);
-    else await (updateMut as any).mutateAsync(values);
+    if (action === 'create' || action === 'clone') await createMut.mutateAsync(values);
+    else await updateMut.mutateAsync(values);
   }
 
   async function onFinishAutoSave(values: TVariables) {
     if (action === 'create' || action === 'clone') return; // Only autosave on edit
     redirectOverride = false; // Never redirect on autoSave
-    await (updateMut as any).mutateAsync(values);
+    await updateMut.mutateAsync(values);
   }
 
   let autoSaveStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -244,7 +244,7 @@ export function useForm<
 
   return {
     query,
-    get formLoading() { return ((query as any)?.isLoading ?? false) || (createMut as any).isPending || (updateMut as any).isPending; },
+    get formLoading() { return (query?.isLoading ?? false) || createMut.isPending || updateMut.isPending; },
     mutation: action === 'edit' ? updateMut : createMut,
     onFinish,
     onFinishAutoSave,

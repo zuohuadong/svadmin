@@ -108,3 +108,16 @@ export function setRouterProvider(provider: RouterProvider): void {
 export function getRouterProvider(): RouterProvider | undefined {
   return routerProvider;
 }
+
+
+// ─── Live Provider ──────────────────────────────────────────────
+
+let liveProviderState: import('./live').LiveProvider | undefined = undefined;
+
+export function setLiveProvider(provider: import('./live').LiveProvider): void {
+  liveProviderState = provider;
+}
+
+export function getLiveProvider(): import('./live').LiveProvider | undefined {
+  return liveProviderState;
+}
