@@ -13,11 +13,13 @@
     showDetails?: boolean;
   }>();
 
-  const statusConfig = $derived({
+  const statusConfigs = {
     connected: { color: 'var(--live-connected, #22c55e)', label: 'Live', icon: Wifi },
-    connecting: { color: 'var(--live-connecting, #f59e0b)', label: 'Connecting...', icon: Loader2 },
+    connecting: { color: 'var(--live-connecting, #f59e0b)', label: 'Connecting...', icon: Loader2 as typeof Wifi },
     disconnected: { color: 'var(--live-disconnected, #ef4444)', label: 'Offline', icon: WifiOff },
-  }[status]);
+  } as const;
+  type StatusKey = 'connected' | 'connecting' | 'disconnected';
+  const statusConfig = $derived(statusConfigs[status as StatusKey]);
 
   const timeSinceEvent = $derived(
     lastEvent?.timestamp

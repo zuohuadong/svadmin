@@ -38,5 +38,5 @@
     {/snippet}
   </PageHeader>
 
-  <AutoForm {resourceName} action="create" />
+  <AutoForm {resourceName} mode="create" />
 </div>

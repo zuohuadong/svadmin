@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { useQueryClient } from '@tanstack/svelte-query';
+  import { useInvalidate, t } from '@svadmin/core';
   import { Button } from '../ui/button/index.js';
   import { RefreshCw } from 'lucide-svelte';
 
@@ -9,12 +9,12 @@
     class?: string;
   }>();
 
-  const queryClient = useQueryClient();
+  const invalidate = useInvalidate();
   let spinning = $state(false);
 
   function refresh() {
     spinning = true;
-    queryClient.invalidateQueries({ queryKey: [resource] });
+    invalidate({ resource, invalidates: ['list', 'many'] });
     setTimeout(() => { spinning = false; }, 600);
   }
 </script>
@@ -26,5 +26,6 @@
   onclick={refresh}
 >
   <RefreshCw class="h-4 w-4 {spinning ? 'animate-spin' : ''}" />
-  {#if !hideText}<span class="ml-1">Refresh</span>{/if}
+  {#if !hideText}<span class="ml-1">{t('common.retry')}</span>{/if}
 </Button>
+

@@ -48,5 +48,5 @@
     {/snippet}
   </PageHeader>
 
-  <AutoForm {resourceName} action="edit" {id} />
+  <AutoForm {resourceName} mode="edit" {id} />
 </div>

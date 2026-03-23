@@ -16,7 +16,8 @@
 		defaultVariants: { size: "default" },
 	});
 
-	export type AvatarSize = VariantProps<typeof avatarVariants>["size"];
+	// AvatarSize type is exported from the package index.ts
+	type AvatarSize = VariantProps<typeof avatarVariants>["size"];
 
 	type Props = WithElementRef<HTMLImgAttributes> & {
 		size?: AvatarSize;

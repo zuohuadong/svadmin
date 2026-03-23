@@ -45,7 +45,7 @@
     
     Promise.all(resources.map(async (r) => {
       try {
-        const { can } = await canAccessAsync({ action: 'list', resource: r.name });
+        const { can } = await canAccessAsync(r.name, 'list');
         return { r, can };
       } catch {
         return { r, can: false };

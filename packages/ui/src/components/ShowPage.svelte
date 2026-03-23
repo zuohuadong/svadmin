@@ -43,15 +43,15 @@
     {/if}
   </div>
 
-  {#if query.isLoading}
+  {#if query.query.isLoading}
     <div class="flex h-64 items-center justify-center">
       <Loader2 class="h-6 w-6 animate-spin text-primary" />
     </div>
-  {:else if query.data}
+  {:else if query.query.data?.data}
     <Card.Root>
       <Card.Content class="divide-y divide-border p-0">
         {#each showFields as field}
-          {@const value = (query.data as Record<string, unknown>)[field.key]}
+          {@const value = (query.query.data!.data as Record<string, unknown>)[field.key]}
           <div class="flex px-6 py-4">
             <div class="w-1/3 text-sm font-medium text-muted-foreground">{field.label}</div>
             <div class="w-2/3 text-sm text-foreground">

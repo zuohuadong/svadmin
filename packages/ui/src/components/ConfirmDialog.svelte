@@ -37,7 +37,7 @@
       <Button variant="outline" onclick={oncancel}>
         {resolvedCancelText}
       </Button>
-      <Button variant={variantMap[variant]} onclick={onconfirm}>
+      <Button variant={variantMap[variant as keyof typeof variantMap]} onclick={onconfirm}>
         {resolvedConfirmText}
       </Button>
     </Dialog.Footer>

@@ -62,8 +62,8 @@
       }
       formData = defaults;
       initialized = true;
-    } else if (existingQuery && existingQuery?.data) {
-      formData = { ...existingQuery.data as Record<string, unknown> };
+    } else if (existingQuery && existingQuery.query.data?.data) {
+      formData = { ...existingQuery.query.data.data as Record<string, unknown> };
       initialized = true;
     }
   });
@@ -125,9 +125,9 @@
       }
 
       if (mode === 'create') {
-        await createMut.mutateAsync(cleanData);
+        await createMut.mutation.mutateAsync({ variables: cleanData });
       } else if (id != null) {
-        await updateMut.mutateAsync({ id, variables: cleanData });
+        await updateMut.mutation.mutateAsync({ id, variables: cleanData });
       }
 
       isDirty = false;
@@ -150,7 +150,7 @@
     }
   }
 
-  const isLoading = $derived(mode === 'edit' && existingQuery ? existingQuery?.isLoading : false);
+  const isLoading = $derived(mode === 'edit' && existingQuery ? existingQuery.query.isLoading : false);
 
   const pageTitle = $derived(
     mode === 'create'
