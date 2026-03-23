@@ -18,7 +18,8 @@ svadmin is built natively for **Svelte 5 runes** and uses a provider-based archi
 
 - 🎯 **Provider Architecture** — Swap backends without changing UI code
 - ⚡ **TanStack Query** — Automatic caching, deduplication, background refetch
-- 🧩 **Pre-built Components** — AutoTable, AutoForm, CRUD pages, auth pages
+- 🧩 **Pre-built Components** — AutoTable, AutoForm, CRUD pages, auth pages, CommandPalette, Sheet, Drawer, StepsForm
+- 🔠 **16 Field Components** — Complete set of mapped display and input fields (Text, Image, JSON, RichText, Combobox, MultiSelect, etc.)
 - 🔑 **Auth System** — 9 hooks + 4 glassmorphism auth pages
 - 📡 **Real-time** — WebSocket & SSE live providers with auto-reconnect
 - 🎨 **Themeable** — 7 color themes, light/dark mode, glassmorphism
@@ -35,7 +36,7 @@ svadmin is built natively for **Svelte 5 runes** and uses a provider-based archi
 | Package | Description |
 |---------|-------------|
 | `@svadmin/core` | Hooks, providers, types, Resource Type Registry, utilities |
-| `@svadmin/ui` | Pre-built Svelte 5 components |
+| `@svadmin/ui` | Pre-built Svelte 5 components (Forms, Tables, 16 Fields, shadcn) |
 | `@svadmin/simple-rest` | REST API data provider |
 | `@svadmin/supabase` | Supabase data + auth + live provider |
 | `@svadmin/pocketbase` | PocketBase data + auth + live provider |

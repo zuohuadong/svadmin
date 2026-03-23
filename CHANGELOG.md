@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.24] - 2026-03-23
+
+### Added
+
+- 🪟 **shadcn-svelte Migration**: Completely replaced custom components with shadcn-svelte primitives (Sheet, Drawer, CommandPalette, Collapsible, Tooltip, Breadcrumb, Pagination, Select, DropdownMenu).
+- 🔠 **16 Field Components**: Delivered a complete set of mapped display and input fields (TextField, UrlField, EmailField, BooleanField, TagField, FileField, ImageField, MarkdownField, RichTextField, SelectField, MultiSelectField, RelationField, JsonField, ComboboxField, PasswordInput) via `FieldRenderer`.
+- 🧩 **New UI Systems**: `StepsForm` (multi-step wizard), `InfiniteList` (infinite scrolling), `FilterForm` (advanced filtering).
+- 🌍 **i18n Enhancements**: Complete i18n coverage for all UI components, hooks, and AuthProvider errors (`common.next`, `common.back`, `common.showMore`, etc.).
+- ♿ **Accessibility & UX**: Added `TooltipButton`, improved keyboard navigation (CommandPalette), and enhanced Svelte 5 transitions (fade/fly/scale) across Layout and dialogs.
+
+### Changed
+
+- 🗑️ Eliminated all raw CSS blocks and raw HTML elements (`<button>`, `<select>`) in favor of Tailwind CSS and shadcn components. Total raw buttons reduced from 20+ to 0.
+- ⚡ Refactored all data providers and core hooks to enforce end-to-end type safety (100% strict `BaseRecord` generics, zero `any` types).
+- 🧹 Fixed context timing issues, resolved memory leaks with `createOvertimeTracker`, and refactored Layout to use modern Svelte 5 `async/await` syntax.
+
 ## [0.0.5] - 2026-03-22
 
 ### Added
