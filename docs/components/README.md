@@ -25,6 +25,7 @@ Complete reference for all `@svadmin/ui` components.
 | [ConfirmDialog](./confirm-dialog.md) | Confirmation modal / 确认对话框 | ✅ |
 | [ErrorBoundary](./error-boundary.md) | Error catch boundary / 错误边界 | ✅ |
 | [FieldRenderer](./field-renderer.md) | Field value renderer / 字段值渲染器 | ✅ |
+| [Theming](./theming.md) | Dark mode + color themes / 暗色模式 + 多色主题 | ✅ |
 
 ## Base UI Components / 基础 UI 组件
 

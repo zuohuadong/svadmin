@@ -1,13 +1,19 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { onMount } from 'svelte';
+  import { fade, fly } from 'svelte/transition';
   import Sidebar from './Sidebar.svelte';
   import Toast from './Toast.svelte';
   import Breadcrumbs from './Breadcrumbs.svelte';
+  import CommandPalette from './CommandPalette.svelte';
   import { getAuthProvider } from '@svadmin/core';
   import type { Identity } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
   import { Loader2 } from 'lucide-svelte';
+  import { currentPath } from '@svadmin/core/router';
+  import { Skeleton } from './ui/skeleton/index.js';
+
+  let commandOpen = $state(false);
 
   let { children, title = 'Admin' }: { children: Snippet; title?: string } = $props();
 
@@ -46,21 +52,29 @@
   let collapsed = $state(false);
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div onkeydown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); commandOpen = true; } }}>
 {#if loading}
-  <div class="flex h-screen items-center justify-center">
+  <div class="flex h-screen items-center justify-center" transition:fade={{ duration: 150 }}>
     <Loader2 class="h-8 w-8 animate-spin text-primary" />
   </div>
 {:else}
-  <div class="flex h-screen">
+  <div class="flex h-screen bg-gradient-to-br from-background via-background to-muted/30" in:fade={{ duration: 200, delay: 50 }}>
     <Sidebar {collapsed} {identity} {title} onToggle={() => collapsed = !collapsed} onLogout={handleLogout} />
     <main
-      class="flex-1 overflow-y-auto p-6 transition-all duration-300"
+      class="flex-1 overflow-y-auto p-8 transition-all duration-300"
       class:ml-64={!collapsed}
       class:ml-16={collapsed}
     >
       <Breadcrumbs />
-      {@render children()}
+      {#key currentPath()}
+        <div in:fly={{ x: 20, duration: 150 }} out:fade={{ duration: 80 }}>
+          {@render children()}
+        </div>
+      {/key}
     </main>
   </div>
+  <CommandPalette bind:open={commandOpen} />
   <Toast />
 {/if}
+</div>

@@ -1,8 +1,17 @@
-// Minimal hash router for Svelte 5 runes mode
+// Router — path matching + navigation (supports hash & history via RouterProvider)
+
+import type { RouterProvider } from './router-provider';
 
 interface RouteMatch {
   route: string;
   params: Record<string, string>;
+}
+
+// Store a reference to the active RouterProvider (set by router-state.svelte.ts)
+let _routerProvider: RouterProvider | undefined;
+
+export function setActiveRouterProvider(provider: RouterProvider | undefined) {
+  _routerProvider = provider;
 }
 
 // Parse route pattern like /products/edit/:id into regex
@@ -17,11 +26,15 @@ function compileRoute(pattern: string): { regex: RegExp; keys: string[] } {
   return { regex: new RegExp(`^${regexStr}$`), keys };
 }
 
+/**
+ * Match a pathname against a list of route patterns.
+ * Accepts both hash paths (#/foo) and plain paths (/foo).
+ */
 export function matchRoute(
-  hash: string,
+  pathname: string,
   routes: string[]
 ): RouteMatch | null {
-  const path = hash.replace(/^#/, '') || '/';
+  const path = pathname.replace(/^#/, '').split('?')[0] || '/';
 
   for (const pattern of routes) {
     const { regex, keys } = compileRoute(pattern);
@@ -37,10 +50,21 @@ export function matchRoute(
   return null;
 }
 
+/**
+ * Navigate to a path. Uses RouterProvider if available, falls back to hash.
+ */
 export function navigate(path: string): void {
-  window.location.hash = path;
+  if (_routerProvider) {
+    _routerProvider.go({ to: path });
+  } else {
+    window.location.hash = path.startsWith('#') ? path : path;
+  }
 }
 
 export function currentPath(): string {
+  if (_routerProvider) {
+    const parsed = _routerProvider.parse();
+    return parsed.pathname || '/';
+  }
   return window.location.hash.replace(/^#/, '') || '/';
 }

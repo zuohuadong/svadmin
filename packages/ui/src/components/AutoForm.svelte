@@ -10,11 +10,28 @@
   import { Save, ArrowLeft, Loader2 } from 'lucide-svelte';
   import FieldRenderer from './FieldRenderer.svelte';
 
-  let { resourceName, id = undefined, mode = 'create' } = $props<{
+  import type { Snippet } from 'svelte';
+
+  interface Props {
     resourceName: string;
     id?: string | number;
     mode?: 'create' | 'edit';
-  }>();
+    /** Custom field renderer — overrides default FieldRenderer */
+    fieldRenderer?: Snippet<[{ field: FieldDefinition; value: unknown; onchange: (v: unknown) => void }]>;
+    /** Custom form action buttons */
+    formActions?: Snippet<[{ isLoading: boolean; onSubmit: () => void }]>;
+    /** Custom header content (after title) */
+    headerContent?: Snippet;
+  }
+
+  let {
+    resourceName,
+    id = undefined,
+    mode = 'create',
+    fieldRenderer,
+    formActions,
+    headerContent,
+  }: Props = $props();
 
   const resource = getResource(resourceName);
   const primaryKey = resource.primaryKey ?? 'id';
@@ -34,6 +51,7 @@
 
   // Form state
   let formData = $state<Record<string, unknown>>({});
+  let fieldErrors = $state<Record<string, string>>({});
   let submitting = $state(false);
   let error = $state<string | null>(null);
   let initialized = $state(false);
@@ -61,8 +79,8 @@
       }
       formData = defaults;
       initialized = true;
-    } else if (existingQuery && $existingQuery?.data) {
-      formData = { ...$existingQuery.data as Record<string, unknown> };
+    } else if (existingQuery && existingQuery.query.data?.data) {
+      formData = { ...existingQuery.query.data.data as Record<string, unknown> };
       initialized = true;
     }
   });
@@ -81,12 +99,38 @@
     };
   });
 
-  const createMut = useCreate(resourceName);
-  const updateMut = useUpdate(resourceName);
+  const createMut = useCreate({ resource: resourceName });
+  const updateMut = useUpdate({ resource: resourceName });
+
+  function validateFields(): boolean {
+    const errors: Record<string, string> = {};
+    for (const field of formFields) {
+      const value = formData[field.key];
+      // Required check
+      if (field.required) {
+        if (value === undefined || value === null || value === '') {
+          errors[field.key] = t('validation.required');
+          continue;
+        }
+      }
+      // Custom per-field validator
+      if (field.validate) {
+        const msg = field.validate(value);
+        if (msg) { errors[field.key] = msg; }
+      }
+    }
+    fieldErrors = errors;
+    return Object.keys(errors).length === 0;
+  }
 
   async function handleSubmit() {
     submitting = true;
     error = null;
+
+    if (!validateFields()) {
+      submitting = false;
+      return;
+    }
 
     try {
       const cleanData: Record<string, unknown> = {};
@@ -98,9 +142,9 @@
       }
 
       if (mode === 'create') {
-        await $createMut.mutateAsync(cleanData);
+        await createMut.mutation.mutateAsync({ variables: cleanData });
       } else if (id != null) {
-        await $updateMut.mutateAsync({ id, variables: cleanData });
+        await updateMut.mutation.mutateAsync({ id, variables: cleanData });
       }
 
       isDirty = false;
@@ -115,9 +159,15 @@
   function handleFieldChange(key: string, val: unknown) {
     formData[key] = val;
     isDirty = true;
+    // Clear field error when user starts typing
+    if (fieldErrors[key]) {
+      const next = { ...fieldErrors };
+      delete next[key];
+      fieldErrors = next;
+    }
   }
 
-  const isLoading = $derived(mode === 'edit' && existingQuery ? $existingQuery?.isLoading : false);
+  const isLoading = $derived(mode === 'edit' && existingQuery ? existingQuery.query.isLoading : false);
 
   const pageTitle = $derived(
     mode === 'create'
@@ -158,35 +208,62 @@
       <Card.Root>
         <Card.Content class="space-y-5">
           {#each formFields as field (field.key)}
-            <FieldRenderer
-              {field}
-              value={formData[field.key]}
-              onchange={(val: unknown) => handleFieldChange(field.key, val)}
-            />
+            <div class="field-wrapper" class:has-error={fieldErrors[field.key]}>
+              {#if fieldRenderer}
+                {@render fieldRenderer({ field, value: formData[field.key], onchange: (val: unknown) => handleFieldChange(field.key, val) })}
+              {:else}
+                <FieldRenderer
+                  {field}
+                  value={formData[field.key]}
+                  onchange={(val: unknown) => handleFieldChange(field.key, val)}
+                />
+              {/if}
+              {#if fieldErrors[field.key]}
+                <p class="field-error">{fieldErrors[field.key]}</p>
+              {/if}
+            </div>
           {/each}
         </Card.Content>
       </Card.Root>
 
       <div class="flex items-center gap-3">
-        <Button type="submit" disabled={submitting}>
-          {#if submitting}
-            <Loader2 class="h-4 w-4 animate-spin" data-icon="inline-start" />
-          {:else}
-            <Save class="h-4 w-4" data-icon="inline-start" />
-          {/if}
-          {t('common.save')}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onclick={() => {
-            if (isDirty && !confirm(t('common.unsavedChanges'))) return;
-            navigate(`/${resourceName}`);
-          }}
-        >
-          {t('common.cancel')}
-        </Button>
+        {#if formActions}
+          {@render formActions({ isLoading: submitting, onSubmit: handleSubmit })}
+        {:else}
+          <Button type="submit" disabled={submitting}>
+            {#if submitting}
+              <Loader2 class="h-4 w-4 animate-spin" data-icon="inline-start" />
+            {:else}
+              <Save class="h-4 w-4" data-icon="inline-start" />
+            {/if}
+            {t('common.save')}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onclick={() => {
+              if (isDirty && !confirm(t('common.unsavedChanges'))) return;
+              navigate(`/${resourceName}`);
+            }}
+          >
+            {t('common.cancel')}
+          </Button>
+        {/if}
       </div>
     </form>
   {/if}
 </div>
+
+<style>
+  .field-error {
+    color: hsl(var(--destructive));
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+  }
+
+  .field-wrapper.has-error :global(input),
+  .field-wrapper.has-error :global(textarea),
+  .field-wrapper.has-error :global(select) {
+    border-color: hsl(var(--destructive));
+  }
+</style>

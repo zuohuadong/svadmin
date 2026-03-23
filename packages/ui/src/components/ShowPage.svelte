@@ -5,7 +5,8 @@
   import { t, getLocale } from '@svadmin/core/i18n';
   import { Button } from './ui/button/index.js';
   import * as Card from './ui/card/index.js';
-  import { ArrowLeft, Pencil, Loader2 } from 'lucide-svelte';
+  import { Skeleton } from './ui/skeleton/index.js';
+  import { ArrowLeft, Pencil } from 'lucide-svelte';
 
   let { resourceName, id } = $props<{ resourceName: string; id: string | number }>();
 
@@ -43,15 +44,22 @@
     {/if}
   </div>
 
-  {#if $query.isLoading}
-    <div class="flex h-64 items-center justify-center">
-      <Loader2 class="h-6 w-6 animate-spin text-primary" />
-    </div>
-  {:else if $query.data}
+  {#if query.query.isLoading}
+    <Card.Root>
+      <Card.Content class="divide-y divide-border p-0">
+        {#each showFields.slice(0, 6) as _}
+          <div class="flex px-6 py-4">
+            <Skeleton class="h-4 w-1/4" />
+            <Skeleton class="h-4 w-2/5 ml-auto" />
+          </div>
+        {/each}
+      </Card.Content>
+    </Card.Root>
+  {:else if query.query.data?.data}
     <Card.Root>
       <Card.Content class="divide-y divide-border p-0">
         {#each showFields as field}
-          {@const value = ($query.data as Record<string, unknown>)[field.key]}
+          {@const value = (query.query.data!.data as Record<string, unknown>)[field.key]}
           <div class="flex px-6 py-4">
             <div class="w-1/3 text-sm font-medium text-muted-foreground">{field.label}</div>
             <div class="w-2/3 text-sm text-foreground">

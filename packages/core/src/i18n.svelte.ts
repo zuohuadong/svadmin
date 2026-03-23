@@ -19,6 +19,9 @@ const locales: Record<string, Locale> = {
     'common.page': '{current} / {total}',
     'common.export': '导出',
     'common.import': '导入',
+    'common.clone': '克隆',
+    'common.autoSaving': '自动保存中...',
+    'common.autoSaved': '已自动保存',
     'common.selectAll': '全选',
     'common.batchDelete': '批量删除 ({count})',
     'common.unsavedChanges': '有未保存的修改，确定离开吗？',
@@ -37,8 +40,6 @@ const locales: Record<string, Locale> = {
     'common.toggleTheme': '切换主题',
     'common.darkMode': '暗色模式',
     'common.lightMode': '亮色模式',
-    'common.noData': '暂无数据',
-    'common.search': '搜索...',
     'common.detail': '详情',
     'common.loadFailed': '加载失败: {message}',
     'common.pageNotFound': '页面未找到',
@@ -46,6 +47,12 @@ const locales: Record<string, Locale> = {
     'common.retry': '重试',
     'common.yes': '是',
     'common.no': '否',
+    'common.undo': '撤销',
+    'common.filter': '筛选',
+    'common.reset': '重置',
+    'common.welcome': '欢迎使用 {title}',
+    'common.dashboardHint': '从侧边栏选择一个资源开始。',
+    'common.redirecting': '正在跳转到登录页...',
     // Field
     'field.enterValue': '输入{label}',
     'field.selectPlaceholder': '请选择',
@@ -56,6 +63,38 @@ const locales: Record<string, Locale> = {
     'config.addToEnvFile': '请在 .env 文件中添加以下内容：',
     'config.envFilePath': '文件路径: .env',
     'config.reload': '配置完成后刷新页面',
+    // Auth pages
+    'auth.login': '登录',
+    'auth.register': '注册',
+    'auth.forgotPassword': '忘记密码',
+    'auth.resetPassword': '重置密码',
+    'auth.email': '邮箱',
+    'auth.password': '密码',
+    'auth.confirmPassword': '确认密码',
+    'auth.rememberMe': '记住我',
+    'auth.loginButton': '登录',
+    'auth.registerButton': '注册',
+    'auth.sendResetLink': '发送重置链接',
+    'auth.backToLogin': '返回登录',
+    'auth.noAccount': '还没有账号？',
+    'auth.hasAccount': '已有账号？',
+    'auth.forgotPasswordLink': '忘记密码？',
+    'auth.forgotPasswordDescription': '输入您的邮箱地址，我们将发送重置密码的链接。',
+    'auth.resetLinkSent': '重置链接已发送，请查看您的邮箱。',
+    'auth.passwordMismatch': '两次输入的密码不一致',
+    'auth.emailRequired': '请输入邮箱',
+    'auth.passwordRequired': '请输入密码',
+    'auth.registerSuccess': '注册成功',
+    'auth.welcomeBack': '欢迎回来',
+    'auth.welcomeMessage': '登录以继续使用管理后台',
+    'auth.createAccount': '创建账号',
+    'auth.createAccountMessage': '填写信息以创建您的账号',
+    // Validation
+    'validation.required': '此字段为必填项',
+    'validation.minLength': '最少 {min} 个字符',
+    'validation.maxLength': '最多 {max} 个字符',
+    'validation.invalidEmail': '请输入有效的邮箱地址',
+    'validation.invalidFormat': '格式不正确',
   },
   'en': {
     // Common
@@ -73,6 +112,9 @@ const locales: Record<string, Locale> = {
     'common.page': '{current} / {total}',
     'common.export': 'Export',
     'common.import': 'Import',
+    'common.clone': 'Clone',
+    'common.autoSaving': 'Auto-saving...',
+    'common.autoSaved': 'Saved',
     'common.selectAll': 'Select All',
     'common.batchDelete': 'Batch Delete ({count})',
     'common.unsavedChanges': 'You have unsaved changes. Leave anyway?',
@@ -91,8 +133,6 @@ const locales: Record<string, Locale> = {
     'common.toggleTheme': 'Toggle theme',
     'common.darkMode': 'Dark mode',
     'common.lightMode': 'Light mode',
-    'common.noData': 'No data',
-    'common.search': 'Search...',
     'common.detail': 'Detail',
     'common.loadFailed': 'Load failed: {message}',
     'common.pageNotFound': 'Page not found',
@@ -100,6 +140,12 @@ const locales: Record<string, Locale> = {
     'common.retry': 'Retry',
     'common.yes': 'Yes',
     'common.no': 'No',
+    'common.undo': 'Undo',
+    'common.filter': 'Filter',
+    'common.reset': 'Reset',
+    'common.welcome': 'Welcome to {title}',
+    'common.dashboardHint': 'Select a resource from the sidebar to get started.',
+    'common.redirecting': 'Redirecting to login...',
     // Field
     'field.enterValue': 'Enter {label}',
     'field.selectPlaceholder': 'Select...',
@@ -110,6 +156,38 @@ const locales: Record<string, Locale> = {
     'config.addToEnvFile': 'Add the following to your .env file:',
     'config.envFilePath': 'File path: .env',
     'config.reload': 'Reload after configuration',
+    // Auth pages
+    'auth.login': 'Login',
+    'auth.register': 'Register',
+    'auth.forgotPassword': 'Forgot Password',
+    'auth.resetPassword': 'Reset Password',
+    'auth.email': 'Email',
+    'auth.password': 'Password',
+    'auth.confirmPassword': 'Confirm Password',
+    'auth.rememberMe': 'Remember me',
+    'auth.loginButton': 'Sign In',
+    'auth.registerButton': 'Sign Up',
+    'auth.sendResetLink': 'Send Reset Link',
+    'auth.backToLogin': 'Back to Login',
+    'auth.noAccount': "Don't have an account?",
+    'auth.hasAccount': 'Already have an account?',
+    'auth.forgotPasswordLink': 'Forgot password?',
+    'auth.forgotPasswordDescription': 'Enter your email address and we will send you a reset link.',
+    'auth.resetLinkSent': 'Reset link sent! Check your email.',
+    'auth.passwordMismatch': 'Passwords do not match',
+    'auth.emailRequired': 'Email is required',
+    'auth.passwordRequired': 'Password is required',
+    'auth.registerSuccess': 'Registration successful',
+    'auth.welcomeBack': 'Welcome Back',
+    'auth.welcomeMessage': 'Sign in to continue to admin panel',
+    'auth.createAccount': 'Create Account',
+    'auth.createAccountMessage': 'Fill in your details to create an account',
+    // Validation
+    'validation.required': 'This field is required',
+    'validation.minLength': 'Minimum {min} characters',
+    'validation.maxLength': 'Maximum {max} characters',
+    'validation.invalidEmail': 'Please enter a valid email address',
+    'validation.invalidFormat': 'Invalid format',
   },
 };
 
@@ -154,4 +232,16 @@ export function t(key: string, params?: Record<string, string | number>): string
 
 export function addTranslations(locale: string, translations: Record<string, string>): void {
   locales[locale] = { ...locales[locale], ...translations };
+}
+
+/**
+ * useTranslation — standard i18n hook
+ * Returns { translate, getLocale, changeLocale }
+ */
+export function useTranslation() {
+  return {
+    translate: t,
+    getLocale,
+    changeLocale: setLocale,
+  };
 }

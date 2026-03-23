@@ -1,0 +1,28 @@
+{
+  "name": "create-svadmin",
+  "version": "0.3.0",
+  "description": "Scaffolding tool for svadmin projects",
+  "type": "module",
+  "bin": {
+    "create-svadmin": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "prompts": "^2.4.2",
+    "picocolors": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/prompts": "^2.4.9"
+  },
+  "keywords": [
+    "svadmin",
+    "create",
+    "scaffold",
+    "cli"
+  ],
+  "author": "zuohuadong",
+  "license": "MIT"
+}

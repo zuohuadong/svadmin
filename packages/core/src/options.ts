@@ -1,0 +1,95 @@
+// Global admin options — centralized configuration
+// Provides defaults that individual hooks can override
+
+import { setContext, getContext } from 'svelte';
+import type { MutationMode } from './types';
+
+export type InvalidateScope = 'all' | 'resourceAll' | 'detail' | 'list' | false | string[];
+
+const OPTIONS_KEY = Symbol('admin-options');
+
+export interface TextTransformers {
+  humanize: (text: string) => string;
+  plural: (text: string) => string;
+  singular: (text: string) => string;
+}
+
+export interface OvertimeConfig {
+  enabled?: boolean;
+  interval?: number;
+  onInterval?: (elapsedInterval: number, context?: { resource?: string; action?: string; id?: string | number }) => void;
+}
+
+export interface AdminOptions {
+  mutationMode?: MutationMode;
+  warnWhenUnsavedChanges?: boolean;
+  syncWithLocation?: boolean;
+  liveMode?: 'auto' | 'manual' | 'off';
+  disableServerSideValidation?: boolean;
+  undoableTimeout?: number;
+  // v0.2.26 additions
+  textTransformers?: Partial<TextTransformers>;
+  redirect?: {
+    afterCreate?: 'list' | 'edit' | 'show' | false;
+    afterEdit?: 'list' | 'edit' | 'show' | false;
+    afterClone?: 'list' | 'edit' | 'show' | false;
+  };
+  reactQuery?: {
+    staleTime?: number;
+    cacheTime?: number;
+    refetchOnWindowFocus?: boolean;
+  };
+  title?: {
+    text?: string;
+    icon?: string;
+  };
+  overtime?: OvertimeConfig;
+  breadcrumb?: false | 'default';
+  disableRouteChangeHandler?: boolean;
+  onLiveEvent?: (event: unknown) => void;
+  menuItems?: (items: { name: string; route: string; label: string; icon?: string; parentName?: string; order?: number }[]) => { name: string; route: string; label: string; icon?: string; parentName?: string; order?: number }[];
+}
+
+const defaultTextTransformers: TextTransformers = {
+  humanize: (text: string) => text.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+  plural: (text: string) => text.endsWith('s') ? text : text + 's',
+  singular: (text: string) => text.endsWith('s') ? text.slice(0, -1) : text,
+};
+
+const defaultOptions: AdminOptions = {
+  mutationMode: 'pessimistic',
+  warnWhenUnsavedChanges: false,
+  syncWithLocation: false,
+  liveMode: 'auto',
+  disableServerSideValidation: false,
+  undoableTimeout: 5000,
+  textTransformers: defaultTextTransformers,
+  redirect: { afterCreate: 'list', afterEdit: 'list', afterClone: 'list' },
+  breadcrumb: 'default',
+  disableRouteChangeHandler: false,
+};
+
+export function setAdminOptions(options: AdminOptions): void {
+  const merged = {
+    ...defaultOptions,
+    ...options,
+    textTransformers: { ...defaultTextTransformers, ...options.textTransformers },
+  };
+  setContext(OPTIONS_KEY, merged);
+}
+
+export function getAdminOptions(): AdminOptions {
+  try {
+    const opts = getContext<AdminOptions>(OPTIONS_KEY);
+    return opts ?? defaultOptions;
+  } catch {
+    return defaultOptions;
+  }
+}
+
+/** Get the resolved text transformers (always returns full set) */
+export function getTextTransformers(): TextTransformers {
+  const opts = getAdminOptions();
+  return { ...defaultTextTransformers, ...opts.textTransformers };
+}
+

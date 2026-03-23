@@ -5,7 +5,7 @@ import type {
   CreateParams, CreateResult, UpdateParams, UpdateResult, DeleteParams, DeleteResult,
   GetManyParams, GetManyResult, CreateManyParams, CreateManyResult,
   UpdateManyParams, UpdateManyResult, DeleteManyParams, DeleteManyResult,
-  CustomParams, CustomResult,
+  CustomParams, CustomResult, BaseRecord,
 } from '@svadmin/core';
 
 export function createSupabaseDataProvider(client: SupabaseClient, apiUrl?: string): DataProvider {
@@ -14,7 +14,7 @@ export function createSupabaseDataProvider(client: SupabaseClient, apiUrl?: stri
   return {
     getApiUrl: () => resolvedApiUrl,
 
-    async getList<T>({ resource, pagination, sorters, filters, meta }: GetListParams): Promise<GetListResult<T>> {
+    async getList<TData extends BaseRecord = BaseRecord>({ resource, pagination, sorters, filters, meta }: GetListParams): Promise<GetListResult<TData>> {
       const { current = 1, pageSize = 10 } = pagination ?? {};
       const from = (current - 1) * pageSize;
       const to = from + pageSize - 1;
@@ -46,60 +46,60 @@ export function createSupabaseDataProvider(client: SupabaseClient, apiUrl?: stri
 
       const { data, count, error } = await query;
       if (error) throw error;
-      return { data: (data ?? []) as T[], total: count ?? 0 };
+      return { data: (data ?? []) as unknown as TData[], total: count ?? 0 };
     },
 
-    async getOne<T>({ resource, id, meta }: GetOneParams): Promise<GetOneResult<T>> {
+    async getOne<TData extends BaseRecord = BaseRecord>({ resource, id, meta }: GetOneParams): Promise<GetOneResult<TData>> {
       const select = (meta?.select as string) ?? '*';
       const { data, error } = await client.from(resource).select(select).eq('id', id).single();
       if (error) throw error;
-      return { data: data as T };
+      return { data: data as unknown as TData };
     },
 
-    async create<T>({ resource, variables }: CreateParams): Promise<CreateResult<T>> {
+    async create<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, variables }: CreateParams<TVariables>): Promise<CreateResult<TData>> {
       const { data, error } = await client.from(resource).insert(variables).select().single();
       if (error) throw error;
-      return { data: data as T };
+      return { data: data as TData };
     },
 
-    async update<T>({ resource, id, variables }: UpdateParams): Promise<UpdateResult<T>> {
+    async update<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, id, variables }: UpdateParams<TVariables>): Promise<UpdateResult<TData>> {
       const { data, error } = await client.from(resource).update(variables).eq('id', id).select().single();
       if (error) throw error;
-      return { data: data as T };
+      return { data: data as TData };
     },
 
-    async deleteOne<T>({ resource, id }: DeleteParams): Promise<DeleteResult<T>> {
+    async deleteOne<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, id }: DeleteParams<TVariables>): Promise<DeleteResult<TData>> {
       const { data, error } = await client.from(resource).delete().eq('id', id).select().single();
       if (error) throw error;
-      return { data: data as T };
+      return { data: data as TData };
     },
 
-    async getMany<T>({ resource, ids, meta }: GetManyParams): Promise<GetManyResult<T>> {
+    async getMany<TData extends BaseRecord = BaseRecord>({ resource, ids, meta }: GetManyParams): Promise<GetManyResult<TData>> {
       const select = (meta?.select as string) ?? '*';
       const { data, error } = await client.from(resource).select(select).in('id', ids);
       if (error) throw error;
-      return { data: (data ?? []) as T[] };
+      return { data: (data ?? []) as unknown as TData[] };
     },
 
-    async createMany<T>({ resource, variables }: CreateManyParams): Promise<CreateManyResult<T>> {
+    async createMany<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, variables }: CreateManyParams<TVariables>): Promise<CreateManyResult<TData>> {
       const { data, error } = await client.from(resource).insert(variables).select();
       if (error) throw error;
-      return { data: (data ?? []) as T[] };
+      return { data: (data ?? []) as TData[] };
     },
 
-    async updateMany<T>({ resource, ids, variables }: UpdateManyParams): Promise<UpdateManyResult<T>> {
+    async updateMany<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, ids, variables }: UpdateManyParams<TVariables>): Promise<UpdateManyResult<TData>> {
       const { data, error } = await client.from(resource).update(variables).in('id', ids).select();
       if (error) throw error;
-      return { data: (data ?? []) as T[] };
+      return { data: (data ?? []) as TData[] };
     },
 
-    async deleteMany<T>({ resource, ids }: DeleteManyParams): Promise<DeleteManyResult<T>> {
+    async deleteMany<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, ids }: DeleteManyParams<TVariables>): Promise<DeleteManyResult<TData>> {
       const { data, error } = await client.from(resource).delete().in('id', ids).select();
       if (error) throw error;
-      return { data: (data ?? []) as T[] };
+      return { data: (data ?? []) as TData[] };
     },
 
-    async custom<T>({ url, method, payload, headers }: CustomParams): Promise<CustomResult<T>> {
+    async custom<TData = unknown, TVariables = unknown>({ url, method, payload, headers }: CustomParams<TVariables>): Promise<CustomResult<TData>> {
       const response = await fetch(url, {
         method: method.toUpperCase(),
         headers: { 'Content-Type': 'application/json', ...headers },
@@ -107,7 +107,7 @@ export function createSupabaseDataProvider(client: SupabaseClient, apiUrl?: stri
       });
       if (!response.ok) throw new Error(`Custom request failed: ${response.status}`);
       const data = await response.json();
-      return { data: data as T };
+      return { data: data as TData };
     },
   };
 }

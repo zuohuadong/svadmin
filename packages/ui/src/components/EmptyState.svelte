@@ -1,41 +1,27 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
-  import { t } from '@svadmin/core/i18n';
-  import { Button } from './ui/button/index.js';
-  import { InboxIcon } from 'lucide-svelte';
-
-  interface Props {
-    icon?: typeof InboxIcon;
-    title?: string;
-    description?: string;
-    action?: Snippet;
-    class?: string;
-  }
+  import { PackageOpen } from 'lucide-svelte';
+  import { t } from '@svadmin/core';
 
   let {
-    icon: Icon = InboxIcon,
-    title,
-    description,
-    action,
-    class: className = '',
-  }: Props = $props();
+    title = t('empty.title'),
+    description = t('empty.description'),
+    children,
+  } = $props<{
+    title?: string;
+    description?: string;
+    children?: import('svelte').Snippet;
+  }>();
 </script>
 
-<div class="flex flex-col items-center justify-center py-16 text-center {className}">
-  <div class="flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
-    <Icon class="h-8 w-8 text-muted-foreground" />
+<div class="flex flex-col items-center justify-center p-8 text-center min-h-[300px] bg-card rounded-lg border border-dashed border-border/50 shadow-sm transition-all duration-300">
+  <div class="h-20 w-20 rounded-full bg-muted flex items-center justify-center mb-4">
+    <PackageOpen class="h-10 w-10 text-muted-foreground" />
   </div>
-  <h3 class="text-lg font-semibold text-foreground">
-    {title ?? t('common.noData')}
-  </h3>
-  {#if description}
-    <p class="mt-1 text-sm text-muted-foreground max-w-sm">
-      {description}
-    </p>
-  {/if}
-  {#if action}
-    <div class="mt-4">
-      {@render action()}
+  <h3 class="text-lg font-semibold tracking-tight">{title}</h3>
+  <p class="text-sm text-muted-foreground mt-2 max-w-sm">{description}</p>
+  {#if children}
+    <div class="mt-6">
+      {@render children()}
     </div>
   {/if}
 </div>

@@ -1,6 +1,6 @@
 {
   "name": "@svadmin/core",
-  "version": "0.0.1",
+  "version": "0.3.0",
   "description": "Core SDK — hooks, types, context, i18n, permissions, router",
   "type": "module",
   "sideEffects": false,
@@ -56,5 +56,11 @@
   "homepage": "https://github.com/zuohuadong/svadmin#readme",
   "bugs": {
     "url": "https://github.com/zuohuadong/svadmin/issues"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.11"
+  },
+  "dependencies": {
+    "svelte-sonner": "^1.1.0"
   }
 }

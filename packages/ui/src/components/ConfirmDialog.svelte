@@ -1,5 +1,5 @@
 <script lang="ts">
-  import * as Dialog from './ui/dialog/index.js';
+  import * as AlertDialog from './ui/alert-dialog/index.js';
   import { Button } from './ui/button/index.js';
   import { t } from '@svadmin/core/i18n';
 
@@ -27,19 +27,27 @@
   const resolvedCancelText = $derived(cancelText ?? t('common.cancel'));
 </script>
 
-<Dialog.Root bind:open onOpenChange={(v: boolean) => { if (!v) oncancel(); }}>
-  <Dialog.Content showCloseButton={false} class="sm:max-w-md">
-    <Dialog.Header>
-      <Dialog.Title>{resolvedTitle}</Dialog.Title>
-      <Dialog.Description>{message}</Dialog.Description>
-    </Dialog.Header>
-    <Dialog.Footer>
-      <Button variant="outline" onclick={oncancel}>
-        {resolvedCancelText}
-      </Button>
-      <Button variant={variantMap[variant]} onclick={onconfirm}>
-        {resolvedConfirmText}
-      </Button>
-    </Dialog.Footer>
-  </Dialog.Content>
-</Dialog.Root>
+<AlertDialog.Root bind:open onOpenChange={(v: boolean) => { if (!v) oncancel(); }}>
+  <AlertDialog.Content>
+    <AlertDialog.Header>
+      <AlertDialog.Title>{resolvedTitle}</AlertDialog.Title>
+      <AlertDialog.Description>{message}</AlertDialog.Description>
+    </AlertDialog.Header>
+    <AlertDialog.Footer>
+      <AlertDialog.Cancel>
+        {#snippet child({ props })}
+          <Button variant="outline" {...props} onclick={oncancel}>
+            {resolvedCancelText}
+          </Button>
+        {/snippet}
+      </AlertDialog.Cancel>
+      <AlertDialog.Action>
+        {#snippet child({ props })}
+          <Button variant={variantMap[variant as keyof typeof variantMap]} {...props} onclick={onconfirm}>
+            {resolvedConfirmText}
+          </Button>
+        {/snippet}
+      </AlertDialog.Action>
+    </AlertDialog.Footer>
+  </AlertDialog.Content>
+</AlertDialog.Root>

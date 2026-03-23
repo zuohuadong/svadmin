@@ -29,6 +29,8 @@
         result.push({ label: t('common.create'), href: `#/${res.name}/create` });
       } else if (segments[1] === 'edit' && segments[2]) {
         result.push({ label: `${t('common.edit')} #${segments[2]}`, href: `#/${res.name}/edit/${segments[2]}` });
+      } else if (segments[1] === 'show' && segments[2]) {
+        result.push({ label: `${t('common.detail')} #${segments[2]}`, href: `#/${res.name}/show/${segments[2]}` });
       }
     }
     return result;

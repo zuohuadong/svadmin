@@ -1,0 +1,33 @@
+{
+  "name": "@svadmin/pocketbase",
+  "version": "0.3.0",
+  "description": "PocketBase adapters — DataProvider, AuthProvider, LiveProvider for svadmin",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "src/**/*"
+  ],
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "peerDependencies": {
+    "@svadmin/core": "^0.3.0",
+    "pocketbase": ">=0.21.0"
+  },
+  "keywords": ["svadmin", "pocketbase", "data-provider", "auth-provider", "live-provider"],
+  "license": "MIT",
+  "author": "zuohuadong",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zuohuadong/svadmin.git"
+  },
+  "homepage": "https://github.com/zuohuadong/svadmin#readme",
+  "bugs": {
+    "url": "https://github.com/zuohuadong/svadmin/issues"
+  }
+}

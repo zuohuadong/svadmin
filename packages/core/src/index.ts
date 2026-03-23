@@ -1,34 +1,52 @@
 // Core barrel exports
 
 export {
-  setDataProvider, getDataProvider,
+  setDataProvider, getDataProvider, getDataProviderForResource, getDataProviderNames,
   setAuthProvider, getAuthProvider,
   setResources, getResources, getResource,
+  setRouterProvider, getRouterProvider,
 } from './context';
+export type { DataProviderInput } from './context';
 export {
   useList, useInfiniteList,
   useOne, useShow,
   useSelect, useMany,
   useCustom, useApiUrl,
+  useCustomMutation, useInvalidate,
   useCreate, useCreateMany,
   useUpdate, useUpdateMany,
   useDelete, useDeleteMany,
   useForm, useTable,
-  useNavigation,
+  useNavigation, useGo, useBack,
+  useGetToPath, useLink,
   useResource,
+  useLog, useLogList,
+  useModalForm, useDrawerForm, useModal,
+  useOvertime, useRelation,
+  useNotification, useDataProvider,
+  useMenu, useBreadcrumb, useThemedLayoutContext,
 } from './hooks.svelte';
-export { matchRoute, navigate, currentPath } from './router';
+export { matchRoute, navigate, currentPath, setActiveRouterProvider } from './router';
 export { readURLState, writeURLState } from './url-sync';
 export { setAccessControl, canAccess, canAccessAsync } from './permissions';
-export { useLive } from './live';
+export { useLive, useSubscription, usePublish } from './live';
 export { toast } from './toast.svelte';
-export { t, setLocale, getLocale, getAvailableLocales, addTranslations } from './i18n.svelte';
-export { audit, setAuditHandler } from './audit';
-export { getTheme, setTheme, toggleTheme, getResolvedTheme } from './theme.svelte';
-export type { ThemeMode } from './theme.svelte';
+export { notify, closeNotification, setNotificationProvider, getNotificationProvider } from './notification.svelte';
+export { t, setLocale, getLocale, getAvailableLocales, addTranslations, useTranslation } from './i18n.svelte';
+export { audit, setAuditHandler, setAuditLogProvider, getAuditLogProvider } from './audit';
+export type { AuditLogProvider } from './audit';
+export { getTheme, setTheme, toggleTheme, getResolvedTheme, getColorTheme, setColorTheme, colorThemes } from './theme.svelte';
+export type { ThemeMode, ColorTheme } from './theme.svelte';
+export { setUnsavedChanges, getUnsavedChanges, initUnsavedChangesNotifier } from './unsaved-changes.svelte';
+export { setAdminOptions, getAdminOptions, getTextTransformers } from './options';
+export type { AdminOptions, TextTransformers, OvertimeConfig } from './options';
 
+export * from './query-keys';
+export { HttpError } from './types';
 export type {
   DataProvider, AuthProvider, NotificationProvider, MutationMode,
+  ValidationErrors, CrudOperator, LogicalFilter,
+  CustomParams, CustomResult,
   GetListParams, GetListResult,
   GetOneParams, GetOneResult,
   GetManyParams, GetManyResult,
@@ -38,11 +56,41 @@ export type {
   UpdateManyParams, UpdateManyResult,
   DeleteParams, DeleteResult,
   DeleteManyParams, DeleteManyResult,
-  CustomParams, CustomResult,
   Pagination, Sort, Filter, Identity,
   ResourceDefinition, FieldDefinition,
   AuthActionResult, CheckResult,
+  ResourceTypeMap, KnownResources, InferData,
+  BaseRecord,
 } from './types';
-export type { LiveProvider, LiveEvent } from './live';
+export type { InvalidateScope } from './options';
+export type { LiveProvider, LiveEvent, LiveMode } from './live';
 export type { Action, AccessControlResult, AccessControlFn } from './permissions';
 export type { AuditEntry, AuditHandler } from './audit';
+export { useCan } from './useCan';
+export { useExport, useImport } from './data-transfer';
+export type { UseExportOptions, UseImportOptions } from './data-transfer';
+export {
+  useLogin, useLogout,
+  useRegister, useForgotPassword, useUpdatePassword,
+  useGetIdentity, useIsAuthenticated,
+  useOnError, usePermissions,
+} from './auth-hooks.svelte';
+export { useParsed } from './useParsed';
+export * from './useStepsForm.svelte';
+export { createHashRouterProvider, createHistoryRouterProvider } from './router-provider';
+export type { RouterProvider } from './router-provider';
+export { inferFieldType, inferResource } from './inferencer';
+export type { InferResult } from './inferencer';
+export { createWebSocketLiveProvider } from './live-websocket';
+export type { WebSocketLiveProviderOptions } from './live-websocket';
+export { createSSELiveProvider } from './live-sse';
+export type { SSELiveProviderOptions } from './live-sse';
+export { inferFromOpenAPI } from './inferencer-openapi';
+export type { InferFromOpenAPIOptions } from './inferencer-openapi';
+export {
+  getDefaultFilter, getDefaultSortOrder,
+  unionFilters, unionSorters,
+  file2Base64, generateDefaultDocumentTitle,
+} from './helpers';
+export { TableState } from './table-state.svelte';
+export type { TableStateOptions } from './table-state.svelte';

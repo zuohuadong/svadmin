@@ -1,18 +1,27 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode } from '@svadmin/core';
-  import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme } from '@svadmin/core';
-  import { matchRoute, currentPath, navigate } from '@svadmin/core/router';
+  import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode, RouterProvider } from '@svadmin/core';
+  import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme, setRouterProvider, getAuthProvider, createHashRouterProvider } from '@svadmin/core';
+  import { t } from '@svadmin/core/i18n';
+  import { navigate } from '@svadmin/core/router';
   import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
   import Layout from './Layout.svelte';
   import AutoTable from './AutoTable.svelte';
   import AutoForm from './AutoForm.svelte';
   import ShowPage from './ShowPage.svelte';
   import Toast from './Toast.svelte';
+  import LoginPage from './LoginPage.svelte';
+  import RegisterPage from './RegisterPage.svelte';
+  import ForgotPasswordPage from './ForgotPasswordPage.svelte';
+  import UpdatePasswordPage from './UpdatePasswordPage.svelte';
+  import ConfigErrorScreen from './ConfigErrorScreen.svelte';
+  import DevTools from './DevTools.svelte';
+  import { initRouter, getRoute, getParams } from '../router-state.svelte.js';
 
   interface Props {
     dataProvider: DataProvider;
     authProvider?: AuthProvider;
+    routerProvider?: RouterProvider;
     resources: ResourceDefinition[];
     locale?: string;
     title?: string;
@@ -24,6 +33,7 @@
   let {
     dataProvider,
     authProvider,
+    routerProvider,
     resources,
     locale,
     title = 'Admin',
@@ -32,10 +42,14 @@
     loginPage,
   }: Props = $props();
 
+  // Resolve router provider (default to hash)
+  const resolvedRouter = routerProvider ?? createHashRouterProvider();
+
   // Set up context
   setDataProvider(dataProvider);
   if (authProvider) setAuthProvider(authProvider);
   setResources(resources);
+  setRouterProvider(resolvedRouter);
   if (locale) setLocale(locale);
   if (defaultTheme) setTheme(defaultTheme);
 
@@ -45,38 +59,27 @@
     },
   });
 
-  // Router state
-  const routes = [
-    '/login',
-    '/',
-    '/:resource',
-    '/:resource/create',
-    '/:resource/edit/:id',
-    '/:resource/show/:id',
-  ];
+  // Initialize router with provider
+  initRouter(resolvedRouter);
 
-  let hash = $state(window.location.hash);
-
-  $effect(() => {
-    const handler = () => { hash = window.location.hash; };
-    window.addEventListener('hashchange', handler);
-    return () => window.removeEventListener('hashchange', handler);
-  });
-
-  const match = $derived(matchRoute(hash, routes));
-  const route = $derived(match?.route ?? '/');
-  const params = $derived(match?.params ?? {});
+  // Reactive getters for route state
+  const route = $derived(getRoute());
+  const params = $derived(getParams());
 
   // Auth check
-  let isAuthenticated = $state(!authProvider);
-  let authChecked = $state(!authProvider);
+  let isAuthenticated = $state(false);
+  let authChecked = $state(false);
 
   $effect(() => {
-    if (!authProvider) return;
+    if (!authProvider) {
+      isAuthenticated = true;
+      authChecked = true;
+      return;
+    }
     authProvider.check().then(result => {
       isAuthenticated = result.authenticated;
       authChecked = true;
-      if (!result.authenticated && route !== '/login') {
+      if (!result.authenticated && route !== '/login' && route !== '/register' && route !== '/forgot-password' && route !== '/update-password') {
         navigate(result.redirectTo ?? '/login');
       }
     });
@@ -90,13 +93,16 @@
     </div>
   {:else if route === '/login' && loginPage}
     {@render loginPage()}
-  {:else if route === '/login'}
-    <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div class="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl text-center">
-        <h1 class="text-xl font-bold text-gray-900">{title}</h1>
-        <p class="mt-2 text-sm text-gray-500">Please configure a loginPage snippet or authProvider.</p>
-      </div>
-    </div>
+  {:else if route === '/login' && authProvider}
+    <LoginPage {title} onSuccess={() => { isAuthenticated = true; navigate('/'); }} />
+  {:else if route === '/register' && authProvider?.register}
+    <RegisterPage {title} />
+  {:else if route === '/forgot-password' && authProvider?.forgotPassword}
+    <ForgotPasswordPage {title} />
+  {:else if route === '/update-password' && authProvider?.updatePassword}
+    <UpdatePasswordPage {title} />
+  {:else if route === '/login' || route === '/register' || route === '/forgot-password' || route === '/update-password'}
+    <ConfigErrorScreen title="{title} — Configuration Required" />
   {:else if isAuthenticated || !authProvider}
     <Layout {title}>
       {#if route === '/'}
@@ -104,24 +110,33 @@
           {@render dashboard()}
         {:else}
           <div class="space-y-4">
-            <h1 class="text-2xl font-bold text-gray-900">Welcome to {title}</h1>
-            <p class="text-gray-500">Select a resource from the sidebar to get started.</p>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('common.welcome', { title })}</h1>
+            <p class="text-gray-500">{t('common.dashboardHint')}</p>
           </div>
         {/if}
       {:else if route === '/:resource'}
-        <AutoTable resourceName={params.resource} />
+        {#key params.resource}
+          <AutoTable resourceName={params.resource} />
+        {/key}
       {:else if route === '/:resource/create'}
-        <AutoForm resourceName={params.resource} mode="create" />
+        {#key params.resource}
+          <AutoForm resourceName={params.resource} mode="create" />
+        {/key}
       {:else if route === '/:resource/edit/:id'}
-        <AutoForm resourceName={params.resource} mode="edit" id={params.id} />
+        {#key `${params.resource}-${params.id}`}
+          <AutoForm resourceName={params.resource} mode="edit" id={params.id} />
+        {/key}
       {:else if route === '/:resource/show/:id'}
-        <ShowPage resourceName={params.resource} id={params.id} />
+        {#key `${params.resource}-${params.id}`}
+          <ShowPage resourceName={params.resource} id={params.id} />
+        {/key}
       {/if}
     </Layout>
   {:else}
     <div class="flex h-screen items-center justify-center">
-      <p class="text-gray-500">Redirecting to login...</p>
+      <p class="text-gray-500">{t('common.redirecting')}</p>
     </div>
   {/if}
   <Toast />
+  <DevTools />
 </QueryClientProvider>

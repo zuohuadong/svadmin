@@ -1,0 +1,247 @@
+/**
+ * @svadmin/inferencer
+ *
+ * Analyzes API response data and infers ResourceDefinition + FieldDefinition[].
+ * Can also generate copy-paste-ready Svelte component code.
+ */
+import type { FieldDefinition, ResourceDefinition } from '@svadmin/core';
+
+// ─── Field Type Inference ────────────────────────────────────
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const URL_RE = /^https?:\/\//;
+const IMAGE_RE = /\.(png|jpe?g|gif|svg|webp|avif|ico)(\?.*)?$/i;
+const PHONE_RE = /^\+?[\d\s\-()]{7,}$/;
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})/;
+const COLOR_RE = /^#([0-9a-fA-F]{3,8})$/;
+
+type InferredType = FieldDefinition['type'];
+
+/**
+ * Infer the svadmin field type from a single sample value.
+ */
+export function inferFieldType(key: string, value: unknown): InferredType {
+  if (value === null || value === undefined) return 'text';
+
+  if (typeof value === 'boolean') return 'boolean';
+  if (typeof value === 'number') return 'number';
+
+  if (Array.isArray(value)) {
+    if (value.length > 0 && typeof value[0] === 'string') {
+      if (value.every(v => typeof v === 'string' && IMAGE_RE.test(v))) return 'images';
+      return 'tags';
+    }
+    return 'tags';
+  }
+
+  if (typeof value === 'object') return 'json';
+
+  if (typeof value === 'string') {
+    if (COLOR_RE.test(value)) return 'color';
+    if (EMAIL_RE.test(value)) return 'email';
+    if (IMAGE_RE.test(value)) return 'image';
+    if (URL_RE.test(value)) return 'url';
+    if (PHONE_RE.test(value)) return 'phone';
+    if (ISO_DATE_RE.test(value)) return 'date';
+    if (value.length > 200) return 'textarea';
+
+    // Heuristic: key name hints
+    const lk = key.toLowerCase();
+    if (lk.includes('email')) return 'email';
+    if (lk.includes('phone') || lk.includes('tel') || lk.includes('mobile')) return 'phone';
+    if (lk.includes('url') || lk.includes('link') || lk.includes('website')) return 'url';
+    if (lk.includes('avatar') || lk.includes('image') || lk.includes('photo') || lk.includes('thumbnail') || lk.includes('logo')) return 'image';
+    if (lk.includes('color') || lk.includes('colour')) return 'color';
+    if (lk.includes('description') || lk.includes('content') || lk.includes('body') || lk.includes('bio') || lk.includes('summary')) return 'textarea';
+    if (lk === 'created_at' || lk === 'updated_at' || lk.endsWith('_at') || lk.endsWith('_date') || lk.includes('date')) return 'date';
+
+    return 'text';
+  }
+
+  return 'text';
+}
+
+// ─── Relation Detection ──────────────────────────────────────
+
+const RELATION_SUFFIXES = ['_id', 'Id', '_ID'];
+
+function isLikelyRelation(key: string): string | null {
+  for (const suffix of RELATION_SUFFIXES) {
+    if (key.endsWith(suffix)) {
+      const resource = key.slice(0, -suffix.length);
+      // Pluralize naively
+      return resource.endsWith('s') ? resource : resource + 's';
+    }
+  }
+  return null;
+}
+
+// ─── Core: Infer from Sample Data ────────────────────────────
+
+export interface InferResult {
+  fields: FieldDefinition[];
+  resource: ResourceDefinition;
+  code: string;
+}
+
+/**
+ * Analyze a sample data array and produce a ResourceDefinition.
+ * @param resourceName - Name of the resource (e.g. "posts")
+ * @param sampleData  - An array of records from the API
+ * @param options      - Additional configuration
+ */
+export function inferResource(
+  resourceName: string,
+  sampleData: Record<string, unknown>[],
+  options: {
+    primaryKey?: string;
+    label?: string;
+  } = {}
+): InferResult {
+  const primaryKey = options.primaryKey ?? 'id';
+  const label = options.label ?? capitalize(resourceName);
+
+  if (!sampleData.length) {
+    return {
+      fields: [],
+      resource: { name: resourceName, label, fields: [], primaryKey },
+      code: `// No data available to infer fields for "${resourceName}".`,
+    };
+  }
+
+  // Gather all unique keys across all records
+  const keySet = new Set<string>();
+  for (const row of sampleData) {
+    for (const k of Object.keys(row)) keySet.add(k);
+  }
+
+  // For each key, infer from all non-null values
+  const fields: FieldDefinition[] = [];
+  for (const key of keySet) {
+    // Collect non-null values
+    const values = sampleData
+      .map(r => r[key])
+      .filter(v => v !== null && v !== undefined);
+
+    const sampleValue = values[0];
+    let inferredType = inferFieldType(key, sampleValue);
+
+    // Cross-validate: if most values for this key are of a different type, use majority
+    const typeCounts = new Map<InferredType, number>();
+    for (const v of values) {
+      const t = inferFieldType(key, v);
+      typeCounts.set(t, (typeCounts.get(t) ?? 0) + 1);
+    }
+    let maxCount = 0;
+    for (const [t, count] of typeCounts) {
+      if (count > maxCount) {
+        maxCount = count;
+        inferredType = t;
+      }
+    }
+
+    // Check for relation
+    const relatedResource = isLikelyRelation(key);
+
+    // Check if it looks like a select (few unique string values)
+    const uniqueStrings = new Set(values.filter(v => typeof v === 'string') as string[]);
+    const isSelect = inferredType === 'text' && uniqueStrings.size > 1 && uniqueStrings.size <= 10 && values.length >= 5;
+
+    const field: FieldDefinition = {
+      key,
+      label: humanize(key),
+      type: relatedResource ? 'relation' : isSelect ? 'select' : inferredType,
+      sortable: inferredType === 'text' || inferredType === 'number' || inferredType === 'date',
+      searchable: inferredType === 'text' || inferredType === 'email',
+      showInList: key !== primaryKey && inferredType !== 'textarea' && inferredType !== 'json' && inferredType !== 'richtext',
+      showInForm: key !== primaryKey,
+    };
+
+    if (relatedResource) {
+      field.resource = relatedResource;
+      field.optionLabel = 'name';
+      field.optionValue = 'id';
+    }
+
+    if (isSelect) {
+      field.options = [...uniqueStrings].map(v => ({ label: capitalize(v), value: v }));
+    }
+
+    fields.push(field);
+  }
+
+  // Sort: primaryKey first, then alphabetically
+  fields.sort((a, b) => {
+    if (a.key === primaryKey) return -1;
+    if (b.key === primaryKey) return 1;
+    return a.key.localeCompare(b.key);
+  });
+
+  const resource: ResourceDefinition = {
+    name: resourceName,
+    label,
+    primaryKey,
+    fields,
+    canCreate: true,
+    canEdit: true,
+    canDelete: true,
+    canShow: true,
+  };
+
+  const code = generateCode(resource);
+
+  return { fields, resource, code };
+}
+
+// ─── Code Generation ─────────────────────────────────────────
+
+function generateCode(resource: ResourceDefinition): string {
+  const fieldsCode = resource.fields.map(f => {
+    const lines = [
+      `    { key: '${f.key}', label: '${f.label}', type: '${f.type}'`,
+    ];
+    if (f.sortable) lines.push(`      sortable: true`);
+    if (f.searchable) lines.push(`      searchable: true`);
+    if (f.showInList === false) lines.push(`      showInList: false`);
+    if (f.showInForm === false) lines.push(`      showInForm: false`);
+    if (f.resource) {
+      lines.push(`      resource: '${f.resource}'`);
+      lines.push(`      optionLabel: '${f.optionLabel}'`);
+      lines.push(`      optionValue: '${f.optionValue}'`);
+    }
+    if (f.options) {
+      lines.push(`      options: ${JSON.stringify(f.options)}`);
+    }
+
+    return lines.join(',\n') + ' }';
+  }).join(',\n');
+
+  return `import type { ResourceDefinition } from '@svadmin/core';
+
+export const ${resource.name}Resource: ResourceDefinition = {
+  name: '${resource.name}',
+  label: '${resource.label}',
+  primaryKey: '${resource.primaryKey ?? 'id'}',
+  canCreate: true,
+  canEdit: true,
+  canDelete: true,
+  canShow: true,
+  fields: [
+${fieldsCode}
+  ],
+};
+`;
+}
+
+// ─── Utilities ───────────────────────────────────────────────
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function humanize(key: string): string {
+  return key
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}

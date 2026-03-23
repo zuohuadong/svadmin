@@ -1,18 +1,23 @@
 {
   "name": "svadmin",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.3.0",
   "description": "Headless admin framework for Svelte 5 — bring your own backend",
   "workspaces": [
     "packages/*",
-    "example"
+    "example",
+    "docs"
   ],
   "scripts": {
     "dev": "cd example && bun run dev",
     "build": "cd example && bun run build",
     "check": "bun run --filter '*' typecheck",
     "lint": "eslint .",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json"
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "bun test",
+    "test:e2e": "bunx playwright test",
+    "docs:dev": "cd docs && bun run dev",
+    "docs:build": "cd docs && bun run build"
   },
   "keywords": [
     "svelte",
