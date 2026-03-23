@@ -21,7 +21,7 @@ export {
   useGetToPath, useLink,
   useResource,
   useLog, useLogList,
-  useModalForm, useDrawerForm,
+  useModalForm, useDrawerForm, useModal,
   useOvertime, useRelation,
   useNotification, useDataProvider,
   useMenu, useBreadcrumb, useThemedLayoutContext,
@@ -32,7 +32,7 @@ export { setAccessControl, canAccess, canAccessAsync } from './permissions';
 export { useLive, useSubscription, usePublish } from './live';
 export { toast } from './toast.svelte';
 export { notify, closeNotification, setNotificationProvider, getNotificationProvider } from './notification.svelte';
-export { t, setLocale, getLocale, getAvailableLocales, addTranslations } from './i18n.svelte';
+export { t, setLocale, getLocale, getAvailableLocales, addTranslations, useTranslation } from './i18n.svelte';
 export { audit, setAuditHandler, setAuditLogProvider, getAuditLogProvider } from './audit';
 export type { AuditLogProvider } from './audit';
 export { getTheme, setTheme, toggleTheme, getResolvedTheme, getColorTheme, setColorTheme, colorThemes } from './theme.svelte';
@@ -68,6 +68,7 @@ export type { Action, AccessControlResult, AccessControlFn } from './permissions
 export type { AuditEntry, AuditHandler } from './audit';
 export { useCan } from './useCan';
 export { useExport, useImport } from './data-transfer';
+export type { UseExportOptions, UseImportOptions } from './data-transfer';
 export {
   useLogin, useLogout,
   useRegister, useForgotPassword, useUpdatePassword,

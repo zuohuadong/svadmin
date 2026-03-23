@@ -8,10 +8,10 @@ import { t } from './i18n.svelte';
 import { audit } from './audit';
 import { navigate } from './router';
 import { HttpError } from './types';
-import type { BaseRecord, MutationMode } from './types';
+import type { BaseRecord, MutationMode, KnownResources } from './types';
 
 export interface UseFormOptions<TQueryFnData extends BaseRecord = BaseRecord, TError = HttpError, TVariables = Record<string, unknown>, TData extends BaseRecord = TQueryFnData> {
-  resource?: string;
+  resource?: KnownResources;
   action?: 'create' | 'edit' | 'clone';
   id?: string | number;
   redirect?: 'list' | 'edit' | 'show' | false;

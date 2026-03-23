@@ -1,15 +1,25 @@
-import { useForm } from './hooks.svelte';
-import type { UseFormOptions, UseFormResult } from './hooks.svelte';
-import type { KnownResources, InferData } from './types';
+import { useForm } from './form-hooks.svelte';
+import type { UseFormOptions, UseFormResult } from './form-hooks.svelte';
+import type { BaseRecord, HttpError } from './types';
 
-export interface UseStepsFormOptions<R extends KnownResources = KnownResources> extends UseFormOptions<R> {
+export interface UseStepsFormOptions<
+  TQueryFnData extends BaseRecord = BaseRecord,
+  TError = HttpError,
+  TVariables = Record<string, unknown>,
+  TData extends BaseRecord = TQueryFnData
+> extends UseFormOptions<TQueryFnData, TError, TVariables, TData> {
   /** Default step index. Starts at 0. */
   defaultStep?: number;
-  /** Validate the form when navigating back? Refine uses this, though our current implementation handles it loosely. */
+  /** Validate the form when navigating back? */
   isBackValidate?: boolean;
 }
 
-export interface UseStepsFormResult<R extends KnownResources = KnownResources, T = InferData<R>> extends UseFormResult<R, T> {
+export interface UseStepsFormResult<
+  TQueryFnData extends BaseRecord = BaseRecord,
+  TError = HttpError,
+  TVariables = Record<string, unknown>,
+  TData extends BaseRecord = TQueryFnData
+> extends UseFormResult<TQueryFnData, TError, TVariables, TData> {
   currentStep: number;
   gotoStep: (step: number) => void;
   next: () => void;
@@ -20,8 +30,13 @@ export interface UseStepsFormResult<R extends KnownResources = KnownResources, T
  * useStepsForm
  * Extends `useForm` with step navigation state (currentStep, next, prev, gotoStep).
  */
-export function useStepsForm<R extends KnownResources = KnownResources, T = InferData<R>>(options: UseStepsFormOptions<R> = {} as UseStepsFormOptions<R>): UseStepsFormResult<R, T> {
-  const form = useForm<R, T>(options);
+export function useStepsForm<
+  TQueryFnData extends BaseRecord = BaseRecord,
+  TError = HttpError,
+  TVariables = Record<string, unknown>,
+  TData extends BaseRecord = TQueryFnData
+>(options: UseStepsFormOptions<TQueryFnData, TError, TVariables, TData> = {} as any): UseStepsFormResult<TQueryFnData, TError, TVariables, TData> {
+  const form = useForm<TQueryFnData, TError, TVariables, TData>(options);
   
   let currentStep = $state(options.defaultStep ?? 0);
   
@@ -40,7 +55,7 @@ export function useStepsForm<R extends KnownResources = KnownResources, T = Infe
   }
 
   // Inject stepping features into the returned useForm object while preserving its reactive getters.
-  const result = form as unknown as UseStepsFormResult<R, T>;
+  const result = form as unknown as UseStepsFormResult<TQueryFnData, TError, TVariables, TData>;
   
   Object.defineProperty(result, 'currentStep', {
     get: () => currentStep,

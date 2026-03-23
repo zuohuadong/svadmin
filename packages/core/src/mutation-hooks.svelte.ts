@@ -4,7 +4,7 @@ import { getDataProviderForResource } from './context';
 import { useParsed } from './useParsed';
 import { audit } from './audit';
 import { UndoError } from './types';
-import type { BaseRecord, HttpError, CreateParams, UpdateParams, DeleteParams } from './types';
+import type { BaseRecord, HttpError, CreateParams, UpdateParams, DeleteParams, KnownResources } from './types';
 import { createOvertimeTracker, fireSuccessNotification, fireErrorNotification } from './hook-utils.svelte';
 import type { NotificationConfig, OvertimeOptions } from './hook-utils.svelte';
 import { toast } from './toast.svelte';
@@ -12,13 +12,13 @@ import { toast } from './toast.svelte';
 // ─── useCreate ─────────────────────────────────────────────────
 
 export interface UseCreateOptions {
-  resource?: string;
+  resource?: KnownResources;
   mutationOptions?: Record<string, unknown>;
   overtimeOptions?: OvertimeOptions;
 }
 
 export interface UseCreateMutateParams<TVariables> {
-  resource?: string;
+  resource?: KnownResources;
   variables: TVariables;
   successNotification?: NotificationConfig;
   errorNotification?: NotificationConfig;
@@ -74,7 +74,7 @@ export function useCreate<TData extends BaseRecord = BaseRecord, TError = HttpEr
 // ─── useUpdate ─────────────────────────────────────────────────
 
 export interface UseUpdateOptions {
-  resource?: string;
+  resource?: KnownResources;
   id?: string | number;
   mutationMode?: 'pessimistic' | 'optimistic' | 'undoable';
   undoableTimeout?: number;
@@ -83,7 +83,7 @@ export interface UseUpdateOptions {
 }
 
 export interface UseUpdateMutateParams<TVariables> {
-  resource?: string;
+  resource?: KnownResources;
   id?: string | number;
   variables: TVariables;
   successNotification?: NotificationConfig;
@@ -196,7 +196,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
 // ─── useDelete ─────────────────────────────────────────────────
 
 export interface UseDeleteOptions {
-  resource?: string;
+  resource?: KnownResources;
   id?: string | number;
   mutationMode?: 'pessimistic' | 'optimistic' | 'undoable';
   undoableTimeout?: number;
@@ -205,7 +205,7 @@ export interface UseDeleteOptions {
 }
 
 export interface UseDeleteMutateParams<TVariables> {
-  resource?: string;
+  resource?: KnownResources;
   id?: string | number;
   variables?: TVariables;
   successNotification?: NotificationConfig;

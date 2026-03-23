@@ -27,7 +27,7 @@ import { getDataProviderForResource, getDataProvider } from './context';
 import { useParsed } from './useParsed';
 import { createOvertimeTracker, fireSuccessNotification, fireErrorNotification } from './hook-utils.svelte';
 import type { NotificationConfig, OvertimeOptions } from './hook-utils.svelte';
-import type { BaseRecord, HttpError, Pagination, Sort, Filter, DataProvider } from './types';
+import type { BaseRecord, HttpError, Pagination, Sort, Filter, DataProvider, KnownResources } from './types';
 import type { LiveMode, LiveEvent } from './live';
 import { useList } from './query-hooks.svelte';
 import type { UseListOptions } from './query-hooks.svelte';
@@ -36,7 +36,7 @@ import { audit } from './audit';
 // ─── useInfiniteList ────────────────────────────────────────────────
 
 export interface UseInfiniteListOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
-  resource?: string;
+  resource?: KnownResources;
   pagination?: Pagination;
   sorters?: Sort[];
   filters?: Filter[];
@@ -86,7 +86,7 @@ export function useInfiniteList<TData extends BaseRecord = BaseRecord, TError = 
 // ─── useSelect ──────────────────────────────────────────────────────
 
 export interface UseSelectOptions<TData extends BaseRecord = BaseRecord, TOption = { label: string; value: string | number }> {
-  resource: string;
+  resource: KnownResources;
   optionLabel?: string | ((item: TData) => string);
   optionValue?: string | ((item: TData) => string | number);
   sorters?: Sort[];
@@ -236,7 +236,7 @@ export function useCustomMutation<TData = unknown, TError = HttpError, TVariable
 
 // ─── useCreateMany / useUpdateMany / useDeleteMany ──────────────────
 
-export function useCreateMany<TData extends BaseRecord = BaseRecord, TError = HttpError, TVariables = Record<string, unknown>>(options: { resource?: string; overtimeOptions?: OvertimeOptions } = {}) {
+export function useCreateMany<TData extends BaseRecord = BaseRecord, TError = HttpError, TVariables = Record<string, unknown>>(options: { resource?: KnownResources; overtimeOptions?: OvertimeOptions } = {}) {
   const parsed = useParsed();
   const resource = options.resource ?? parsed.resource ?? '';
   const adminOptions = getAdminOptions();
@@ -244,7 +244,7 @@ export function useCreateMany<TData extends BaseRecord = BaseRecord, TError = Ht
   let isMutating = $state(false);
   const overtime = createOvertimeTracker(() => isMutating, options.overtimeOptions ?? adminOptions.overtime);
 
-  const mutation = createMutation<{ data: TData[] }, TError, { resource?: string; variables: TVariables[]; meta?: Record<string, unknown>; dataProviderName?: string }>(() => ({
+  const mutation = createMutation<{ data: TData[] }, TError, { resource?: KnownResources; variables: TVariables[]; meta?: Record<string, unknown>; dataProviderName?: string }>(() => ({
     mutationFn: async (params) => {
       isMutating = true;
       const resName = params.resource ?? resource;
@@ -261,7 +261,7 @@ export function useCreateMany<TData extends BaseRecord = BaseRecord, TError = Ht
   return { mutation, get overtime() { return overtime; } };
 }
 
-export function useUpdateMany<TData extends BaseRecord = BaseRecord, TError = HttpError, TVariables = Record<string, unknown>>(options: { resource?: string; overtimeOptions?: OvertimeOptions } = {}) {
+export function useUpdateMany<TData extends BaseRecord = BaseRecord, TError = HttpError, TVariables = Record<string, unknown>>(options: { resource?: KnownResources; overtimeOptions?: OvertimeOptions } = {}) {
   const parsed = useParsed();
   const resource = options.resource ?? parsed.resource ?? '';
   const adminOptions = getAdminOptions();
@@ -269,7 +269,7 @@ export function useUpdateMany<TData extends BaseRecord = BaseRecord, TError = Ht
   let isMutating = $state(false);
   const overtime = createOvertimeTracker(() => isMutating, options.overtimeOptions ?? adminOptions.overtime);
 
-  const mutation = createMutation<{ data: TData[] }, TError, { resource?: string; ids: (string | number)[]; variables: TVariables; meta?: Record<string, unknown>; dataProviderName?: string }>(() => ({
+  const mutation = createMutation<{ data: TData[] }, TError, { resource?: KnownResources; ids: (string | number)[]; variables: TVariables; meta?: Record<string, unknown>; dataProviderName?: string }>(() => ({
     mutationFn: async (params) => {
       isMutating = true;
       const resName = params.resource ?? resource;
@@ -286,7 +286,7 @@ export function useUpdateMany<TData extends BaseRecord = BaseRecord, TError = Ht
   return { mutation, get overtime() { return overtime; } };
 }
 
-export function useDeleteMany<TData extends BaseRecord = BaseRecord, TError = HttpError>(options: { resource?: string; overtimeOptions?: OvertimeOptions } = {}) {
+export function useDeleteMany<TData extends BaseRecord = BaseRecord, TError = HttpError>(options: { resource?: KnownResources; overtimeOptions?: OvertimeOptions } = {}) {
   const parsed = useParsed();
   const resource = options.resource ?? parsed.resource ?? '';
   const adminOptions = getAdminOptions();
@@ -294,7 +294,7 @@ export function useDeleteMany<TData extends BaseRecord = BaseRecord, TError = Ht
   let isMutating = $state(false);
   const overtime = createOvertimeTracker(() => isMutating, options.overtimeOptions ?? adminOptions.overtime);
 
-  const mutation = createMutation<{ data: TData[] }, TError, { resource?: string; ids: (string | number)[]; meta?: Record<string, unknown>; dataProviderName?: string }>(() => ({
+  const mutation = createMutation<{ data: TData[] }, TError, { resource?: KnownResources; ids: (string | number)[]; meta?: Record<string, unknown>; dataProviderName?: string }>(() => ({
     mutationFn: async (params) => {
       isMutating = true;
       const resName = params.resource ?? resource;

@@ -7,7 +7,7 @@ import type {
   CreateParams, CreateResult, UpdateParams, UpdateResult, DeleteParams, DeleteResult,
   GetManyParams, GetManyResult, CreateManyParams, CreateManyResult,
   UpdateManyParams, UpdateManyResult, DeleteManyParams, DeleteManyResult,
-  CustomParams, CustomResult,
+  CustomParams, CustomResult, BaseRecord,
 } from '@svadmin/core';
 
 export interface ElysiaDataProviderOptions {
@@ -44,7 +44,7 @@ export function createElysiaDataProvider(opts: ElysiaDataProviderOptions): DataP
   return {
     getApiUrl: () => apiUrl,
 
-    async getList<T>({ resource, pagination, sorters, filters }: GetListParams): Promise<GetListResult<T>> {
+    async getList<TData extends BaseRecord = BaseRecord>({ resource, pagination, sorters, filters }: GetListParams): Promise<GetListResult<TData>> {
       const params = new URLSearchParams();
       const { current = 1, pageSize = 10 } = pagination ?? {};
       params.set('_page', String(current));
@@ -65,48 +65,48 @@ export function createElysiaDataProvider(opts: ElysiaDataProviderOptions): DataP
 
       const url = `${apiUrl}/${resource}?${params.toString()}`;
       const headers = resolveHeaders(opts);
-      const json = await request<{ items: T[]; total: number }>(url, headers);
+      const json = await request<{ items: TData[]; total: number }>(url, headers);
       return { data: json.items, total: json.total };
     },
 
-    async getOne<T>({ resource, id }: GetOneParams): Promise<GetOneResult<T>> {
-      const data = await request<T>(`${apiUrl}/${resource}/${id}`, resolveHeaders(opts));
+    async getOne<TData extends BaseRecord = BaseRecord>({ resource, id }: GetOneParams): Promise<GetOneResult<TData>> {
+      const data = await request<TData>(`${apiUrl}/${resource}/${id}`, resolveHeaders(opts));
       return { data };
     },
 
-    async create<T>({ resource, variables }: CreateParams): Promise<CreateResult<T>> {
-      const data = await request<T>(`${apiUrl}/${resource}`, resolveHeaders(opts), {
+    async create<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, variables }: CreateParams<TVariables>): Promise<CreateResult<TData>> {
+      const data = await request<TData>(`${apiUrl}/${resource}`, resolveHeaders(opts), {
         method: 'POST',
         body: JSON.stringify(variables),
       });
       return { data };
     },
 
-    async update<T>({ resource, id, variables }: UpdateParams): Promise<UpdateResult<T>> {
-      const data = await request<T>(`${apiUrl}/${resource}/${id}`, resolveHeaders(opts), {
+    async update<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, id, variables }: UpdateParams<TVariables>): Promise<UpdateResult<TData>> {
+      const data = await request<TData>(`${apiUrl}/${resource}/${id}`, resolveHeaders(opts), {
         method: 'PATCH',
         body: JSON.stringify(variables),
       });
       return { data };
     },
 
-    async deleteOne<T>({ resource, id }: DeleteParams): Promise<DeleteResult<T>> {
-      const data = await request<T>(`${apiUrl}/${resource}/${id}`, resolveHeaders(opts), {
+    async deleteOne<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, id }: DeleteParams<TVariables>): Promise<DeleteResult<TData>> {
+      const data = await request<TData>(`${apiUrl}/${resource}/${id}`, resolveHeaders(opts), {
         method: 'DELETE',
       });
       return { data };
     },
 
-    async getMany<T>({ resource, ids }: GetManyParams): Promise<GetManyResult<T>> {
+    async getMany<TData extends BaseRecord = BaseRecord>({ resource, ids }: GetManyParams): Promise<GetManyResult<TData>> {
       const params = ids.map(id => `id=${id}`).join('&');
-      const data = await request<T[]>(`${apiUrl}/${resource}?${params}`, resolveHeaders(opts));
+      const data = await request<TData[]>(`${apiUrl}/${resource}?${params}`, resolveHeaders(opts));
       return { data };
     },
 
-    async createMany<T>({ resource, variables }: CreateManyParams): Promise<CreateManyResult<T>> {
-      const results: T[] = [];
+    async createMany<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, variables }: CreateManyParams<TVariables>): Promise<CreateManyResult<TData>> {
+      const results: TData[] = [];
       for (const vars of variables) {
-        const data = await request<T>(`${apiUrl}/${resource}`, resolveHeaders(opts), {
+        const data = await request<TData>(`${apiUrl}/${resource}`, resolveHeaders(opts), {
           method: 'POST',
           body: JSON.stringify(vars),
         });
@@ -115,10 +115,10 @@ export function createElysiaDataProvider(opts: ElysiaDataProviderOptions): DataP
       return { data: results };
     },
 
-    async updateMany<T>({ resource, ids, variables }: UpdateManyParams): Promise<UpdateManyResult<T>> {
-      const results: T[] = [];
+    async updateMany<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, ids, variables }: UpdateManyParams<TVariables>): Promise<UpdateManyResult<TData>> {
+      const results: TData[] = [];
       for (const id of ids) {
-        const data = await request<T>(`${apiUrl}/${resource}/${id}`, resolveHeaders(opts), {
+        const data = await request<TData>(`${apiUrl}/${resource}/${id}`, resolveHeaders(opts), {
           method: 'PATCH',
           body: JSON.stringify(variables),
         });
@@ -127,10 +127,10 @@ export function createElysiaDataProvider(opts: ElysiaDataProviderOptions): DataP
       return { data: results };
     },
 
-    async deleteMany<T>({ resource, ids }: DeleteManyParams): Promise<DeleteManyResult<T>> {
-      const results: T[] = [];
+    async deleteMany<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, ids }: DeleteManyParams<TVariables>): Promise<DeleteManyResult<TData>> {
+      const results: TData[] = [];
       for (const id of ids) {
-        const data = await request<T>(`${apiUrl}/${resource}/${id}`, resolveHeaders(opts), {
+        const data = await request<TData>(`${apiUrl}/${resource}/${id}`, resolveHeaders(opts), {
           method: 'DELETE',
         });
         results.push(data);
@@ -138,8 +138,8 @@ export function createElysiaDataProvider(opts: ElysiaDataProviderOptions): DataP
       return { data: results };
     },
 
-    async custom<T>({ url, method, payload, headers }: CustomParams): Promise<CustomResult<T>> {
-      const data = await request<T>(url, { ...resolveHeaders(opts), ...headers }, {
+    async custom<TData = unknown, TVariables = unknown>({ url, method, payload, headers }: CustomParams<TVariables>): Promise<CustomResult<TData>> {
+      const data = await request<TData>(url, { ...resolveHeaders(opts), ...headers }, {
         method: method.toUpperCase(),
         body: payload ? JSON.stringify(payload) : undefined,
       });

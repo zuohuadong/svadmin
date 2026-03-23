@@ -1,13 +1,13 @@
 import { useParsed } from './useParsed';
 import { useList } from './query-hooks.svelte';
 import { readURLState, writeURLState } from './url-sync';
-import type { Pagination, Sort, Filter, BaseRecord, HttpError } from './types';
+import type { Pagination, Sort, Filter, BaseRecord, HttpError, KnownResources } from './types';
 import type { UseListOptions } from './query-hooks.svelte';
 
 export type FilterSetMode = 'merge' | 'replace';
 
 export interface UseTableOptions<TQueryFnData extends BaseRecord = BaseRecord, TError = HttpError, TSearchVariables = Record<string, unknown>> extends Omit<UseListOptions<TQueryFnData, TError>, 'pagination' | 'sorters' | 'filters'> {
-  resource?: string;
+  resource?: KnownResources;
   pagination?: Pagination;
   sorters?: {
     initial?: Sort[];

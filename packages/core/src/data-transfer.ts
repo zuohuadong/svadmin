@@ -1,108 +1,186 @@
-// Data transfer utilities — CSV export/import
-
 import { getDataProviderForResource } from './context';
-import type { GetListResult } from './types';
+import { useParsed } from './useParsed';
+import type { GetListResult, Sort, Filter, BaseRecord } from './types';
+
+export interface UseExportOptions<TData extends BaseRecord = BaseRecord> {
+  resource?: string;
+  mapData?: (item: TData) => Record<string, unknown>;
+  sorters?: Sort[];
+  filters?: Filter[];
+  maxItemCount?: number;
+  pageSize?: number;
+  download?: boolean;
+  meta?: Record<string, unknown>;
+  dataProviderName?: string;
+  onError?: (error: Error) => void;
+}
 
 /**
- * useExport — export all records from a resource as CSV download
+ * useExport — export records from a resource as CSV download
+ * Refine v5 compatible: supports mapData, sorters, filters, maxItemCount, pageSize
  */
-export function useExport(resource: string) {
-  let isExporting = $state(false);
+export function useExport<TData extends BaseRecord = BaseRecord>(options: UseExportOptions<TData> = {}) {
+  const parsed = useParsed();
+  const resource = options.resource ?? parsed.resource ?? '';
+  let isLoading = $state(false);
 
-  async function exportCSV(opts?: { filename?: string; fields?: string[] }) {
-    const provider = getDataProviderForResource(resource);
-    isExporting = true;
+  async function triggerExport() {
+    const provider = getDataProviderForResource(resource, options.dataProviderName);
+    isLoading = true;
 
     try {
-      // Fetch all records (up to 10000)
-      const result: GetListResult = await provider.getList({
-        resource,
-        pagination: { current: 1, pageSize: 10000 },
-      });
+      const batchSize = options.pageSize ?? 20;
+      const maxItems = options.maxItemCount ?? Infinity;
+      let allRecords: TData[] = [];
+      let page = 1;
 
-      if (result.data.length === 0) return;
+      while (allRecords.length < maxItems) {
+        const result = await provider.getList<TData>({
+          resource,
+          pagination: { current: page, pageSize: batchSize },
+          sorters: options.sorters,
+          filters: options.filters,
+          meta: options.meta,
+        });
 
-      const records = result.data as Record<string, unknown>[];
-      const fields = opts?.fields ?? Object.keys(records[0]);
+        allRecords = [...allRecords, ...result.data];
+        if (result.data.length < batchSize || allRecords.length >= result.total) break;
+        page++;
+      }
 
-      // Build CSV
-      const header = fields.join(',');
-      const rows = records.map(record =>
-        fields.map(f => {
-          const val = record[f];
-          const str = val === null || val === undefined ? '' : String(val);
-          // Escape commas and quotes
-          return str.includes(',') || str.includes('"') || str.includes('\n')
-            ? `"${str.replace(/"/g, '""')}"`
-            : str;
-        }).join(',')
-      );
+      if (maxItems !== Infinity) allRecords = allRecords.slice(0, maxItems);
+      if (allRecords.length === 0) return allRecords;
 
-      const csv = [header, ...rows].join('\n');
-      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = opts?.filename ?? `${resource}_export.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const mapped = options.mapData
+        ? allRecords.map(options.mapData)
+        : allRecords.map(r => r as unknown as Record<string, unknown>);
+
+      if (options.download !== false) {
+        const fields = Object.keys(mapped[0]);
+        const header = fields.join(',');
+        const rows = mapped.map(record =>
+          fields.map(f => {
+            const val = record[f];
+            const str = val === null || val === undefined ? '' : String(val);
+            return str.includes(',') || str.includes('"') || str.includes('\n')
+              ? `"${str.replace(/"/g, '""')}"`
+              : str;
+          }).join(',')
+        );
+
+        const csv = [header, ...rows].join('\n');
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${resource}_export.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      return allRecords;
+    } catch (error) {
+      options.onError?.(error as Error);
+      return [];
     } finally {
-      isExporting = false;
+      isLoading = false;
     }
   }
 
   return {
-    exportCSV,
-    get isExporting() { return isExporting; },
+    triggerExport,
+    get isLoading() { return isLoading; },
   };
+}
+
+export interface UseImportOptions<TData = Record<string, unknown>> {
+  resource?: string;
+  mapData?: (item: Record<string, unknown>) => TData;
+  batchSize?: number;
+  onFinish?: (result: { succeeded: unknown[]; errored: { request: unknown; error: unknown }[] }) => void;
+  onProgress?: (info: { totalAmount: number; processedAmount: number }) => void;
+  meta?: Record<string, unknown>;
+  dataProviderName?: string;
 }
 
 /**
  * useImport — import records from a CSV file
+ * Refine v5 compatible: supports mapData, batchSize, onFinish, onProgress, meta
  */
-export function useImport(resource: string) {
-  let isImporting = $state(false);
-  let importResult = $state<{ success: number; failed: number } | null>(null);
+export function useImport<TData = Record<string, unknown>>(options: UseImportOptions<TData> = {}) {
+  const parsed = useParsed();
+  const resource = options.resource ?? parsed.resource ?? '';
+  let isLoading = $state(false);
+  let mutationResult = $state<{ succeeded: unknown[]; errored: { request: unknown; error: unknown }[] } | null>(null);
 
-  async function importCSV(file: File): Promise<{ success: number; failed: number }> {
-    const provider = getDataProviderForResource(resource);
-    isImporting = true;
-    let success = 0;
-    let failed = 0;
+  async function handleChange(info: { file: File }) {
+    const provider = getDataProviderForResource(resource, options.dataProviderName);
+    isLoading = true;
+    const succeeded: unknown[] = [];
+    const errored: { request: unknown; error: unknown }[] = [];
 
     try {
-      const text = await file.text();
+      const text = await info.file.text();
       const lines = text.split('\n').filter(l => l.trim() !== '');
-      if (lines.length < 2) return { success: 0, failed: 0 };
+      if (lines.length < 2) return;
 
       const headers = parseCSVLine(lines[0]);
+      const records: Record<string, unknown>[] = [];
 
       for (let i = 1; i < lines.length; i++) {
         const values = parseCSVLine(lines[i]);
         const record: Record<string, unknown> = {};
-        headers.forEach((h, idx) => {
-          record[h] = values[idx] ?? '';
-        });
+        headers.forEach((h, idx) => { record[h] = values[idx] ?? ''; });
+        records.push(options.mapData ? (options.mapData(record) as unknown as Record<string, unknown>) : record);
+      }
 
-        try {
-          await provider.create({ resource, variables: record });
-          success++;
-        } catch {
-          failed++;
+      const batchSize = options.batchSize ?? 1;
+      let processed = 0;
+
+      if (batchSize === 1) {
+        for (const record of records) {
+          try {
+            const res = await provider.create({ resource, variables: record, meta: options.meta });
+            succeeded.push(res);
+          } catch (error) {
+            errored.push({ request: record, error });
+          }
+          processed++;
+          options.onProgress?.({ totalAmount: records.length, processedAmount: processed });
+        }
+      } else {
+        for (let i = 0; i < records.length; i += batchSize) {
+          const batch = records.slice(i, i + batchSize);
+          try {
+            if (provider.createMany) {
+              const res = await provider.createMany({ resource, variables: batch, meta: options.meta });
+              succeeded.push(res);
+            } else {
+              for (const record of batch) {
+                const res = await provider.create({ resource, variables: record, meta: options.meta });
+                succeeded.push(res);
+              }
+            }
+          } catch (error) {
+            errored.push({ request: batch, error });
+          }
+          processed += batch.length;
+          options.onProgress?.({ totalAmount: records.length, processedAmount: processed });
         }
       }
 
-      importResult = { success, failed };
-      return { success, failed };
+      mutationResult = { succeeded, errored };
+      options.onFinish?.({ succeeded, errored });
     } finally {
-      isImporting = false;
+      isLoading = false;
     }
   }
 
   return {
-    importCSV,
-    get isImporting() { return isImporting; },
-    get importResult() { return importResult; },
+    inputProps: { type: 'file' as const, accept: '.csv' },
+    handleChange,
+    get isLoading() { return isLoading; },
+    get mutationResult() { return mutationResult; },
   };
 }
 

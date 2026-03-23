@@ -11,14 +11,15 @@ import {
 import type { NotificationConfig, OvertimeOptions, LiveSubscriptionParams } from './hook-utils.svelte';
 import type {
   GetListParams, GetListResult, Pagination, Sort, Filter, BaseRecord, HttpError,
-  GetOneParams, GetOneResult, GetManyParams, GetManyResult, CustomParams, CustomResult
+  GetOneParams, GetOneResult, GetManyParams, GetManyResult, CustomParams, CustomResult,
+  KnownResources,
 } from './types';
 import type { LiveMode, LiveEvent } from './live';
 
 // ─── useList ───────────────────────────────────────────────────
 
 export interface UseListOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
-  resource?: string;
+  resource?: KnownResources;
   pagination?: Pagination;
   sorters?: Sort[];
   filters?: Filter[];
@@ -90,7 +91,7 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
 // ─── useOne ────────────────────────────────────────────────────
 
 export interface UseOneOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
-  resource?: string;
+  resource?: KnownResources;
   id?: string | number;
   meta?: Record<string, unknown>;
   dataProviderName?: string;
@@ -165,7 +166,7 @@ export function useShow<TData extends BaseRecord = BaseRecord, TError = HttpErro
 // ─── useMany ───────────────────────────────────────────────────
 
 export interface UseManyOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
-  resource: string;
+  resource: KnownResources;
   ids: (string | number)[];
   meta?: Record<string, unknown>;
   dataProviderName?: string;

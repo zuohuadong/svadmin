@@ -5,9 +5,19 @@ import { getResource, getResources } from './context';
 import { getAdminOptions } from './options';
 import { navigate } from './router';
 import { t } from './i18n.svelte';
-import type { BaseRecord, HttpError, Filter } from './types';
+import type { BaseRecord, HttpError, Filter, KnownResources } from './types';
 import { useList, type UseListOptions } from './query-hooks.svelte';
 import { toast } from './toast.svelte';
+
+// ─── useModal ─────────────────────────────────────────────────
+export function useModal(options?: { defaultVisible?: boolean }) {
+  let visible = $state(options?.defaultVisible ?? false);
+  return {
+    get visible() { return visible; },
+    show() { visible = true; },
+    close() { visible = false; },
+  };
+}
 
 // ─── useModalForm ─────────────────────────────────────────────
 
@@ -131,7 +141,7 @@ export function useBreadcrumb() {
 // ─── useRelation ───────────────────────────────────────────
 
 export interface UseRelationOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
-  resource: string;
+  resource: KnownResources;
   id?: string | number;
   pagination?: { current?: number; pageSize?: number };
   sorters?: { field: string; order: 'asc' | 'desc' }[];
