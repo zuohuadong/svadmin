@@ -10,11 +10,28 @@
   import { Save, ArrowLeft, Loader2 } from 'lucide-svelte';
   import FieldRenderer from './FieldRenderer.svelte';
 
-  let { resourceName, id = undefined, mode = 'create' } = $props<{
+  import type { Snippet } from 'svelte';
+
+  interface Props {
     resourceName: string;
     id?: string | number;
     mode?: 'create' | 'edit';
-  }>();
+    /** Custom field renderer — overrides default FieldRenderer */
+    fieldRenderer?: Snippet<[{ field: FieldDefinition; value: unknown; onchange: (v: unknown) => void }]>;
+    /** Custom form action buttons */
+    formActions?: Snippet<[{ isLoading: boolean; onSubmit: () => void }]>;
+    /** Custom header content (after title) */
+    headerContent?: Snippet;
+  }
+
+  let {
+    resourceName,
+    id = undefined,
+    mode = 'create',
+    fieldRenderer,
+    formActions,
+    headerContent,
+  }: Props = $props();
 
   const resource = getResource(resourceName);
   const primaryKey = resource.primaryKey ?? 'id';
@@ -192,11 +209,15 @@
         <Card.Content class="space-y-5">
           {#each formFields as field (field.key)}
             <div class="field-wrapper" class:has-error={fieldErrors[field.key]}>
-              <FieldRenderer
-                {field}
-                value={formData[field.key]}
-                onchange={(val: unknown) => handleFieldChange(field.key, val)}
-              />
+              {#if fieldRenderer}
+                {@render fieldRenderer({ field, value: formData[field.key], onchange: (val: unknown) => handleFieldChange(field.key, val) })}
+              {:else}
+                <FieldRenderer
+                  {field}
+                  value={formData[field.key]}
+                  onchange={(val: unknown) => handleFieldChange(field.key, val)}
+                />
+              {/if}
               {#if fieldErrors[field.key]}
                 <p class="field-error">{fieldErrors[field.key]}</p>
               {/if}
@@ -206,24 +227,28 @@
       </Card.Root>
 
       <div class="flex items-center gap-3">
-        <Button type="submit" disabled={submitting}>
-          {#if submitting}
-            <Loader2 class="h-4 w-4 animate-spin" data-icon="inline-start" />
-          {:else}
-            <Save class="h-4 w-4" data-icon="inline-start" />
-          {/if}
-          {t('common.save')}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onclick={() => {
-            if (isDirty && !confirm(t('common.unsavedChanges'))) return;
-            navigate(`/${resourceName}`);
-          }}
-        >
-          {t('common.cancel')}
-        </Button>
+        {#if formActions}
+          {@render formActions({ isLoading: submitting, onSubmit: handleSubmit })}
+        {:else}
+          <Button type="submit" disabled={submitting}>
+            {#if submitting}
+              <Loader2 class="h-4 w-4 animate-spin" data-icon="inline-start" />
+            {:else}
+              <Save class="h-4 w-4" data-icon="inline-start" />
+            {/if}
+            {t('common.save')}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onclick={() => {
+              if (isDirty && !confirm(t('common.unsavedChanges'))) return;
+              navigate(`/${resourceName}`);
+            }}
+          >
+            {t('common.cancel')}
+          </Button>
+        {/if}
       </div>
     </form>
   {/if}

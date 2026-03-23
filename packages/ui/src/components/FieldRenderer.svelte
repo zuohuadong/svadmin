@@ -1,72 +1,95 @@
+<script lang="ts" module>
+  export type { FieldDefinition } from '@svadmin/core';
+</script>
+
 <script lang="ts">
   import type { FieldDefinition } from '@svadmin/core';
   import { t } from '@svadmin/core/i18n';
+  import { Input } from './ui/input/index.js';
+  import { Textarea } from './ui/textarea/index.js';
+  import { Switch } from './ui/switch/index.js';
+  import { Badge } from './ui/badge/index.js';
+  import type { Snippet } from 'svelte';
 
-  let { field, value, onchange } = $props<{
+  let { field, value, onchange, children } = $props<{
     field: FieldDefinition;
     value: unknown;
     onchange: (val: unknown) => void;
+    /** Optional custom renderer snippet */
+    children?: Snippet;
   }>();
 
-  function handleInput(e: Event) {
-    const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-    if (field.type === 'number') {
-      onchange(parseFloat(target.value) || 0);
-    } else if (field.type === 'boolean') {
-      onchange((target as HTMLInputElement).checked);
-    } else {
-      onchange(target.value);
+  // Typed accessors
+  const strVal = $derived((value as string) ?? '');
+  const numVal = $derived((value as number) ?? 0);
+  const boolVal = $derived((value as boolean) ?? false);
+  const tagsVal = $derived((value as string[]) ?? []);
+
+  function handleTagKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const input = e.target as HTMLInputElement;
+      const tag = input.value.trim();
+      if (tag) {
+        onchange([...tagsVal, tag]);
+        input.value = '';
+      }
     }
+  }
+
+  function removeTag(index: number) {
+    onchange(tagsVal.filter((_, i) => i !== index));
   }
 </script>
 
 <div class="space-y-1.5">
-  <label class="block text-sm font-medium text-gray-700" for={field.key}>
+  <label class="block text-sm font-medium text-foreground" for={field.key}>
     {field.label}
     {#if field.required}
-      <span class="text-red-500">*</span>
+      <span class="text-destructive">*</span>
     {/if}
   </label>
 
-  {#if field.type === 'text' || field.type === 'image'}
-    <input
+  {#if children}
+    {@render children()}
+
+  {:else if field.type === 'text' || field.type === 'image'}
+    <Input
       id={field.key}
       type="text"
-      value={value as string ?? ''}
-      oninput={handleInput}
+      value={strVal}
+      oninput={(e) => onchange((e.target as HTMLInputElement).value)}
       required={field.required}
-      class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
       placeholder={t('field.enterValue', { label: field.label })}
     />
 
   {:else if field.type === 'number'}
-    <input
+    <Input
       id={field.key}
       type="number"
-      value={value as number ?? 0}
-      oninput={handleInput}
+      value={String(numVal)}
+      oninput={(e) => onchange(parseFloat((e.target as HTMLInputElement).value) || 0)}
       required={field.required}
-      class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
     />
 
   {:else if field.type === 'textarea' || field.type === 'richtext'}
-    <textarea
+    <Textarea
       id={field.key}
-      value={value as string ?? ''}
-      oninput={handleInput}
+      value={strVal}
+      oninput={(e) => onchange((e.target as HTMLTextAreaElement).value)}
       required={field.required}
       rows={field.type === 'richtext' ? 10 : 4}
-      class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-y"
       placeholder={t('field.enterValue', { label: field.label })}
-    ></textarea>
+      class="resize-y"
+    />
 
   {:else if field.type === 'select'}
     <select
       id={field.key}
-      value={value as string ?? ''}
-      onchange={handleInput}
+      value={strVal}
+      onchange={(e) => onchange((e.target as HTMLSelectElement).value)}
       required={field.required}
-      class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary bg-white"
+      class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
     >
       <option value="">{t('field.selectPlaceholder')}</option>
       {#each field.options ?? [] as opt}
@@ -75,80 +98,65 @@
     </select>
 
   {:else if field.type === 'boolean'}
-    <label class="relative inline-flex cursor-pointer items-center">
-      <input
-        type="checkbox"
-        checked={value as boolean ?? false}
-        onchange={handleInput}
-        class="peer sr-only"
+    <div class="flex items-center gap-2 pt-1">
+      <Switch
+        checked={boolVal}
+        onCheckedChange={(v) => onchange(v)}
       />
-      <div class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:ring-2 peer-focus:ring-primary/20"></div>
-    </label>
+      <span class="text-sm text-muted-foreground">{boolVal ? t('common.yes') : t('common.no')}</span>
+    </div>
 
   {:else if field.type === 'tags'}
-    {@const tags = (value as string[] ?? [])}
     <div class="space-y-2">
       <div class="flex flex-wrap gap-1.5">
-        {#each tags as tag, i}
-          <span class="inline-flex items-center gap-1 rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-700">
+        {#each tagsVal as tag, i}
+          <Badge variant="secondary" class="gap-1">
             {tag}
             <button
               type="button"
-              onclick={() => onchange(tags.filter((_, idx) => idx !== i))}
-              class="text-primary-400 hover:text-primary-700"
+              onclick={() => removeTag(i)}
+              class="ml-0.5 hover:text-destructive"
             >×</button>
-          </span>
+          </Badge>
         {/each}
       </div>
-      <input
+      <Input
         type="text"
         placeholder={t('field.tagsPlaceholder')}
-        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-        onkeydown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            const input = e.target as HTMLInputElement;
-            if (input.value.trim()) {
-              onchange([...tags, input.value.trim()]);
-              input.value = '';
-            }
-          }
-        }}
+        onkeydown={handleTagKeydown}
       />
     </div>
 
   {:else if field.type === 'date'}
-    <input
+    <Input
       id={field.key}
       type="date"
-      value={value as string ?? ''}
-      oninput={handleInput}
+      value={strVal}
+      oninput={(e) => onchange((e.target as HTMLInputElement).value)}
       required={field.required}
-      class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
     />
 
   {:else if field.type === 'json'}
-    <textarea
+    <Textarea
       id={field.key}
-      value={typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
+      value={typeof value === 'string' ? strVal : JSON.stringify(value, null, 2)}
       oninput={(e) => {
         try {
           onchange(JSON.parse((e.target as HTMLTextAreaElement).value));
-        } catch (err) {
-          console.debug('[FieldRenderer] Invalid JSON input:', err);
+        } catch {
+          // keep raw text until valid JSON
         }
       }}
       rows={6}
-      class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-y"
-    ></textarea>
+      class="resize-y font-mono text-xs"
+    />
 
   {:else}
-    <input
+    <Input
       id={field.key}
       type="text"
-      value={value as string ?? ''}
-      oninput={handleInput}
-      class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+      value={strVal}
+      oninput={(e) => onchange((e.target as HTMLInputElement).value)}
     />
   {/if}
 </div>

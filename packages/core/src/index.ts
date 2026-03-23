@@ -92,3 +92,5 @@ export {
   unionFilters, unionSorters,
   file2Base64, generateDefaultDocumentTitle,
 } from './helpers';
+export { TableState } from './table-state.svelte';
+export type { TableStateOptions } from './table-state.svelte';

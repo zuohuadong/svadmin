@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@lucide/svelte": "^0.577.0",
+    "@tanstack/svelte-table": "^8.21.3",
     "lucide-svelte": "^0.577.0",
     "svelte-sonner": "^1.1.0"
   },
