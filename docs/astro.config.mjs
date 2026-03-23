@@ -1,9 +1,20 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightLlmsTxt from 'starlight-llms-txt';
+import starlightImageZoom from 'starlight-image-zoom';
+import starlightLinksValidator from 'starlight-links-validator';
+import svelte from '@astrojs/svelte';
 
 export default defineConfig({
+  site: 'https://svadmin.pages.dev',
   integrations: [
+    svelte(),
     starlight({
+      plugins: [
+        starlightLlmsTxt(),
+        starlightImageZoom(),
+        starlightLinksValidator(),
+      ],
       title: 'svadmin',
       description: 'Headless admin framework for Svelte 5',
       social: [

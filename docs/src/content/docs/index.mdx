@@ -1,0 +1,39 @@
+---
+title: svadmin
+description: Headless admin framework for Svelte 5 — build full-featured admin panels with zero lock-in.
+template: splash
+hero:
+  tagline: Build full-featured admin panels with Svelte 5. Headless, type-safe, and zero lock-in.
+  image:
+    dark: ../../assets/logo-dark.svg
+    light: ../../assets/logo-light.svg
+  actions:
+    - text: Get Started
+      link: /guides/introduction/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/zuohuadong/svadmin
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+  <Card title="Headless Architecture" icon="puzzle">
+    Fully decoupled from any UI library. Use shadcn-svelte, your own components, or mix and match.
+  </Card>
+
+  <Card title="Type-Safe" icon="approve-check">
+    End-to-end TypeScript with strict generics — no `any` types. Full IntelliSense for every hook and provider.
+  </Card>
+
+  <Card title="20+ Data Providers" icon="cloud">
+    Connect to REST, Supabase, PocketBase, Appwrite, GraphQL, Elysia, Strapi, Directus, Firebase, and more.
+  </Card>
+
+  <Card title="Svelte 5 Native" icon="rocket">
+    Built with Runes (`$state`, `$derived`, `$effect`) and Svelte 5's module-level reactivity from the ground up.
+  </Card>
+</CardGrid>
