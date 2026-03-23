@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useIsAuthenticated } from '@svadmin/core';
-  import { onMount, type Snippet } from 'svelte';
+  import type { Snippet } from 'svelte';
   import { navigate } from '@svadmin/core';
 
   let {
@@ -28,12 +28,6 @@
     }
     navigate(url);
   }
-
-  onMount(() => {
-    if (!isAuth.isLoading && !isAuth.isAuthenticated) {
-      triggerRedirect();
-    }
-  });
 
   $effect(() => {
     if (!isAuth.isLoading && !isAuth.isAuthenticated) {

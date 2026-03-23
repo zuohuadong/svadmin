@@ -1,6 +1,6 @@
 import { createMutation, useQueryClient } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options';
-import { getDataProviderForResource } from './context';
+import { getDataProviderForResource } from './context.svelte';
 import { useParsed } from './useParsed';
 import { audit } from './audit';
 import { UndoError } from './types';

@@ -1,6 +1,6 @@
 import { createQuery, createInfiniteQuery } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options';
-import { getDataProviderForResource, getDataProvider } from './context';
+import { getDataProviderForResource, getDataProvider } from './context.svelte';
 import { useParsed } from './useParsed';
 import {
   createOvertimeTracker,

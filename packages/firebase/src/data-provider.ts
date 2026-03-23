@@ -4,16 +4,32 @@ import type {
   GetManyParams, GetManyResult, CustomParams, CustomResult, Filter
 } from '@svadmin/core';
 
+interface FirestoreFieldValue {
+  stringValue?: string;
+  integerValue?: string;
+  doubleValue?: number;
+  booleanValue?: boolean;
+  timestampValue?: string;
+  nullValue?: null;
+  mapValue?: unknown;
+  arrayValue?: { values?: unknown[] };
+}
+
+interface FirestoreDoc {
+  name?: string;
+  fields?: Record<string, FirestoreFieldValue>;
+}
+
 // Firebase REST API (Firestore REST v1)
 function buildFirestoreUrl(projectId: string, collection: string, docId?: string | number): string {
   const base = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collection}`;
   return docId ? `${base}/${docId}` : base;
 }
 
-function parseFirestoreDoc(doc: any): Record<string, unknown> {
+function parseFirestoreDoc(doc: FirestoreDoc): Record<string, unknown> {
   const fields = doc.fields ?? {};
   const parsed: Record<string, unknown> = {};
-  for (const [key, val] of Object.entries(fields) as [string, any][]) {
+  for (const [key, val] of Object.entries(fields) as [string, FirestoreFieldValue][]) {
     if ('stringValue' in val) parsed[key] = val.stringValue;
     else if ('integerValue' in val) parsed[key] = Number(val.integerValue);
     else if ('doubleValue' in val) parsed[key] = val.doubleValue;

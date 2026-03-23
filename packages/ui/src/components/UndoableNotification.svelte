@@ -15,25 +15,26 @@
   let remaining = $state(duration);
   let dismissed = $state(false);
 
-  const interval = setInterval(() => {
-    remaining -= 100;
-    if (remaining <= 0) {
-      clearInterval(interval);
-      if (!dismissed) {
-        dismissed = true;
-        onTimeout();
+  $effect(() => {
+    const interval = setInterval(() => {
+      remaining -= 100;
+      if (remaining <= 0) {
+        clearInterval(interval);
+        if (!dismissed) {
+          dismissed = true;
+          onTimeout();
+        }
       }
-    }
-  }, 100);
+    }, 100);
+    return () => clearInterval(interval);
+  });
 
   function handleUndo() {
-    clearInterval(interval);
     dismissed = true;
     onUndo();
   }
 
   function handleDismiss() {
-    clearInterval(interval);
     dismissed = true;
     onTimeout();
   }
@@ -53,12 +54,9 @@
           <Undo2 class="h-3.5 w-3.5 mr-1" />
           {t('common.undo')}
         </Button>
-        <button
-          class="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          onclick={handleDismiss}
-        >
+        <Button variant="ghost" size="icon" class="h-7 w-7" onclick={handleDismiss}>
           <X class="h-3.5 w-3.5" />
-        </button>
+        </Button>
       </div>
     </div>
     <Progress value={progressValue} class="h-1 rounded-none" />

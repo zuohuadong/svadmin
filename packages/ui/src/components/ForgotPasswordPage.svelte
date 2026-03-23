@@ -4,6 +4,7 @@
   import { navigate } from '@svadmin/core/router';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
+  import { Label } from './ui/label/index.js';
   import * as Card from './ui/card/index.js';
   import * as Alert from './ui/alert/index.js';
   import { KeyRound, Mail, ArrowLeft, CheckCircle, Loader2, AlertCircle } from 'lucide-svelte';
@@ -72,7 +73,7 @@
             {/if}
 
             <div class="space-y-2">
-              <label for="forgot-email" class="text-sm font-medium text-foreground">{t('auth.email')}</label>
+              <Label for="forgot-email">{t('auth.email')}</Label>
               <div class="relative">
                 <Mail class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-[1]" />
                 <Input
@@ -95,14 +96,10 @@
           </form>
 
           <div class="flex items-center justify-center mt-5 pt-5 border-t">
-            <button
-              type="button"
-              class="text-sm text-primary hover:underline font-medium inline-flex items-center gap-1"
-              onclick={() => navigate('/login')}
-            >
+            <Button variant="link" class="text-sm h-auto p-0 font-medium inline-flex items-center gap-1" onclick={() => navigate('/login')}>
               <ArrowLeft class="h-3 w-3" />
               {t('auth.backToLogin')}
-            </button>
+            </Button>
           </div>
         {/if}
       </Card.CardContent>

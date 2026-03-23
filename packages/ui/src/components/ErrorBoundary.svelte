@@ -2,50 +2,48 @@
   import type { Snippet } from 'svelte';
   import { AlertTriangle } from 'lucide-svelte';
   import { Button } from './ui/button/index.js';
+  import * as Alert from './ui/alert/index.js';
   import { t } from '@svadmin/core/i18n';
 
-  let { children }: { children: Snippet } = $props();
+  let {
+    children,
+    fallback,
+  }: {
+    children: Snippet;
+    /** Optional custom error UI snippet */
+    fallback?: Snippet<[{ error: Error; reset: () => void }]>;
+  } = $props();
 
-  let error = $state<Error | null>(null);
-
-  function handleError(e: ErrorEvent) {
-    error = e.error instanceof Error ? e.error : new Error(String(e.error));
-    e.preventDefault();
-  }
-
-  function handleRejection(e: PromiseRejectionEvent) {
-    error = e.reason instanceof Error ? e.reason : new Error(String(e.reason));
-    e.preventDefault();
-  }
-
-  $effect(() => {
-    window.addEventListener('error', handleError);
-    window.addEventListener('unhandledrejection', handleRejection);
-    return () => {
-      window.removeEventListener('error', handleError);
-      window.removeEventListener('unhandledrejection', handleRejection);
-    };
-  });
-
-  function handleRetry() {
-    error = null;
-    window.location.reload();
+  function handleError(error: unknown) {
+    console.error('[svadmin] Uncaught error:', error);
   }
 </script>
 
-{#if error}
-  <div class="flex h-screen items-center justify-center bg-background">
-    <div class="max-w-md text-center space-y-4">
-      <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-        <AlertTriangle class="h-8 w-8 text-destructive" />
-      </div>
-      <h2 class="text-xl font-bold text-foreground">{t('common.error')}</h2>
-      <p class="text-sm text-muted-foreground">{error.message}</p>
-      <Button onclick={handleRetry}>
-        {t('common.retry')}
-      </Button>
-    </div>
-  </div>
-{:else}
+<svelte:boundary onerror={handleError}>
   {@render children()}
-{/if}
+
+  {#snippet failed(error, reset)}
+    {#if fallback}
+      {@render fallback({ error: error instanceof Error ? error : new Error(String(error)), reset })}
+    {:else}
+      <div class="flex h-screen items-center justify-center bg-background">
+        <div class="max-w-md w-full px-4">
+          <Alert.Root variant="destructive" class="space-y-4">
+            <div class="flex items-start gap-3">
+              <AlertTriangle class="h-5 w-5 mt-0.5 shrink-0" />
+              <div class="space-y-2">
+                <Alert.Title>{t('common.error')}</Alert.Title>
+                <Alert.Description class="text-sm">
+                  {error instanceof Error ? error.message : String(error)}
+                </Alert.Description>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onclick={reset} class="w-full">
+              {t('common.retry')}
+            </Button>
+          </Alert.Root>
+        </div>
+      </div>
+    {/if}
+  {/snippet}
+</svelte:boundary>

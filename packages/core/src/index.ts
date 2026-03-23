@@ -5,8 +5,8 @@ export {
   setAuthProvider, getAuthProvider,
   setResources, getResources, getResource,
   setRouterProvider, getRouterProvider,
-} from './context';
-export type { DataProviderInput } from './context';
+} from './context.svelte';
+export type { DataProviderInput } from './context.svelte';
 export {
   useList, useInfiniteList,
   useOne, useShow,

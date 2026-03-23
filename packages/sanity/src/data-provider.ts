@@ -1,15 +1,25 @@
 import type {
   DataProvider, GetListParams, GetListResult, GetOneParams, GetOneResult,
   CreateParams, CreateResult, UpdateParams, UpdateResult, DeleteParams, DeleteResult,
-  GetManyParams, GetManyResult, CustomParams, CustomResult
+  GetManyParams, GetManyResult, CustomParams, CustomResult, Filter, Sort
 } from '@svadmin/core';
 
+interface SanityDoc {
+  _id: string;
+  _type: string;
+  [key: string]: unknown;
+}
+
+interface SanityMutationResult {
+  results?: Array<{ id: string }>;
+}
+
 // Sanity.io uses GROQ query language
-function buildGroqFilter(filters?: any[]): string {
+function buildGroqFilter(filters?: Filter[]): string {
   if (!filters?.length) return '';
   return filters
-    .filter((f: any) => 'field' in f)
-    .map((f: any) => {
+    .filter((f): f is Filter & { field: string } => 'field' in f)
+    .map((f) => {
       switch (f.operator) {
         case 'eq': return `${f.field} == "${f.value}"`;
         case 'ne': return `${f.field} != "${f.value}"`;
@@ -28,7 +38,7 @@ export function createSanityDataProvider(projectId: string, dataset: string, tok
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  async function query(groq: string, params: Record<string, unknown> = {}): Promise<any> {
+  async function query(groq: string, params: Record<string, unknown> = {}): Promise<unknown> {
     const url = new URL(`${apiUrl}/data/query/${dataset}`);
     url.searchParams.set('query', groq);
     for (const [k, v] of Object.entries(params)) url.searchParams.set(`$${k}`, JSON.stringify(v));
@@ -38,7 +48,7 @@ export function createSanityDataProvider(projectId: string, dataset: string, tok
     return data.result;
   }
 
-  async function mutate(mutations: any[]): Promise<any> {
+  async function mutate(mutations: Record<string, unknown>[]): Promise<SanityMutationResult> {
     const res = await fetch(`${apiUrl}/data/mutate/${dataset}`, {
       method: 'POST', headers, body: JSON.stringify({ mutations }),
     });
@@ -56,17 +66,18 @@ export function createSanityDataProvider(projectId: string, dataset: string, tok
       const filterStr = buildGroqFilter(filters);
       const typeFilter = `_type == "${resource}"`;
       const where = filterStr ? `${typeFilter} && ${filterStr}` : typeFilter;
-      const orderStr = sorters?.length ? ` | order(${sorters.map(s => `${s.field} ${s.order}`).join(', ')})` : '';
+      const orderStr = sorters?.length ? ` | order(${sorters.map((s: Sort) => `${s.field} ${s.order}`).join(', ')})` : '';
 
       const [data, total] = await Promise.all([
         query(`*[${where}]${orderStr}[${start}...${end}]`),
         query(`count(*[${where}])`),
       ]);
-      return { data: (data ?? []).map((d: any) => ({ ...d, id: d._id })) as T[], total: total ?? 0 };
+      return { data: ((data as SanityDoc[]) ?? []).map((d) => ({ ...d, id: d._id })) as T[], total: (total as number) ?? 0 };
     },
 
     async getOne<T>({ resource, id }: GetOneParams): Promise<GetOneResult<T>> {
-      const data = await query(`*[_type == "${resource}" && _id == $id][0]`, { id });
+      const raw = await query(`*[_type == "${resource}" && _id == $id][0]`, { id });
+      const data = raw as SanityDoc;
       return { data: { ...data, id: data._id } as T };
     },
 
@@ -89,7 +100,7 @@ export function createSanityDataProvider(projectId: string, dataset: string, tok
 
     async getMany<T>({ resource, ids }: GetManyParams): Promise<GetManyResult<T>> {
       const data = await query(`*[_type == "${resource}" && _id in $ids]`, { ids });
-      return { data: (data ?? []).map((d: any) => ({ ...d, id: d._id })) as T[] };
+      return { data: ((data as SanityDoc[]) ?? []).map((d) => ({ ...d, id: d._id })) as T[] };
     },
 
     async custom<T>({ url, method, payload, headers: h }: CustomParams): Promise<CustomResult<T>> {

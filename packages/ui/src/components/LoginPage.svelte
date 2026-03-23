@@ -4,10 +4,11 @@
   import { navigate } from '@svadmin/core/router';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
+  import { Label } from './ui/label/index.js';
   import * as Card from './ui/card/index.js';
   import * as Alert from './ui/alert/index.js';
-  import { Separator } from './ui/separator/index.js';
-  import { LogIn, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-svelte';
+  import PasswordInput from './PasswordInput.svelte';
+  import { LogIn, Mail, Loader2, AlertCircle } from 'lucide-svelte';
 
   let { title = 'Admin', onSuccess } = $props<{
     title?: string;
@@ -19,7 +20,6 @@
 
   let email = $state('');
   let password = $state('');
-  let showPassword = $state(false);
   let error = $state('');
 
   async function handleSubmit(e: SubmitEvent) {
@@ -58,7 +58,7 @@
           {/if}
 
           <div class="space-y-2">
-            <label for="login-email" class="text-sm font-medium text-foreground">{t('auth.email')}</label>
+            <Label for="login-email">{t('auth.email')}</Label>
             <div class="relative">
               <Mail class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-[1]" />
               <Input
@@ -72,40 +72,21 @@
             </div>
           </div>
 
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <label for="login-password" class="text-sm font-medium text-foreground">{t('auth.password')}</label>
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <Label for="login-password">{t('auth.password')}</Label>
               {#if authProvider.forgotPassword}
-                <button
-                  type="button"
-                  class="text-xs text-primary hover:underline"
-                  onclick={() => navigate('/forgot-password')}
-                >{t('auth.forgotPasswordLink')}</button>
+                <Button variant="link" class="text-xs h-auto p-0" onclick={() => navigate('/forgot-password')}>
+                  {t('auth.forgotPasswordLink')}
+                </Button>
               {/if}
             </div>
-            <div class="relative">
-              <Lock class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-[1]" />
-              <Input
-                id="login-password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                bind:value={password}
-                class="pl-9 pr-9"
-                autocomplete="current-password"
-              />
-              <button
-                type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 z-[1]"
-                onclick={() => showPassword = !showPassword}
-                tabindex={-1}
-              >
-                {#if showPassword}
-                  <EyeOff class="h-4 w-4" />
-                {:else}
-                  <Eye class="h-4 w-4" />
-                {/if}
-              </button>
-            </div>
+            <PasswordInput
+              id="login-password"
+              label=""
+              bind:value={password}
+              autocomplete="current-password"
+            />
           </div>
 
           <Button type="submit" class="w-full" disabled={login.isLoading}>
@@ -119,11 +100,9 @@
         {#if authProvider.register}
           <div class="flex items-center justify-center gap-1 mt-5 pt-5 border-t">
             <span class="text-sm text-muted-foreground">{t('auth.noAccount')}</span>
-            <button
-              type="button"
-              class="text-sm text-primary hover:underline font-medium"
-              onclick={() => navigate('/register')}
-            >{t('auth.register')}</button>
+            <Button variant="link" class="text-sm h-auto p-0 font-medium" onclick={() => navigate('/register')}>
+              {t('auth.register')}
+            </Button>
           </div>
         {/if}
       </Card.CardContent>

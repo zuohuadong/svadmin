@@ -1,0 +1,79 @@
+// Shared field type → display component mapping
+// Used by both ShowPage and FieldRenderer to avoid duplicate if/else chains.
+// Components are lazily resolved by field type at runtime.
+
+import type { Component } from 'svelte';
+
+export interface FieldComponentMap {
+  [fieldType: string]: Component<Record<string, unknown>>;
+}
+
+// Default display component map (read-only field display)
+// Dynamically imports components only when first used
+const displayCache = new Map<string, Component<Record<string, unknown>>>();
+
+// Pre-import all field display components (tree-shaken by bundler)
+import BooleanField from './fields/BooleanField.svelte';
+import ImageField from './fields/ImageField.svelte';
+import TagField from './fields/TagField.svelte';
+import DateField from './fields/DateField.svelte';
+import EmailField from './fields/EmailField.svelte';
+import UrlField from './fields/UrlField.svelte';
+import SelectField from './fields/SelectField.svelte';
+import MultiSelectField from './fields/MultiSelectField.svelte';
+import RelationField from './fields/RelationField.svelte';
+import JsonField from './fields/JsonField.svelte';
+import RichTextField from './fields/RichTextField.svelte';
+import NumberField from './fields/NumberField.svelte';
+import FileField from './fields/FileField.svelte';
+
+/**
+ * Built-in display components for show/detail pages.
+ * Keys match FieldDefinition.type values.
+ */
+export const builtinDisplayComponents: FieldComponentMap = {
+  boolean: BooleanField,
+  image: ImageField,
+  images: ImageField,
+  tags: TagField,
+  date: DateField,
+  email: EmailField,
+  url: UrlField,
+  select: SelectField,
+  multiselect: MultiSelectField,
+  relation: RelationField,
+  json: JsonField,
+  richtext: RichTextField,
+  textarea: RichTextField,
+  number: NumberField,
+  file: FileField,
+};
+
+// ─── Custom component registry ─────────────────────────────────
+// Users can register custom field display components at runtime
+
+const customDisplayComponents = new Map<string, Component<Record<string, unknown>>>();
+
+/**
+ * Register a custom field display component for a given field type.
+ * The component will be used by ShowPage and any other display contexts.
+ */
+export function registerDisplayComponent(fieldType: string, component: Component<Record<string, unknown>>): void {
+  customDisplayComponents.set(fieldType, component);
+}
+
+/**
+ * Get the display component for a field type.
+ * Custom components take precedence over built-in ones.
+ * Returns undefined if no component is registered for the type.
+ */
+export function getDisplayComponent(fieldType: string): Component<Record<string, unknown>> | undefined {
+  return customDisplayComponents.get(fieldType) ?? builtinDisplayComponents[fieldType];
+}
+
+/**
+ * Check if a field type has a display component (custom or built-in).
+ */
+export function hasDisplayComponent(fieldType: string): boolean {
+  return customDisplayComponents.has(fieldType) || fieldType in builtinDisplayComponents;
+}

@@ -7,6 +7,7 @@
   import AutoForm from './AutoForm.svelte';
   import { ArrowLeft } from 'lucide-svelte';
   import { Button } from './ui/button/index.js';
+  import TooltipButton from './TooltipButton.svelte';
 
   interface Props {
     resourceName: string;
@@ -29,9 +30,9 @@
 <div class="space-y-6 {className}">
   <PageHeader title={pageTitle}>
     {#snippet actions()}
-      <Button variant="ghost" size="icon" onclick={() => navigate(`/${resourceName}`)}>
+      <TooltipButton tooltip={t('common.back')} onclick={() => navigate(`/${resourceName}`)}>
         <ArrowLeft class="h-5 w-5" />
-      </Button>
+      </TooltipButton>
       {#if headerActions}
         {@render headerActions()}
       {/if}

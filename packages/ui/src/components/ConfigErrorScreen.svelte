@@ -2,23 +2,41 @@
   import { t } from '@svadmin/core/i18n';
   import { AlertTriangle, Copy, CheckCircle } from 'lucide-svelte';
   import { Button } from './ui/button/index.js';
+  import TooltipButton from './TooltipButton.svelte';
   import * as Card from './ui/card/index.js';
 
-  let { title = 'Configuration Required', missingVars = [], envTemplate = '' } = $props<{
+  let { title, missingVars = [], envTemplate = '' } = $props<{
     title?: string;
     missingVars?: { key: string; description?: string }[];
     envTemplate?: string;
   }>();
 
+  const displayTitle = $derived(title ?? t('config.missingEnvTitle'));
+
   let copied = $state<Record<string, boolean>>({});
+  let copyTimers = $state<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  function setCopied(key: string) {
+    copied = { ...copied, [key]: true };
+    // Clear previous timer for this key if any
+    if (copyTimers[key]) clearTimeout(copyTimers[key]);
+    const timer = setTimeout(() => {
+      copied = { ...copied, [key]: false };
+    }, 2000);
+    copyTimers = { ...copyTimers, [key]: timer };
+  }
+
+  // Cleanup all timers on destroy
+  $effect(() => {
+    return () => {
+      Object.values(copyTimers).forEach(clearTimeout);
+    };
+  });
 
   async function copyToClipboard(text: string, key: string) {
     try {
       await navigator.clipboard.writeText(text);
-      copied = { ...copied, [key]: true };
-      setTimeout(() => {
-        copied = { ...copied, [key]: false };
-      }, 2000);
+      setCopied(key);
     } catch {
       console.warn('[svadmin] clipboard API unavailable');
     }
@@ -37,7 +55,7 @@
         <div class="inline-flex items-center justify-center w-14 h-14 rounded-[14px] bg-destructive/10 text-destructive mx-auto mb-3">
           <AlertTriangle class="h-7 w-7" />
         </div>
-        <Card.CardTitle class="text-xl font-bold">{title}</Card.CardTitle>
+        <Card.CardTitle class="text-xl font-bold">{displayTitle}</Card.CardTitle>
         <p class="text-sm text-muted-foreground">
           {t('config.missingEnvDescription')}
         </p>
@@ -53,17 +71,19 @@
                     <span class="text-[0.6875rem] text-muted-foreground">{v.description}</span>
                   {/if}
                 </div>
-                <button
-                  class="flex items-center gap-1 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded px-2 py-1 transition-all shrink-0"
+                <TooltipButton
+                  tooltip={t('common.copy')}
+                  variant="ghost"
+                  size="icon"
+                  class="h-7 w-7 shrink-0"
                   onclick={() => copyToClipboard(`${v.key}=`, v.key)}
-                  title="Copy"
                 >
                   {#if copied[v.key]}
                     <CheckCircle class="h-3.5 w-3.5 text-green-500" />
                   {:else}
                     <Copy class="h-3.5 w-3.5" />
                   {/if}
-                </button>
+                </TooltipButton>
               </div>
             {/each}
           </div>
@@ -73,18 +93,21 @@
           <div class="rounded-lg border overflow-hidden">
             <div class="flex items-center justify-between px-3 py-2 bg-muted/50 border-b border-border/50">
               <span class="text-xs font-medium text-muted-foreground">{t('config.envFilePath')}</span>
-              <button
-                class="flex items-center gap-1 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded px-2 py-1 transition-all shrink-0"
+              <TooltipButton
+                tooltip={t('common.copyAll')}
+                variant="ghost"
+                size="sm"
+                class="h-7 gap-1"
                 onclick={copyAll}
               >
                 {#if copied['__all__']}
                   <CheckCircle class="h-3.5 w-3.5 text-green-500" />
-                  <span class="text-xs">Copied!</span>
+                  <span class="text-xs">{t('common.copied')}</span>
                 {:else}
                   <Copy class="h-3.5 w-3.5" />
-                  <span class="text-xs">Copy All</span>
+                  <span class="text-xs">{t('common.copyAll')}</span>
                 {/if}
-              </button>
+              </TooltipButton>
             </div>
             <pre class="px-3 py-3 text-xs font-mono leading-relaxed text-foreground bg-muted/20 m-0 whitespace-pre-wrap break-all">{envTemplate}</pre>
           </div>
@@ -95,7 +118,7 @@
         </p>
 
         <Button variant="outline" class="w-full" onclick={() => window.location.reload()}>
-          Reload Page
+          {t('config.reloadButton')}
         </Button>
       </Card.CardContent>
     </Card.Card>

@@ -4,9 +4,11 @@
   import { navigate } from '@svadmin/core/router';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
+  import { Label } from './ui/label/index.js';
   import * as Card from './ui/card/index.js';
   import * as Alert from './ui/alert/index.js';
-  import { UserPlus, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-svelte';
+  import PasswordInput from './PasswordInput.svelte';
+  import { UserPlus, Mail, Loader2, AlertCircle } from 'lucide-svelte';
 
   let { title = 'Admin', onSuccess } = $props<{
     title?: string;
@@ -18,7 +20,6 @@
   let email = $state('');
   let password = $state('');
   let confirmPassword = $state('');
-  let showPassword = $state(false);
   let error = $state('');
 
   async function handleSubmit(e: SubmitEvent) {
@@ -58,7 +59,7 @@
           {/if}
 
           <div class="space-y-2">
-            <label for="register-email" class="text-sm font-medium text-foreground">{t('auth.email')}</label>
+            <Label for="register-email">{t('auth.email')}</Label>
             <div class="relative">
               <Mail class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-[1]" />
               <Input
@@ -72,47 +73,20 @@
             </div>
           </div>
 
-          <div class="space-y-2">
-            <label for="register-password" class="text-sm font-medium text-foreground">{t('auth.password')}</label>
-            <div class="relative">
-              <Lock class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-[1]" />
-              <Input
-                id="register-password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                bind:value={password}
-                class="pl-9 pr-9"
-                autocomplete="new-password"
-              />
-              <button
-                type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 z-[1]"
-                onclick={() => showPassword = !showPassword}
-                tabindex={-1}
-              >
-                {#if showPassword}
-                  <EyeOff class="h-4 w-4" />
-                {:else}
-                  <Eye class="h-4 w-4" />
-                {/if}
-              </button>
-            </div>
-          </div>
+          <PasswordInput
+            id="register-password"
+            label={t('auth.password')}
+            bind:value={password}
+            autocomplete="new-password"
+            showStrength
+          />
 
-          <div class="space-y-2">
-            <label for="register-confirm" class="text-sm font-medium text-foreground">{t('auth.confirmPassword')}</label>
-            <div class="relative">
-              <Lock class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-[1]" />
-              <Input
-                id="register-confirm"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                bind:value={confirmPassword}
-                class="pl-9"
-                autocomplete="new-password"
-              />
-            </div>
-          </div>
+          <PasswordInput
+            id="register-confirm"
+            label={t('auth.confirmPassword')}
+            bind:value={confirmPassword}
+            autocomplete="new-password"
+          />
 
           <Button type="submit" class="w-full" disabled={register.isLoading}>
             {#if register.isLoading}
@@ -124,11 +98,9 @@
 
         <div class="flex items-center justify-center gap-1 mt-5 pt-5 border-t">
           <span class="text-sm text-muted-foreground">{t('auth.hasAccount')}</span>
-          <button
-            type="button"
-            class="text-sm text-primary hover:underline font-medium"
-            onclick={() => navigate('/login')}
-          >{t('auth.login')}</button>
+          <Button variant="link" class="text-sm h-auto p-0 font-medium" onclick={() => navigate('/login')}>
+            {t('auth.login')}
+          </Button>
         </div>
       </Card.CardContent>
     </Card.Card>

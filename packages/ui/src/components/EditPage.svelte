@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { getResource } from '@svadmin/core';
+  import { getResource, useDelete } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
   import { t } from '@svadmin/core/i18n';
   import type { Snippet } from 'svelte';
   import PageHeader from './PageHeader.svelte';
   import AutoForm from './AutoForm.svelte';
+  import ConfirmDialog from './ConfirmDialog.svelte';
   import { ArrowLeft, Trash2 } from 'lucide-svelte';
   import { Button } from './ui/button/index.js';
+  import TooltipButton from './TooltipButton.svelte';
 
   interface Props {
     resourceName: string;
@@ -29,18 +31,29 @@
   const resource = getResource(resourceName);
   const pageTitle = title ?? `${t('common.edit')} ${resource.label} #${id}`;
   const showDelete = canDelete ?? resource.canDelete !== false;
+
+  const deleteResult = useDelete({ resource: resourceName });
+  const deleteMutation = deleteResult.mutation;
+
+  let confirmOpen = $state(false);
+
+  async function handleDelete() {
+    await deleteMutation.mutateAsync({ id, resource: resourceName });
+    confirmOpen = false;
+    navigate(`/${resourceName}`);
+  }
 </script>
 
 <div class="space-y-6 {className}">
   <PageHeader title={pageTitle}>
     {#snippet actions()}
-      <Button variant="ghost" size="icon" onclick={() => navigate(`/${resourceName}`)}>
+      <TooltipButton tooltip={t('common.back')} onclick={() => navigate(`/${resourceName}`)}>
         <ArrowLeft class="h-5 w-5" />
-      </Button>
+      </TooltipButton>
       {#if showDelete}
-        <Button variant="destructive" size="sm">
-          <Trash2 class="h-4 w-4" data-icon="inline-start" /> {t('common.delete')}
-        </Button>
+        <TooltipButton tooltip={t('common.delete')} variant="destructive" size="sm" onclick={() => { confirmOpen = true; }}>
+          <Trash2 class="h-4 w-4" />
+        </TooltipButton>
       {/if}
       {#if headerActions}
         {@render headerActions()}
@@ -50,3 +63,9 @@
 
   <AutoForm {resourceName} mode="edit" {id} />
 </div>
+
+<ConfirmDialog
+  bind:open={confirmOpen}
+  title={t('common.deleteConfirm')}
+  onConfirm={handleDelete}
+/>

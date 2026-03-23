@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/svelte-query';
 import { useParsed } from './useParsed';
 import { getAdminOptions } from './options';
-import { getDataProviderForResource } from './context';
+import { getDataProviderForResource } from './context.svelte';
 import { createQuery, createMutation } from '@tanstack/svelte-query';
 import { toast } from './toast.svelte';
 import { t } from './i18n.svelte';
@@ -103,7 +103,7 @@ export function useForm<
   let errors = $state<Record<string, string>>({});
   function setFieldError(field: string, message: string) { errors = { ...errors, [field]: message }; }
   function clearErrors() { errors = {}; }
-  function clearFieldError(field: string) { const next = { ...errors }; delete next[field]; errors = next; }
+  function clearFieldError(field: string) { delete errors[field]; }
 
   function runValidation(values: TVariables): boolean {
     clearErrors();

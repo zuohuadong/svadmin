@@ -41,6 +41,10 @@ export { default as NavigateToResource } from './components/NavigateToResource.s
 export { default as CatchAllNavigate } from './components/CatchAllNavigate.svelte';
 export { default as ThemedTitle } from './components/ThemedTitle.svelte';
 export { default as CommandPalette } from './components/CommandPalette.svelte';
+export { default as StepsForm } from './components/StepsForm.svelte';
+export { default as InfiniteList } from './components/InfiniteList.svelte';
+export { default as ComboboxField } from './components/ComboboxField.svelte';
+export { default as PasswordInput } from './components/PasswordInput.svelte';
 
 // Field display components
 export { default as NumberField } from './components/fields/NumberField.svelte';
@@ -53,6 +57,11 @@ export { default as FileField } from './components/fields/FileField.svelte';
 export { default as MarkdownField } from './components/fields/MarkdownField.svelte';
 export { default as TextField } from './components/fields/TextField.svelte';
 export { default as ImageField } from './components/fields/ImageField.svelte';
+export { default as SelectField } from './components/fields/SelectField.svelte';
+export { default as MultiSelectField } from './components/fields/MultiSelectField.svelte';
+export { default as RelationField } from './components/fields/RelationField.svelte';
+export { default as JsonField } from './components/fields/JsonField.svelte';
+export { default as RichTextField } from './components/fields/RichTextField.svelte';
 
 // CRUD Buttons
 export {
@@ -71,7 +80,7 @@ export { Badge } from './components/ui/badge/index.js';
 export { Separator } from './components/ui/separator/index.js';
 export { Avatar } from './components/ui/avatar/index.js';
 export { Skeleton } from './components/ui/skeleton/index.js';
-export { Sheet } from './components/ui/sheet/index.js';
+export * as Sheet from './components/ui/sheet/index.js';
 export * as Alert from './components/ui/alert/index.js';
 export * as Card from './components/ui/card/index.js';
 export * as Dialog from './components/ui/dialog/index.js';
@@ -91,6 +100,13 @@ export { Command } from './components/ui/command/index.js';
 
 // Utils
 export { cn } from './utils';
+
+// Field component registry
+export {
+  builtinDisplayComponents, registerDisplayComponent,
+  getDisplayComponent, hasDisplayComponent,
+} from './components/fieldComponentMap';
+export type { FieldComponentMap } from './components/fieldComponentMap';
 
 // Svelte Actions
 export { clickOutside, shortcut, intersect, copyOnClick } from './actions';

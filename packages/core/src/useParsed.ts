@@ -1,7 +1,7 @@
 // useParsed — parse current URL hash into structured route info
 
 import { currentPath } from './router';
-import { getResources } from './context';
+import { getResources } from './context.svelte';
 
 interface ParsedRoute {
   resource?: string;

@@ -89,7 +89,10 @@
 <QueryClientProvider client={queryClient}>
   {#if !authChecked}
     <div class="flex h-screen items-center justify-center">
-      <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-primary"></div>
+      <div class="space-y-4 text-center">
+        <div class="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary mx-auto"></div>
+        <p class="text-sm text-muted-foreground">Loading...</p>
+      </div>
     </div>
   {:else if route === '/login' && loginPage}
     {@render loginPage()}
@@ -110,8 +113,8 @@
           {@render dashboard()}
         {:else}
           <div class="space-y-4">
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('common.welcome', { title })}</h1>
-            <p class="text-gray-500">{t('common.dashboardHint')}</p>
+            <h1 class="text-2xl font-bold text-foreground">{t('common.welcome', { title })}</h1>
+            <p class="text-muted-foreground">{t('common.dashboardHint')}</p>
           </div>
         {/if}
       {:else if route === '/:resource'}
@@ -134,7 +137,7 @@
     </Layout>
   {:else}
     <div class="flex h-screen items-center justify-center">
-      <p class="text-gray-500">{t('common.redirecting')}</p>
+      <p class="text-muted-foreground">{t('common.redirecting')}</p>
     </div>
   {/if}
   <Toast />

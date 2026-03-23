@@ -35,7 +35,7 @@ async function gql(endpoint: string, query: string, variables: Record<string, un
     body: JSON.stringify({ query, variables }),
   });
   const json = await res.json();
-  if (json.errors) throw new Error(json.errors.map((e: any) => e.message).join('\n'));
+  if (json.errors) throw new Error((json.errors as Array<{ message: string }>).map((e) => e.message).join('\n'));
   return json.data;
 }
 

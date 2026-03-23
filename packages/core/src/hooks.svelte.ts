@@ -23,7 +23,7 @@ export type { OvertimeResult, OvertimeOptions, NotificationConfig } from './hook
 
 import { createQuery, createInfiniteQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options';
-import { getDataProviderForResource, getDataProvider } from './context';
+import { getDataProviderForResource, getDataProvider } from './context.svelte';
 import { useParsed } from './useParsed';
 import { createOvertimeTracker, fireSuccessNotification, fireErrorNotification } from './hook-utils.svelte';
 import type { NotificationConfig, OvertimeOptions } from './hook-utils.svelte';

@@ -7,11 +7,7 @@
   const resources = getResources();
   let path = $state(currentPath());
 
-  $effect(() => {
-    function onHash() { path = currentPath(); }
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
-  });
+  function onHashChange() { path = currentPath(); }
 
   interface Crumb { label: string; href: string; }
 
@@ -37,6 +33,8 @@
     return result;
   });
 </script>
+
+<svelte:window onhashchange={onHashChange} />
 
 {#if crumbs.length > 1}
   <Breadcrumb.Root class="mb-4">

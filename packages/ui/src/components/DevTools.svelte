@@ -1,9 +1,11 @@
 <script lang="ts">
+  import { fly, scale } from 'svelte/transition';
   import { getResources } from '@svadmin/core';
   import { getTheme, getColorTheme } from '@svadmin/core';
-  import { getLocale } from '@svadmin/core/i18n';
+  import { getLocale, t } from '@svadmin/core/i18n';
   import { currentPath } from '@svadmin/core/router';
   import { Button } from './ui/button/index.js';
+  import TooltipButton from './TooltipButton.svelte';
   import * as Tabs from './ui/tabs/index.js';
   import { Badge } from './ui/badge/index.js';
   import { ScrollArea } from './ui/scroll-area/index.js';
@@ -18,14 +20,11 @@
     visible = !visible;
   }
 
-  // Keyboard shortcut: Ctrl+Shift+D
-  if (typeof window !== 'undefined') {
-    window.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
-        e.preventDefault();
-        toggle();
-      }
-    });
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+      e.preventDefault();
+      toggle();
+    }
   }
 
   const resources = $derived.by(() => { try { return getResources(); } catch { return []; } });
@@ -33,12 +32,22 @@
   const theme = $derived(getTheme());
   const colorTheme = $derived(getColorTheme());
   const locale = $derived(getLocale());
+
+  // Auto-trace state changes in dev mode via Svelte 5 $inspect
+  if (import.meta.env?.DEV) {
+    $inspect({ path, theme, colorTheme, locale, resourceCount: resources.length });
+  }
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 {#if import.meta.env.DEV}
   {#if visible}
-    <div class="fixed bottom-0 right-4 z-[9999] w-[420px] max-w-[95vw] rounded-t-xl border border-b-0 bg-card shadow-2xl text-[0.8125rem] overflow-hidden"
-      class:w-auto={collapsed} class:min-w-[200px]={collapsed}>
+    <div
+      class="fixed bottom-0 right-4 z-[9999] w-[420px] max-w-[95vw] rounded-t-xl border border-b-0 bg-card shadow-2xl text-[0.8125rem] overflow-hidden"
+      class:w-auto={collapsed} class:min-w-[200px]={collapsed}
+      transition:fly={{ y: 400, duration: 300 }}
+    >
       <!-- Header -->
       <div class="flex items-center justify-between px-3 py-2 bg-muted border-b">
         <div class="flex items-center gap-1.5 font-semibold text-xs uppercase tracking-wider text-foreground">
@@ -46,16 +55,16 @@
           <span>svadmin DevTools</span>
         </div>
         <div class="flex gap-1">
-          <Button variant="ghost" size="icon" class="h-6 w-6" onclick={() => collapsed = !collapsed}>
+          <TooltipButton tooltip={collapsed ? t('common.expand') : t('common.collapse')} variant="ghost" size="icon" class="h-6 w-6" onclick={() => collapsed = !collapsed}>
             {#if collapsed}
               <ChevronUp class="h-3.5 w-3.5" />
             {:else}
               <ChevronDown class="h-3.5 w-3.5" />
             {/if}
-          </Button>
-          <Button variant="ghost" size="icon" class="h-6 w-6" onclick={toggle}>
+          </TooltipButton>
+          <TooltipButton tooltip={t('common.close')} variant="ghost" size="icon" class="h-6 w-6" onclick={toggle}>
             <X class="h-3.5 w-3.5" />
-          </Button>
+          </TooltipButton>
         </div>
       </div>
 
@@ -127,12 +136,14 @@
       {/if}
     </div>
   {:else}
-    <button
-      class="fixed bottom-4 right-4 z-[9999] h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg opacity-60 hover:opacity-100 hover:scale-110 transition-all"
+    <Button
+      variant="default"
+      size="icon"
+      class="fixed bottom-4 right-4 z-[9999] h-9 w-9 rounded-full shadow-lg opacity-60 hover:opacity-100 hover:scale-110 transition-all"
       onclick={toggle}
-      title="DevTools (Ctrl+Shift+D)"
+      title={t('devtools.title')}
     >
       <Bug class="h-4 w-4" />
-    </button>
+    </Button>
   {/if}
 {/if}

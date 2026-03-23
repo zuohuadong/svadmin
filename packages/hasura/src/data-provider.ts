@@ -21,7 +21,7 @@ function mapOperator(operator: string): string {
 }
 
 // Minimal GraphQL Executor
-async function executeGraphQL(endpoint: string, query: string, variables: any = {}, headers: any = {}) {
+async function executeGraphQL(endpoint: string, query: string, variables: Record<string, unknown> = {}, headers: Record<string, string> = {}): Promise<Record<string, unknown>> {
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...headers },
@@ -29,7 +29,7 @@ async function executeGraphQL(endpoint: string, query: string, variables: any = 
   });
   const json = await response.json();
   if (json.errors) {
-    throw new Error(json.errors.map((e: any) => e.message).join('\n'));
+    throw new Error((json.errors as Array<{ message: string }>).map((e) => e.message).join('\n'));
   }
   return json.data;
 }
@@ -44,11 +44,11 @@ export function createHasuraDataProvider(endpoint: string, defaultHeaders: Recor
       const limit = mode === 'server' ? pageSize : undefined;
 
       // Simplistic AST builder for demonstration. In production, 'graphql-request' or gql AST tools should be used.
-      const variables: any = { limit, offset };
+      const variables: Record<string, unknown> = { limit, offset };
       
       let whereClause = '';
       if (filters && filters.length > 0) {
-        const clauses = filters.filter((f: any) => 'field' in f).map((f: any, i: number) => {
+        const clauses = filters.filter((f): f is Filter & { field: string; operator: string; value: unknown } => 'field' in f).map((f, i: number) => {
           variables[`f${i}`] = f.operator === 'contains' ? `%${f.value}%` : f.value;
           return `${f.field}: { ${mapOperator(f.operator)}: $f${i} }`;
         });
@@ -75,9 +75,11 @@ export function createHasuraDataProvider(endpoint: string, defaultHeaders: Recor
       `;
 
       const data = await executeGraphQL(endpoint, query, variables, defaultHeaders);
+      const resourceData = data[resource] as T[] | undefined;
+      const aggregateData = data[`${resource}_aggregate`] as { aggregate?: { count?: number } } | undefined;
       return {
-        data: data[resource] || [],
-        total: data[`${resource}_aggregate`]?.aggregate?.count || 0,
+        data: resourceData || [],
+        total: aggregateData?.aggregate?.count || 0,
       };
     },
 

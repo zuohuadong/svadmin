@@ -15,15 +15,18 @@
   }>();
 
   const resource = $derived(getResource(resourceName));
+  const fieldCount = $derived(resource.fields.filter(f => f.showInForm !== false).length);
+  const dialogWidth = $derived(fieldCount > 8 ? 'sm:max-w-3xl' : fieldCount > 5 ? 'sm:max-w-2xl' : 'sm:max-w-lg');
 
   function handleClose() {
     open = false;
+    onSuccess?.();
   }
 </script>
 
 {#if open}
   <Dialog.Dialog bind:open>
-    <Dialog.DialogContent class="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+    <Dialog.DialogContent class="{dialogWidth} max-h-[85vh] overflow-y-auto">
       <Dialog.DialogHeader>
         <Dialog.DialogTitle>
           {mode === 'create' ? `${t('common.create')}${resource.label}` : `${t('common.edit')}${resource.label}`}

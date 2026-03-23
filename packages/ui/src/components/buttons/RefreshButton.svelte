@@ -11,11 +11,17 @@
 
   const invalidate = useInvalidate();
   let spinning = $state(false);
+  let spinTimer: ReturnType<typeof setTimeout> | undefined;
+
+  $effect(() => {
+    return () => { if (spinTimer) clearTimeout(spinTimer); };
+  });
 
   function refresh() {
     spinning = true;
     invalidate({ resource, invalidates: ['list', 'many'] });
-    setTimeout(() => { spinning = false; }, 600);
+    if (spinTimer) clearTimeout(spinTimer);
+    spinTimer = setTimeout(() => { spinning = false; }, 600);
   }
 </script>
 
@@ -28,4 +34,3 @@
   <RefreshCw class="h-4 w-4 {spinning ? 'animate-spin' : ''}" />
   {#if !hideText}<span class="ml-1">{t('common.retry')}</span>{/if}
 </Button>
-

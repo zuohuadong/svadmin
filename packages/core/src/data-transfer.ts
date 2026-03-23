@@ -1,4 +1,4 @@
-import { getDataProviderForResource } from './context';
+import { getDataProviderForResource } from './context.svelte';
 import { useParsed } from './useParsed';
 import type { GetListResult, Sort, Filter, BaseRecord } from './types';
 

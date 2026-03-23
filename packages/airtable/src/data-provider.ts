@@ -4,6 +4,11 @@ import type {
   GetManyParams, GetManyResult, CustomParams, CustomResult, Sort, Filter
 } from '@svadmin/core';
 
+interface AirtableRecord {
+  id: string;
+  fields: Record<string, unknown>;
+}
+
 function generateFilterByFormula(filters?: Filter[]): string | undefined {
   if (!filters || filters.length === 0) return undefined;
 
@@ -62,7 +67,7 @@ export function createAirtableDataProvider(apiKey: string, baseId: string): Data
 
       // Airtable doesn't return total count easily without offset matching, we can only return current length or a large number
       return {
-        data: data.records.map((r: any) => ({ ...r.fields, id: r.id })) as T[],
+        data: data.records.map((r: AirtableRecord) => ({ ...r.fields, id: r.id })) as T[],
         total: data.records.length,
       };
     },
@@ -111,7 +116,7 @@ export function createAirtableDataProvider(apiKey: string, baseId: string): Data
       const response = await fetch(url.toString(), { headers });
       if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
       const data = await response.json();
-      return { data: data.records.map((r: any) => ({ ...r.fields, id: r.id })) as T[] };
+      return { data: data.records.map((r: AirtableRecord) => ({ ...r.fields, id: r.id })) as T[] };
     },
 
     async custom<T>({ url, method, payload, headers: customHeaders, query }: CustomParams): Promise<CustomResult<T>> {

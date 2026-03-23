@@ -3,10 +3,10 @@
   import { t } from '@svadmin/core/i18n';
   import { navigate } from '@svadmin/core/router';
   import { Button } from './ui/button/index.js';
-  import { Input } from './ui/input/index.js';
   import * as Card from './ui/card/index.js';
   import * as Alert from './ui/alert/index.js';
-  import { Lock, Eye, EyeOff, ShieldCheck, Loader2, AlertCircle } from 'lucide-svelte';
+  import PasswordInput from './PasswordInput.svelte';
+  import { ShieldCheck, Loader2, AlertCircle } from 'lucide-svelte';
 
   let { title = 'Admin' } = $props<{
     title?: string;
@@ -16,7 +16,6 @@
 
   let password = $state('');
   let confirmPassword = $state('');
-  let showPassword = $state(false);
   let error = $state('');
 
   async function handleSubmit(e: SubmitEvent) {
@@ -41,7 +40,7 @@
           <ShieldCheck class="h-6 w-6" />
         </div>
         <Card.CardTitle class="text-2xl font-bold">{t('auth.resetPassword')}</Card.CardTitle>
-        <p class="text-sm text-muted-foreground">Enter your new password below.</p>
+        <p class="text-sm text-muted-foreground">{t('auth.resetPasswordDescription')}</p>
       </Card.CardHeader>
       <Card.CardContent>
         <form onsubmit={handleSubmit} class="space-y-4">
@@ -52,47 +51,20 @@
             </Alert.Root>
           {/if}
 
-          <div class="space-y-2">
-            <label for="new-password" class="text-sm font-medium text-foreground">{t('auth.password')}</label>
-            <div class="relative">
-              <Lock class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-[1]" />
-              <Input
-                id="new-password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                bind:value={password}
-                class="pl-9 pr-9"
-                autocomplete="new-password"
-              />
-              <button
-                type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 z-[1]"
-                onclick={() => showPassword = !showPassword}
-                tabindex={-1}
-              >
-                {#if showPassword}
-                  <EyeOff class="h-4 w-4" />
-                {:else}
-                  <Eye class="h-4 w-4" />
-                {/if}
-              </button>
-            </div>
-          </div>
+          <PasswordInput
+            id="new-password"
+            label={t('auth.password')}
+            bind:value={password}
+            autocomplete="new-password"
+            showStrength
+          />
 
-          <div class="space-y-2">
-            <label for="confirm-password" class="text-sm font-medium text-foreground">{t('auth.confirmPassword')}</label>
-            <div class="relative">
-              <Lock class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-[1]" />
-              <Input
-                id="confirm-password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                bind:value={confirmPassword}
-                class="pl-9"
-                autocomplete="new-password"
-              />
-            </div>
-          </div>
+          <PasswordInput
+            id="confirm-password"
+            label={t('auth.confirmPassword')}
+            bind:value={confirmPassword}
+            autocomplete="new-password"
+          />
 
           <Button type="submit" class="w-full" disabled={updatePw.isLoading}>
             {#if updatePw.isLoading}
@@ -102,11 +74,9 @@
           </Button>
 
           <div class="flex items-center justify-center mt-2">
-            <button
-              type="button"
-              class="text-sm text-primary hover:underline font-medium"
-              onclick={() => navigate('/login')}
-            >{t('auth.backToLogin')}</button>
+            <Button variant="link" class="text-sm h-auto p-0 font-medium" onclick={() => navigate('/login')}>
+              {t('auth.backToLogin')}
+            </Button>
           </div>
         </form>
       </Card.CardContent>

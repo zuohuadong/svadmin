@@ -27,6 +27,7 @@
   import * as DropdownMenu from './ui/dropdown-menu/index.js';
   import * as PaginationUI from './ui/pagination/index.js';
   import * as ContextMenu from './ui/context-menu/index.js';
+  import { Select } from './ui/select/index.js';
   import {
     Plus, Pencil, Trash2,
     Search, Download, Upload, ChevronDown, ChevronUp, SlidersHorizontal, Filter as FilterIcon,
@@ -48,7 +49,11 @@
     /** Custom empty state */
     emptyState?: Snippet;
     /** Expandable row content */
-    expandedRowRender?: Snippet<[record: Record<string, unknown>]>;
+    expandedRowRender?: Snippet<[{ record: Record<string, unknown> }]>;
+    /** Externally controlled pagination */
+    pagination?: { current: number; pageSize: number };
+    /** Externally controlled sorters */
+    sorters?: Sort[];
   }
 
   let {
@@ -59,6 +64,8 @@
     rowActions,
     emptyState,
     expandedRowRender,
+    pagination: externalPagination,
+    sorters: externalSorters,
   }: Props = $props();
 
   const resource = getResource(resourceName);
@@ -67,14 +74,15 @@
   // ─── URL state + server-side state ────────────────────────────
   const urlState = readURLState();
 
-  let pagination = $state<{ current: number; pageSize: number }>({
+  let pagination = $state<{ current: number; pageSize: number }>(externalPagination ?? {
     current: urlState.page ?? 1,
     pageSize: urlState.pageSize ?? resource.pageSize ?? 10,
   });
   let sorters = $state<Sort[]>(
-    urlState.sortField
+    externalSorters ??
+    (urlState.sortField
       ? [{ field: urlState.sortField, order: urlState.sortOrder ?? 'asc' }]
-      : resource.defaultSort ? [resource.defaultSort] : []
+      : resource.defaultSort ? [resource.defaultSort] : [])
   );
   let filters = $state<Filter[]>([]);
   let searchText = $state(urlState.search ?? '');
@@ -92,7 +100,7 @@
 
   // ─── Build active filters with search ─────────────────────────
   const searchableFields = resource.fields.filter(f => f.searchable);
-  const filterableFields = resource.fields.filter(f => (f as any).filterable);
+  const filterableFields = resource.fields.filter(f => f.filterable);
   let filterValues = $state<Record<string, string>>({});
   const activeFilterCount = $derived(Object.values(filterValues).filter(v => v.trim()).length);
   const activeFilters = $derived.by(() => {
@@ -133,7 +141,7 @@
     return vis;
   })());
   let rowSelection = $state<RowSelectionState>({});
-  let expanded = $state<ExpandedState>({});
+  let expanded = $state.raw<ExpandedState>({});
 
   // Sync TanStack sorting → server sorters
   $effect(() => {
@@ -438,8 +446,10 @@
                     {:else if header.id === '_actions'}
                       <span class="text-right block">{t('common.actions')}</span>
                     {:else if header.column.getCanSort()}
-                      <button
-                        class="flex items-center gap-1 hover:text-foreground"
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        class="flex items-center gap-1 hover:text-foreground -ml-3 h-auto py-1 px-2"
                         onclick={() => header.column.toggleSorting()}
                       >
                         {visibleFields.find(f => f.key === header.id)?.label ?? header.id}
@@ -449,7 +459,7 @@
                           {:else}⇅
                           {/if}
                         </span>
-                      </button>
+                      </Button>
                     {:else}
                       {visibleFields.find(f => f.key === header.id)?.label ?? header.id}
                     {/if}
@@ -474,13 +484,13 @@
                               onCheckedChange={() => row.toggleSelected()}
                             />
                           {:else if cell.column.id === '_expand'}
-                            <button class="p-1 hover:bg-accent rounded" onclick={() => row.toggleExpanded()}>
+                            <Button variant="ghost" size="icon" class="h-7 w-7" onclick={() => row.toggleExpanded()}>
                               {#if row.getIsExpanded()}
                                 <ChevronUp class="h-4 w-4" />
                               {:else}
                                 <ChevronDown class="h-4 w-4" />
                               {/if}
-                            </button>
+                            </Button>
                           {:else if cell.column.id === '_actions'}
                             <div class="flex items-center justify-end gap-1">
                               {#if rowActions}
@@ -534,7 +544,7 @@
                     <Eye class="h-4 w-4" /> {t('common.detail')}
                   </ContextMenu.Item>
                   <ContextMenu.Item onclick={() => navigator.clipboard?.writeText(String(id))} class="gap-2">
-                    <Copy class="h-4 w-4" /> Copy ID
+                    <Copy class="h-4 w-4" /> {t('common.copyId')}
                   </ContextMenu.Item>
                   {#if canDelete}
                     <ContextMenu.Separator />
@@ -547,7 +557,7 @@
               {#if expandedRowRender && row.getIsExpanded()}
                 <Table.Row class="bg-muted/30">
                   <Table.Cell colspan={row.getVisibleCells().length}>
-                    {@render expandedRowRender(record)}
+                    {@render expandedRowRender({ record })}
                   </Table.Cell>
                 </Table.Row>
               {/if}
@@ -573,18 +583,18 @@
   <div class="flex items-center justify-between text-sm text-muted-foreground">
     <div class="flex items-center gap-2">
       <span>{t('common.total', { total: query.data?.total ?? 0 })}</span>
-      <select
-        class="h-8 rounded-md border border-input bg-background px-2 text-xs"
-        value={pagination.pageSize ?? 10}
+      <Select
+        class="h-8 w-auto text-xs"
+        value={String(pagination.pageSize ?? 10)}
         onchange={(e: Event) => {
           const size = Number((e.target as HTMLSelectElement).value);
           pagination = { ...pagination, pageSize: size, current: 1 };
         }}
       >
         {#each [10, 20, 50, 100] as size}
-          <option value={size}>{size} / {t('common.page', { current: '', total: '' }).replace(/[\d\s/]/g, '').trim() || 'page'}</option>
+          <option value={size}>{size} / {t('common.perPage')}</option>
         {/each}
-      </select>
+      </Select>
     </div>
     <PaginationUI.Root>
       <PaginationUI.Content>

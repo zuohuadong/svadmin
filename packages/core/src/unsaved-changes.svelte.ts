@@ -1,7 +1,7 @@
 // UnsavedChangesNotifier — warns user before leaving page with unsaved changes
 // Svelte 5 component using runes
 
-import { onDestroy, onMount } from 'svelte';
+// No lifecycle imports needed — uses module-level $state pattern
 
 let warnWhenUnsavedChanges = $state(false);
 

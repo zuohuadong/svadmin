@@ -5,12 +5,14 @@
   import { canAccess } from '@svadmin/core/permissions';
   import { t } from '@svadmin/core/i18n';
   import { Button } from './ui/button/index.js';
+  import TooltipButton from './TooltipButton.svelte';
   import * as Card from './ui/card/index.js';
   import { Badge } from './ui/badge/index.js';
   import { Save, ArrowLeft, Loader2, AlertCircle } from 'lucide-svelte';
   import FieldRenderer from './FieldRenderer.svelte';
   import * as Alert from './ui/alert/index.js';
   import { Skeleton } from './ui/skeleton/index.js';
+  import ConfirmDialog from './ConfirmDialog.svelte';
 
   import type { Snippet } from 'svelte';
 
@@ -71,8 +73,8 @@
     }
   }
 
-  // Initialize form data
-  $effect(() => {
+  // Initialize form data (pre-DOM to avoid flash of empty values)
+  $effect.pre(() => {
     if (initialized) return;
     if (mode === 'create') {
       const defaults: Record<string, unknown> = {};
@@ -163,9 +165,7 @@
     isDirty = true;
     // Clear field error when user starts typing
     if (fieldErrors[key]) {
-      const next = { ...fieldErrors };
-      delete next[key];
-      fieldErrors = next;
+      delete fieldErrors[key];
     }
   }
 
@@ -176,19 +176,39 @@
       ? `${t('common.create')}${resource.label}`
       : `${t('common.edit')}${resource.label}`
   );
+  // Unsaved changes dialog state
+  let confirmOpen = $state(false);
+  let pendingNavigation: (() => void) | null = null;
+
+  function guardNavigate(fn: () => void) {
+    if (isDirty) {
+      pendingNavigation = fn;
+      confirmOpen = true;
+    } else {
+      fn();
+    }
+  }
+
+  function confirmNavigate() {
+    confirmOpen = false;
+    pendingNavigation?.();
+    pendingNavigation = null;
+  }
+
+  function cancelNavigate() {
+    confirmOpen = false;
+    pendingNavigation = null;
+  }
 </script>
 
 <div class="space-y-6">
   <div class="flex items-center gap-4">
-    <Button
-      variant="ghost" size="icon"
-      onclick={() => {
-        if (isDirty && !confirm(t('common.unsavedChanges'))) return;
-        navigate(`/${resourceName}`);
-      }}
+    <TooltipButton
+      tooltip={t('common.back')}
+      onclick={() => guardNavigate(() => navigate(`/${resourceName}`))}
     >
       <ArrowLeft class="h-5 w-5" />
-    </Button>
+    </TooltipButton>
     <h1 class="text-2xl font-bold text-foreground">{pageTitle}</h1>
     {#if isDirty}
       <Badge variant="outline" class="border-amber-200 bg-amber-50 text-amber-700">{t('common.unsaved')}</Badge>
@@ -215,26 +235,67 @@
         </Alert.Root>
       {/if}
 
-      <Card.Root>
-        <Card.Content class="space-y-5">
-          {#each formFields as field (field.key)}
-            <div class:border-destructive={!!fieldErrors[field.key]}>
-              {#if fieldRenderer}
-                {@render fieldRenderer({ field, value: formData[field.key], onchange: (val: unknown) => handleFieldChange(field.key, val) })}
-              {:else}
-                <FieldRenderer
-                  {field}
-                  value={formData[field.key]}
-                  onchange={(val: unknown) => handleFieldChange(field.key, val)}
-                />
-              {/if}
-              {#if fieldErrors[field.key]}
-                <p class="text-destructive text-[0.8125rem] mt-1">{fieldErrors[field.key]}</p>
-              {/if}
-            </div>
-          {/each}
-        </Card.Content>
-      </Card.Root>
+      {@const hasGroups = formFields.some(f => f.group)}
+      {#if hasGroups}
+        {@const groups = (() => {
+          const order: string[] = [];
+          const map = new Map<string, typeof formFields>();
+          for (const f of formFields) {
+            const g = f.group ?? '';
+            if (!map.has(g)) { order.push(g); map.set(g, []); }
+            map.get(g)!.push(f);
+          }
+          return order.map(g => ({ name: g, fields: map.get(g)! }));
+        })()}
+        {#each groups as group}
+          <Card.Root>
+            {#if group.name}
+              <Card.Header>
+                <Card.Title class="text-lg">{group.name}</Card.Title>
+              </Card.Header>
+            {/if}
+            <Card.Content class="space-y-5">
+              {#each group.fields as field (field.key)}
+                <div class:border-destructive={!!fieldErrors[field.key]}>
+                  {#if fieldRenderer}
+                    {@render fieldRenderer({ field, value: formData[field.key], onchange: (val: unknown) => handleFieldChange(field.key, val) })}
+                  {:else}
+                    <FieldRenderer
+                      {field}
+                      value={formData[field.key]}
+                      onchange={(val: unknown) => handleFieldChange(field.key, val)}
+                    />
+                  {/if}
+                  {#if fieldErrors[field.key]}
+                    <p class="text-destructive text-[0.8125rem] mt-1">{fieldErrors[field.key]}</p>
+                  {/if}
+                </div>
+              {/each}
+            </Card.Content>
+          </Card.Root>
+        {/each}
+      {:else}
+        <Card.Root>
+          <Card.Content class="space-y-5">
+            {#each formFields as field (field.key)}
+              <div class:border-destructive={!!fieldErrors[field.key]}>
+                {#if fieldRenderer}
+                  {@render fieldRenderer({ field, value: formData[field.key], onchange: (val: unknown) => handleFieldChange(field.key, val) })}
+                {:else}
+                  <FieldRenderer
+                    {field}
+                    value={formData[field.key]}
+                    onchange={(val: unknown) => handleFieldChange(field.key, val)}
+                  />
+                {/if}
+                {#if fieldErrors[field.key]}
+                  <p class="text-destructive text-[0.8125rem] mt-1">{fieldErrors[field.key]}</p>
+                {/if}
+              </div>
+            {/each}
+          </Card.Content>
+        </Card.Root>
+      {/if}
 
       <div class="flex items-center gap-3">
         {#if formActions}
@@ -251,10 +312,7 @@
           <Button
             type="button"
             variant="outline"
-            onclick={() => {
-              if (isDirty && !confirm(t('common.unsavedChanges'))) return;
-              navigate(`/${resourceName}`);
-            }}
+            onclick={() => guardNavigate(() => navigate(`/${resourceName}`))}
           >
             {t('common.cancel')}
           </Button>
@@ -263,3 +321,11 @@
     </form>
   {/if}
 </div>
+
+<ConfirmDialog
+  open={confirmOpen}
+  message={t('common.unsavedChanges')}
+  confirmText={t('common.confirm')}
+  onconfirm={confirmNavigate}
+  oncancel={cancelNavigate}
+/>

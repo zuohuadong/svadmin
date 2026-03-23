@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Skeleton } from './ui/skeleton/index.js';
+  import type { Snippet } from 'svelte';
 
   type ColorVariant = 'primary' | 'success' | 'warning' | 'danger' | 'info';
   type StyleVariant = 'default' | 'outline' | 'filled';
@@ -26,6 +27,8 @@
     loading?: boolean;
     color?: ColorVariant;
     variant?: StyleVariant;
+    /** Optional footer snippet for additional content below the value */
+    footer?: Snippet;
     class?: string;
   }
 
@@ -37,6 +40,7 @@
     loading = false,
     color = 'primary',
     variant = 'default',
+    footer,
     class: className = '',
   }: Props = $props();
 </script>
@@ -64,6 +68,11 @@
             {/if}
           </span>
         {/if}
+      </div>
+    {/if}
+    {#if footer}
+      <div class="mt-2">
+        {@render footer()}
       </div>
     {/if}
   </div>

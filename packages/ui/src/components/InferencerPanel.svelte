@@ -1,8 +1,16 @@
 <script lang="ts">
   import { getDataProvider, getResources, inferResource } from '@svadmin/core';
-  import type { InferResult, ResourceDefinition } from '@svadmin/core';
+  import type { InferResult } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
-  import { Wand2, Copy, Check, RefreshCw, Loader2 } from 'lucide-svelte';
+  import { Input } from './ui/input/index.js';
+  import { Badge } from './ui/badge/index.js';
+  import * as Card from './ui/card/index.js';
+  import * as Table from './ui/table/index.js';
+  import * as Alert from './ui/alert/index.js';
+  import { Skeleton } from './ui/skeleton/index.js';
+  import { ScrollArea } from './ui/scroll-area/index.js';
+  import { Select } from './ui/select/index.js';
+  import { Wand2, Copy, Check, RefreshCw, Loader2, AlertCircle } from 'lucide-svelte';
 
   const dataProvider = getDataProvider();
   const resources = getResources();
@@ -13,6 +21,11 @@
   let error = $state<string | null>(null);
   let copied = $state(false);
   let customEndpoint = $state('');
+  let copyTimer: ReturnType<typeof setTimeout> | undefined;
+
+  $effect(() => {
+    return () => { if (copyTimer) clearTimeout(copyTimer); };
+  });
 
   async function runInference() {
     const resourceName = customEndpoint.trim() || selectedResource;
@@ -37,8 +50,8 @@
         resourceName,
         response.data as Record<string, unknown>[],
       );
-    } catch (e: any) {
-      error = e?.message ?? 'Failed to fetch data for inference.';
+    } catch (e: unknown) {
+      error = e instanceof Error ? e.message : 'Failed to fetch data for inference.';
     } finally {
       loading = false;
     }
@@ -48,119 +61,132 @@
     if (!inferResult) return;
     navigator.clipboard.writeText(inferResult.code);
     copied = true;
-    setTimeout(() => { copied = false; }, 2000);
+    if (copyTimer) clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => { copied = false; }, 2000);
   }
 
-  const typeColors: Record<string, string> = {
-    text: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    number: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    boolean: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    date: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-    email: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200',
-    url: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-    image: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
-    images: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
-    textarea: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    json: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
-    tags: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200',
-    select: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
-    relation: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    color: 'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900 dark:text-fuchsia-200',
-    phone: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+  const typeVariants: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
+    text: 'secondary',
+    number: 'default',
+    boolean: 'outline',
+    date: 'secondary',
+    email: 'default',
+    url: 'outline',
+    image: 'secondary',
+    images: 'secondary',
+    textarea: 'outline',
+    json: 'secondary',
+    tags: 'default',
+    select: 'outline',
+    relation: 'destructive',
+    color: 'secondary',
+    phone: 'default',
   };
 </script>
 
-<div class="inferencer-panel space-y-4">
-  <div class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-    <Wand2 class="h-4 w-4" />
-    Resource Inferencer
-  </div>
+<Card.Root>
+  <Card.CardHeader class="pb-3">
+    <Card.CardTitle class="flex items-center gap-2 text-base">
+      <Wand2 class="h-4 w-4" />
+      Resource Inferencer
+    </Card.CardTitle>
+  </Card.CardHeader>
+  <Card.CardContent class="space-y-4">
+    <!-- Resource selector -->
+    <div class="flex gap-2">
+      <Select
+        class="flex-1"
+        bind:value={selectedResource}
+        placeholder="— Select a resource —"
+      >
+        {#each resources as res}
+          <option value={res.name}>{res.label} ({res.name})</option>
+        {/each}
+      </Select>
+      <span class="flex items-center text-xs text-muted-foreground">or</span>
+      <Input
+        type="text"
+        class="w-36"
+        placeholder="custom endpoint"
+        bind:value={customEndpoint}
+      />
+    </div>
 
-  <!-- Resource selector -->
-  <div class="flex gap-2">
-    <select
-      class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-      bind:value={selectedResource}
-    >
-      <option value="">— Select a resource —</option>
-      {#each resources as res}
-        <option value={res.name}>{res.label} ({res.name})</option>
-      {/each}
-    </select>
-    <span class="flex items-center text-xs text-gray-400">or</span>
-    <input
-      type="text"
-      class="w-36 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-      placeholder="custom endpoint"
-      bind:value={customEndpoint}
-    />
-  </div>
+    <Button size="sm" onclick={runInference} disabled={loading || (!selectedResource && !customEndpoint.trim())}>
+      {#if loading}
+        <Loader2 class="h-3 w-3 animate-spin" data-icon="inline-start" />
+        Inferring...
+      {:else}
+        <RefreshCw class="h-3 w-3" data-icon="inline-start" />
+        Infer Fields
+      {/if}
+    </Button>
 
-  <Button size="sm" onclick={runInference} disabled={loading || (!selectedResource && !customEndpoint.trim())}>
-    {#if loading}
-      <Loader2 class="mr-1 h-3 w-3 animate-spin" />
-      Inferring...
-    {:else}
-      <RefreshCw class="mr-1 h-3 w-3" />
-      Infer Fields
+    {#if error}
+      <Alert.Root variant="destructive">
+        <AlertCircle class="h-4 w-4" />
+        <Alert.Description>{error}</Alert.Description>
+      </Alert.Root>
     {/if}
-  </Button>
 
-  {#if error}
-    <div class="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
-      {error}
-    </div>
-  {/if}
-
-  {#if inferResult}
-    <!-- Field table -->
-    <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-gray-50 dark:bg-gray-800">
-          <tr>
-            <th class="px-3 py-2 font-medium">Field</th>
-            <th class="px-3 py-2 font-medium">Type</th>
-            <th class="px-3 py-2 font-medium">List</th>
-            <th class="px-3 py-2 font-medium">Form</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each inferResult.fields as field}
-            <tr class="border-t border-gray-100 dark:border-gray-700/50">
-              <td class="px-3 py-1.5 font-mono text-xs">{field.key}</td>
-              <td class="px-3 py-1.5">
-                <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium {typeColors[field.type] ?? 'bg-gray-100 text-gray-600'}">
-                  {field.type}
-                  {#if field.resource}→ {field.resource}{/if}
-                </span>
-              </td>
-              <td class="px-3 py-1.5 text-center">{field.showInList ? '✓' : '—'}</td>
-              <td class="px-3 py-1.5 text-center">{field.showInForm ? '✓' : '—'}</td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Generated code -->
-    <div class="relative">
-      <div class="flex items-center justify-between rounded-t-lg bg-gray-800 px-3 py-1.5 text-xs text-gray-400">
-        <span>Generated ResourceDefinition</span>
-        <button class="flex items-center gap-1 hover:text-white transition-colors" onclick={copyCode}>
-          {#if copied}
-            <Check class="h-3 w-3 text-green-400" />
-            <span class="text-green-400">Copied!</span>
-          {:else}
-            <Copy class="h-3 w-3" />
-            Copy
-          {/if}
-        </button>
+    {#if loading}
+      <div class="space-y-2">
+        {#each Array(4) as _}
+          <Skeleton class="h-8 w-full" />
+        {/each}
       </div>
-      <pre class="max-h-64 overflow-auto rounded-b-lg bg-gray-900 p-3 text-xs text-green-300 font-mono">{inferResult.code}</pre>
-    </div>
+    {/if}
 
-    <p class="text-xs text-gray-400">
-      Inferred {inferResult.fields.length} fields from sample data. Copy the code above into your <code>resources.ts</code> file.
-    </p>
-  {/if}
-</div>
+    {#if inferResult}
+      <!-- Field table -->
+      <ScrollArea class="max-h-80">
+        <Table.Root>
+          <Table.Header>
+            <Table.Row class="bg-muted/50">
+              <Table.Head>Field</Table.Head>
+              <Table.Head>Type</Table.Head>
+              <Table.Head class="text-center">List</Table.Head>
+              <Table.Head class="text-center">Form</Table.Head>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            {#each inferResult.fields as field}
+              <Table.Row>
+                <Table.Cell class="font-mono text-xs">{field.key}</Table.Cell>
+                <Table.Cell>
+                  <Badge variant={typeVariants[field.type] ?? 'secondary'}>
+                    {field.type}
+                    {#if field.resource}→ {field.resource}{/if}
+                  </Badge>
+                </Table.Cell>
+                <Table.Cell class="text-center">{field.showInList ? '✓' : '—'}</Table.Cell>
+                <Table.Cell class="text-center">{field.showInForm ? '✓' : '—'}</Table.Cell>
+              </Table.Row>
+            {/each}
+          </Table.Body>
+        </Table.Root>
+      </ScrollArea>
+
+      <!-- Generated code -->
+      <div class="rounded-lg border overflow-hidden">
+        <div class="flex items-center justify-between bg-muted px-3 py-1.5 text-xs text-muted-foreground">
+          <span>Generated ResourceDefinition</span>
+          <Button variant="ghost" size="sm" class="h-6 text-xs gap-1" onclick={copyCode}>
+            {#if copied}
+              <Check class="h-3 w-3 text-emerald-500" />
+              <span class="text-emerald-500">Copied!</span>
+            {:else}
+              <Copy class="h-3 w-3" />
+              Copy
+            {/if}
+          </Button>
+        </div>
+        <pre class="max-h-64 overflow-auto bg-muted/30 p-3 text-xs text-foreground font-mono">{inferResult.code}</pre>
+      </div>
+
+      <p class="text-xs text-muted-foreground">
+        Inferred {inferResult.fields.length} fields from sample data. Copy the code above into your <code class="bg-muted px-1 rounded text-foreground">resources.ts</code> file.
+      </p>
+    {/if}
+  </Card.CardContent>
+</Card.Root>

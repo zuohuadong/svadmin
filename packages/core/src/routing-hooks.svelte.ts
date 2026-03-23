@@ -1,5 +1,5 @@
 import { currentPath, navigate } from './router';
-import { getResource, getResources, getRouterProvider } from './context';
+import { getResource, getResources, getRouterProvider } from './context.svelte';
 import { useParsed } from './useParsed';
 
 // ─── routing-hooks.svelte.ts ───────────────────────────────────

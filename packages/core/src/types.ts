@@ -255,6 +255,8 @@ export interface ResourceDefinition {
   showInMenu?: boolean;
   parentName?: string;
   menuOrder?: number;
+  /** Navigation group name — resources with the same group are displayed in a collapsible section */
+  group?: string;
   meta?: Record<string, unknown> & { dataProviderName?: string; parent?: string };
 }
 
@@ -266,6 +268,7 @@ export interface FieldDefinition {
   required?: boolean;
   searchable?: boolean;
   sortable?: boolean;
+  filterable?: boolean;
   width?: string;
   showInList?: boolean;
   showInForm?: boolean;
@@ -280,6 +283,8 @@ export interface FieldDefinition {
   optionValue?: string;    // field to use as value
   // Validation
   validate?: (value: unknown) => string | null;
+  // Grouping
+  group?: string;
 }
 
 // ─── Resource Type Registry ───────────────────────────────────

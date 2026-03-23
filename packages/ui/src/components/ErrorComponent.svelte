@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { AlertTriangle, AlertCircle } from 'lucide-svelte';
+  import { AlertTriangle, RefreshCw } from 'lucide-svelte';
   import { t } from '@svadmin/core';
   import { Button } from './ui/button';
+  import * as Alert from './ui/alert/index.js';
 
   let {
     error,
@@ -16,20 +17,20 @@
   }>();
 </script>
 
-<div class="flex flex-col items-center justify-center p-8 text-center min-h-[300px] bg-destructive/5 rounded-lg border border-destructive/20 text-destructive transition-all duration-300">
-  <div class="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
-    <AlertTriangle class="h-8 w-8 text-destructive" />
-  </div>
-  <h3 class="text-lg font-semibold">{title}</h3>
-  <p class="text-sm opacity-90 mt-2 max-w-md">
-    {error?.message || description}
-  </p>
-  {#if retry}
-    <div class="mt-6">
-      <Button variant="outline" class="border-destructive/30 hover:bg-destructive/10 text-destructive" onclick={retry}>
-        <AlertCircle class="mr-2 h-4 w-4" />
-        {t('buttons.retry')}
-      </Button>
-    </div>
-  {/if}
+<div class="flex flex-col items-center justify-center p-8 text-center min-h-[300px]">
+  <Alert.Root variant="destructive" class="max-w-md text-left">
+    <AlertTriangle class="h-5 w-5" />
+    <Alert.Title>{title}</Alert.Title>
+    <Alert.Description>
+      {error?.message || description}
+    </Alert.Description>
+    {#if retry}
+      <div class="mt-4">
+        <Button variant="outline" size="sm" onclick={retry}>
+          <RefreshCw class="h-3 w-3" data-icon="inline-start" />
+          {t('buttons.retry')}
+        </Button>
+      </div>
+    {/if}
+  </Alert.Root>
 </div>

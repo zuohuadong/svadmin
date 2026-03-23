@@ -1,9 +1,8 @@
 // Auth Hooks — reactive wrappers around AuthProvider methods
 // Each hook encapsulates the auth call + loading state + error handling + redirect
-// IMPORTANT: getAuthProvider() must be called at hook creation time (during component init),
-//            not inside mutate(), because Svelte's getContext() only works during init.
+// Uses module-level $state — no component init-time constraints.
 
-import { getAuthProvider } from './context';
+import { getAuthProvider } from './context.svelte';
 import { navigate } from './router';
 import { toast } from './toast.svelte';
 import { t } from './i18n.svelte';

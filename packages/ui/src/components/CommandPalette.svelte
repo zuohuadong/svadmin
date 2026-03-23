@@ -21,6 +21,8 @@
     fn();
     close();
   }
+
+  const itemClass = 'relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50';
 </script>
 
 <Dialog.Dialog bind:open>
@@ -45,7 +47,7 @@
           <Command.Item
             value="home"
             onSelect={() => act(() => navigate('/'))}
-            class="relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50"
+            class={itemClass}
           >
             <LayoutDashboard class="h-4 w-4 text-muted-foreground" />
             {t('common.home')}
@@ -54,7 +56,7 @@
             <Command.Item
               value={r.name}
               onSelect={() => act(() => navigate(`/${r.name}`))}
-              class="relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground"
+              class={itemClass}
             >
               <FileText class="h-4 w-4 text-muted-foreground" />
               {r.label}
@@ -70,7 +72,7 @@
             <Command.Item
               value="create-{r.name}"
               onSelect={() => act(() => navigate(`/${r.name}/create`))}
-              class="relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground"
+              class={itemClass}
             >
               <Plus class="h-4 w-4 text-muted-foreground" />
               {t('common.create')} {r.label}
@@ -79,7 +81,7 @@
           <Command.Item
             value="toggle-theme"
             onSelect={() => act(() => toggleTheme())}
-            class="relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground"
+            class={itemClass}
           >
             <Sun class="h-4 w-4 text-muted-foreground" />
             {t('common.toggleTheme')}

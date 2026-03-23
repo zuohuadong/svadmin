@@ -1,13 +1,8 @@
-// Svelte context — provides DataProvider, AuthProvider, and Resources to all components
+// Svelte 5 Context — module-level $state singletons (no setContext/getContext required)
+// This removes the constraint that hooks must be called at component init time.
 
-import { getContext, setContext } from 'svelte';
 import type { DataProvider, AuthProvider, ResourceDefinition } from './types';
 import type { RouterProvider } from './router-provider';
-
-const DATA_PROVIDER_KEY = Symbol('data-provider');
-const AUTH_PROVIDER_KEY = Symbol('auth-provider');
-const RESOURCES_KEY = Symbol('resources');
-const ROUTER_PROVIDER_KEY = Symbol('router-provider');
 
 // ─── DataProvider (supports single or multiple) ─────────────────
 
@@ -18,16 +13,17 @@ const ROUTER_PROVIDER_KEY = Symbol('router-provider');
  */
 export type DataProviderInput = DataProvider | Record<string, DataProvider>;
 
+let providers = $state<Record<string, DataProvider> | null>(null);
+
 export function setDataProvider(provider: DataProviderInput): void {
   if (isDataProvider(provider)) {
-    setContext(DATA_PROVIDER_KEY, { default: provider } as Record<string, DataProvider>);
+    providers = { default: provider } as Record<string, DataProvider>;
   } else {
-    setContext(DATA_PROVIDER_KEY, provider as Record<string, DataProvider>);
+    providers = provider as Record<string, DataProvider>;
   }
 }
 
 export function getDataProvider(name?: string): DataProvider {
-  const providers = getContext<Record<string, DataProvider>>(DATA_PROVIDER_KEY);
   if (!providers) throw new Error('DataProvider not found. Did you call setDataProvider in App.svelte?');
   const key = name ?? 'default';
   const provider = providers[key];
@@ -38,7 +34,6 @@ export function getDataProvider(name?: string): DataProvider {
 }
 
 export function getDataProviderNames(): string[] {
-  const providers = getContext<Record<string, DataProvider>>(DATA_PROVIDER_KEY);
   return providers ? Object.keys(providers) : [];
 }
 
@@ -71,41 +66,45 @@ function isDataProvider(value: unknown): value is DataProvider {
 
 // ─── Auth Provider ──────────────────────────────────────────────
 
+let authProvider = $state<AuthProvider | null>(null);
+
 export function setAuthProvider(provider: AuthProvider): void {
-  setContext(AUTH_PROVIDER_KEY, provider);
+  authProvider = provider;
 }
 
 export function getAuthProvider(): AuthProvider {
-  const provider = getContext<AuthProvider>(AUTH_PROVIDER_KEY);
-  if (!provider) throw new Error('AuthProvider not found. Did you call setAuthProvider in App.svelte?');
-  return provider;
+  if (!authProvider) throw new Error('AuthProvider not found. Did you call setAuthProvider in App.svelte?');
+  return authProvider;
 }
 
 // ─── Resources ──────────────────────────────────────────────────
 
-export function setResources(resources: ResourceDefinition[]): void {
-  setContext(RESOURCES_KEY, resources);
+let resources = $state.raw<ResourceDefinition[]>([]);
+
+export function setResources(newResources: ResourceDefinition[]): void {
+  resources = newResources;
 }
 
 export function getResources(): ResourceDefinition[] {
-  const resources = getContext<ResourceDefinition[]>(RESOURCES_KEY);
-  if (!resources) throw new Error('Resources not found. Did you call setResources in App.svelte?');
+  if (!resources || resources.length === 0) throw new Error('Resources not found. Did you call setResources in App.svelte?');
   return resources;
 }
 
 export function getResource(nameOrIdentifier: string): ResourceDefinition {
-  const resources = getResources();
-  const resource = resources.find(r => r.identifier === nameOrIdentifier || r.name === nameOrIdentifier);
+  const rList = getResources();
+  const resource = rList.find(r => r.identifier === nameOrIdentifier || r.name === nameOrIdentifier);
   if (!resource) throw new Error(`Resource "${nameOrIdentifier}" not found in resource definitions.`);
   return resource;
 }
 
 // ─── Router Provider ────────────────────────────────────────────
 
+let routerProvider = $state<RouterProvider | undefined>(undefined);
+
 export function setRouterProvider(provider: RouterProvider): void {
-  setContext(ROUTER_PROVIDER_KEY, provider);
+  routerProvider = provider;
 }
 
 export function getRouterProvider(): RouterProvider | undefined {
-  return getContext<RouterProvider>(ROUTER_PROVIDER_KEY);
+  return routerProvider;
 }

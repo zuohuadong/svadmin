@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { fade } from 'svelte/transition';
   import { Skeleton } from './ui/skeleton';
 
   let {
@@ -10,7 +11,7 @@
   }>();
 </script>
 
-<div class="w-full space-y-6">
+<div class="w-full space-y-6" out:fade={{ duration: 200 }}>
   <!-- Header Skeleton -->
   <div class="flex items-center justify-between">
     <div class="space-y-2">
