@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "@lucide/svelte": "^0.577.0",
-    "lucide-svelte": "^0.577.0"
+    "lucide-svelte": "^0.577.0",
+    "svelte-sonner": "^1.1.0"
   },
   "license": "MIT",
   "author": "zuohuadong",

@@ -40,6 +40,7 @@ export { default as PageSkeleton } from './components/PageSkeleton.svelte';
 export { default as NavigateToResource } from './components/NavigateToResource.svelte';
 export { default as CatchAllNavigate } from './components/CatchAllNavigate.svelte';
 export { default as ThemedTitle } from './components/ThemedTitle.svelte';
+export { default as CommandPalette } from './components/CommandPalette.svelte';
 
 // Field display components
 export { default as NumberField } from './components/fields/NumberField.svelte';
@@ -81,3 +82,6 @@ export * as DropdownMenu from './components/ui/dropdown-menu/index.js';
 
 // Utils
 export { cn } from './utils';
+
+// Svelte Actions
+export { clickOutside, shortcut, intersect, copyOnClick } from './actions';
