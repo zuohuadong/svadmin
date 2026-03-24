@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.2](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.4.1...svadmin-v0.4.2) (2026-03-24)
+
+
+### Features
+
+* **core,sso:** add AccessControlProvider, CASL/Casbin adapters, and @svadmin/sso OIDC plugin ([271e135](https://github.com/zuohuadong/svadmin/commit/271e135aead8c32cea080e807912a51dec9fb48e))
+* **docs:** add Chinese (zh-cn) i18n translations for all 16 pages ([f2207c6](https://github.com/zuohuadong/svadmin/commit/f2207c6ee6929134b980fb4c8c0cb00f861e19fa))
+* **docs:** upgrade to Astro 6, add homepage, plugins and Cloudflare Pages deploy ([589fdd1](https://github.com/zuohuadong/svadmin/commit/589fdd1af1e957cf03058c52773ffe89d0fc8ef5))
+* **drizzle:** add @svadmin/drizzle data provider for Drizzle ORM via refine-sqlx ([2150689](https://github.com/zuohuadong/svadmin/commit/21506892a961553fef6fad9f2756bbc543a9ef32))
+* svadmin — headless admin framework for Svelte 5 ([d67041a](https://github.com/zuohuadong/svadmin/commit/d67041a4b6aec77702b0490fe934d3207a88daac))
+* **ui:** Sheet, Collapsible, 8 new components + 12 UI enhancements (v0.3.19-v0.3.22) ([58b0a57](https://github.com/zuohuadong/svadmin/commit/58b0a57e24f7caaa9cd5d445a4ada1b20edda261))
+
+
+### Bug Fixes
+
+* **ci:** gracefully skip already published packages and isolate cd scope ([8e8452c](https://github.com/zuohuadong/svadmin/commit/8e8452c578ec38edc350148ecd8e60cf5349c40a))
+* **docs:** localize sidebar for zh-CN, prevent theme flash, merge duplicate comparison rows ([f09eb80](https://github.com/zuohuadong/svadmin/commit/f09eb800ba3de6909e917b09f63f784c50c871cd))
+* **docs:** use root locale for English to fix slug resolution ([dfe24aa](https://github.com/zuohuadong/svadmin/commit/dfe24aae8c7e56746cc195f56e088540b380d303))
+* **packages:** add repository URLs to all package.json for npm provenance ([e84978c](https://github.com/zuohuadong/svadmin/commit/e84978cda2d616d37caf388d48adf5315dfe6f13))
+* resolve code standards violations and add engineering config ([91b2c8a](https://github.com/zuohuadong/svadmin/commit/91b2c8a0c92b61223187b8e78900444188386cbf))
+* upgrade @tanstack/svelte-table to v9 for Svelte 5 compatibility ([b0be339](https://github.com/zuohuadong/svadmin/commit/b0be339b2689440c89851288015a4325dcb932e5))
+
 ## [0.4.0] - 2026-03-23
 
 ### Added
