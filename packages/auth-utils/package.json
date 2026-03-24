@@ -1,0 +1,37 @@
+{
+  "name": "@svadmin/auth-utils",
+  "version": "0.4.1",
+  "type": "module",
+  "description": "Zero-dependency auth utility functions — password hashing, session management, TOTP for svadmin",
+  "license": "MIT",
+  "keywords": ["svadmin", "auth", "password", "session", "totp", "mfa"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zuohuadong/svadmin",
+    "directory": "packages/auth-utils"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    },
+    "./password": {
+      "types": "./src/password.ts",
+      "import": "./src/password.ts"
+    },
+    "./session": {
+      "types": "./src/session.ts",
+      "import": "./src/session.ts"
+    },
+    "./totp": {
+      "types": "./src/totp.ts",
+      "import": "./src/totp.ts"
+    }
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": ["src"],
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

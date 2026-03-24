@@ -50,6 +50,16 @@ export interface SSOConfig {
   autoRefresh?: boolean;
   /** Seconds before expiry to trigger refresh. Default: 60 */
   refreshBuffer?: number;
+  /**
+   * Manual OAuth2 endpoints for providers that don't support OIDC discovery
+   * (e.g., GitHub). When provided, OIDC auto-discovery is skipped.
+   */
+  manualEndpoints?: {
+    authorization_endpoint: string;
+    token_endpoint: string;
+    userinfo_endpoint: string;
+    end_session_endpoint?: string;
+  };
 }
 
 export interface TokenStorage {
@@ -132,6 +142,13 @@ export function createSSOAuthProvider(config: SSOConfig): AuthProvider {
 
   async function discover(): Promise<OIDCConfig> {
     if (oidcConfig) return oidcConfig;
+
+    // Use manual endpoints if provided (e.g., GitHub)
+    if (config.manualEndpoints) {
+      oidcConfig = config.manualEndpoints;
+      return oidcConfig;
+    }
+
     const url = `${config.issuer.replace(/\/$/, '')}/.well-known/openid-configuration`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`OIDC discovery failed: ${res.status} ${res.statusText}`);

@@ -8,11 +8,34 @@
   import * as Card from './ui/card/index.js';
   import * as Alert from './ui/alert/index.js';
   import PasswordInput from './PasswordInput.svelte';
+  import { Separator } from './ui/separator/index.js';
   import { LogIn, Mail, Loader2, AlertCircle } from 'lucide-svelte';
 
-  let { title = 'Admin', onSuccess } = $props<{
+  /**
+   * Social provider config for the login page.
+   * Each entry renders a button that calls `onClick()` when clicked.
+   *
+   * @example
+   * ```ts
+   * const socialProviders = [
+   *   { name: 'Google', icon: '🔵', onClick: () => googleAuth.login({}) },
+   *   { name: 'GitHub', icon: '🐙', onClick: () => githubAuth.login({}) },
+   * ];
+   * ```
+   */
+  interface SocialProvider {
+    /** Display name (e.g., 'Google') */
+    name: string;
+    /** Icon character, emoji, or SVG string */
+    icon?: string;
+    /** Handler to initiate social login */
+    onClick: () => void | Promise<void>;
+  }
+
+  let { title = 'Admin', onSuccess, socialProviders = [] } = $props<{
     title?: string;
     onSuccess?: () => void;
+    socialProviders?: SocialProvider[];
   }>();
 
   const login = useLogin();
@@ -96,6 +119,30 @@
             {t('auth.loginButton')}
           </Button>
         </form>
+
+        {#if socialProviders.length > 0}
+          <div class="relative my-5">
+            <Separator />
+            <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-xs text-muted-foreground">
+              {t('auth.orContinueWith')}
+            </span>
+          </div>
+
+          <div class="grid gap-2" class:grid-cols-2={socialProviders.length >= 2}>
+            {#each socialProviders as provider (provider.name)}
+              <Button
+                variant="outline"
+                class="w-full"
+                onclick={provider.onClick}
+              >
+                {#if provider.icon}
+                  <span class="mr-2">{provider.icon}</span>
+                {/if}
+                {provider.name}
+              </Button>
+            {/each}
+          </div>
+        {/if}
 
         {#if authProvider.register}
           <div class="flex items-center justify-center gap-1 mt-5 pt-5 border-t">
