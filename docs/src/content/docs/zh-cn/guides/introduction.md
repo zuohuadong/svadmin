@@ -44,6 +44,9 @@ svadmin 原生基于 **Svelte 5 runes** 构建，采用基于 Provider 的架构
 | `@svadmin/graphql` | GraphQL 数据 Provider |
 | `@svadmin/elysia` | Elysia 数据 Provider（自动类型推断） |
 | `@svadmin/drizzle` | Drizzle ORM 数据 Provider — SQLite、PostgreSQL、MySQL、D1 |
+| `@svadmin/sso` | OIDC/OAuth2 SSO 认证 Provider — Okta、Azure AD、Cognito、Keycloak、Google |
+| `@svadmin/auth-utils` | 认证工具包 — 密码哈希、会话管理、TOTP |
+| `@svadmin/sveltekit` | SvelteKit 集成 |
 | `@svadmin/strapi` | Strapi CMS 数据 Provider |
 | `@svadmin/directus` | Directus 数据 Provider |
 | `@svadmin/firebase` | Firebase / Firestore 数据 Provider |

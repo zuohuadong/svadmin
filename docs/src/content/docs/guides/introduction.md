@@ -44,6 +44,9 @@ svadmin is built natively for **Svelte 5 runes** and uses a provider-based archi
 | `@svadmin/graphql` | GraphQL data provider |
 | `@svadmin/elysia` | Elysia data provider (auto type inference) |
 | `@svadmin/drizzle` | Drizzle ORM data provider — SQLite, PostgreSQL, MySQL, D1 |
+| `@svadmin/sso` | OIDC/OAuth2 SSO AuthProvider — Okta, Azure AD, Cognito, Keycloak, Google |
+| `@svadmin/auth-utils` | Auth utilities — password hashing, session management, TOTP |
+| `@svadmin/sveltekit` | SvelteKit integration |
 | `@svadmin/strapi` | Strapi CMS data provider |
 | `@svadmin/directus` | Directus data provider |
 | `@svadmin/firebase` | Firebase / Firestore data provider |
