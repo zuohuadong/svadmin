@@ -10,8 +10,7 @@ svadmin 是编译时 admin 框架 — 无虚拟 DOM、无运行时 diff，直接
 | | **svadmin** | **Refine** | **React Admin** | **AdminJS** |
 |---|---|---|---|---|
 | **框架** | Svelte 5 | React 18+ | React 18+ | React |
-| **运行时** | ✅ 编译型 — 零开销 | VDOM diff | VDOM diff | VDOM diff |
-| **DOM** | ✅ 直操真实 DOM — 无虚拟层 | VDOM → diff → patch | VDOM → diff → patch | VDOM → diff → patch |
+| **运行时** | ✅ 编译为直接 DOM 操作 — 无 VDOM | VDOM → diff → patch | VDOM → diff → patch | VDOM → diff → patch |
 | **响应式** | ✅ Runes — 变量级信号 | Hooks — 组件级重渲染 | Hooks | Hooks |
 | **Core 体积** | ✅ ~15KB | ~80KB | ~200KB+ | ~150KB+ |
 | **内存** | ✅ 无 VDOM 树副本 | VDOM 树开销 | VDOM 树开销 | VDOM 树开销 |

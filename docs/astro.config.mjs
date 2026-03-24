@@ -17,6 +17,20 @@ export default defineConfig({
       ],
       title: 'svadmin',
       description: 'Headless admin framework for Svelte 5',
+      head: [
+        {
+          tag: 'script',
+          attrs: { is: 'inline' },
+          content: `
+            (function() {
+              var theme = typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+              var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              var resolvedTheme = theme === 'dark' || (!theme && prefersDark) ? 'dark' : 'light';
+              document.documentElement.dataset.theme = resolvedTheme;
+            })();
+          `,
+        },
+      ],
       defaultLocale: 'root',
       locales: {
         root: { label: 'English', lang: 'en' },
@@ -31,42 +45,46 @@ export default defineConfig({
       sidebar: [
         {
           label: 'Getting Started',
+          translations: { 'zh-CN': '快速上手' },
           items: [
-            { label: 'Introduction', slug: 'guides/introduction' },
-            { label: 'Quick Start', slug: 'guides/quick-start' },
-            { label: 'Resource Type Registry', slug: 'guides/resource-type-registry' },
-            { label: 'Comparison', slug: 'guides/comparison' },
+            { slug: 'guides/introduction' },
+            { slug: 'guides/quick-start' },
+            { slug: 'guides/resource-type-registry' },
+            { slug: 'guides/comparison' },
           ],
         },
         {
           label: 'Providers',
+          translations: { 'zh-CN': '提供器' },
           items: [
-            { label: 'Data Provider', slug: 'providers/data-provider' },
-            { label: 'Auth Provider', slug: 'providers/auth' },
-            { label: 'Router Provider', slug: 'providers/router' },
-            { label: 'Live Provider', slug: 'providers/live' },
-            { label: 'Elysia', slug: 'providers/elysia' },
-            { label: 'Drizzle ORM', slug: 'providers/drizzle' },
+            { slug: 'providers/data-provider' },
+            { slug: 'providers/auth' },
+            { slug: 'providers/router' },
+            { slug: 'providers/live' },
+            { slug: 'providers/elysia' },
+            { slug: 'providers/drizzle' },
           ],
         },
         {
           label: 'Hooks',
           items: [
-            { label: 'Data Hooks', slug: 'hooks/data' },
-            { label: 'Auth Hooks', slug: 'hooks/auth' },
-            { label: 'Form & Table', slug: 'hooks/form-table' },
+            { slug: 'hooks/data' },
+            { slug: 'hooks/auth' },
+            { slug: 'hooks/form-table' },
           ],
         },
         {
           label: 'Components',
+          translations: { 'zh-CN': '组件' },
           items: [
-            { label: 'CRUD Pages', slug: 'components/crud-pages' },
-            { label: 'CRUD Buttons', slug: 'components/buttons' },
-            { label: 'Auto Save', slug: 'components/autosave' },
+            { slug: 'components/crud-pages' },
+            { slug: 'components/buttons' },
+            { slug: 'components/autosave' },
           ],
         },
         {
           label: 'Reference',
+          translations: { 'zh-CN': '参考' },
           autogenerate: { directory: 'reference' },
         },
       ],

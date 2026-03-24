@@ -10,8 +10,7 @@ svadmin is a compile-time admin framework — no virtual DOM, no runtime diffing
 | | **svadmin** | **Refine** | **React Admin** | **AdminJS** |
 |---|---|---|---|---|
 | **Framework** | Svelte 5 | React 18+ | React 18+ | React |
-| **Runtime** | ✅ Compiled — zero overhead | VDOM diffing | VDOM diffing | VDOM diffing |
-| **DOM** | ✅ Direct — no virtual DOM | VDOM → diff → patch | VDOM → diff → patch | VDOM → diff → patch |
+| **Runtime** | ✅ Compiled to direct DOM ops — no VDOM | VDOM → diff → patch | VDOM → diff → patch | VDOM → diff → patch |
 | **Reactivity** | ✅ Runes — variable-level signals | Hooks — component re-renders | Hooks | Hooks |
 | **Core size** | ✅ ~15KB | ~80KB | ~200KB+ | ~150KB+ |
 | **Memory** | ✅ No VDOM copy in memory | VDOM tree overhead | VDOM tree overhead | VDOM tree overhead |
