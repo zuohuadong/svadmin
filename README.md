@@ -67,7 +67,7 @@
 |---------|-------------------|
 | `@svadmin/core` | Hooks, providers, types, utilities, Resource Type Registry |
 | `@svadmin/ui` | Pre-built admin components / 预构建管理组件（shadcn-svelte） |
-| `create-svadmin` | CLI scaffolding tool / CLI 脚手架工具 |
+| `@svadmin/create` | CLI scaffolding tool / CLI 脚手架工具 |
 
 ### Data Providers / 数据适配器
 

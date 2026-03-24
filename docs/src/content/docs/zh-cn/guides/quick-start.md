@@ -6,7 +6,7 @@ description: 5 分钟上手 svadmin
 ## 创建新项目
 
 ```bash
-bunx create-svadmin my-admin
+bunx @svadmin/create my-admin
 cd my-admin
 bun install
 bun run dev

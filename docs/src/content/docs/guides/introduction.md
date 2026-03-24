@@ -52,4 +52,4 @@ svadmin is built natively for **Svelte 5 runes** and uses a provider-based archi
 | `@svadmin/medusa` | Medusa Commerce data provider |
 | `@svadmin/nestjs-query` | NestJS GraphQL data provider |
 | `@svadmin/nestjsx-crud` | NestJS CRUD data provider |
-| `create-svadmin` | CLI scaffolding tool |
+| `@svadmin/create` | CLI scaffolding tool |

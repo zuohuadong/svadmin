@@ -6,7 +6,7 @@ description: Get up and running with svadmin in 5 minutes
 ## Create a new project
 
 ```bash
-bunx create-svadmin my-admin
+bunx @svadmin/create my-admin
 cd my-admin
 bun install
 bun run dev

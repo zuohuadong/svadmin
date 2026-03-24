@@ -52,4 +52,4 @@ svadmin 原生基于 **Svelte 5 runes** 构建，采用基于 Provider 的架构
 | `@svadmin/medusa` | Medusa Commerce 数据 Provider |
 | `@svadmin/nestjs-query` | NestJS GraphQL 数据 Provider |
 | `@svadmin/nestjsx-crud` | NestJS CRUD 数据 Provider |
-| `create-svadmin` | CLI 脚手架工具 |
+| `@svadmin/create` | CLI 脚手架工具 |

@@ -72,8 +72,8 @@ jobs:
       - name: Publish @svadmin/sveltekit
         run: cd packages/sveltekit && npm publish --provenance --access public || echo "Publish failed for sveltekit"
 
-      - name: Publish create-svadmin
-        run: cd packages/create-svadmin && npm publish --provenance --access public || echo "Publish failed for create-svadmin"
+      - name: Publish @svadmin/create
+        run: cd packages/create-svadmin && npm publish --provenance --access public || echo "Publish failed for create"
 
   release:
     name: GitHub Release

@@ -1,4 +1,4 @@
-# create-svadmin
+# @svadmin/create
 
 The official scaffolding CLI for `headless-admin-svelte` (svadmin).
 
@@ -7,9 +7,9 @@ Quickly bootstrap a completely configured, headless admin panel project built on
 ## Quick Start
 
 ```bash
-npx create-svadmin@latest my-admin-app
+npx @svadmin/create@latest my-admin-app
 # or
-bunx create-svadmin@latest my-admin-app
+bunx @svadmin/create@latest my-admin-app
 ```
 
 Follow the interactive prompts to:
