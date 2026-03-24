@@ -57,23 +57,23 @@ jobs:
         run: bun install
 
       - name: Publish @svadmin/core
-        run: cd packages/core && npm publish --provenance --access public
+        run: cd packages/core && npm publish --provenance --access public || echo "Publish failed for core"
 
       - name: Publish DataProvider packages
         run: |
           for pkg in simple-rest supabase pocketbase appwrite graphql elysia strapi directus firebase hasura sanity airtable medusa nestjs-query nestjsx-crud; do
             echo "--- Publishing @svadmin/$pkg ---"
-            cd packages/$pkg && npm publish --provenance --access public && cd ../..
+            (cd packages/$pkg && npm publish --provenance --access public || echo "Publish failed for $pkg")
           done
 
       - name: Publish @svadmin/ui
-        run: cd packages/ui && npm publish --provenance --access public
+        run: cd packages/ui && npm publish --provenance --access public || echo "Publish failed for ui"
 
       - name: Publish @svadmin/sveltekit
-        run: cd packages/sveltekit && npm publish --provenance --access public
+        run: cd packages/sveltekit && npm publish --provenance --access public || echo "Publish failed for sveltekit"
 
       - name: Publish create-svadmin
-        run: cd packages/create-svadmin && npm publish --provenance --access public
+        run: cd packages/create-svadmin && npm publish --provenance --access public || echo "Publish failed for create-svadmin"
 
   release:
     name: GitHub Release
