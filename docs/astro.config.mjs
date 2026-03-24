@@ -63,6 +63,9 @@ export default defineConfig({
             { slug: 'providers/live' },
             { slug: 'providers/elysia' },
             { slug: 'providers/drizzle' },
+            { slug: 'providers/sso' },
+            { slug: 'providers/auth-utils' },
+            { slug: 'providers/sveltekit' },
           ],
         },
         {
