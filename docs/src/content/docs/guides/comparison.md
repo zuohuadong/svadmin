@@ -49,7 +49,8 @@ svadmin is a compile-time admin framework — no virtual DOM, no runtime diffing
 | Multi data provider | ✅ | ✅ | ✅ |
 | Auth provider | ✅ | ✅ | ✅ |
 | Live provider | ✅ WebSocket + SSE | ✅ WebSocket + SSE | ❌ Polling only |
-| Access control | ✅ RBAC + ABAC | ✅ RBAC + ABAC | ✅ RBAC |
+| Access control | ✅ RBAC + ABAC + CASL + Casbin | ✅ RBAC + ABAC | ✅ RBAC |
+| SSO (OIDC/OAuth2) | ✅ `@svadmin/sso` plugin | ✅ Enterprise (paid) | ❌ No |
 | Router agnostic | ✅ Hash / SvelteKit | ✅ React Router / Next | ✅ React Router |
 | i18n | ✅ | ✅ | ✅ |
 

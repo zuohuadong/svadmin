@@ -49,7 +49,8 @@ svadmin 是编译时 admin 框架 — 无虚拟 DOM、无运行时 diff，直接
 | 多数据源 | ✅ | ✅ | ✅ |
 | 认证提供器 | ✅ | ✅ | ✅ |
 | 实时订阅 | ✅ WebSocket + SSE | ✅ WebSocket + SSE | ❌ 仅轮询 |
-| 权限控制 | ✅ RBAC + ABAC | ✅ RBAC + ABAC | ✅ RBAC |
+| 权限控制 | ✅ RBAC + ABAC + CASL + Casbin | ✅ RBAC + ABAC | ✅ RBAC |
+| SSO（OIDC/OAuth2） | ✅ `@svadmin/sso` 插件 | ✅ 企业版（付费） | ❌ 无 |
 | 路由无关 | ✅ Hash / SvelteKit | ✅ React Router / Next | ✅ React Router |
 | 国际化 | ✅ | ✅ | ✅ |
 
