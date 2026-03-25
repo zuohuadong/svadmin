@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.13](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.12...svadmin-v0.5.13) (2026-03-25)
+
+
+### Bug Fixes
+
+* **ci:** use PAT for release-please so PRs trigger CI checks ([af59152](https://github.com/zuohuadong/svadmin/commit/af591526569e8386a3d1760712f524ea5ce0a4c6))
+
 ## [0.5.12](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.11...svadmin-v0.5.12) (2026-03-25)
 
 
