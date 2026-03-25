@@ -1,5 +1,4 @@
-/* Typography — Inter font via Bunny Fonts (global CDN, works in China) */
-@import url('https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap');
+/* Typography — Inter font should be imported in index.html for New York style */
 
 /* @svadmin/ui — Design Tokens (Shadcn New York style)
  * Auto-imported by AdminApp. Can be overridden by consumer's CSS.
