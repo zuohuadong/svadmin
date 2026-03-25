@@ -3,6 +3,7 @@ name: Release Please
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -25,23 +26,56 @@ jobs:
 
   publish:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    if: ${{ needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
 
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install
 
-      - name: Setup npm auth
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+      - name: Publish all packages
+        run: |
+          set -e
+          PUBLISH_FAILED=0
+          
+          # Since release-please bumps versions for modified packages,
+          # we attempt to publish all packages. If a package version matches what's on npm,
+          # we skip it.
+          for pkg_dir in packages/*/; do
+            PKG_JSON="$pkg_dir/package.json"
+            if [ -f "$PKG_JSON" ]; then
+              NAME=$(node -p "require('./$PKG_JSON').name")
+              LOCAL_VER=$(node -p "require('./$PKG_JSON').version")
+              NPM_EXISTS=$(npm view "$NAME@$LOCAL_VER" version 2>/dev/null || echo "")
+              
+              if [ -z "$NPM_EXISTS" ]; then
+                echo "🚀 Publishing $NAME@$LOCAL_VER..."
+                if ! (cd "$pkg_dir" && npm publish --provenance --access public); then
+                  echo "❌ Publish FAILED for $NAME"
+                  PUBLISH_FAILED=1
+                fi
+              else
+                echo "⏭️ $NAME@$LOCAL_VER already on npm, skipping"
+              fi
+            fi
+          done
 
-      - name: Publish @svadmin/core
-        run: cd packages/core && npm publish --access public || true
-
-      - name: Publish @svadmin/ui
-        run: cd packages/ui && npm publish --access public || true
+          if [ "$PUBLISH_FAILED" -eq 1 ]; then
+            echo "::error::One or more packages failed to publish"
+            exit 1
+          fi
