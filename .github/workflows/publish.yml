@@ -21,7 +21,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
 
       - uses: oven-sh/setup-bun@v2
@@ -33,6 +33,7 @@ jobs:
 
       - name: Detect and publish changed packages
         run: |
+          echo "npm version: $(npm --version)"
           CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
           echo "Changed files: $CHANGED_FILES"
 
@@ -56,5 +57,3 @@ jobs:
               fi
             fi
           done
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
