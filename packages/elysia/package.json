@@ -1,6 +1,6 @@
 {
   "name": "@svadmin/elysia",
-  "version": "0.4.1",
+  "version": "0.5.11",
   "description": "Elysia DataProvider for svadmin — CRUD convention + InferResourceMap type utility",
   "type": "module",
   "sideEffects": false,
