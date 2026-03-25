@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.9](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.8...svadmin-v0.5.9) (2026-03-25)
+
+
+### Bug Fixes
+
+* **ui:** apply shadcn New York style defaults across all components ([383aa5e](https://github.com/zuohuadong/svadmin/commit/383aa5e5eaa3ea357e0e80c2e0753790946e1bb1))
+
 ## [0.5.8](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.7...svadmin-v0.5.8) (2026-03-25)
 
 
