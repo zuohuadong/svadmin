@@ -9,6 +9,12 @@
  *   - More polished dark mode
  */
 
+/* Auto-register svadmin source files for Tailwind 4 content scanning.
+ * This ensures all utility classes used in @svadmin/ui and @svadmin/core
+ * components are generated without manual @source in consumer projects. */
+@source "./**/*.{svelte,ts,js}";
+@source "../../core/src/**/*.{svelte,ts,js}";
+
 @layer base {
   :root {
     --radius: 0.5rem;
