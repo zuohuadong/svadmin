@@ -94,12 +94,18 @@
   [data-slot="button"],
   [data-slot="input"],
   [data-slot="select-trigger"],
+  [data-slot="select"],
   [data-slot="textarea"] {
     @apply shadow-sm;
   }
   
   [data-slot="card"] {
     @apply shadow-sm;
+  }
+
+  [data-slot="dialog-content"],
+  [data-slot="sheet-content"] {
+    @apply shadow-lg;
   }
 }
 
@@ -154,8 +160,8 @@ body {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --radius-sm: calc(var(--radius) - 6px);
-  --radius-md: calc(var(--radius) - 4px);
-  --radius-lg: calc(var(--radius) - 2px);
-  --radius-xl: var(--radius);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
