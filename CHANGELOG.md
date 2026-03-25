@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.11](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.10...svadmin-v0.5.11) (2026-03-25)
+
+
+### Bug Fixes
+
+* align peerDependencies to ^0.5.0 and complete release-please extra-files ([35fca5a](https://github.com/zuohuadong/svadmin/commit/35fca5a4fa0c8a3284a4f763b46f969c0634459b))
+* **ci:** add trigger-publish job to release.yml so merged release PRs auto-publish ([32354d1](https://github.com/zuohuadong/svadmin/commit/32354d136101eda2d1faad4c6e606e1d989baf44))
+* **ui:** eliminate all 77 state_referenced_locally Svelte 5 warnings ([c30e1c0](https://github.com/zuohuadong/svadmin/commit/c30e1c08570d189843bacf2d903d7696e384f626))
+* **ui:** use [@theme](https://github.com/theme) instead of [@theme](https://github.com/theme) inline to preserve Tailwind defaults; add i18n keys ([052d436](https://github.com/zuohuadong/svadmin/commit/052d4368084c246ed92d06ebc8c945c4743ab0e1))
+
 ## [0.5.10](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.9...svadmin-v0.5.10) (2026-03-25)
 
 
