@@ -2,7 +2,7 @@
   import { fly } from 'svelte/transition';
   import { useStepsForm } from '@svadmin/core';
   import type { FieldDefinition } from '@svadmin/core';
-  import { getResource } from '@svadmin/core';
+  import { getResource, useOne } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
   import { t } from '@svadmin/core/i18n';
   import { Button } from './ui/button/index.js';
@@ -49,13 +49,88 @@
       .filter((f): f is FieldDefinition => f != null && f.key !== primaryKey) ?? []
   );
 
+  const flatStepsFields = steps.flatMap(s => s.fields)
+    .map(key => resource.fields.find(f => f.key === key))
+    .filter((f): f is FieldDefinition => f != null);
+
+  const existingQuery = mode === 'edit' && id != null 
+    ? stepsForm.query as { data?: { data: Record<string, unknown> }, isLoading: boolean } 
+    : null;
+
+  let formData = $state<Record<string, unknown>>({});
+  let fieldErrors = $state<Record<string, string>>({});
+  let initialized = $state(false);
+
+  function getDefaultForType(field: FieldDefinition): unknown {
+    switch (field.type) {
+      case 'text': case 'textarea': case 'richtext': case 'image': return '';
+      case 'number': return 0;
+      case 'boolean': return false;
+      case 'tags': case 'images': case 'multiselect': return [];
+      case 'select': return field.options?.[0]?.value ?? '';
+      case 'json': return {};
+      default: return '';
+    }
+  }
+
+  $effect.pre(() => {
+    if (initialized) return;
+    if (mode === 'create') {
+      const defaults: Record<string, unknown> = {};
+      for (const field of flatStepsFields) {
+        defaults[field.key] = field.defaultValue ?? getDefaultForType(field);
+      }
+      formData = defaults;
+      initialized = true;
+    } else if (existingQuery && existingQuery.data?.data) {
+      formData = { ...existingQuery.data.data };
+      initialized = true;
+    }
+  });
+
+  function handleFieldChange(key: string, val: unknown) {
+    formData[key] = val;
+    if (fieldErrors[key]) delete fieldErrors[key];
+  }
+
+  function validateCurrentStep(): boolean {
+    const errors: Record<string, string> = {};
+    let valid = true;
+    for (const field of currentFields) {
+      const value = formData[field.key];
+      if (field.required && (value === undefined || value === null || value === '')) {
+        errors[field.key] = t('validation.required');
+        valid = false;
+      } else if (field.validate) {
+        const msg = field.validate(value);
+        if (msg) {
+          errors[field.key] = msg;
+          valid = false;
+        }
+      }
+    }
+    fieldErrors = errors;
+    return valid;
+  }
+
   function handleSubmit() {
+    if (!validateCurrentStep()) return;
+    
     if (!isLastStep) {
       next();
       return;
     }
-    stepsForm.onFinish(stepsForm.formValues);
+    
+    const cleanData: Record<string, unknown> = {};
+    for (const field of flatStepsFields) {
+      const value = formData[field.key];
+      if (value !== undefined) cleanData[field.key] = value;
+    }
+    
+    stepsForm.onFinish(cleanData, { redirect: 'list' });
   }
+
+  const isLoadingData = $derived(mode === 'edit' && !initialized);
 </script>
 
 <div class="space-y-6">
@@ -103,12 +178,15 @@
     <Card.CardContent>
       {#key currentStep}
         <form class="space-y-5" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} in:fly={{ x: 30, duration: 250 }}>
-        {#each currentFields as field}
+        {#each currentFields as field (field.key)}
           <FieldRenderer
             {field}
-            value={stepsForm.formValues[field.key]}
-            onchange={(v) => stepsForm.setFieldValue(field.key, v)}
+            value={formData[field.key]}
+            onchange={(v) => handleFieldChange(field.key, v)}
           />
+          {#if fieldErrors[field.key]}
+            <p class="text-destructive text-[0.8125rem] mt-1">{fieldErrors[field.key]}</p>
+          {/if}
         {/each}
 
         <div class="flex items-center justify-between pt-4">

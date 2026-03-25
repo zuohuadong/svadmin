@@ -220,7 +220,7 @@
     {#if multiVal.length > 0}
       <div class="flex flex-wrap gap-1 mt-1">
         {#each multiVal as v}
-          {@const label = field.options?.find(o => o.value === v)?.label ?? String(v)}
+          {@const label = field.options?.find((o: any) => o.value === v)?.label ?? String(v)}
           <Badge variant="secondary" class="gap-1">
             {label}
             <button type="button" onclick={() => toggleMulti(v)} class="ml-0.5 rounded-sm hover:text-destructive hover:bg-destructive/10 transition-colors" aria-label={t('common.clear')}>×</button>

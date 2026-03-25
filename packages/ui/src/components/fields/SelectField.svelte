@@ -7,7 +7,7 @@
   }>();
 
   const label = $derived(
-    options?.find(o => o.value === value)?.label ?? (value != null ? String(value) : '—')
+    options?.find((o: any) => o.value === value)?.label ?? (value != null ? String(value) : '—')
   );
 </script>
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Badge } from '../ui/badge/index.js';
 
-  let { value } = $props<{
+  let { value, options } = $props<{
     value: (string | number)[] | null | undefined;
     options?: { label: string; value: string | number }[];
   }>();
@@ -11,8 +11,9 @@
 
 {#if items.length > 0}
   <div class="flex flex-wrap gap-1">
-    {#each items as item}
-      <Badge variant="secondary">{String(item)}</Badge>
+    {#each items as v}
+      {@const label = options?.find((o: { label: string; value: string | number }) => o.value === v)?.label ?? String(v)}
+      <Badge variant="secondary" class="font-normal">{label}</Badge>
     {/each}
   </div>
 {:else}

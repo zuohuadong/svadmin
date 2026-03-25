@@ -67,5 +67,6 @@
 <ConfirmDialog
   bind:open={confirmOpen}
   title={t('common.deleteConfirm')}
-  onConfirm={handleDelete}
+  onconfirm={handleDelete}
+  oncancel={() => confirmOpen = false}
 />

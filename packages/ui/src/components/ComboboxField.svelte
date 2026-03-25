@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from '@svadmin/core/i18n';
   import { useSelect } from '@svadmin/core';
   import type { Filter } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
@@ -57,7 +58,8 @@
     onchange?.(null);
   }
 
-  function handleSearchInput(v: string) {
+  function handleSearchInput(e: Event) {
+    const v = (e.currentTarget as HTMLInputElement).value;
     searchInputValue = v;
     onSearchChange(v);
   }
@@ -88,8 +90,8 @@
           <div class="flex items-center border-b px-2">
             <Search class="mr-1.5 h-3.5 w-3.5 shrink-0 opacity-50" />
             <Command.Input
-              value={searchInputValue}
-              onValueChange={handleSearchInput}
+              bind:value={searchInputValue}
+              oninput={handleSearchInput}
               placeholder="Search..."
               class="flex h-9 w-full bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground"
             />

@@ -63,7 +63,7 @@
       {placeholder}
       bind:value
       class="pl-9 pr-9"
-      {autocomplete}
+      autocomplete={autocomplete as any}
     />
     <TooltipButton
       tooltip={showPassword ? 'Hide password' : 'Show password'}
