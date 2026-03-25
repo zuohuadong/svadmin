@@ -1,7 +1,7 @@
 {
   "name": "svadmin",
   "private": true,
-  "version": "0.5.7",
+  "version": "0.5.8",
   "description": "Headless admin framework for Svelte 5 — bring your own backend",
   "workspaces": [
     "packages/*",

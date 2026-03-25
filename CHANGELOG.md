@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.8](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.7...svadmin-v0.5.8) (2026-03-25)
+
+
+### Bug Fixes
+
+* **create-svadmin:** synchronize css templates with new-york oklch styling and remove conflicting mappings ([82c9ba5](https://github.com/zuohuadong/svadmin/commit/82c9ba507dcf74938f34052d44a9dd9681cfcd76))
+* **workspace:** resolve lingering strict mode TS compiler errors, restore StepsForm headless execution, and enforce workspace deps in example app ([afc7204](https://github.com/zuohuadong/svadmin/commit/afc7204bce8625d6b5dc8b47c86be4079fc38648))
+
 ## [0.5.7](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.6...svadmin-v0.5.7) (2026-03-25)
 
 
