@@ -1,4 +1,6 @@
 <script lang="ts">
+  // Auto-inject design tokens so consumers don't need to manually import
+  import '../app.css';
   import type { Snippet } from 'svelte';
   import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode, RouterProvider } from '@svadmin/core';
   import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme, setRouterProvider, getAuthProvider, createHashRouterProvider } from '@svadmin/core';
