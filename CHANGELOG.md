@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.12](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.11...svadmin-v0.5.12) (2026-03-25)
+
+
+### Bug Fixes
+
+* **ci:** add actions:write permission to release.yml for workflow dispatch ([7953375](https://github.com/zuohuadong/svadmin/commit/79533755f2ba686bcc8a17bc894fa264b08eb166))
+
 ## [0.5.11](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.10...svadmin-v0.5.11) (2026-03-25)
 
 
