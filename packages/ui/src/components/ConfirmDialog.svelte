@@ -3,10 +3,10 @@
   import { Button } from './ui/button/index.js';
   import { t } from '@svadmin/core/i18n';
 
-  let { open = false, title, message = '',
+  let { open = $bindable(false), title, message = '',
     confirmText, cancelText, variant = 'danger',
     onconfirm, oncancel } = $props<{
-    open: boolean;
+    open?: boolean;
     title?: string;
     message?: string;
     confirmText?: string;

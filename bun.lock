@@ -36,9 +36,9 @@
         "@internationalized/date": "^3.12.0",
         "@lucide/svelte": "^0.577.0",
         "@supabase/supabase-js": "^2.99.3",
-        "@svadmin/core": "^0.4.0",
-        "@svadmin/simple-rest": "^0.4.0",
-        "@svadmin/ui": "^0.4.0",
+        "@svadmin/core": "workspace:*",
+        "@svadmin/simple-rest": "workspace:*",
+        "@svadmin/ui": "workspace:*",
         "@tanstack/svelte-query": "^6.1.0",
         "bits-ui": "^2.16.3",
         "clsx": "^2.1.1",
@@ -81,7 +81,7 @@
     },
     "packages/core": {
       "name": "@svadmin/core",
-      "version": "0.5.0",
+      "version": "0.5.7",
       "dependencies": {
         "svelte-sonner": "^1.1.0",
       },
@@ -241,7 +241,7 @@
     },
     "packages/ui": {
       "name": "@svadmin/ui",
-      "version": "0.5.0",
+      "version": "0.5.7",
       "dependencies": {
         "@lucide/svelte": "^0.577.0",
         "@tanstack/svelte-table": "^9.0.0-alpha.10",
@@ -1805,10 +1805,6 @@
     "sitemap/@types/node": ["@types/node@24.12.0", "", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-GYDxsZi3ChgmckRT9HPU0WEhKLP08ev/Yfcq2AstjrDASOYCSXeyjDsHg4v5t4jOj7cyDX3vmprafKlWIG9MXQ=="],
 
     "starlight-links-validator/kleur": ["kleur@4.1.5", "", {}, "sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ=="],
-
-    "svadmin-example/@svadmin/core": ["@svadmin/core@0.4.1", "", { "dependencies": { "svelte-sonner": "^1.1.0" }, "peerDependencies": { "@tanstack/svelte-query": "^6.0.0", "svelte": "^5.0.0" } }, "sha512-wCYWW8KZSjLvLTk7XLvsDSJb1b/k3KlcutlVs1JnJ69KuI/Dph+im/qDtvCQPkdsA5NEBNzMIxGFWxeRwDHInQ=="],
-
-    "svadmin-example/@svadmin/ui": ["@svadmin/ui@0.4.1", "", { "dependencies": { "@lucide/svelte": "^0.577.0", "@tanstack/svelte-table": "^9.0.0-alpha.10", "cmdk-sv": "^0.0.19", "lucide-svelte": "^0.577.0", "svelte-sonner": "^1.1.0", "vaul-svelte": "^0.3.2" }, "peerDependencies": { "@svadmin/core": "^0.4.1", "@tanstack/svelte-query": "^5.0.0", "bits-ui": "^2.0.0", "clsx": "^2.0.0", "svelte": "^5.0.0", "tailwind-merge": "^3.0.0", "tailwind-variants": "^3.0.0" } }, "sha512-UtC4XUrfy9T2ofV0ZLft8s6uXv9GsIYvtgAPNeLbWKWAn+tpmE/TxaNM6X57Z1TrHxrl6GhCcqMTQ7x7++rZAw=="],
 
     "svadmin-example/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 

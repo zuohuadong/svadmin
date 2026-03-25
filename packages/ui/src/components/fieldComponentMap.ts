@@ -5,12 +5,12 @@
 import type { Component } from 'svelte';
 
 export interface FieldComponentMap {
-  [fieldType: string]: Component<Record<string, unknown>>;
+  [fieldType: string]: Component<any>;
 }
 
 // Default display component map (read-only field display)
 // Dynamically imports components only when first used
-const displayCache = new Map<string, Component<Record<string, unknown>>>();
+const displayCache = new Map<string, Component<any>>();
 
 // Pre-import all field display components (tree-shaken by bundler)
 import BooleanField from './fields/BooleanField.svelte';
@@ -52,13 +52,13 @@ export const builtinDisplayComponents: FieldComponentMap = {
 // ─── Custom component registry ─────────────────────────────────
 // Users can register custom field display components at runtime
 
-const customDisplayComponents = new Map<string, Component<Record<string, unknown>>>();
+const customDisplayComponents = new Map<string, Component<any>>();
 
 /**
  * Register a custom field display component for a given field type.
  * The component will be used by ShowPage and any other display contexts.
  */
-export function registerDisplayComponent(fieldType: string, component: Component<Record<string, unknown>>): void {
+export function registerDisplayComponent(fieldType: string, component: Component<any>): void {
   customDisplayComponents.set(fieldType, component);
 }
 
@@ -67,7 +67,7 @@ export function registerDisplayComponent(fieldType: string, component: Component
  * Custom components take precedence over built-in ones.
  * Returns undefined if no component is registered for the type.
  */
-export function getDisplayComponent(fieldType: string): Component<Record<string, unknown>> | undefined {
+export function getDisplayComponent(fieldType: string): Component<any> | undefined {
   return customDisplayComponents.get(fieldType) ?? builtinDisplayComponents[fieldType];
 }
 

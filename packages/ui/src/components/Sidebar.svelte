@@ -244,7 +244,7 @@
             </Button>
           {/snippet}
         </DropdownMenu.Trigger>
-        <DropdownMenu.Content side="right" align="end" class="w-40">
+        <DropdownMenu.Content align="end" class="w-40">
           {#each colorThemes as ct}
             <DropdownMenu.Item onclick={() => setColorTheme(ct.id)} class="gap-2">
               <span
