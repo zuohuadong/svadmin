@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.10](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.9...svadmin-v0.5.10) (2026-03-25)
+
+
+### Bug Fixes
+
+* **ui:** complete New York style audit - dialog, table-head, badge ([81d47ec](https://github.com/zuohuadong/svadmin/commit/81d47ec9a64f1a14867015c0ee497a6c61f42c88))
+* **ui:** resolve typography font loading and adjust badge styling ([c7a0c6b](https://github.com/zuohuadong/svadmin/commit/c7a0c6bea0d2ec36b3a926a547236dc254b9e6f1))
+
 ## [0.5.9](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.8...svadmin-v0.5.9) (2026-03-25)
 
 
