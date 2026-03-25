@@ -126,7 +126,7 @@ body {
  * This enables bg-primary, text-muted-foreground, border-input, etc.
  * Without this, Tailwind 4 utility classes referencing these tokens are no-ops.
  */
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

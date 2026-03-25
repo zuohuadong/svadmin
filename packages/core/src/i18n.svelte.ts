@@ -70,6 +70,11 @@ const locales: Record<string, Locale> = {
     'common.copyId': '复制 ID',
     'common.showMore': '展开更多',
     'common.showLess': '收起',
+    'common.showPassword': '显示密码',
+    'common.hidePassword': '隐藏密码',
+    'common.toggleSidebar': '切换侧边栏',
+    'common.configRequired': '需要配置',
+    'common.removeImage': '移除图片',
     // Field
     'field.enterValue': '输入{label}',
     'field.selectPlaceholder': '请选择',
@@ -194,6 +199,11 @@ const locales: Record<string, Locale> = {
     'common.copyId': 'Copy ID',
     'common.showMore': 'Show more',
     'common.showLess': 'Show less',
+    'common.showPassword': 'Show password',
+    'common.hidePassword': 'Hide password',
+    'common.toggleSidebar': 'Toggle sidebar',
+    'common.configRequired': 'Configuration Required',
+    'common.removeImage': 'Remove image',
     // Field
     'field.enterValue': 'Enter {label}',
     'field.selectPlaceholder': 'Select...',
