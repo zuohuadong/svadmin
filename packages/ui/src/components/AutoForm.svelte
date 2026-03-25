@@ -37,34 +37,34 @@
     headerContent,
   }: Props = $props();
 
-  const resource = getResource(resourceName);
-  const primaryKey = resource.primaryKey ?? 'id';
+  const resource = $derived(getResource(resourceName));
+  const primaryKey = $derived(resource.primaryKey ?? 'id');
 
-  const formFields = resource.fields.filter(f => {
+  const formFields = $derived(resource.fields.filter(f => {
     if (f.key === primaryKey) return false;
     if (f.showInForm === false) return false;
     if (mode === 'create' && f.showInCreate === false) return false;
     if (mode === 'edit' && f.showInEdit === false) return false;
     return true;
-  });
+  }));
 
-  const hasGroups = formFields.some(f => f.group);
-  const groups = (() => {
+  const hasGroups = $derived(formFields.some(f => f.group));
+  const groups = $derived((() => {
     if (!hasGroups) return [];
     const order: string[] = [];
-    const map = new Map<string, typeof formFields>();
+    const map = new Map<string, FieldDefinition[]>();
     for (const f of formFields) {
       const g = f.group ?? '';
       if (!map.has(g)) { order.push(g); map.set(g, []); }
       map.get(g)!.push(f);
     }
     return order.map(g => ({ name: g, fields: map.get(g)! }));
-  })();
+  })());
 
   // Load existing data for edit mode
-  const existingQuery = mode === 'edit' && id != null
-    ? useOne({ resource: resourceName, id })
-    : null;
+  const existingQuery = $derived.by(() => mode === 'edit' && id != null
+    ? useOne({ get resource() { return resourceName; }, get id() { return id; } })
+    : null);
 
   // Form state
   let formData = $state<Record<string, unknown>>({});
@@ -116,8 +116,8 @@
     };
   });
 
-  const createMut = useCreate({ resource: resourceName });
-  const updateMut = useUpdate({ resource: resourceName });
+  const createMut = useCreate({ get resource() { return resourceName; } });
+  const updateMut = useUpdate({ get resource() { return resourceName; } });
 
   function validateFields(): boolean {
     const errors: Record<string, string> = {};

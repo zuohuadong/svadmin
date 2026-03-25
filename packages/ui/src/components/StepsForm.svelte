@@ -27,18 +27,18 @@
 
   let { resourceName, id, mode = 'create', steps }: Props = $props();
 
-  const resource = getResource(resourceName);
-  const primaryKey = resource.primaryKey ?? 'id';
+  const resource = $derived(getResource(resourceName));
+  const primaryKey = $derived(resource.primaryKey ?? 'id');
 
   const stepsForm = useStepsForm({
-    resource: resourceName,
-    action: mode,
-    id,
+    get resource() { return resourceName; },
+    get action() { return mode; },
+    get id() { return id; },
   });
 
   const { currentStep, next, prev, gotoStep } = stepsForm;
 
-  const totalSteps = steps.length;
+  const totalSteps = $derived(steps.length);
   const progressValue = $derived(((currentStep + 1) / totalSteps) * 100);
   const isLastStep = $derived(currentStep >= totalSteps - 1);
 
@@ -49,13 +49,13 @@
       .filter((f): f is FieldDefinition => f != null && f.key !== primaryKey) ?? []
   );
 
-  const flatStepsFields = steps.flatMap(s => s.fields)
+  const flatStepsFields = $derived(steps.flatMap(s => s.fields)
     .map(key => resource.fields.find(f => f.key === key))
-    .filter((f): f is FieldDefinition => f != null);
+    .filter((f): f is FieldDefinition => f != null));
 
-  const existingQuery = mode === 'edit' && id != null 
+  const existingQuery = $derived(mode === 'edit' && id != null 
     ? stepsForm.query as { data?: { data: Record<string, unknown> }, isLoading: boolean } 
-    : null;
+    : null);
 
   let formData = $state<Record<string, unknown>>({});
   let fieldErrors = $state<Record<string, string>>({});

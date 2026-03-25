@@ -28,11 +28,11 @@
     class: className = '',
   }: Props = $props();
 
-  const resource = getResource(resourceName);
-  const pageTitle = title ?? `${t('common.edit')} ${resource.label} #${id}`;
-  const showDelete = canDelete ?? resource.canDelete !== false;
+  const resource = $derived(getResource(resourceName));
+  const pageTitle = $derived(title ?? `${t('common.edit')} ${resource.label} #${id}`);
+  const showDelete = $derived(canDelete ?? resource.canDelete !== false);
 
-  const deleteResult = useDelete({ resource: resourceName });
+  const deleteResult = useDelete({ get resource() { return resourceName; } });
   const deleteMutation = deleteResult.mutation;
 
   let confirmOpen = $state(false);

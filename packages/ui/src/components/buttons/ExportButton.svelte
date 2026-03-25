@@ -9,7 +9,7 @@
     class?: string;
   }>();
 
-  const { triggerExport, isLoading } = useExport({ resource });
+  const { triggerExport, isLoading } = useExport({ get resource() { return resource; } });
 </script>
 
 <Button

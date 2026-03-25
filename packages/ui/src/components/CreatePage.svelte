@@ -23,8 +23,8 @@
     class: className = '',
   }: Props = $props();
 
-  const resource = getResource(resourceName);
-  const pageTitle = title ?? `${t('common.create')}${resource.label}`;
+  const resource = $derived(getResource(resourceName));
+  const pageTitle = $derived(title ?? `${t('common.create')}${resource.label}`);
 </script>
 
 <div class="space-y-6 {className}">

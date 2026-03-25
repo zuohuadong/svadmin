@@ -33,10 +33,10 @@
   }: Props = $props();
 
   const { query } = useInfiniteList({
-    resource,
-    pagination: { pageSize },
-    sorters,
-    filters,
+    get resource() { return resource; },
+    get pagination() { return { pageSize }; },
+    get sorters() { return sorters; },
+    get filters() { return filters; },
   });
 
   const allItems = $derived(

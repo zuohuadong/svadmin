@@ -12,8 +12,13 @@
     onTimeout: () => void;
   }>();
 
-  let remaining = $state(duration);
+  let remaining = $state(0);
   let dismissed = $state(false);
+
+  // Initialize remaining from prop
+  $effect.pre(() => {
+    remaining = duration;
+  });
 
   $effect(() => {
     const interval = setInterval(() => {

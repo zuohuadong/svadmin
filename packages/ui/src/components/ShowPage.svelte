@@ -13,10 +13,10 @@
 
   let { resourceName, id } = $props<{ resourceName: string; id: string | number }>();
 
-  const resource = getResource(resourceName);
-  const showFields = resource.fields.filter(f => f.showInShow !== false);
+  const resource = $derived(getResource(resourceName));
+  const showFields = $derived(resource.fields.filter(f => f.showInShow !== false));
 
-  const query = useShow({ resource: resourceName, id });
+  const query = useShow({ get resource() { return resourceName; }, get id() { return id; } });
 </script>
 
 <div class="space-y-6">

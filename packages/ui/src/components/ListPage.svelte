@@ -41,9 +41,9 @@
     class: className = '',
   }: Props = $props();
 
-  const resource = getResource(resourceName);
-  const pageTitle = title ?? resource.label;
-  const showCreate = canCreate ?? resource.canCreate !== false;
+  const resource = $derived(getResource(resourceName));
+  const pageTitle = $derived(title ?? resource.label);
+  const showCreate = $derived(canCreate ?? resource.canCreate !== false);
 </script>
 
 <div class="space-y-6 {className}">

@@ -16,8 +16,8 @@
     class?: string;
   }>();
 
-  const deleteMut = useDelete({ resource, mutationMode: undoable ? 'undoable' : 'pessimistic' });
-  const can = accessControl?.enabled ? useCan(resource, 'delete') : null;
+  const deleteMut = useDelete({ get resource() { return resource; }, get mutationMode() { return undoable ? 'undoable' as const : 'pessimistic' as const; } });
+  const can = $derived(accessControl?.enabled ? useCan(resource, 'delete') : null);
   const hidden = $derived(accessControl?.hideIfUnauthorized && can && !can.allowed);
   let confirming = $state(false);
 

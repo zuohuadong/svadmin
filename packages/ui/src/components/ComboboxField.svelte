@@ -32,10 +32,10 @@
   }: Props = $props();
 
   const { options, query, onSearchChange } = useSelect({
-    resource,
-    optionLabel,
-    optionValue,
-    onSearch: onSearch ?? (searchable ? (v: string) => v ? [{ field: optionLabel, operator: 'contains' as const, value: v }] : [] : undefined),
+    get resource() { return resource; },
+    get optionLabel() { return optionLabel; },
+    get optionValue() { return optionValue; },
+    get onSearch() { return onSearch ?? (searchable ? (v: string) => v ? [{ field: optionLabel, operator: 'contains' as const, value: v }] : [] : undefined); },
   });
 
   let open = $state(false);

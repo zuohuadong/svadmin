@@ -12,7 +12,7 @@
   }>();
 
   const nav = useNavigation();
-  const can = accessControl?.enabled ? useCan(resource, 'edit') : null;
+  const can = $derived(accessControl?.enabled ? useCan(resource, 'edit') : null);
   const hidden = $derived(accessControl?.hideIfUnauthorized && can && !can.allowed);
 </script>
 

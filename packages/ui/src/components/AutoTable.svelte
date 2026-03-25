@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import {
     createTable,
     getCoreRowModel,
@@ -68,21 +69,25 @@
     sorters: externalSorters,
   }: Props = $props();
 
-  const resource = getResource(resourceName);
+  const resource = $derived(getResource(resourceName));
   const primaryKey = $derived(resource.primaryKey ?? 'id');
 
   // ─── URL state + server-side state ────────────────────────────
   const urlState = readURLState();
 
-  let pagination = $state<{ current: number; pageSize: number }>(externalPagination ?? {
+  // Snapshot resource values for initial state (untrack to avoid reactive tracking)
+  const initPageSize = untrack(() => resource.pageSize ?? 10);
+  const initDefaultSort = untrack(() => resource.defaultSort);
+
+  let pagination = $state<{ current: number; pageSize: number }>(untrack(() => externalPagination ?? {
     current: urlState.page ?? 1,
-    pageSize: urlState.pageSize ?? resource.pageSize ?? 10,
-  });
-  let sorters = $state<Sort[]>(
+    pageSize: urlState.pageSize ?? initPageSize,
+  }));
+  let sorters = $state<Sort[]>(untrack(() =>
     externalSorters ??
     (urlState.sortField
       ? [{ field: urlState.sortField, order: urlState.sortOrder ?? 'asc' }]
-      : resource.defaultSort ? [resource.defaultSort] : [])
+      : initDefaultSort ? [initDefaultSort] : []))
   );
   let filters = $state<Filter[]>([]);
   let searchText = $state(urlState.search ?? '');
@@ -99,8 +104,8 @@
   });
 
   // ─── Build active filters with search ─────────────────────────
-  const searchableFields = resource.fields.filter(f => f.searchable);
-  const filterableFields = resource.fields.filter(f => f.filterable);
+  const searchableFields = $derived(resource.fields.filter(f => f.searchable));
+  const filterableFields = $derived(resource.fields.filter(f => f.filterable));
   let filterValues = $state<Record<string, string>>({});
   const activeFilterCount = $derived(Object.values(filterValues).filter(v => v.trim()).length);
   const activeFilters = $derived.by(() => {
@@ -118,21 +123,26 @@
   });
 
   // ─── Data fetching ────────────────────────────────────────────
-  const listResult = useList({ resource: resourceName, pagination, sorters, filters: activeFilters });
+  const listResult = useList({
+    get resource() { return resourceName; },
+    get pagination() { return pagination; },
+    get sorters() { return sorters; },
+    get filters() { return activeFilters; },
+  });
   const query = listResult.query;
-  const deleteResult = useDelete({ resource: resourceName });
+  const deleteResult = useDelete({ get resource() { return resourceName; } });
   const deleteMutation = deleteResult.mutation;
 
   // ─── Permissions ──────────────────────────────────────────────
-  const canCreate = canAccess(resourceName, 'create').can && resource.canCreate !== false;
-  const canEdit = canAccess(resourceName, 'edit').can && resource.canEdit !== false;
-  const canDelete = canAccess(resourceName, 'delete').can && resource.canDelete !== false;
-  const canExport = canAccess(resourceName, 'export').can;
+  const canCreate = $derived(canAccess(resourceName, 'create').can && resource.canCreate !== false);
+  const canEdit = $derived(canAccess(resourceName, 'edit').can && resource.canEdit !== false);
+  const canDelete = $derived(canAccess(resourceName, 'delete').can && resource.canDelete !== false);
+  const canExport = $derived(canAccess(resourceName, 'export').can);
 
   // ─── TanStack Table state ────────────────────────────────────
-  let sorting = $state<SortingState>(
+  let sorting = $state<SortingState>(untrack(() =>
     sorters.map(s => ({ id: s.field, desc: s.order === 'desc' }))
-  );
+  ));
   let columnVisibility = $state<VisibilityState>((() => {
     const vis: VisibilityState = {};
     for (const f of resource.fields) {
@@ -196,7 +206,7 @@
   // ─── Create TanStack Table ────────────────────────────────────
   const tbl = createTable({
     get data() { return query.data?.data ?? []; },
-    columns,
+    get columns() { return columns; },
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     manualSorting: true,
@@ -219,8 +229,8 @@
     onExpandedChange: (updater) => {
       expanded = typeof updater === 'function' ? updater(expanded) : updater;
     },
-    enableRowSelection: selectable && canDelete,
-    enableExpanding: !!expandedRowRender,
+    get enableRowSelection() { return selectable && canDelete; },
+    get enableExpanding() { return !!expandedRowRender; },
   });
 
   const selectedCount = $derived(Object.keys(rowSelection).length);

@@ -45,15 +45,17 @@
   }: Props = $props();
 
   // Resolve router provider (default to hash)
-  const resolvedRouter = routerProvider ?? createHashRouterProvider();
+  const resolvedRouter = $derived(routerProvider ?? createHashRouterProvider());
 
-  // Set up context
-  setDataProvider(dataProvider);
-  if (authProvider) setAuthProvider(authProvider);
-  setResources(resources);
-  setRouterProvider(resolvedRouter);
-  if (locale) setLocale(locale);
-  if (defaultTheme) setTheme(defaultTheme);
+  // Set up context — use $effect so prop changes are tracked
+  $effect.pre(() => {
+    setDataProvider(dataProvider);
+    if (authProvider) setAuthProvider(authProvider);
+    setResources(resources);
+    setRouterProvider(resolvedRouter);
+    if (locale) setLocale(locale);
+    if (defaultTheme) setTheme(defaultTheme);
+  });
 
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -62,7 +64,9 @@
   });
 
   // Initialize router with provider
-  initRouter(resolvedRouter);
+  $effect.pre(() => {
+    initRouter(resolvedRouter);
+  });
 
   // Reactive getters for route state
   const route = $derived(getRoute());
