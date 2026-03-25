@@ -22,6 +22,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -30,17 +31,16 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Configure npm for OIDC publishing
-        run: |
-          echo "npm version: $(npm --version)"
-          npm config set //registry.npmjs.org/:_authToken ""
-          echo "//registry.npmjs.org/:_authToken=" > ~/.npmrc
-
       - name: Detect and publish changed packages
         run: |
+          set -e
+          echo "npm version: $(npm --version)"
+          echo "Node version: $(node --version)"
+
           CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
           echo "Changed files: $CHANGED_FILES"
 
+          PUBLISH_FAILED=0
           for pkg_dir in packages/*/; do
             pkg_name=$(basename "$pkg_dir")
             if echo "$CHANGED_FILES" | grep -q "packages/$pkg_name/"; then
@@ -52,10 +52,18 @@ jobs:
                 echo "📦 $NAME: local=$LOCAL_VER npm=$NPM_VER"
                 if [ "$LOCAL_VER" != "$NPM_VER" ]; then
                   echo "🚀 Publishing $NAME@$LOCAL_VER..."
-                  (cd "$pkg_dir" && npm publish --provenance --access public) || echo "⚠️ Publish failed for $NAME"
+                  if ! (cd "$pkg_dir" && npm publish --provenance --access public); then
+                    echo "❌ Publish FAILED for $NAME"
+                    PUBLISH_FAILED=1
+                  fi
                 else
                   echo "⏭️ $NAME@$LOCAL_VER already on npm, skipping"
                 fi
               fi
             fi
           done
+
+          if [ "$PUBLISH_FAILED" -eq 1 ]; then
+            echo "::error::One or more packages failed to publish"
+            exit 1
+          fi
