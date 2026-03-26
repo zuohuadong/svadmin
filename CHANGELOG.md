@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.14](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.13...svadmin-v0.5.14) (2026-03-26)
+
+
+### Bug Fixes
+
+* **ci:** fix binary operator test error by using bun run playwright ([5e8542f](https://github.com/zuohuadong/svadmin/commit/5e8542fff32ce0e61a06270ff816c0847049cca5))
+* **ci:** use @playwright/test package directly instead of implicit playwright alias in bunx ([64342d9](https://github.com/zuohuadong/svadmin/commit/64342d99b3bcf1a9031cccfcfff20f897ecdcea0))
+* **e2e:** update playwright config to use 127.0.0.1 instead of localhost to prevent CI timeouts with Vite ([5a1947d](https://github.com/zuohuadong/svadmin/commit/5a1947d0faed701e2c3e9b67ccfe83cb51738614))
+* **ui:** remove [@source](https://github.com/source) directives that crash Tailwind v4 Vite plugin on svelte-sonner ([ab340c8](https://github.com/zuohuadong/svadmin/commit/ab340c8ab1b1aa6efd8a9a4b3cb5170b5563fd8d))
+
 ## [0.5.13](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.12...svadmin-v0.5.13) (2026-03-25)
 
 

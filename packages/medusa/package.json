@@ -1,6 +1,6 @@
 {
   "name": "@svadmin/medusa",
-  "version": "0.5.13",
+  "version": "0.5.14",
   "description": "Medusa DataProvider for svadmin",
   "type": "module",
   "sideEffects": false,
