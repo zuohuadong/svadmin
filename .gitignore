@@ -27,3 +27,5 @@ Thumbs.db
 progress.md
 .agent
 .mailbox/
+playwright-report/
+test-results/
