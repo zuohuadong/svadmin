@@ -111,7 +111,5 @@
       "changelog-path": "CHANGELOG.md"
     }
   },
-  "group-pull-request-title-pattern": "chore: release ${component}",
-  "separate-pull-requests": false,
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
 }

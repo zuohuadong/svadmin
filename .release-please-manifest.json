@@ -1,5 +1,4 @@
 {
-  ".": "0.5.14",
   "packages/core": "0.6.0",
   "packages/ui": "0.6.0",
   "packages/sveltekit": "0.6.0",
