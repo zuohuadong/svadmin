@@ -9,39 +9,71 @@ permissions:
   contents: write
   pull-requests: write
   id-token: write
-  actions: write
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      paths_released: ${{ steps.release.outputs.paths_released }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
-          # Use PAT instead of GITHUB_TOKEN so the PR triggers CI workflows (test + E2E)
-          # GITHUB_TOKEN has a known limitation: events it creates don't trigger other workflows
           token: ${{ secrets.RELEASE_PAT }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # When release-please creates a release (merges its PR), trigger the publish
-  # by dispatching the CI workflow which handles npm publish on tags/dispatch.
-  trigger-publish:
-    needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
+  publish:
+    name: Publish released packages
     runs-on: ubuntu-latest
+    needs: release-please
+    if: needs.release-please.outputs.releases_created == 'true'
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
-      - name: Trigger CI publish via workflow_dispatch
-        uses: actions/github-script@v7
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'ci.yml',
-              ref: 'main',
-            });
-            console.log('✅ Triggered CI publish workflow');
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Publish changed packages
+        env:
+          PATHS_RELEASED: ${{ needs.release-please.outputs.paths_released }}
+        run: |
+          set -e
+          PUBLISH_FAILED=0
+
+          # paths_released is a JSON array like ["packages/core","packages/ui"]
+          for pkg_dir in $(echo "$PATHS_RELEASED" | jq -r '.[]'); do
+            PKG_JSON="$pkg_dir/package.json"
+            if [ -f "$PKG_JSON" ]; then
+              NAME=$(node -p "require('./$PKG_JSON').name")
+              LOCAL_VER=$(node -p "require('./$PKG_JSON').version")
+              echo "🚀 Publishing $NAME@$LOCAL_VER..."
+              if ! (cd "$pkg_dir" && npm publish --provenance --access public); then
+                echo "❌ Publish FAILED for $NAME"
+                PUBLISH_FAILED=1
+              fi
+            fi
+          done
+
+          if [ "$PUBLISH_FAILED" -eq 1 ]; then
+            echo "::error::One or more packages failed to publish"
+            exit 1
+          fi
+
+          if [ -z "$(echo "$PATHS_RELEASED" | jq -r '.[]')" ]; then
+            echo "ℹ️ No packages to publish"
+          fi

@@ -1,3 +1,25 @@
 {
-  ".": "0.5.14"
+  ".": "0.5.14",
+  "packages/core": "0.5.14",
+  "packages/ui": "0.5.14",
+  "packages/sveltekit": "0.5.14",
+  "packages/drizzle": "0.5.14",
+  "packages/simple-rest": "0.5.14",
+  "packages/sso": "0.5.14",
+  "packages/pocketbase": "0.5.14",
+  "packages/supabase": "0.5.14",
+  "packages/elysia": "0.5.14",
+  "packages/create-svadmin": "0.5.14",
+  "packages/airtable": "0.5.14",
+  "packages/appwrite": "0.5.14",
+  "packages/auth-utils": "0.5.14",
+  "packages/directus": "0.5.14",
+  "packages/firebase": "0.5.14",
+  "packages/graphql": "0.5.14",
+  "packages/hasura": "0.5.14",
+  "packages/medusa": "0.5.14",
+  "packages/nestjs-query": "0.5.14",
+  "packages/nestjsx-crud": "0.5.14",
+  "packages/sanity": "0.5.14",
+  "packages/strapi": "0.5.14"
 }

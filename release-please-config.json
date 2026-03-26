@@ -1,36 +1,117 @@
 {
   "packages": {
-    ".": {
+    "packages/core": {
       "release-type": "node",
-      "component": "svadmin",
-      "changelog-path": "CHANGELOG.md",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": true,
-      "extra-files": [
-        "packages/core/package.json",
-        "packages/ui/package.json",
-        "packages/sveltekit/package.json",
-        "packages/drizzle/package.json",
-        "packages/simple-rest/package.json",
-        "packages/sso/package.json",
-        "packages/pocketbase/package.json",
-        "packages/supabase/package.json",
-        "packages/elysia/package.json",
-        "packages/create-svadmin/package.json",
-        "packages/airtable/package.json",
-        "packages/appwrite/package.json",
-        "packages/auth-utils/package.json",
-        "packages/directus/package.json",
-        "packages/firebase/package.json",
-        "packages/graphql/package.json",
-        "packages/hasura/package.json",
-        "packages/medusa/package.json",
-        "packages/nestjs-query/package.json",
-        "packages/nestjsx-crud/package.json",
-        "packages/sanity/package.json",
-        "packages/strapi/package.json"
-      ]
+      "component": "core",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/ui": {
+      "release-type": "node",
+      "component": "ui",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/sveltekit": {
+      "release-type": "node",
+      "component": "sveltekit",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/drizzle": {
+      "release-type": "node",
+      "component": "drizzle",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/simple-rest": {
+      "release-type": "node",
+      "component": "simple-rest",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/sso": {
+      "release-type": "node",
+      "component": "sso",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/pocketbase": {
+      "release-type": "node",
+      "component": "pocketbase",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/supabase": {
+      "release-type": "node",
+      "component": "supabase",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/elysia": {
+      "release-type": "node",
+      "component": "elysia",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/create-svadmin": {
+      "release-type": "node",
+      "component": "create-svadmin",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/airtable": {
+      "release-type": "node",
+      "component": "airtable",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/appwrite": {
+      "release-type": "node",
+      "component": "appwrite",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/auth-utils": {
+      "release-type": "node",
+      "component": "auth-utils",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/directus": {
+      "release-type": "node",
+      "component": "directus",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/firebase": {
+      "release-type": "node",
+      "component": "firebase",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/graphql": {
+      "release-type": "node",
+      "component": "graphql",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/hasura": {
+      "release-type": "node",
+      "component": "hasura",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/medusa": {
+      "release-type": "node",
+      "component": "medusa",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/nestjs-query": {
+      "release-type": "node",
+      "component": "nestjs-query",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/nestjsx-crud": {
+      "release-type": "node",
+      "component": "nestjsx-crud",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/sanity": {
+      "release-type": "node",
+      "component": "sanity",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/strapi": {
+      "release-type": "node",
+      "component": "strapi",
+      "changelog-path": "CHANGELOG.md"
     }
   },
+  "group-pull-request-title-pattern": "chore: release ${component}",
+  "separate-pull-requests": false,
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
 }
