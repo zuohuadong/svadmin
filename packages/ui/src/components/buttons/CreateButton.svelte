@@ -3,7 +3,7 @@
   import { Button } from '../ui/button/index.js';
   import { Plus } from 'lucide-svelte';
 
-  let { resource, hideText = false, accessControl, class: className = '' } = $props<{
+  let { resource, hideText = false, accessControl = { enabled: true, hideIfUnauthorized: true }, class: className = '' } = $props<{
     resource: string;
     hideText?: boolean;
     accessControl?: { enabled?: boolean; hideIfUnauthorized?: boolean };

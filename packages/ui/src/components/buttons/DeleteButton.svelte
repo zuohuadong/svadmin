@@ -5,7 +5,7 @@
 
   let {
     resource, recordItemId, hideText = false,
-    accessControl, onSuccess, undoable = false, class: className = '',
+    accessControl = { enabled: true, hideIfUnauthorized: true }, onSuccess, undoable = false, class: className = '',
   } = $props<{
     resource: string;
     recordItemId: string | number;

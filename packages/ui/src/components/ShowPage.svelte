@@ -7,9 +7,11 @@
   import * as Card from './ui/card/index.js';
   import { Skeleton } from './ui/skeleton/index.js';
   import PageHeader from './PageHeader.svelte';
-  import TooltipButton from './TooltipButton.svelte';
   import { getDisplayComponent } from './fieldComponentMap';
-  import { ArrowLeft, Pencil } from 'lucide-svelte';
+  import ListButton from './buttons/ListButton.svelte';
+  import EditButton from './buttons/EditButton.svelte';
+  import DeleteButton from './buttons/DeleteButton.svelte';
+  import RefreshButton from './buttons/RefreshButton.svelte';
 
   let { resourceName, id } = $props<{ resourceName: string; id: string | number }>();
 
@@ -22,14 +24,14 @@
 <div class="space-y-6">
   <PageHeader title="{resource.label} {t('common.detail')}">
     {#snippet actions()}
-      <TooltipButton tooltip={t('common.back')} onclick={() => navigate(`/${resourceName}`)}>
-        <ArrowLeft class="h-5 w-5" />
-      </TooltipButton>
+      <ListButton resource={resourceName} hideText />
       {#if resource.canEdit !== false}
-        <Button onclick={() => navigate(`/${resourceName}/edit/${id}`)}>
-          <Pencil class="h-4 w-4" data-icon="inline-start" /> {t('common.edit')}
-        </Button>
+        <EditButton resource={resourceName} recordItemId={id} hideText />
       {/if}
+      {#if resource.canDelete !== false}
+        <DeleteButton resource={resourceName} recordItemId={id} hideText onSuccess={() => navigate(`/${resourceName}`)} />
+      {/if}
+      <RefreshButton resource={resourceName} hideText />
     {/snippet}
   </PageHeader>
 

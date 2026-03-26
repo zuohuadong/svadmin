@@ -5,10 +5,10 @@
   import type { Snippet } from 'svelte';
   import PageHeader from './PageHeader.svelte';
   import AutoForm from './AutoForm.svelte';
-  import ConfirmDialog from './ConfirmDialog.svelte';
-  import { ArrowLeft, Trash2 } from 'lucide-svelte';
-  import { Button } from './ui/button/index.js';
-  import TooltipButton from './TooltipButton.svelte';
+  import ListButton from './buttons/ListButton.svelte';
+  import ShowButton from './buttons/ShowButton.svelte';
+  import RefreshButton from './buttons/RefreshButton.svelte';
+  import DeleteButton from './buttons/DeleteButton.svelte';
 
   interface Props {
     resourceName: string;
@@ -31,29 +31,16 @@
   const resource = $derived(getResource(resourceName));
   const pageTitle = $derived(title ?? `${t('common.edit')} ${resource.label} #${id}`);
   const showDelete = $derived(canDelete ?? resource.canDelete !== false);
-
-  const deleteResult = useDelete({ get resource() { return resourceName; } });
-  const deleteMutation = deleteResult.mutation;
-
-  let confirmOpen = $state(false);
-
-  async function handleDelete() {
-    await deleteMutation.mutateAsync({ id, resource: resourceName });
-    confirmOpen = false;
-    navigate(`/${resourceName}`);
-  }
 </script>
 
 <div class="space-y-6 {className}">
   <PageHeader title={pageTitle}>
     {#snippet actions()}
-      <TooltipButton tooltip={t('common.back')} onclick={() => navigate(`/${resourceName}`)}>
-        <ArrowLeft class="h-5 w-5" />
-      </TooltipButton>
-      {#if showDelete}
-        <TooltipButton tooltip={t('common.delete')} variant="destructive" size="sm" onclick={() => { confirmOpen = true; }}>
-          <Trash2 class="h-4 w-4" />
-        </TooltipButton>
+      <ListButton resource={resourceName} hideText />
+      <ShowButton resource={resourceName} recordItemId={id} hideText />
+      <RefreshButton resource={resourceName} hideText />
+      {#if showDelete !== false}
+        <DeleteButton resource={resourceName} recordItemId={id} hideText onSuccess={() => navigate(`/${resourceName}`)} />
       {/if}
       {#if headerActions}
         {@render headerActions()}
@@ -63,10 +50,3 @@
 
   <AutoForm {resourceName} mode="edit" {id} />
 </div>
-
-<ConfirmDialog
-  bind:open={confirmOpen}
-  title={t('common.deleteConfirm')}
-  onconfirm={handleDelete}
-  oncancel={() => confirmOpen = false}
-/>

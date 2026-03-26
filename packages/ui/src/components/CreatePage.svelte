@@ -5,9 +5,7 @@
   import type { Snippet } from 'svelte';
   import PageHeader from './PageHeader.svelte';
   import AutoForm from './AutoForm.svelte';
-  import { ArrowLeft } from 'lucide-svelte';
-  import { Button } from './ui/button/index.js';
-  import TooltipButton from './TooltipButton.svelte';
+  import ListButton from './buttons/ListButton.svelte';
 
   interface Props {
     resourceName: string;
@@ -30,9 +28,7 @@
 <div class="space-y-6 {className}">
   <PageHeader title={pageTitle}>
     {#snippet actions()}
-      <TooltipButton tooltip={t('common.back')} onclick={() => navigate(`/${resourceName}`)}>
-        <ArrowLeft class="h-5 w-5" />
-      </TooltipButton>
+      <ListButton resource={resourceName} hideText />
       {#if headerActions}
         {@render headerActions()}
       {/if}

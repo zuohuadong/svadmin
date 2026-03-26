@@ -3,7 +3,7 @@
   import { Button } from '../ui/button/index.js';
   import { Pencil } from 'lucide-svelte';
 
-  let { resource, recordItemId, hideText = false, accessControl, class: className = '' } = $props<{
+  let { resource, recordItemId, hideText = false, accessControl = { enabled: true, hideIfUnauthorized: true }, class: className = '' } = $props<{
     resource: string;
     recordItemId: string | number;
     hideText?: boolean;

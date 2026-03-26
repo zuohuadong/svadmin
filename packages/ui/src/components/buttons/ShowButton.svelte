@@ -1,24 +1,31 @@
 <script lang="ts">
-  import { useNavigation, t } from '@svadmin/core';
+  import { useNavigation, useCan, t } from '@svadmin/core';
   import { Button } from '../ui/button/index.js';
   import { Eye } from 'lucide-svelte';
 
-  let { resource, recordItemId, hideText = false, class: className = '' } = $props<{
+  let { resource, recordItemId, hideText = false, accessControl = { enabled: true, hideIfUnauthorized: true }, class: className = '' } = $props<{
     resource: string;
     recordItemId: string | number;
     hideText?: boolean;
+    accessControl?: { enabled?: boolean; hideIfUnauthorized?: boolean };
     class?: string;
   }>();
 
   const nav = useNavigation();
+  const can = $derived(accessControl?.enabled ? useCan(resource, 'show') : null);
+  const hidden = $derived(accessControl?.hideIfUnauthorized && can && !can.allowed);
 </script>
 
-<Button
-  variant="ghost"
-  size={hideText ? 'icon' : 'sm'}
-  class={className}
-  onclick={() => nav.show(resource, recordItemId)}
->
-  <Eye class="h-4 w-4" />
-  {#if !hideText}<span class="ml-1">{t('common.detail')}</span>{/if}
-</Button>
+{#if !hidden}
+
+  <Button
+    variant="ghost"
+    size={hideText ? 'icon' : 'sm'}
+    class={className}
+    disabled={can ? !can.allowed : false}
+    onclick={() => nav.show(resource, recordItemId)}
+  >
+    <Eye class="h-4 w-4" />
+    {#if !hideText}<span class="ml-1">{t('common.detail')}</span>{/if}
+  </Button>
+{/if}
