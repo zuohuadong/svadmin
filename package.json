@@ -15,7 +15,7 @@
     "lint": "eslint .",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json",
     "test": "bun test",
-    "test:e2e": "bunx playwright test",
+    "test:e2e": "bunx @playwright/test test",
     "docs:dev": "cd docs && bun run dev",
     "docs:build": "cd docs && bun run build"
   },
@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.58.2",
     "eslint": "^10.1.0",
     "eslint-plugin-svelte": "^3.16.0",
     "svelte-check": "^4.4.5",
