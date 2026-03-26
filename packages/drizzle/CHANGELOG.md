@@ -1,0 +1,13 @@
+# Changelog
+
+## [0.6.0](https://github.com/zuohuadong/svadmin/compare/drizzle-v0.5.14...drizzle-v0.6.0) (2026-03-26)
+
+
+### Features
+
+* **drizzle:** add @svadmin/drizzle data provider for Drizzle ORM via refine-sqlx ([2150689](https://github.com/zuohuadong/svadmin/commit/21506892a961553fef6fad9f2756bbc543a9ef32))
+
+
+### Bug Fixes
+
+* align peerDependencies to ^0.5.0 and complete release-please extra-files ([35fca5a](https://github.com/zuohuadong/svadmin/commit/35fca5a4fa0c8a3284a4f763b46f969c0634459b))
