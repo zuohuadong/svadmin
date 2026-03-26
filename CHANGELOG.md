@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.15](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.14...svadmin-v0.5.15) (2026-03-26)
+
+
+### Bug Fixes
+
+* **ui:** align @tanstack/svelte-query peerDependency to ^6.0.0 to fix bun resolution deadlock ([c0b99d7](https://github.com/zuohuadong/svadmin/commit/c0b99d772d15e81434afe0a4799c389c9ae8376e))
+
 ## [0.5.14](https://github.com/zuohuadong/svadmin/compare/svadmin-v0.5.13...svadmin-v0.5.14) (2026-03-26)
 
 
