@@ -15,7 +15,7 @@
     "lint": "eslint .",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json",
     "test": "bun test",
-    "test:e2e": "bunx @playwright/test test",
+    "test:e2e": "bun run playwright test",
     "docs:dev": "cd docs && bun run dev",
     "docs:build": "cd docs && bun run build"
   },
