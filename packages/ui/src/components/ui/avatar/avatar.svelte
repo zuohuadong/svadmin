@@ -19,7 +19,7 @@
 	// AvatarSize type is exported from the package index.ts
 	type AvatarSize = VariantProps<typeof avatarVariants>["size"];
 
-	type Props = WithElementRef<HTMLImgAttributes> & {
+	type Props = WithElementRef<HTMLImgAttributes, HTMLImageElement> & {
 		size?: AvatarSize;
 		fallback?: string;
 	};

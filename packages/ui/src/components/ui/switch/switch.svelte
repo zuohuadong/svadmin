@@ -2,7 +2,7 @@
 	import { cn, type WithElementRef } from "../../../utils.js";
 	import type { HTMLButtonAttributes } from "svelte/elements";
 
-	type Props = WithElementRef<HTMLButtonAttributes> & {
+	type Props = WithElementRef<HTMLButtonAttributes, HTMLButtonElement> & {
 		checked?: boolean;
 		disabled?: boolean;
 		onCheckedChange?: (checked: boolean) => void;

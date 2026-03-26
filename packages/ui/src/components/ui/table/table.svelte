@@ -7,7 +7,7 @@
 		class: className,
 		children,
 		...restProps
-	}: WithElementRef<HTMLTableAttributes> = $props();
+	}: WithElementRef<HTMLTableAttributes, HTMLTableElement> = $props();
 </script>
 
 <div data-slot="table-container" class="relative w-full overflow-x-auto">

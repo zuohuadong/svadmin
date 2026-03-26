@@ -2,7 +2,7 @@
 	import type { HTMLTextareaAttributes } from "svelte/elements";
 	import { cn, type WithElementRef } from "../../../utils.js";
 
-	type Props = WithElementRef<HTMLTextareaAttributes>;
+	type Props = WithElementRef<HTMLTextareaAttributes, HTMLTextAreaElement>;
 
 	let {
 		ref = $bindable(null),
