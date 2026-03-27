@@ -1,8 +1,12 @@
 <script lang="ts">
+  // @ts-expect-error - missing types
   import { Marked } from 'marked';
+  // @ts-expect-error - missing types
   import { markedHighlight } from 'marked-highlight';
+  // @ts-expect-error - missing types
   import hljs from 'highlight.js';
   import 'highlight.js/styles/github-dark.css'; // or your preferred theme
+  // @ts-expect-error - missing types
   import DOMPurify from 'isomorphic-dompurify';
   import { Check, Copy } from 'lucide-svelte';
   import { Button } from './ui/button/index.js';
@@ -22,7 +26,7 @@
   const marked = new Marked(
     markedHighlight({
       langPrefix: 'hljs language-',
-      highlight(code, lang) {
+      highlight(code: string, lang: string) {
         const language = hljs.getLanguage(lang) ? lang : 'plaintext';
         return hljs.highlight(code, { language }).value;
       }

@@ -53,11 +53,19 @@
 		children,
 		...restProps
 	}: ButtonProps = $props();
+
+	let anchorRef: HTMLAnchorElement | null = $state(null);
+	let buttonRef: HTMLButtonElement | null = $state(null);
+
+	$effect(() => {
+		if (href && anchorRef) ref = anchorRef as any;
+		else if (!href && buttonRef) ref = buttonRef as any;
+	});
 </script>
 
 {#if href}
 	<a
-		bind:this={ref}
+		bind:this={anchorRef}
 		data-slot="button"
 		class={cn(buttonVariants({ variant, size }), className)}
 		href={disabled ? undefined : href}
@@ -70,7 +78,7 @@
 	</a>
 {:else}
 	<button
-		bind:this={ref}
+		bind:this={buttonRef}
 		data-slot="button"
 		class={cn(buttonVariants({ variant, size }), className)}
 		{type}

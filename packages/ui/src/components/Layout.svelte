@@ -62,7 +62,7 @@
   let collapsed = $state(false);
 </script>
 
-<div role="application" onkeydown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); commandOpen = true; } }}>
+<svelte:window onkeydown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); commandOpen = true; } }} />
 {#if loading}
   <div class="flex h-screen" in:fade={{ duration: 150 }}>
     <div class="hidden md:block w-64 bg-sidebar/80 p-4 space-y-4">
@@ -128,4 +128,3 @@
   <ChatDialog />
   <Toast />
 {/if}
-</div>

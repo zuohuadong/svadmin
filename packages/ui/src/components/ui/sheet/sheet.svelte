@@ -43,6 +43,7 @@
 	<!-- Overlay -->
 	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 	<div
+		role="presentation"
 		class="fixed inset-0 z-50 bg-black/80 animate-in fade-in-0"
 		onclick={close}
 	></div>

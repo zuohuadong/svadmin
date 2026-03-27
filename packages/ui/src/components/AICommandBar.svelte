@@ -83,7 +83,7 @@
   const itemClass = 'relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50';
 </script>
 
-<Dialog.Dialog bind:open onOpenChange={(v) => !v && close()}>
+<Dialog.Dialog bind:open onOpenChange={(v: boolean) => !v && close()}>
   <Dialog.DialogContent class="overflow-hidden p-0 sm:max-w-[600px] border-none shadow-2xl">
     <Command.Root
       shouldFilter={!aiMode}

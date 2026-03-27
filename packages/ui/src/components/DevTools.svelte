@@ -34,14 +34,14 @@
   const locale = $derived(getLocale());
 
   // Auto-trace state changes in dev mode via Svelte 5 $inspect
-  if (import.meta.env?.DEV) {
+  if ((import.meta as any).env?.DEV) {
     $inspect({ path, theme, colorTheme, locale, resourceCount: resources.length });
   }
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
-{#if import.meta.env.DEV}
+{#if (import.meta as any).env?.DEV}
   {#if visible}
     <div
       class="fixed bottom-0 right-4 z-[9999] w-[420px] max-w-[95vw] rounded-t-xl border border-b-0 bg-card shadow-2xl text-[0.8125rem] overflow-hidden"
