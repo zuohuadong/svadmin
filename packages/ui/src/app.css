@@ -8,6 +8,14 @@
  */
 
 @layer base {
+  /* Global border-color reset — ensures Tailwind border utilities
+   * (border-r, border-t, etc.) use the theme color instead of currentColor */
+  *,
+  ::after,
+  ::before {
+    border-color: var(--border);
+  }
+
   :root {
     --radius: 0.5rem;
     --background: oklch(0.98 0.002 264);
