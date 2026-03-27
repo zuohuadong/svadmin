@@ -59,7 +59,7 @@ export type {
   DeleteParams, DeleteResult,
   DeleteManyParams, DeleteManyResult,
   Pagination, Sort, Filter, Identity,
-  ResourceDefinition, FieldDefinition,
+  ResourceDefinition, FieldDefinition, MenuItem,
   AuthActionResult, CheckResult,
   ResourceTypeMap, KnownResources, InferData,
   BaseRecord,

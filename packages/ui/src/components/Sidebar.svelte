@@ -1,12 +1,13 @@
 <script lang="ts">
   import { getResources, canAccessAsync } from '@svadmin/core';
-  import type { Identity } from '@svadmin/core';
+  import type { Identity, MenuItem } from '@svadmin/core';
   import { currentPath, navigate } from '@svadmin/core/router';
   import { t, getLocale, setLocale, getAvailableLocales } from '@svadmin/core/i18n';
   import { toggleTheme, getResolvedTheme, colorThemes, getColorTheme, setColorTheme } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
   import * as Tooltip from './ui/tooltip/index.js';
+  import SidebarItem from './SidebarItem.svelte';
 
   import { ScrollArea } from './ui/scroll-area/index.js';
   import * as Collapsible from './ui/collapsible/index.js';
@@ -16,13 +17,14 @@
     ChevronLeft, ChevronDown, LogOut, Sun, Moon, Palette
   } from 'lucide-svelte';
 
-  let { collapsed, identity, title, onToggle, onLogout } = $props<{
+  let { collapsed, identity, title, onToggle, onLogout, menu }: {
     collapsed: boolean;
     identity: Identity | null;
     title: string;
     onToggle: () => void;
     onLogout: () => void;
-  }>();
+    menu?: MenuItem[];
+  } = $props();
 
   const resources = getResources();
 
@@ -176,7 +178,14 @@
   </div>
 
   <ScrollArea class="flex-1">
-  <nav aria-label="Main menu" class="py-4 px-3 space-y-4">
+  <nav aria-label="Main menu" class="py-4 px-3 space-y-1">
+    {#if menu && menu.length > 0}
+      <!-- Custom multi-level menu -->
+      {#each menu as item}
+        <SidebarItem {item} currentPath={path} {collapsed} depth={0} />
+      {/each}
+    {:else}
+    <!-- Auto-generated menu from resources (fallback) -->
     {#each navGroups as group}
       {#if group.name && !collapsed}
         <!-- Grouped section with Collapsible -->
@@ -248,6 +257,7 @@
         {/each}
       {/if}
     {/each}
+    {/if}
   </nav>
   </ScrollArea>
 

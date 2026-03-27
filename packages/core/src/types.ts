@@ -260,6 +260,30 @@ export interface ResourceDefinition {
   meta?: Record<string, unknown> & { dataProviderName?: string; parent?: string };
 }
 
+// ─── MenuItem (Multi-Level Menu) ──────────────────────────────
+
+export interface MenuItem {
+  /** Unique identifier, also used as i18n fallback key: t(`menu.${name}`) */
+  name: string;
+  /** Display label. Falls back to `t('menu.${name}')` if omitted */
+  label?: string;
+  /** Icon name string (maps to lucide icon set) or Svelte component */
+  icon?: string;
+  /** Navigation path — omit for parent-only menu nodes */
+  href?: string;
+  /** Open in new tab (useful for external links) */
+  target?: '_blank' | '_self';
+  /** Permission check metadata */
+  meta?: {
+    resource?: string;
+    action?: string;
+    /** Hide this item from the menu entirely */
+    hidden?: boolean;
+  };
+  /** Sub-menu items — supports infinite nesting */
+  children?: MenuItem[];
+}
+
 export interface FieldDefinition {
   key: string;
   label: string;

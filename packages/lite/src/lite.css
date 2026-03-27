@@ -72,6 +72,37 @@ a:hover {
   text-decoration: none;
 }
 
+/* ─── Multi-Level Menu (details/summary) ──────────────────── */
+.lite-menu-group {
+  margin: 0;
+  border: none;
+}
+.lite-menu-group summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.lite-menu-group summary::-webkit-details-marker {
+  display: none;
+}
+.lite-menu-group summary:hover {
+  color: #fff;
+  background: #334155;
+}
+.lite-menu-group[open] > summary {
+  color: #e2e8f0;
+}
+.lite-menu-group[open] > summary::after {
+  content: " ▾";
+}
+.lite-menu-group:not([open]) > summary::after {
+  content: " ▸";
+}
 .lite-main {
   -webkit-box-flex: 1;
   -ms-flex: 1;

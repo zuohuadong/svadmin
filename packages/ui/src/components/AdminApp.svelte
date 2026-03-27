@@ -2,7 +2,7 @@
   // Auto-inject design tokens so consumers don't need to manually import
   import '../app.css';
   import type { Snippet } from 'svelte';
-  import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode, RouterProvider, ThemeConfig } from '@svadmin/core';
+  import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode, RouterProvider, ThemeConfig, MenuItem } from '@svadmin/core';
   import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme, setRouterProvider, getAuthProvider, createHashRouterProvider, configureTheme } from '@svadmin/core';
   import { t } from '@svadmin/core/i18n';
   import { navigate } from '@svadmin/core/router';
@@ -41,6 +41,8 @@
     loginPage?: Snippet;
     /** Override default components via DI */
     components?: Partial<ComponentRegistry>;
+    /** Custom multi-level menu configuration */
+    menu?: MenuItem[];
   }
 
   let {
@@ -55,6 +57,7 @@
     dashboard,
     loginPage,
     components: userComponents,
+    menu,
   }: Props = $props();
 
   // Default component registry
@@ -143,7 +146,7 @@
   {:else if route === '/login' || route === '/register' || route === '/forgot-password' || route === '/update-password'}
     <ConfigErrorScreen title="{title} — {t('common.configRequired')}" />
   {:else if isAuthenticated || !authProvider}
-    <Layout {title}>
+    <Layout {title} {menu}>
       {#key route + (params.resource ?? '') + (params.id ?? '')}
       <div class="svadmin-page-enter">
       {#if route === '/'}

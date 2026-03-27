@@ -10,7 +10,7 @@
   import TooltipButton from './TooltipButton.svelte';
   import { t } from '@svadmin/core/i18n';
   import { getAuthProvider } from '@svadmin/core';
-  import type { Identity } from '@svadmin/core';
+  import type { Identity, MenuItem } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
   import { currentPath } from '@svadmin/core/router';
   import { Skeleton } from './ui/skeleton/index.js';
@@ -22,7 +22,7 @@
   let shortcutsOpen = $state(false);
   let mobileMenuOpen = $state(false);
 
-  let { children, title = 'Admin' }: { children: Snippet; title?: string } = $props();
+  let { children, title = 'Admin', menu }: { children: Snippet; title?: string; menu?: MenuItem[] } = $props();
 
   let hasAuth = true;
   let auth: ReturnType<typeof getAuthProvider> | null = null;
@@ -91,13 +91,13 @@
   <div class="flex h-screen bg-background" in:fade={{ duration: 200, delay: 50 }}>
     <!-- Desktop sidebar -->
     <div class="hidden md:block">
-      <Sidebar {collapsed} {identity} {title} onToggle={() => collapsed = !collapsed} onLogout={handleLogout} />
+      <Sidebar {collapsed} {identity} {title} {menu} onToggle={() => collapsed = !collapsed} onLogout={handleLogout} />
     </div>
 
     <!-- Mobile sidebar via Sheet -->
     <Sheet.Root bind:open={mobileMenuOpen} side="left">
       <div class="md:hidden">
-        <Sidebar collapsed={false} {identity} {title} onToggle={() => { mobileMenuOpen = false; }} onLogout={handleLogout} />
+        <Sidebar collapsed={false} {identity} {title} {menu} onToggle={() => { mobileMenuOpen = false; }} onLogout={handleLogout} />
       </div>
     </Sheet.Root>
 
