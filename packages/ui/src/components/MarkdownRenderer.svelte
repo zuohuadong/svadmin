@@ -109,36 +109,4 @@
   {@html html}
 </div>
 
-<style>
-  /* Base Markdown Styles */
-  :global(.prose) {
-    line-height: 1.6;
-  }
-  :global(.prose p) {
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-  }
-  
-  /* Streaming cursor effect */
-  .streaming > :global(*:last-child)::after {
-    content: '▋';
-    display: inline-block;
-    animation: blink 1s step-start infinite;
-    margin-left: 2px;
-    vertical-align: baseline;
-    color: currentColor;
-  }
 
-  @keyframes blink {
-    50% { opacity: 0; }
-  }
-
-  /* Handle copied state for dynamically injected buttons */
-  :global(.copy-btn[data-copied-id]) {
-    color: #10b981; /* Tailwind emerald-500 */
-  }
-  :global(.copy-btn[data-copied-id] svg) {
-    /* Swap to Check icon */
-    content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%2310b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>');
-  }
-</style>

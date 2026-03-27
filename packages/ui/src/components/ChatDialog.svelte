@@ -446,24 +446,4 @@
   {/if}
 {/if}
 
-<style>
-  :global(.chat-markdown pre.chat-code-block) {
-    background: hsl(var(--muted));
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    margin: 0.5rem 0;
-    overflow-x: auto;
-    font-size: 0.75rem;
-    line-height: 1.5;
-  }
-  :global(.chat-markdown code.chat-inline-code) {
-    background: hsl(var(--muted));
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.25rem;
-    font-size: 0.8125em;
-    font-family: ui-monospace, monospace;
-  }
-  :global(.chat-markdown strong) {
-    font-weight: 600;
-  }
-</style>
+
