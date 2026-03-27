@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.11.0...ui-v0.11.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* **ui:** sync auth state on route change & fix Svelte 5 store query crashing Dashboard ([623f394](https://github.com/zuohuadong/svadmin/commit/623f39458c47d6d00d5b8aeacf0feb0455852f6b))
+
 ## [0.11.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.10.0...ui-v0.11.0) (2026-03-27)
 
 
