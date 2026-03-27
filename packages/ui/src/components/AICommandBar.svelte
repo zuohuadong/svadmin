@@ -59,8 +59,8 @@
       } else {
         aiResponse = await result;
       }
-    } catch (err: any) {
-      if (err.name !== 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name !== 'AbortError') {
         aiResponse = 'Failed to get response from AI.';
       }
     } finally {

@@ -88,8 +88,8 @@ Do not include any other text, Markdown formatting, quotes, or explanations.`;
       
       // Clean up the suggestion
       suggestion = suggestion.trim().replace(/^["']|["']$/g, '');
-    } catch (err: any) {
-      if (err.name !== 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name !== 'AbortError') {
         suggestion = '';
       }
     } finally {

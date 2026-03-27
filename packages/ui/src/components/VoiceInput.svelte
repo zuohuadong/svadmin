@@ -2,6 +2,25 @@
   import { Mic, MicOff, Loader2 } from 'lucide-svelte';
   import TooltipButton from './TooltipButton.svelte';
 
+  // Web Speech API type declarations
+  interface SpeechRecognitionEvent extends Event {
+    results: SpeechRecognitionResultList;
+  }
+  interface SpeechRecognitionErrorEvent extends Event {
+    error: string;
+  }
+  interface SpeechRecognitionInstance extends EventTarget {
+    continuous: boolean;
+    interimResults: boolean;
+    lang: string;
+    onstart: (() => void) | null;
+    onresult: ((event: SpeechRecognitionEvent) => void) | null;
+    onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+    onend: (() => void) | null;
+    start(): void;
+    stop(): void;
+  }
+
   interface Props {
     /** Called when a speech recognition result is finalized */
     onresult?: (text: string) => void;
@@ -25,23 +44,23 @@
 
   let isListening = $state(false);
   let notSupported = $state(false);
-  let recognition: any = null;
+  let recognition: SpeechRecognitionInstance | null = null;
 
   // Initialize SpeechRecognition on mount
   $effect(() => {
-    // @ts-ignore - Browser specific APIs
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognitionCtor = (
+      (globalThis as Record<string, unknown>).SpeechRecognition ||
+      (globalThis as Record<string, unknown>).webkitSpeechRecognition
+    ) as (new () => SpeechRecognitionInstance) | undefined;
     
-    if (!SpeechRecognition) {
+    if (!SpeechRecognitionCtor) {
       notSupported = true;
       return;
     }
 
-    recognition = new SpeechRecognition();
+    recognition = new SpeechRecognitionCtor();
     recognition.continuous = false;
-    // Tries to return interim results, but we mainly care about final
     recognition.interimResults = false;
-    // Uses the browser locale by default
     recognition.lang = navigator.language || 'en-US';
 
     recognition.onstart = () => {
@@ -49,10 +68,10 @@
       if (onstart) onstart();
     };
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = Array.from(event.results)
-        .map((result: any) => result[0])
-        .map((result: any) => result.transcript)
+        .map((result: SpeechRecognitionResult) => result[0])
+        .map((result: SpeechRecognitionAlternative) => result.transcript)
         .join('');
       
       if (onresult && transcript) {
@@ -60,7 +79,7 @@
       }
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.warn('SpeechRecognition error:', event.error);
       isListening = false;
       if (onend) onend();
