@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.6.0...ui-v0.7.0) (2026-03-27)
+
+
+### Features
+
+* **ui:** align basic views and buttons with refine.dev enterprise architecture ([fb40038](https://github.com/zuohuadong/svadmin/commit/fb4003832fd090831cd607fd25a58ecfbf8adadf))
+
+
+### Bug Fixes
+
+* **ui:** adapt LoginPage to generic identifier and restore core index encoding ([ee849cf](https://github.com/zuohuadong/svadmin/commit/ee849cfceeaf0f1f5e0b8ae5a227628d9d8df1e5))
+* **ui:** dynamic sidebar roles and rbac for export/import buttons ([b6f8519](https://github.com/zuohuadong/svadmin/commit/b6f8519351e50518067fa866fa88131452c6208c))
+
 ## [0.6.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.5.14...ui-v0.6.0) (2026-03-26)
 
 

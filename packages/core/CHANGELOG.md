@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/zuohuadong/svadmin/compare/core-v0.6.0...core-v0.6.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* **core:** verify automatic release pipeline recovery ([8e67f4b](https://github.com/zuohuadong/svadmin/commit/8e67f4bec332b2a41483fade5a98c8299f9f9968))
+* **ui:** adapt LoginPage to generic identifier and restore core index encoding ([ee849cf](https://github.com/zuohuadong/svadmin/commit/ee849cfceeaf0f1f5e0b8ae5a227628d9d8df1e5))
+
 ## [0.6.0](https://github.com/zuohuadong/svadmin/compare/core-v0.5.14...core-v0.6.0) (2026-03-26)
 
 
