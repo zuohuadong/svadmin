@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/zuohuadong/svadmin/compare/core-v0.7.0...core-v0.8.0) (2026-03-27)
+
+
+### Features
+
+* **ui:** enhance ChatDialog with context-awareness, persistence, and action buttons ([26b40f0](https://github.com/zuohuadong/svadmin/commit/26b40f015aad5ebf7db356091fe1895db4ffac02))
+
 ## [0.7.0](https://github.com/zuohuadong/svadmin/compare/core-v0.6.1...core-v0.7.0) (2026-03-27)
 
 
