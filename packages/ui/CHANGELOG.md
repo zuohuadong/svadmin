@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.12.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.11.2...ui-v0.12.0) (2026-03-27)
+
+
+### Features
+
+* **core:** support dark-first theme mode and custom CSS token ([8311787](https://github.com/zuohuadong/svadmin/commit/8311787b62df1252492780c7df2f7549b25c5964))
+* **core:** support dark-first theme mode and custom CSS token override ([6526b58](https://github.com/zuohuadong/svadmin/commit/6526b58be3e61896101fa7faed6310f4a1bd3904))
+* **ui:** extend component registry with more override slots ([fe6aab3](https://github.com/zuohuadong/svadmin/commit/fe6aab303354295c90b21373347b803d837a64df))
+
 ## [0.11.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.11.1...ui-v0.11.2) (2026-03-27)
 
 
