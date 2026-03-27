@@ -38,7 +38,7 @@ Provider 期望标准的 RESTful 路由：
 
 | 操作 | 方法 | 路由 | 请求 | 响应 |
 |------|------|------|------|------|
-| 列表 | `GET` | `/resource?_page=1&_limit=10` | 查询参数 | `{ items: T[], total: number }` |
+| 列表 | `GET` | `/resource?_page=1&_limit=10` | 查询参数 | `{ items: T[], total: number }` / `{ data: T[], total: number }` / `T[]` |
 | 获取单条 | `GET` | `/resource/:id` | — | `T` |
 | 创建 | `POST` | `/resource` | JSON 请求体 | `T` |
 | 更新 | `PATCH` | `/resource/:id` | JSON 请求体 | `T` |
@@ -115,6 +115,14 @@ interface ElysiaDataProviderOptions {
   apiUrl: string;
   /** 静态请求头或返回请求头的函数 */
   headers?: Record<string, string> | (() => Record<string, string>);
+  /** 更新操作使用的 HTTP 方法 ('PATCH' 或 'PUT') @default 'PATCH' */
+  updateMethod?: 'PATCH' | 'PUT';
+  /** 是否在请求中包含凭证 (如 cookies) @default false */
+  withCredentials?: boolean;
+  /** 自定义资源名到 URL 段的映射 */
+  resourceUrlMap?: Record<string, string>;
+  /** 列表端点的自定义响应解析器 */
+  parseListResponse?: <T>(json: unknown, resource: string) => { data: T[]; total: number };
 }
 ```
 
@@ -133,7 +141,7 @@ Provider 还支持批量操作：
 | 特性 | `@svadmin/simple-rest` | `@svadmin/elysia` |
 |------|----------------------|-------------------|
 | 类型推断 | 手动 | 通过 Eden Treaty 自动推断 |
-| 响应格式 | `{ data: T[] }` | `{ items: T[], total: number }` |
+| 响应格式 | `{ data: T[] }` | `{ items: T[], total: number }` / `{ data: T[], total: number }` / `T[]` |
 | 过滤格式 | 基于 Header | 查询参数 `字段_操作符` |
 | 认证 | JWT/Cookie 内置 | 通过 `headers` 选项 |
 | 依赖 | 零 | 零（Eden Treaty 可选） |

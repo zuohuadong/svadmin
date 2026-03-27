@@ -38,7 +38,7 @@ The provider expects standard RESTful routes:
 
 | Operation | Method | Route | Request | Response |
 |-----------|--------|-------|---------|----------|
-| List | `GET` | `/resource?_page=1&_limit=10` | query params | `{ items: T[], total: number }` |
+| List | `GET` | `/resource?_page=1&_limit=10` | query params | `{ items: T[], total: number }` / `{ data: T[], total: number }` / `T[]` |
 | Get one | `GET` | `/resource/:id` | — | `T` |
 | Create | `POST` | `/resource` | JSON body | `T` |
 | Update | `PATCH` | `/resource/:id` | JSON body | `T` |
@@ -115,6 +115,14 @@ interface ElysiaDataProviderOptions {
   apiUrl: string;
   /** Static headers or a function returning headers */
   headers?: Record<string, string> | (() => Record<string, string>);
+  /** HTTP method for updates ('PATCH' or 'PUT') @default 'PATCH' */
+  updateMethod?: 'PATCH' | 'PUT';
+  /** Include credentials (cookies) in requests @default false */
+  withCredentials?: boolean;
+  /** Custom resource-to-URL segment mapping */
+  resourceUrlMap?: Record<string, string>;
+  /** Custom response parser for list endpoints */
+  parseListResponse?: <T>(json: unknown, resource: string) => { data: T[]; total: number };
 }
 ```
 
@@ -133,7 +141,7 @@ The provider also supports batch operations:
 | Feature | `@svadmin/simple-rest` | `@svadmin/elysia` |
 |---------|----------------------|-------------------|
 | Type inference | Manual | Auto via Eden Treaty |
-| Response format | `{ data: T[] }` | `{ items: T[], total: number }` |
+| Response format | `{ data: T[] }` | `{ items: T[], total: number }` / `{ data: T[], total: number }` / `T[]` |
 | Filter format | Header-based | Query param `field_operator` |
 | Auth | JWT/Cookie built-in | Via `headers` option |
 | Dependencies | Zero | Zero (Eden Treaty optional) |
