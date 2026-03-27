@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/zuohuadong/svadmin/compare/core-v0.9.0...core-v0.10.0) (2026-03-27)
+
+
+### Features
+
+* **core:** implement native theme preset system ([031c7b5](https://github.com/zuohuadong/svadmin/commit/031c7b53c15813bd219dfb1a16fc5a5a144fb088))
+
 ## [0.9.0](https://github.com/zuohuadong/svadmin/compare/core-v0.8.0...core-v0.9.0) (2026-03-27)
 
 

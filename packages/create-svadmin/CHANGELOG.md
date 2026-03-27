@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.7.0...create-svadmin-v0.8.0) (2026-03-27)
+
+
+### Features
+
+* **core:** implement native theme preset system ([031c7b5](https://github.com/zuohuadong/svadmin/commit/031c7b53c15813bd219dfb1a16fc5a5a144fb088))
+
 ## [0.7.0](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.6.0...create-svadmin-v0.7.0) (2026-03-27)
 
 

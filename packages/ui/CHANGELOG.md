@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.13.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.12.0...ui-v0.13.0) (2026-03-27)
+
+
+### Features
+
+* **ui:** add column visibility persistence, ARIA labels, frosted glass popovers, tooltip springs, smooth scroll ([30aaadc](https://github.com/zuohuadong/svadmin/commit/30aaadc0a9375d05784ff294c8e4e54ee38987d0))
+* **ui:** add InlineEdit component, SVG chart suite (Bar/Line/Pie), and RTL layout support ([70290cf](https://github.com/zuohuadong/svadmin/commit/70290cf57f792898cb551551d9260eb3805f7e39))
+* **ui:** add premium SaaS enhancements batch 2 - AnimatedCounter, KeyboardShortcuts, breadcrumb crossfade, gradient cards, dark glow, row stagger, shake validation, reduced-motion, optimistic delete ([077856f](https://github.com/zuohuadong/svadmin/commit/077856f0cca2e8cb69e5491ebe6719c5baab2fdd))
+* **ui:** add VirtualTable, DraggableHeader, Storybook setup, and chart stories ([3a1a919](https://github.com/zuohuadong/svadmin/commit/3a1a919370b267c03cfb6ed43599a6bf18353d20))
+* **ui:** integrate InlineEdit and DraggableHeader into AutoTable ([7dcadda](https://github.com/zuohuadong/svadmin/commit/7dcadda80365f9655ce9fec3316467b9889b4fa1))
+
 ## [0.12.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.11.2...ui-v0.12.0) (2026-03-27)
 
 
