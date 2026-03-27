@@ -6,6 +6,9 @@
 export { createDrizzleDataProvider } from './data-provider';
 export type { RefineSQLConfig } from './data-provider';
 
+export { inferFieldsFromDrizzle } from './infer-fields';
+export type { InferFieldsOptions } from './infer-fields';
+
 // Re-export commonly used refine-sqlx utilities for convenience
 export type {
   SecurityConfig,

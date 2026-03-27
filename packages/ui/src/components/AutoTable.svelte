@@ -436,6 +436,8 @@
       </div>
     {:else}
       <div in:fade={{ duration: 150 }}>
+        <!-- Desktop Table (hidden on mobile) -->
+        <div class="hidden md:block">
         <Table.Root>
           <Table.Header>
             {#each tbl.getHeaderGroups() as headerGroup}
@@ -582,6 +584,87 @@
             {/each}
           </Table.Body>
         </Table.Root>
+        </div>
+
+        <!-- Mobile Card View (visible only on small screens) -->
+        <div class="md:hidden space-y-3 p-2">
+          {#each tbl.getRowModel().rows as row}
+            {@const record = row.original}
+            {@const id = record[primaryKey] as string | number}
+            <div
+              class="rounded-xl border bg-card p-4 shadow-sm transition-colors {row.getIsSelected() ? 'ring-2 ring-primary bg-accent/30' : ''}"
+            >
+              <!-- Card header: ID + select + actions -->
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  {#if selectable && canDelete}
+                    <Checkbox
+                      checked={row.getIsSelected()}
+                      onCheckedChange={() => row.toggleSelected()}
+                    />
+                  {/if}
+                  <span class="text-xs font-mono text-muted-foreground">#{id}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  {#if rowActions}
+                    {@render rowActions({ record, id })}
+                  {:else}
+                    {#if canEdit}
+                      <TooltipButton tooltip={t('common.edit')} variant="ghost" size="icon-sm" onclick={() => navigate(`/${resourceName}/edit/${id}`)}>
+                        <Pencil class="h-4 w-4" />
+                      </TooltipButton>
+                    {/if}
+                    <TooltipButton tooltip={t('common.detail')} variant="ghost" size="icon-sm" onclick={() => navigate(`/${resourceName}/show/${id}`)}>
+                      <Eye class="h-4 w-4" />
+                    </TooltipButton>
+                    {#if canDelete}
+                      <TooltipButton tooltip={t('common.delete')} variant="ghost" size="icon-sm" onclick={() => confirmDelete(id)} class="hover:text-destructive">
+                        <Trash2 class="h-4 w-4" />
+                      </TooltipButton>
+                    {/if}
+                  {/if}
+                </div>
+              </div>
+              <!-- Card fields -->
+              <div class="space-y-2">
+                {#each visibleFields.slice(0, 6) as field}
+                  {@const value = record[field.key]}
+                  <div class="flex items-start justify-between gap-4">
+                    <span class="text-xs font-medium text-muted-foreground shrink-0">{field.label}</span>
+                    <span class="text-sm text-right truncate max-w-[60%]">
+                      {#if cellRenderer}
+                        {@render cellRenderer({ field, value, record })}
+                      {:else if field.type === 'boolean'}
+                        <span class="inline-block h-2 w-2 rounded-full {value ? 'bg-green-500' : 'bg-muted-foreground/30'}"></span>
+                      {:else if field.type === 'date' && value}
+                        {new Date(value as string).toLocaleDateString()}
+                      {:else if field.type === 'tags' && Array.isArray(value)}
+                        <div class="flex flex-wrap gap-1 justify-end">
+                          {#each (value as string[]).slice(0, 2) as tag}
+                            <Badge variant="secondary" class="text-[10px]">{tag}</Badge>
+                          {/each}
+                        </div>
+                      {:else if field.type === 'select' && field.options}
+                        {@const opt = field.options.find(o => o.value === value)}
+                        <Badge variant="outline" class="text-[10px]">{opt?.label ?? value ?? '—'}</Badge>
+                      {:else}
+                        {value ?? '—'}
+                      {/if}
+                    </span>
+                  </div>
+                {/each}
+              </div>
+            </div>
+          {:else}
+            <div class="text-center py-10 text-muted-foreground">
+              {#if emptyState}
+                {@render emptyState()}
+              {:else}
+                {t('common.noData')}
+              {/if}
+            </div>
+          {/each}
+        </div>
       </div>
     {/if}
   </div>
