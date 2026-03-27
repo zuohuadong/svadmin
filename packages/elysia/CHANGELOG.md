@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/zuohuadong/svadmin/compare/elysia-v0.6.0...elysia-v0.7.0) (2026-03-27)
+
+
+### Features
+
+* **elysia:** enhance DataProvider with flexible options ([d397f4f](https://github.com/zuohuadong/svadmin/commit/d397f4ffbd5fc55429b9617eaed6ff555a69df2a))
+
 ## [0.6.0](https://github.com/zuohuadong/svadmin/compare/elysia-v0.5.14...elysia-v0.6.0) (2026-03-26)
 
 

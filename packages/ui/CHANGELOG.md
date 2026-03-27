@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.9.0...ui-v0.10.0) (2026-03-27)
+
+
+### Features
+
+* **ui:** implement comprehensive AI component library (Phase 1-4) ([35c94b5](https://github.com/zuohuadong/svadmin/commit/35c94b537727fc12adf0fc9a1d89ca77c8e5f4d4))
+
+
+### Bug Fixes
+
+* **ui:** resolve svelte 5 and typescript strict typing errors ([313478b](https://github.com/zuohuadong/svadmin/commit/313478bc5a95a6cf1d70212e62b21f0bd24fec28))
+
 ## [0.9.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.8.0...ui-v0.9.0) (2026-03-27)
 
 
