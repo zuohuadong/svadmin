@@ -224,7 +224,7 @@
     </TooltipButton>
     <h1 class="text-xl font-semibold text-foreground">{pageTitle}</h1>
     {#if isDirty}
-      <Badge variant="outline" class="border-amber-200 bg-amber-50 text-amber-700">{t('common.unsaved')}</Badge>
+      <Badge variant="outline" class="border-warning/30 bg-warning/10 text-warning-foreground">{t('common.unsaved')}</Badge>
     {/if}
   </div>
 

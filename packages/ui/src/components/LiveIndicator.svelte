@@ -16,9 +16,9 @@
   }>();
 
   const statusConfigs = {
-    connected: { variant: 'default' as const, dotClass: 'bg-emerald-500', label: 'Live', icon: Wifi },
-    connecting: { variant: 'secondary' as const, dotClass: 'bg-amber-500', label: 'Connecting...', icon: Loader2 as typeof Wifi },
-    disconnected: { variant: 'destructive' as const, dotClass: 'bg-red-500', label: 'Offline', icon: WifiOff },
+    connected: { variant: 'default' as const, dotClass: 'bg-success', label: 'Live', icon: Wifi },
+    connecting: { variant: 'secondary' as const, dotClass: 'bg-warning', label: 'Connecting...', icon: Loader2 as typeof Wifi },
+    disconnected: { variant: 'destructive' as const, dotClass: 'bg-destructive', label: 'Offline', icon: WifiOff },
   } as const;
   type StatusKey = 'connected' | 'connecting' | 'disconnected';
   const cfg = $derived(statusConfigs[status as StatusKey]);

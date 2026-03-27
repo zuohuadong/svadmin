@@ -43,8 +43,8 @@
 
   const strengthColor = $derived(
     strength < 30 ? 'bg-destructive' :
-    strength < 60 ? 'bg-amber-500' :
-    strength < 80 ? 'bg-blue-500' : 'bg-emerald-500'
+    strength < 60 ? 'bg-warning' :
+    strength < 80 ? 'bg-info' : 'bg-success'
   );
 
   const strengthLabel = $derived(

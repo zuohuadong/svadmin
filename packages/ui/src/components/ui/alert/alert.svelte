@@ -9,8 +9,8 @@
 			variant: {
 				default: "bg-card text-foreground",
 				destructive: "text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90",
-				warning: "border-amber-500/50 text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 [&>svg]:text-current",
-				success: "border-emerald-500/50 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 [&>svg]:text-current",
+				warning: "border-warning/50 text-warning-foreground bg-warning/10 [&>svg]:text-current",
+				success: "border-success/50 text-success bg-success/10 [&>svg]:text-current",
 			},
 		},
 		defaultVariants: { variant: "default" },

@@ -69,7 +69,7 @@
         pres.forEach(pre => {
           pre.classList.add('enhanced');
           const wrapper = document.createElement('div');
-          wrapper.className = 'code-block-wrapper group relative my-4 rounded-md bg-zinc-950';
+          wrapper.className = 'code-block-wrapper group relative my-4 rounded-md bg-foreground/95';
           
           const header = document.createElement('div');
           header.className = 'flex items-center justify-between px-4 py-2 text-xs text-zinc-400 border-b border-zinc-800';

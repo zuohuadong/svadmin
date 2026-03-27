@@ -34,10 +34,10 @@
   // Action semantic color mapping
   function getActionColor(action: string) {
     switch (action) {
-      case 'create': return 'bg-green-500';
-      case 'update': return 'bg-blue-500';
-      case 'delete': return 'bg-red-500';
-      default: return 'bg-slate-400';
+      case 'create': return 'bg-success';
+      case 'update': return 'bg-info';
+      case 'delete': return 'bg-destructive';
+      default: return 'bg-muted-foreground';
     }
   }
 </script>

@@ -21,7 +21,7 @@
   }>();
 </script>
 
-<header class="sticky top-0 z-30 flex h-14 w-full shrink-0 items-center justify-between bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-4 md:px-6">
+<header class="sticky top-0 z-30 flex h-14 w-full shrink-0 items-center justify-between bg-card/60 backdrop-blur-md px-4 md:px-6">
   <div class="flex items-center gap-4">
     {#if children}
       {@render children()}

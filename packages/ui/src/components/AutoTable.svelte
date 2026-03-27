@@ -523,7 +523,7 @@
                             {#if cellRenderer && field}
                               {@render cellRenderer({ field, value: cell.getValue(), record })}
                             {:else if field?.type === 'boolean'}
-                              <span class="inline-block h-2 w-2 rounded-full {cell.getValue() ? 'bg-green-500' : 'bg-muted-foreground/30'}"></span>
+                              <span class="inline-block h-2 w-2 rounded-full {cell.getValue() ? 'bg-success' : 'bg-muted-foreground/30'}"></span>
                             {:else if field?.type === 'date' && cell.getValue()}
                               {new Date(cell.getValue() as string).toLocaleDateString()}
                             {:else if field?.type === 'tags' && Array.isArray(cell.getValue())}
@@ -635,7 +635,7 @@
                       {#if cellRenderer}
                         {@render cellRenderer({ field, value, record })}
                       {:else if field.type === 'boolean'}
-                        <span class="inline-block h-2 w-2 rounded-full {value ? 'bg-green-500' : 'bg-muted-foreground/30'}"></span>
+                        <span class="inline-block h-2 w-2 rounded-full {value ? 'bg-success' : 'bg-muted-foreground/30'}"></span>
                       {:else if field.type === 'date' && value}
                         {new Date(value as string).toLocaleDateString()}
                       {:else if field.type === 'tags' && Array.isArray(value)}

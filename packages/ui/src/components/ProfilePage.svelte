@@ -130,7 +130,7 @@
         {/if}
 
         {#if pwSuccess}
-          <Alert.Root class="border-green-500/30 bg-green-500/5 text-green-600 dark:text-green-400">
+          <Alert.Root class="border-success/30 bg-success/5 text-success">
             <CheckCircle class="h-4 w-4" />
             <Alert.Description>{t('profile.passwordChanged')}</Alert.Description>
           </Alert.Root>

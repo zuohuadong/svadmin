@@ -91,7 +91,7 @@
     >
       <div class="flex items-center border-b px-3 h-12 relative" data-cmdk-input-wrapper="">
         {#if aiMode}
-          <Sparkles class="mr-2 h-4 w-4 shrink-0 text-amber-500 animate-pulse" />
+          <Sparkles class="mr-2 h-4 w-4 shrink-0 text-warning animate-pulse" />
         {:else}
           <Search class="mr-2 h-4 w-4 shrink-0 opacity-50" />
         {/if}
@@ -103,7 +103,7 @@
         />
         {#if searchValue.trim() && !aiMode}
           <button 
-            class="absolute right-3 flex items-center gap-1 text-[10px] font-medium text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-1 rounded transition-colors"
+            class="absolute right-3 flex items-center gap-1 text-[10px] font-medium text-warning bg-warning/10 hover:bg-warning/20 px-2 py-1 rounded transition-colors"
             onclick={askAI}
           >
             <Sparkles class="h-3 w-3" />
@@ -152,7 +152,7 @@
         <!-- AI Response Area -->
         <div class="h-[360px] max-h-[360px] overflow-y-auto p-4 bg-muted/20">
           <div class="flex items-start gap-3">
-            <div class="mt-0.5 w-8 h-8 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+            <div class="mt-0.5 w-8 h-8 rounded-full bg-warning/10 text-warning flex items-center justify-center shrink-0">
               <Sparkles class="h-4 w-4" />
             </div>
             <div class="flex-1 w-full text-sm">

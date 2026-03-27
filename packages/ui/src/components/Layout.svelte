@@ -83,7 +83,7 @@
     </div>
   </div>
 {:else}
-  <div class="flex h-screen bg-slate-50 dark:bg-slate-950" in:fade={{ duration: 200, delay: 50 }}>
+  <div class="flex h-screen bg-background" in:fade={{ duration: 200, delay: 50 }}>
     <!-- Desktop sidebar -->
     <div class="hidden md:block">
       <Sidebar {collapsed} {identity} {title} onToggle={() => collapsed = !collapsed} onLogout={handleLogout} />

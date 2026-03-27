@@ -7,10 +7,10 @@
 
   const colorMap: Record<ColorVariant, string> = {
     primary: 'bg-primary/10 text-primary',
-    success: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-    warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-    danger: 'bg-red-500/10 text-red-600 dark:text-red-400',
-    info: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+    success: 'bg-success/10 text-success',
+    warning: 'bg-warning/10 text-warning',
+    danger: 'bg-destructive/10 text-destructive',
+    info: 'bg-info/10 text-info',
   };
 
   const variantMap: Record<StyleVariant, string> = {
@@ -60,7 +60,7 @@
         <p class="text-xl font-semibold text-foreground">{value}</p>
         {#if trend}
           <span
-            class="text-xs font-medium {trend.value >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}"
+            class="text-xs font-medium {trend.value >= 0 ? 'text-success' : 'text-destructive'}"
           >
             {trend.value >= 0 ? '↑' : '↓'}{Math.abs(trend.value)}%
             {#if trend.label}

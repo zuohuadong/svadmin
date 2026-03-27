@@ -52,7 +52,7 @@
   >
     <Badge 
       variant={isGood ? 'default' : 'destructive'} 
-      class="flex items-center gap-1 font-mono text-xs px-1.5 py-0 {isGood ? 'bg-green-500 hover:bg-green-600 text-white' : ''} {className}"
+      class="flex items-center gap-1 font-mono text-xs px-1.5 py-0 {isGood ? 'bg-success hover:bg-success/90 text-success-foreground' : ''} {className}"
     >
       {#if diff > 0}
         <TrendingUp class="h-3 w-3" />
