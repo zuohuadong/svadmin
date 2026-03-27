@@ -2,13 +2,227 @@
 //
 // Supports two class strategies:
 //   - 'standard' (default): adds 'dark' class for dark mode (light-first)
-//   - 'dark-first': adds 'light' class for light mode (dark-first, e.g. Elygate-style)
+//   - 'dark-first': adds 'light' class for light mode (dark-first)
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type ColorTheme = 'blue' | 'green' | 'rose' | 'orange' | 'violet' | 'zinc';
 
 /** Controls how the theme class is applied to <html> */
 export type ThemeStrategy = 'standard' | 'dark-first';
+
+// ── Color Preset System ──────────────────────────────────
+
+/** A color preset defines CSS variable overrides for light and dark modes. */
+export interface ColorPreset {
+  /** Unique name (e.g. 'indigo', 'blue') */
+  name: string;
+  /** Display label (e.g. 'Indigo', 'Blue') */
+  label: string;
+  /** Preview swatch color (hex) for UI pickers */
+  color: string;
+  /** CSS variable overrides for light mode */
+  light: Record<string, string>;
+  /** CSS variable overrides for dark mode */
+  dark: Record<string, string>;
+}
+
+/** Built-in color presets — consumers can extend via registerColorPreset(). */
+export const builtinPresets: Record<string, ColorPreset> = {
+  neutral: {
+    name: 'neutral',
+    label: 'Neutral',
+    color: '#71717a',
+    light: {
+      '--primary': 'oklch(0.205 0.006 286)',
+      '--primary-foreground': 'oklch(0.985 0 0)',
+      '--ring': 'oklch(0.205 0.006 286)',
+      '--sidebar-primary': 'oklch(0.205 0.006 286)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.205 0.006 286)',
+      '--chart-1': 'oklch(0.488 0.243 264.376)',
+    },
+    dark: {
+      '--primary': 'oklch(0.922 0.004 286)',
+      '--primary-foreground': 'oklch(0.205 0.006 286)',
+      '--ring': 'oklch(0.556 0.004 286)',
+      '--sidebar-primary': 'oklch(0.922 0.004 286)',
+      '--sidebar-primary-foreground': 'oklch(0.205 0.006 286)',
+      '--sidebar-ring': 'oklch(0.556 0.004 286)',
+      '--chart-1': 'oklch(0.585 0.233 264)',
+    },
+  },
+  indigo: {
+    name: 'indigo',
+    label: 'Indigo',
+    color: '#4f46e5',
+    light: {
+      '--primary': 'oklch(0.488 0.243 264.376)',
+      '--primary-foreground': 'oklch(0.985 0 0)',
+      '--ring': 'oklch(0.488 0.243 264.376)',
+      '--sidebar-primary': 'oklch(0.488 0.243 264.376)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.488 0.243 264.376)',
+      '--chart-1': 'oklch(0.488 0.243 264.376)',
+    },
+    dark: {
+      '--primary': 'oklch(0.585 0.233 264)',
+      '--primary-foreground': 'oklch(0.15 0.04 265)',
+      '--ring': 'oklch(0.55 0.18 264)',
+      '--sidebar-primary': 'oklch(0.585 0.233 264)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.55 0.18 264)',
+      '--chart-1': 'oklch(0.585 0.233 264)',
+    },
+  },
+  blue: {
+    name: 'blue',
+    label: 'Blue',
+    color: '#3b82f6',
+    light: {
+      '--primary': 'oklch(0.546 0.245 262.881)',
+      '--primary-foreground': 'oklch(0.985 0 0)',
+      '--ring': 'oklch(0.546 0.245 262.881)',
+      '--sidebar-primary': 'oklch(0.546 0.245 262.881)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.546 0.245 262.881)',
+      '--chart-1': 'oklch(0.546 0.245 262.881)',
+    },
+    dark: {
+      '--primary': 'oklch(0.623 0.214 259.815)',
+      '--primary-foreground': 'oklch(0.15 0.04 265)',
+      '--ring': 'oklch(0.546 0.245 262.881)',
+      '--sidebar-primary': 'oklch(0.623 0.214 259.815)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.546 0.245 262.881)',
+      '--chart-1': 'oklch(0.623 0.214 259.815)',
+    },
+  },
+  green: {
+    name: 'green',
+    label: 'Green',
+    color: '#22c55e',
+    light: {
+      '--primary': 'oklch(0.527 0.185 150.069)',
+      '--primary-foreground': 'oklch(0.985 0 0)',
+      '--ring': 'oklch(0.527 0.185 150.069)',
+      '--sidebar-primary': 'oklch(0.527 0.185 150.069)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.527 0.185 150.069)',
+      '--chart-1': 'oklch(0.527 0.185 150.069)',
+    },
+    dark: {
+      '--primary': 'oklch(0.627 0.194 149.214)',
+      '--primary-foreground': 'oklch(0.15 0.05 150)',
+      '--ring': 'oklch(0.527 0.185 150.069)',
+      '--sidebar-primary': 'oklch(0.627 0.194 149.214)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.527 0.185 150.069)',
+      '--chart-1': 'oklch(0.627 0.194 149.214)',
+    },
+  },
+  rose: {
+    name: 'rose',
+    label: 'Rose',
+    color: '#f43f5e',
+    light: {
+      '--primary': 'oklch(0.577 0.245 27.325)',
+      '--primary-foreground': 'oklch(0.985 0 0)',
+      '--ring': 'oklch(0.577 0.245 27.325)',
+      '--sidebar-primary': 'oklch(0.577 0.245 27.325)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.577 0.245 27.325)',
+      '--chart-1': 'oklch(0.577 0.245 27.325)',
+    },
+    dark: {
+      '--primary': 'oklch(0.577 0.245 27.325)',
+      '--primary-foreground': 'oklch(0.985 0 0)',
+      '--ring': 'oklch(0.577 0.245 27.325)',
+      '--sidebar-primary': 'oklch(0.577 0.245 27.325)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.577 0.245 27.325)',
+      '--chart-1': 'oklch(0.577 0.245 27.325)',
+    },
+  },
+  orange: {
+    name: 'orange',
+    label: 'Orange',
+    color: '#f97316',
+    light: {
+      '--primary': 'oklch(0.646 0.222 41.116)',
+      '--primary-foreground': 'oklch(0.985 0 0)',
+      '--ring': 'oklch(0.646 0.222 41.116)',
+      '--sidebar-primary': 'oklch(0.646 0.222 41.116)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.646 0.222 41.116)',
+      '--chart-1': 'oklch(0.646 0.222 41.116)',
+    },
+    dark: {
+      '--primary': 'oklch(0.646 0.222 41.116)',
+      '--primary-foreground': 'oklch(0.985 0 0)',
+      '--ring': 'oklch(0.646 0.222 41.116)',
+      '--sidebar-primary': 'oklch(0.646 0.222 41.116)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.646 0.222 41.116)',
+      '--chart-1': 'oklch(0.646 0.222 41.116)',
+    },
+  },
+  violet: {
+    name: 'violet',
+    label: 'Violet',
+    color: '#8b5cf6',
+    light: {
+      '--primary': 'oklch(0.541 0.281 293.009)',
+      '--primary-foreground': 'oklch(0.985 0 0)',
+      '--ring': 'oklch(0.541 0.281 293.009)',
+      '--sidebar-primary': 'oklch(0.541 0.281 293.009)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.541 0.281 293.009)',
+      '--chart-1': 'oklch(0.541 0.281 293.009)',
+    },
+    dark: {
+      '--primary': 'oklch(0.541 0.281 293.009)',
+      '--primary-foreground': 'oklch(0.985 0 0)',
+      '--ring': 'oklch(0.541 0.281 293.009)',
+      '--sidebar-primary': 'oklch(0.541 0.281 293.009)',
+      '--sidebar-primary-foreground': 'oklch(0.985 0 0)',
+      '--sidebar-ring': 'oklch(0.541 0.281 293.009)',
+      '--chart-1': 'oklch(0.541 0.281 293.009)',
+    },
+  },
+};
+
+/** Register a custom color preset. Overwrites any built-in preset with the same name. */
+export function registerColorPreset(preset: ColorPreset): void {
+  builtinPresets[preset.name] = preset;
+  // Update colorThemes display list
+  const idx = colorThemes.findIndex(ct => ct.id === preset.name);
+  const entry = { id: preset.name as ColorTheme, label: preset.label, color: preset.color };
+  if (idx >= 0) colorThemes[idx] = entry;
+  else colorThemes.push(entry);
+}
+
+/** Resolve a preset by name or return the preset object directly. */
+function resolvePreset(preset: ColorPreset | string): ColorPreset | undefined {
+  if (typeof preset === 'string') return builtinPresets[preset];
+  return preset;
+}
+
+/** Apply a color preset's CSS variables based on current resolved theme. */
+function applyColorPreset(preset: ColorPreset): void {
+  if (typeof document === 'undefined') return;
+  const resolved = mode === 'system' ? getSystemPreference() : mode;
+  const vars = resolved === 'dark' ? preset.dark : preset.light;
+  const root = document.documentElement;
+  for (const [key, value] of Object.entries(vars)) {
+    const cssVar = key.startsWith('--') ? key : `--${key}`;
+    root.style.setProperty(cssVar, value);
+  }
+}
+
+/** Get all available color presets (built-in + registered). */
+export function getColorPresets(): ColorPreset[] {
+  return Object.values(builtinPresets);
+}
 
 export interface ThemeConfig {
   /** Class strategy: 'standard' toggles '.dark', 'dark-first' toggles '.light' */
@@ -17,6 +231,8 @@ export interface ThemeConfig {
   cssOverrides?: Record<string, string>;
   /** Whether to disable the built-in color-scheme attribute */
   disableColorScheme?: boolean;
+  /** Built-in color preset name (e.g. 'indigo', 'blue') or a custom ColorPreset object */
+  colorPreset?: ColorPreset | string;
 }
 
 const STORAGE_KEY = 'svadmin-theme';
@@ -33,7 +249,12 @@ export function configureTheme(config: ThemeConfig): void {
   themeConfig = { ...config };
   // Re-apply the current theme with new strategy
   applyTheme(mode);
-  // Apply CSS overrides
+  // Apply color preset first (lower priority)
+  if (config.colorPreset) {
+    const preset = resolvePreset(config.colorPreset);
+    if (preset) applyColorPreset(preset);
+  }
+  // Then apply manual CSS overrides (higher priority)
   if (config.cssOverrides) {
     applyCssOverrides(config.cssOverrides);
   }
@@ -70,15 +291,12 @@ export function clearCssOverrides(keys?: string[]): void {
   }
 }
 
-// ── Color themes (display metadata) ──────────────────────
-export const colorThemes: { id: ColorTheme; label: string; color: string }[] = [
-  { id: 'blue',   label: 'Blue',   color: '#3b82f6' },
-  { id: 'green',  label: 'Green',  color: '#22c55e' },
-  { id: 'rose',   label: 'Rose',   color: '#f43f5e' },
-  { id: 'orange', label: 'Orange', color: '#f97316' },
-  { id: 'violet', label: 'Violet', color: '#8b5cf6' },
-  { id: 'zinc',   label: 'Zinc',   color: '#71717a' },
-];
+// ── Color themes (display metadata, derived from presets) ──
+export const colorThemes: { id: ColorTheme | string; label: string; color: string }[] = Object.values(builtinPresets).map(p => ({
+  id: p.name as ColorTheme,
+  label: p.label,
+  color: p.color,
+}));
 
 // ── Dark/Light mode ──────────────────────────────────────
 

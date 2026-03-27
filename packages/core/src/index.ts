@@ -37,8 +37,8 @@ export { audit, setAuditHandler, setAuditLogProvider, getAuditLogProvider } from
 export type { AuditLogProvider } from './audit';
 export { setChatProvider, getChatProvider, setChatContext, getChatContext } from './chatProvider.svelte';
 export type { ChatProvider, ChatMessage, ChatContext, ChatAction } from './chatProvider.svelte';
-export { getTheme, setTheme, toggleTheme, getResolvedTheme, getColorTheme, setColorTheme, colorThemes, configureTheme, getThemeConfig, clearCssOverrides } from './theme.svelte';
-export type { ThemeMode, ColorTheme, ThemeStrategy, ThemeConfig } from './theme.svelte';
+export { getTheme, setTheme, toggleTheme, getResolvedTheme, getColorTheme, setColorTheme, colorThemes, configureTheme, getThemeConfig, clearCssOverrides, builtinPresets, registerColorPreset, getColorPresets } from './theme.svelte';
+export type { ThemeMode, ColorTheme, ThemeStrategy, ThemeConfig, ColorPreset } from './theme.svelte';
 export { setUnsavedChanges, getUnsavedChanges, initUnsavedChangesNotifier } from './unsaved-changes.svelte';
 export { setAdminOptions, getAdminOptions, getTextTransformers } from './options';
 export type { AdminOptions, TextTransformers, OvertimeConfig } from './options';
