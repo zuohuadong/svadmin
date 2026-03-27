@@ -187,12 +187,15 @@ const dataProvider = createElysiaDataProvider<App>('http://localhost:3000');
 |------|------|----------|---------|-------------|
 | `dataProvider` | `DataProvider` | ✅ | — | Data source adapter / 数据源适配器 |
 | `authProvider` | `AuthProvider` | — | — | Auth adapter / 认证适配器 |
+| `routerProvider` | `RouterProvider` | — | hash | Custom router / 自定义路由提供者 |
 | `resources` | `ResourceDefinition[]` | ✅ | — | Resource definitions / 资源定义 |
 | `title` | `string` | — | `'Admin'` | App title / 应用标题 |
 | `defaultTheme` | `'light' \| 'dark' \| 'system'` | — | `'system'` | Initial theme / 初始主题 |
-| `locale` | `string` | — | auto-detect | Override locale / 覆盖语言 |
+| `themeConfig` | `ThemeConfig` | — | — | Theme config (strategy, overrides) / 主题配置 |
+| `locale` | `string` | — | auto | Override locale / 覆盖语言 |
 | `dashboard` | `Snippet` | — | — | Custom dashboard / 自定义仪表盘 |
 | `loginPage` | `Snippet` | — | — | Custom login page / 自定义登录页 |
+| `components` | `Partial<ComponentRegistry>`| — | — | Override default UI components / 覆盖默认组件 |
 
 ## 🌓 Dark Mode / 暗色模式
 
@@ -206,6 +209,9 @@ Dark mode works out of the box. Use `defaultTheme` prop or the Sidebar toggle:
 
 <!-- Always dark / 始终暗色 -->
 <AdminApp {dataProvider} {resources} defaultTheme="dark" />
+
+<!-- Dark-first strategy for dark-themed apps / 默认暗色的应用 -->
+<AdminApp {dataProvider} {resources} themeConfig={{ strategy: 'dark-first' }} />
 ```
 
 Programmatic control / 编程式控制:
