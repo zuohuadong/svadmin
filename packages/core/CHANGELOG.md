@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/zuohuadong/svadmin/compare/core-v0.6.1...core-v0.7.0) (2026-03-27)
+
+
+### Features
+
+* **core,ui,drizzle:** enterprise features sprint - useCan type fix, responsive table, field inference ([52c44b8](https://github.com/zuohuadong/svadmin/commit/52c44b84b363aad25ee866346fd6cb3208eb29d9))
+
+
+### Bug Fixes
+
+* **core,ui:** resolve tanstack query v6 type errors and select element constraint ([30cc3ae](https://github.com/zuohuadong/svadmin/commit/30cc3ae3f2a6ebf2673465c87c5dcf74ad9e8cca))
+
 ## [0.6.1](https://github.com/zuohuadong/svadmin/compare/core-v0.6.0...core-v0.6.1) (2026-03-27)
 
 

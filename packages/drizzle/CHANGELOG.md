@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/zuohuadong/svadmin/compare/drizzle-v0.6.0...drizzle-v0.7.0) (2026-03-27)
+
+
+### Features
+
+* **core,ui,drizzle:** enterprise features sprint - useCan type fix, responsive table, field inference ([52c44b8](https://github.com/zuohuadong/svadmin/commit/52c44b84b363aad25ee866346fd6cb3208eb29d9))
+
 ## [0.6.0](https://github.com/zuohuadong/svadmin/compare/drizzle-v0.5.14...drizzle-v0.6.0) (2026-03-26)
 
 
