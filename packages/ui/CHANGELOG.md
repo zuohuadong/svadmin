@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.13.0...ui-v0.14.0) (2026-03-27)
+
+
+### Features
+
+* **core,ui,lite:** add multi-level menu support with MenuItem type and recursive SidebarItem ([25603ae](https://github.com/zuohuadong/svadmin/commit/25603ae08ee576beda973ee3acfa43ff92cc1cea))
+
 ## [0.13.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.12.0...ui-v0.13.0) (2026-03-27)
 
 
