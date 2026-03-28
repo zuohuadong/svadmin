@@ -4,16 +4,13 @@
   import type { Snippet } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';
 
-  interface Props {
+  interface Props extends Omit<HTMLButtonAttributes, 'class' | 'children'> {
     tooltip: string;
     variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
     size?: 'default' | 'sm' | 'lg' | 'icon' | 'icon-sm';
     side?: 'top' | 'right' | 'bottom' | 'left';
     class?: string;
     onclick?: (e: MouseEvent) => void;
-    disabled?: boolean;
-    type?: 'button' | 'submit' | 'reset';
-    tabindex?: number;
     children: Snippet;
   }
 
@@ -28,6 +25,7 @@
     type = 'button',
     tabindex,
     children,
+    ...restProps
   }: Props = $props();
 </script>
 
@@ -36,10 +34,12 @@
     {#snippet child({ props })}
       <Button
         {...props}
+        {...restProps}
         {variant}
         {size}
         {type}
         class={className}
+        aria-label={restProps['aria-label'] ?? tooltip}
         {onclick}
         {disabled}
         {tabindex}
