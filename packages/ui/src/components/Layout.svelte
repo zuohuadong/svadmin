@@ -62,12 +62,42 @@
   }
 
   let collapsed = $state(false);
+
+  // Swipe gesture for mobile menu
+  let touchStartX = $state(0);
+  let touchEndX = $state(0);
+
+  function handleTouchStart(e: TouchEvent) {
+    if (e.touches.length === 1) {
+      touchStartX = e.touches[0].clientX;
+      touchEndX = e.touches[0].clientX;
+    }
+  }
+
+  function handleTouchMove(e: TouchEvent) {
+    if (e.touches.length === 1) {
+      touchEndX = e.touches[0].clientX;
+    }
+  }
+
+  function handleTouchEnd() {
+    // Only trigger swipe-to-open if starting near the left edge (e.g., within 30px)
+    // and swiping right by at least 50px
+    if (touchStartX < 30 && touchEndX - touchStartX > 50) {
+      mobileMenuOpen = true;
+    }
+  }
 </script>
 
-<svelte:window onkeydown={(e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); commandOpen = true; }
-  if (e.key === '?' && !['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) { e.preventDefault(); shortcutsOpen = true; }
-}} />
+<svelte:window 
+  onkeydown={(e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); commandOpen = true; }
+    if (e.key === '?' && !['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) { e.preventDefault(); shortcutsOpen = true; }
+  }}
+  ontouchstart={handleTouchStart}
+  ontouchmove={handleTouchMove}
+  ontouchend={handleTouchEnd}
+/>
 {#if loading}
   <div class="flex h-screen" in:fade={{ duration: 150 }}>
     <div class="hidden md:block w-64 bg-sidebar/80 p-4 space-y-4">

@@ -335,9 +335,9 @@
 
 <div class="space-y-4">
   <!-- Header -->
-  <div class="flex items-center justify-between">
-    <h1 class="text-xl font-semibold text-foreground">{resource.label}</h1>
-    <div class="flex items-center gap-2">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <h1 class="text-lg sm:text-xl font-semibold text-foreground">{resource.label}</h1>
+    <div class="flex flex-wrap items-center gap-2">
       {#if canExport}
         <Button variant="outline" size="sm" onclick={exportCSV}>
           <Download class="h-4 w-4" data-icon="inline-start" /> {t('common.export')}
@@ -723,11 +723,11 @@
 
   <!-- Pagination (shadcn) -->
   {#if totalPages > 0}
-  <div class="flex items-center justify-between text-sm text-muted-foreground">
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
     <div class="flex items-center gap-2">
       <span>{t('common.total', { total: query.data?.total ?? 0 })}</span>
       <Select
-        class="h-8 w-auto text-xs"
+        class="hidden sm:inline-block h-8 w-auto text-xs"
         value={String(pagination.pageSize ?? 10)}
         onchange={(e: Event) => {
           const size = Number((e.target as HTMLSelectElement).value);
