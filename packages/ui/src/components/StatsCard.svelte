@@ -57,7 +57,7 @@
       <Skeleton class="mt-1 h-7 w-20" />
     {:else}
       <div class="flex items-baseline gap-2">
-        <p class="text-xl font-semibold text-foreground">{value}</p>
+        <p class="text-xl font-mono font-semibold text-foreground tracking-tight">{value}</p>
         {#if trend}
           <span
             class="text-xs font-medium {trend.value >= 0 ? 'text-success' : 'text-destructive'}"

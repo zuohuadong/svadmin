@@ -58,7 +58,7 @@
       <Button variant="outline" size="sm" onclick={onSearchClick} class="gap-2 text-muted-foreground h-8 px-3">
         <Search class="h-3.5 w-3.5" />
         <span class="hidden sm:inline text-xs">Search...</span>
-        <kbd class="hidden sm:inline-flex items-center gap-0.5 rounded border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+        <kbd class="hidden sm:inline-flex items-center gap-0.5 rounded border bg-muted px-1.5 py-0.5 text-[10px] font-medium font-mono text-muted-foreground">
           <span class="text-xs">⌘</span>K
         </kbd>
       </Button>

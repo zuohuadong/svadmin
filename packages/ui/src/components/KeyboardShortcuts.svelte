@@ -48,7 +48,7 @@
                 <span class="text-sm text-foreground">{shortcut.label}</span>
                 <div class="flex items-center gap-1">
                   {#each shortcut.keys as key}
-                    <kbd class="inline-flex h-5 min-w-5 items-center justify-center rounded border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">{key}</kbd>
+                    <kbd class="inline-flex h-5 min-w-5 items-center justify-center rounded border bg-muted px-1.5 text-[10px] font-medium font-mono text-muted-foreground">{key}</kbd>
                   {/each}
                 </div>
               </div>

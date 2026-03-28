@@ -575,6 +575,8 @@
                                 value={cell.getValue()}
                                 onSave={() => listResult.query.refetch()}
                               />
+                            {:else if field?.key === primaryKey}
+                              <span class="font-mono text-xs">{cell.getValue() ?? '—'}</span>
                             {:else}
                               {cell.getValue() ?? '—'}
                             {/if}

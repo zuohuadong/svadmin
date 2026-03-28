@@ -35,7 +35,7 @@
           placeholder={t('common.search')}
           class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
         />
-        <kbd class="ml-2 text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">ESC</kbd>
+        <kbd class="ml-2 text-[10px] font-mono font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">ESC</kbd>
       </div>
       <Command.List class="max-h-[320px] overflow-y-auto overflow-x-hidden p-1">
         <Command.Empty class="py-6 text-center text-sm text-muted-foreground">
