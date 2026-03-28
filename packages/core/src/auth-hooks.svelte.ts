@@ -290,3 +290,61 @@ export function usePermissions<T = unknown>() {
     get error() { return error; },
   };
 }
+
+// ─── useHasPermission ────────────────────────────────────────
+
+/**
+ * Reactive permission checker — returns a closure that re-evaluates
+ * when the underlying permissions data changes.
+ *
+ * Works with Casbin-style permission arrays, Sets, or permission objects.
+ * The returned function is safe to use inside `$derived()` for reactive UI updates.
+ *
+ * @example
+ * ```svelte
+ * <script>
+ *   import { useHasPermission } from '@svadmin/core';
+ *
+ *   const hasPermission = useHasPermission();
+ *   // ✅ Reactive — UI updates when permissions finish loading
+ *   const canDelete = $derived(hasPermission('admin'));
+ *   const canExport = $derived(hasPermission('data:export'));
+ * </script>
+ *
+ * {#if canDelete}
+ *   <Button variant="destructive">Delete</Button>
+ * {/if}
+ * ```
+ */
+export function useHasPermission() {
+  const provider = getAuthProvider();
+  let permissions = $state<unknown>(null);
+  let loaded = $state(false);
+
+  if (provider?.getPermissions) {
+    provider.getPermissions().then(p => {
+      permissions = p;
+      loaded = true;
+    }).catch(err => {
+      console.warn('[svadmin] useHasPermission: getPermissions failed', err);
+      loaded = true;
+    });
+  } else {
+    loaded = true;
+  }
+
+  /**
+   * Check if the current user has a specific permission.
+   * Supports: `string[]`, `Set<string>`, `Record<string, boolean>`, or any object with `.includes` / `.has`.
+   */
+  function hasPermission(perm: string): boolean {
+    if (!loaded || permissions == null) return false;
+    if (Array.isArray(permissions)) return permissions.includes(perm);
+    if (permissions instanceof Set) return (permissions as Set<string>).has(perm);
+    if (typeof permissions === 'object') return !!(permissions as Record<string, boolean>)[perm];
+    return false;
+  }
+
+  return hasPermission;
+}
+

@@ -256,7 +256,7 @@
                 <Card.Title class="text-lg">{group.name}</Card.Title>
               </Card.Header>
             {/if}
-            <Card.Content class="space-y-5">
+            <Card.Content class="space-y-5 px-4 sm:px-6 pb-4 sm:pb-6 pt-0">
               {#each group.fields as field (field.key)}
                 <div class:border-destructive={!!fieldErrors[field.key]}>
                   {#if fieldRenderer}
@@ -278,7 +278,7 @@
         {/each}
       {:else}
         <Card.Root>
-          <Card.Content class="space-y-5">
+          <Card.Content class="space-y-5 px-4 sm:px-6 pb-4 sm:pb-6 pt-0">
             {#each formFields as field (field.key)}
               <div class:border-destructive={!!fieldErrors[field.key]}>
                 {#if fieldRenderer}

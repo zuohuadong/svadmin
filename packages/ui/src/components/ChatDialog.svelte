@@ -260,7 +260,7 @@
         tooltip={t('chat.title') || 'AI Assistant'}
         variant="default"
         size="icon"
-        class="fixed bottom-6 right-6 z-[9998] h-12 w-12 rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all bg-primary text-primary-foreground"
+        class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9998] h-12 w-12 rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all bg-primary text-primary-foreground"
         onclick={() => { open = true; minimized = false; }}
       >
         <MessageCircle class="h-5 w-5" />
@@ -276,9 +276,11 @@
   <!-- Chat Panel -->
   {#if open}
     <div
-      class="fixed bottom-6 right-6 z-[9998] flex flex-col rounded-2xl border bg-card shadow-2xl overflow-hidden"
-      class:w-[400px]={!minimized}
-      class:h-[560px]={!minimized}
+      class="fixed z-[9998] flex flex-col rounded-2xl border bg-card shadow-2xl overflow-hidden bottom-3 right-3 sm:bottom-6 sm:right-6"
+      class:w-[calc(100vw-1.5rem)]={!minimized}
+      class:sm:w-[400px]={!minimized}
+      class:h-[calc(100dvh-6rem)]={!minimized}
+      class:sm:h-[560px]={!minimized}
       class:w-[280px]={minimized}
       class:h-auto={minimized}
       transition:fly={{ y: 300, duration: 250 }}

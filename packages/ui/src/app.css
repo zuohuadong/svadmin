@@ -154,7 +154,16 @@ button:active:not(:disabled) {
   border-color: var(--color-primary);
 }
 
-/* Scrollbar styling */
+/* Base scrollbar styling (Firefox + Standard) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.8 0 0) transparent;
+}
+.dark * {
+  scrollbar-color: oklch(0.35 0 0) transparent;
+}
+
+/* Scrollbar styling (Webkit) */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: oklch(0.8 0 0); border-radius: 3px; }
@@ -166,9 +175,11 @@ button:active:not(:disabled) {
 [data-slot="card"] {
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
-[data-slot="card"]:hover {
-  box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 8px 24px -6px rgb(0 0 0 / 0.04);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  [data-slot="card"]:hover {
+    box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 8px 24px -6px rgb(0 0 0 / 0.04);
+    transform: translateY(-1px);
+  }
 }
 
 /* ② Table Row Hover — primary color tint instead of plain gray */
@@ -302,6 +313,13 @@ button:active:not(:disabled) {
   }
 }
 
+/* ⑫b Safe Area Inset — iPhone notch / Home Bar support */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  main {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 /* ⑫ Optimistic Delete — row fade-out visual feedback */
 @keyframes svadmin-row-delete {
   from {
@@ -370,6 +388,25 @@ main {
 [dir="rtl"] .md\:ml-16 {
   margin-left: 0;
   margin-right: 4rem;
+}
+
+/* ⑰ Accessibility Minimum Touch Target — Apple HIG 44px minimum */
+@media (max-width: 640px) and (pointer: coarse) {
+  [data-slot="button"] {
+    position: relative;
+  }
+  [data-slot="button"]::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 44px;
+    min-height: 44px;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
 }
 
 /* Tailwind CSS v4 — Map design tokens to utility classes */
