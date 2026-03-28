@@ -102,7 +102,7 @@
 </script>
 
 <div 
-  class="prose prose-sm dark:prose-invert max-w-none break-words {className}"
+  class="prose prose-sm dark:prose-invert max-w-none wrap-break-word {className}"
   class:streaming={streaming}
   use:enhanceCodeBlocks={html}
 >
