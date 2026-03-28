@@ -1,5 +1,75 @@
 # Changelog
 
+## [1.0.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.16.0...ui-v1.0.0) (2026-03-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core:** trigger major release for removed deprecated APIs
+
+### Features
+
+* **core,sso:** add AccessControlProvider, CASL/Casbin adapters, and @svadmin/sso OIDC plugin ([271e135](https://github.com/zuohuadong/svadmin/commit/271e135aead8c32cea080e807912a51dec9fb48e))
+* **core,ui,drizzle:** enterprise features sprint - useCan type fix, responsive table, field inference ([52c44b8](https://github.com/zuohuadong/svadmin/commit/52c44b84b363aad25ee866346fd6cb3208eb29d9))
+* **core,ui,lite:** add multi-level menu support with MenuItem type and recursive SidebarItem ([25603ae](https://github.com/zuohuadong/svadmin/commit/25603ae08ee576beda973ee3acfa43ff92cc1cea))
+* **core:** support dark-first theme mode and custom CSS token ([8311787](https://github.com/zuohuadong/svadmin/commit/8311787b62df1252492780c7df2f7549b25c5964))
+* **core:** support dark-first theme mode and custom CSS token override ([6526b58](https://github.com/zuohuadong/svadmin/commit/6526b58be3e61896101fa7faed6310f4a1bd3904))
+* svadmin — headless admin framework for Svelte 5 ([d67041a](https://github.com/zuohuadong/svadmin/commit/d67041a4b6aec77702b0490fe934d3207a88daac))
+* **ui:** add column visibility persistence, ARIA labels, frosted glass popovers, tooltip springs, smooth scroll ([30aaadc](https://github.com/zuohuadong/svadmin/commit/30aaadc0a9375d05784ff294c8e4e54ee38987d0))
+* **ui:** add component injection via Svelte Context DI ([0f2b765](https://github.com/zuohuadong/svadmin/commit/0f2b76539be91004150729d9690e94648f3fd1f6))
+* **ui:** add InlineEdit component, SVG chart suite (Bar/Line/Pie), and RTL layout support ([70290cf](https://github.com/zuohuadong/svadmin/commit/70290cf57f792898cb551551d9260eb3805f7e39))
+* **ui:** add premium SaaS enhancements batch 2 - AnimatedCounter, KeyboardShortcuts, breadcrumb crossfade, gradient cards, dark glow, row stagger, shake validation, reduced-motion, optimistic delete ([077856f](https://github.com/zuohuadong/svadmin/commit/077856f0cca2e8cb69e5491ebe6719c5baab2fdd))
+* **ui:** add VirtualTable, DraggableHeader, Storybook setup, and chart stories ([3a1a919](https://github.com/zuohuadong/svadmin/commit/3a1a919370b267c03cfb6ed43599a6bf18353d20))
+* **ui:** align basic views and buttons with refine.dev enterprise architecture ([fb40038](https://github.com/zuohuadong/svadmin/commit/fb4003832fd090831cd607fd25a58ecfbf8adadf))
+* **ui:** apply developer-native font-mono style to identifiers and shortcuts ([fdecbe3](https://github.com/zuohuadong/svadmin/commit/fdecbe3ae6f2dab25ddbf821a24eac648fbab574))
+* **ui:** enable full aria-* passthrough on TooltipButton ([4aa6c97](https://github.com/zuohuadong/svadmin/commit/4aa6c97f6fb35091d32b62bc7f249c360dcb32f7))
+* **ui:** enhance ChatDialog with context-awareness, persistence, and action buttons ([26b40f0](https://github.com/zuohuadong/svadmin/commit/26b40f015aad5ebf7db356091fe1895db4ffac02))
+* **ui:** enhance mobile layout and touch responsiveness ([4f1a6a2](https://github.com/zuohuadong/svadmin/commit/4f1a6a2a85c3272e69c592bec418d91d89eeb83a))
+* **ui:** extend component registry with more override slots ([fe6aab3](https://github.com/zuohuadong/svadmin/commit/fe6aab303354295c90b21373347b803d837a64df))
+* **ui:** implement comprehensive AI component library (Phase 1-4) ([35c94b5](https://github.com/zuohuadong/svadmin/commit/35c94b537727fc12adf0fc9a1d89ca77c8e5f4d4))
+* **ui:** integrate InlineEdit and DraggableHeader into AutoTable ([7dcadda](https://github.com/zuohuadong/svadmin/commit/7dcadda80365f9655ce9fec3316467b9889b4fa1))
+* **ui:** Sheet, Collapsible, 8 new components + 12 UI enhancements (v0.3.19-v0.3.22) ([58b0a57](https://github.com/zuohuadong/svadmin/commit/58b0a57e24f7caaa9cd5d445a4ada1b20edda261))
+* **ui:** upgrade design tokens to Shadcn New York style with Bunny Fonts CDN ([c6191c3](https://github.com/zuohuadong/svadmin/commit/c6191c3c180329c46b6b0b4deee657c2f6f7de2e))
+
+
+### Bug Fixes
+
+* align peerDependencies to ^0.5.0 and complete release-please extra-files ([35fca5a](https://github.com/zuohuadong/svadmin/commit/35fca5a4fa0c8a3284a4f763b46f969c0634459b))
+* **ci:** sync versions to 0.5.6 and add npm publish job to release workflow ([a209d20](https://github.com/zuohuadong/svadmin/commit/a209d20c01c7ae958a254f60bd04eccb3d096acf))
+* **core,ui:** resolve tanstack query v6 type errors and select element constraint ([30cc3ae](https://github.com/zuohuadong/svadmin/commit/30cc3ae3f2a6ebf2673465c87c5dcf74ad9e8cca))
+* **core:** resolve strict ts constraints across all data providers and stabilize tests ([028a2a6](https://github.com/zuohuadong/svadmin/commit/028a2a6205a9bbe2afd2db558546fb862a4a8bac))
+* **packages:** add repository URLs to all package.json for npm provenance ([e84978c](https://github.com/zuohuadong/svadmin/commit/e84978cda2d616d37caf388d48adf5315dfe6f13))
+* resolve code standards violations and add engineering config ([91b2c8a](https://github.com/zuohuadong/svadmin/commit/91b2c8a0c92b61223187b8e78900444188386cbf))
+* **ui:** adapt LoginPage to generic identifier and restore core index encoding ([ee849cf](https://github.com/zuohuadong/svadmin/commit/ee849cfceeaf0f1f5e0b8ae5a227628d9d8df1e5))
+* **ui:** add [@source](https://github.com/source) directives for Tailwind 4 auto-scanning of svadmin components ([cda5982](https://github.com/zuohuadong/svadmin/commit/cda5982afd545e17b588dfb4b1a73046a66560b7))
+* **ui:** add explicit element type generics to all WithElementRef usages ([0e15da6](https://github.com/zuohuadong/svadmin/commit/0e15da6dbcd2613f6dc59bac1cf90742bfd55130))
+* **ui:** add global border-color reset to app.css ([263f821](https://github.com/zuohuadong/svadmin/commit/263f821ea2afb51a7d6e79d32f2392011874693b))
+* **ui:** add global border-color reset to app.css ([00776d5](https://github.com/zuohuadong/svadmin/commit/00776d50e875c334ccf6f9fbfd6d4c16bcd2fe98))
+* **ui:** add Tailwind 4 [@theme](https://github.com/theme) inline mapping for design token utility classes ([ca3dd0e](https://github.com/zuohuadong/svadmin/commit/ca3dd0ef2bc20c4a746a8e278a08b8f0ece3e696))
+* **ui:** align @tanstack/svelte-query peerDependency to ^6.0.0 to fix bun resolution deadlock ([c0b99d7](https://github.com/zuohuadong/svadmin/commit/c0b99d772d15e81434afe0a4799c389c9ae8376e))
+* **ui:** apply shadcn New York style defaults across all components ([383aa5e](https://github.com/zuohuadong/svadmin/commit/383aa5e5eaa3ea357e0e80c2e0753790946e1bb1))
+* **ui:** auto-import design tokens CSS in AdminApp ([291c6d4](https://github.com/zuohuadong/svadmin/commit/291c6d4312e95452863fc8982ecf15a039ab5225))
+* **ui:** auto-import design tokens CSS in AdminApp to fix unstyled components ([ff7ff77](https://github.com/zuohuadong/svadmin/commit/ff7ff77fdd786270922c8222eb2e43f88ca77e4b))
+* **ui:** complete New York style audit - dialog, table-head, badge ([81d47ec](https://github.com/zuohuadong/svadmin/commit/81d47ec9a64f1a14867015c0ee497a6c61f42c88))
+* **ui:** dynamic sidebar roles and rbac for export/import buttons ([b6f8519](https://github.com/zuohuadong/svadmin/commit/b6f8519351e50518067fa866fa88131452c6208c))
+* **ui:** eliminate all 77 state_referenced_locally Svelte 5 warnings ([c30e1c0](https://github.com/zuohuadong/svadmin/commit/c30e1c08570d189843bacf2d903d7696e384f626))
+* **ui:** emulate new-york style shadows and radii in nova components ([cb9ff48](https://github.com/zuohuadong/svadmin/commit/cb9ff48eadbc7de5a43b905381df3585ab3033ae))
+* **ui:** highlight.js ESM compat + Tailwind v4 integration docs ([55469f4](https://github.com/zuohuadong/svadmin/commit/55469f4a97426277fd539da295c2fdd8c63afb73))
+* **ui:** remove [@source](https://github.com/source) directives that crash Tailwind v4 Vite plugin on svelte-sonner ([ab340c8](https://github.com/zuohuadong/svadmin/commit/ab340c8ab1b1aa6efd8a9a4b3cb5170b5563fd8d))
+* **ui:** remove style tags from Svelte components to fix Vite/Tailwind v4 parsing crashes ([0178f5a](https://github.com/zuohuadong/svadmin/commit/0178f5a0ba5ae7589c111cedb4951155e6d8fcce))
+* **ui:** resolve svelte 5 and typescript strict typing errors ([313478b](https://github.com/zuohuadong/svadmin/commit/313478bc5a95a6cf1d70212e62b21f0bd24fec28))
+* **ui:** resolve typography font loading and adjust badge styling ([c7a0c6b](https://github.com/zuohuadong/svadmin/commit/c7a0c6bea0d2ec36b3a926a547236dc254b9e6f1))
+* **ui:** sync auth state on route change & fix Svelte 5 store query crashing Dashboard ([623f394](https://github.com/zuohuadong/svadmin/commit/623f39458c47d6d00d5b8aeacf0feb0455852f6b))
+* **ui:** use [@theme](https://github.com/theme) instead of [@theme](https://github.com/theme) inline to preserve Tailwind defaults; add i18n keys ([052d436](https://github.com/zuohuadong/svadmin/commit/052d4368084c246ed92d06ebc8c945c4743ab0e1))
+* **ui:** use explicit bare package [@source](https://github.com/source) glob and fix font import order ([440e2a7](https://github.com/zuohuadong/svadmin/commit/440e2a72097b547f14ceab2122bc94d7e3528a13))
+* upgrade @tanstack/svelte-table to v9 for Svelte 5 compatibility ([b0be339](https://github.com/zuohuadong/svadmin/commit/b0be339b2689440c89851288015a4325dcb932e5))
+* **workspace:** resolve lingering strict mode TS compiler errors, restore StepsForm headless execution, and enforce workspace deps in example app ([afc7204](https://github.com/zuohuadong/svadmin/commit/afc7204bce8625d6b5dc8b47c86be4079fc38648))
+
+
+### Code Refactoring
+
+* **core:** trigger major release for removed deprecated APIs ([d84d348](https://github.com/zuohuadong/svadmin/commit/d84d34862d0151ac30b52dd4a9371f5f449a2e68))
+
 ## [0.16.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.15.0...ui-v0.16.0) (2026-03-28)
 
 
