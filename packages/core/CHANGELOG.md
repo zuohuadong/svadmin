@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/zuohuadong/svadmin/compare/core-v0.11.0...core-v0.12.0) (2026-03-28)
+
+
+### Features
+
+* **core:** add useHasPermission() reactive Rune closure ([4911d3b](https://github.com/zuohuadong/svadmin/commit/4911d3be9421a4a80b948717c755ed18c2279c8f))
+
 ## [0.11.0](https://github.com/zuohuadong/svadmin/compare/core-v0.10.0...core-v0.11.0) (2026-03-27)
 
 

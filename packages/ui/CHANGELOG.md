@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.15.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.14.0...ui-v0.15.0) (2026-03-28)
+
+
+### Features
+
+* **ui:** enable full aria-* passthrough on TooltipButton ([4aa6c97](https://github.com/zuohuadong/svadmin/commit/4aa6c97f6fb35091d32b62bc7f249c360dcb32f7))
+* **ui:** enhance mobile layout and touch responsiveness ([4f1a6a2](https://github.com/zuohuadong/svadmin/commit/4f1a6a2a85c3272e69c592bec418d91d89eeb83a))
+
+
+### Bug Fixes
+
+* **ui:** highlight.js ESM compat + Tailwind v4 integration docs ([55469f4](https://github.com/zuohuadong/svadmin/commit/55469f4a97426277fd539da295c2fdd8c63afb73))
+
 ## [0.14.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.13.0...ui-v0.14.0) (2026-03-27)
 
 
