@@ -96,7 +96,8 @@ svadmin 是编译时 admin 框架 — 无虚拟 DOM、无运行时 diff，直接
 |------|-----------|-----------|----------------|
 | AI 聊天集成 | ✅ ChatProvider（流式 + 非流式） | ❌ | ❌ |
 | 管理上下文注入 | ✅ ChatContext 自动传递当前资源/视图 | ❌ | ❌ |
-| 工具调用操作 | ✅ ChatAction 按钮 | ❌ | ❌ |
+| 工具调用 + 审批门控 | ✅ AgentProvider + AdminTool + needsApproval | ❌ | ❌ |
+| 命令面板 AI 模式 | ✅ ⌘K 自然语言查询 | ❌ | ❌ |
 | 字段推断 | ✅ 样本数据 + OpenAPI 双引擎 | ✅ 样本数据 | ❌ |
 | Agent 友好脚手架 | ✅ `AGENTS.md` 内置 | ❌ | ❌ |
 | MCP 数据网关 | 🟡 规划中 `@svadmin/mcp` | ❌ | ❌ |

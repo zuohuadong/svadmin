@@ -96,8 +96,8 @@ svadmin is a compile-time admin framework — no virtual DOM, no runtime diffing
 |---------|-----------|-----------|----------------|
 | AI chat integration | ✅ ChatProvider (streaming + sync) | ❌ | ❌ |
 | Admin context injection | ✅ ChatContext auto-injects resource/view | ❌ | ❌ |
-| Tool calling | ✅ AgentProvider + AdminTool | ❌ | ❌ |
-| Approval gates | ✅ needsApproval + resolveApproval | ❌ | ❌ |
+| Tool calling + approval gates | ✅ AgentProvider + AdminTool + needsApproval | ❌ | ❌ |
+| Command palette AI mode | ✅ ⌘K natural language query | ❌ | ❌ |
 | Field inference | ✅ Sample data + OpenAPI dual-engine | ✅ Sample data | ❌ |
 | Agent-ready scaffolding | ✅ `AGENTS.md` built-in | ❌ | ❌ |
 | MCP data gateway | 🟡 Planned `@svadmin/mcp` | ❌ | ❌ |
