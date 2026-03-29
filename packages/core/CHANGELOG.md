@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.0](https://github.com/zuohuadong/svadmin/compare/core-v0.16.0...core-v0.17.0) (2026-03-29)
+
+
+### Features
+
+* **core:** add AgentProvider with tool calling, approval gates, and generative UI events ([40f6952](https://github.com/zuohuadong/svadmin/commit/40f6952c9f04aecac0ea833bb0205f82cc4da30d))
+* implement FieldRenderer component and initialize rich text editor package with modular toolbar and extension support ([3d99335](https://github.com/zuohuadong/svadmin/commit/3d993350c9a2b476d51bd49e9d83bcd664b6aad6))
+
 ## [0.16.0](https://github.com/zuohuadong/svadmin/compare/core-v0.15.0...core-v0.16.0) (2026-03-29)
 
 

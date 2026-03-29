@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.20.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.19.0...ui-v0.20.0) (2026-03-29)
+
+
+### Features
+
+* implement FieldRenderer component and initialize rich text editor package with modular toolbar and extension support ([3d99335](https://github.com/zuohuadong/svadmin/commit/3d993350c9a2b476d51bd49e9d83bcd664b6aad6))
+* **ui:** wire AgentProvider into ChatDialog and CommandPalette with AI mode ([fc466a6](https://github.com/zuohuadong/svadmin/commit/fc466a60cf193628134a8d5f3aa42cc39af9e813))
+
+
+### Bug Fixes
+
+* **ui:** add missing DraggableHeader import in AutoTable ([4b2555b](https://github.com/zuohuadong/svadmin/commit/4b2555b6da3c01a23c22d64d1b23a456d516c363))
+* **ui:** add missing DraggableHeader import in AutoTable ([7917e3b](https://github.com/zuohuadong/svadmin/commit/7917e3bc0c9dca00b097c43aa76681b94178cb16))
+
 ## [0.19.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.18.0...ui-v0.19.0) (2026-03-29)
 
 
