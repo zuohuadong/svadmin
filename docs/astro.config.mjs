@@ -15,6 +15,7 @@ export default defineConfig({
         starlightImageZoom(),
         starlightLinksValidator(),
       ],
+      customCss: ['./src/styles/custom.css'],
       title: 'svadmin',
       description: 'Headless admin framework for Svelte 5',
       head: [
