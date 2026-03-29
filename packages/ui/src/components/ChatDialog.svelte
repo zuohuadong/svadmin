@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { getChatProvider, getChatContext, setChatContext } from '@svadmin/core';
-  import type { ChatMessage, ChatAction } from '@svadmin/core';
+  import { getChatProvider, getChatContext, setChatContext, getAgentProvider, registerApproval, resolveApproval } from '@svadmin/core';
+  import type { ChatMessage, ChatAction, AgentEvent } from '@svadmin/core';
   import { t } from '@svadmin/core/i18n';
   import { useParsed } from '@svadmin/core';
   import { fly, fade, scale } from 'svelte/transition';
   import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
-  import { MessageCircle, X, Minus, Send, Loader2, Bot, Trash2 } from 'lucide-svelte';
+  import { MessageCircle, X, Minus, Send, Loader2, Bot, Trash2, ShieldCheck, ShieldX, Wrench, LayoutDashboard } from 'lucide-svelte';
 
   interface Props {
     /** localStorage key for chat history persistence. Set to '' to disable. */
@@ -37,7 +37,11 @@
   let initialized = $state(false);
 
   const provider = $derived(getChatProvider());
+  const agent = $derived(getAgentProvider());
   const parsed = useParsed();
+
+  /** Track pending approval requests for UI rendering */
+  let pendingApprovalIds = $state<string[]>([]);
 
   // ─── Auto-update ChatContext from current route ─────────────
   $effect(() => {
@@ -125,7 +129,7 @@
   }
 
   async function sendMessage() {
-    if (!inputValue.trim() || isStreaming || !provider) return;
+    if (!inputValue.trim() || isStreaming || (!provider && !agent)) return;
 
     const userMsg: ChatMessage = {
       id: genId(),
@@ -157,24 +161,93 @@
       const allMessages = messages.filter((m) => m.content);
       const messagesToSend = contextMsg ? [contextMsg, ...allMessages] : allMessages;
 
-      const result = provider.sendMessage(
-        messagesToSend,
-        { signal: abortController.signal },
-      );
+      if (agent) {
+        // ─── AgentProvider path: typed event stream ─────────
+        const stream = agent.chat(messagesToSend, {
+          signal: abortController.signal,
+          context: getChatContext(),
+        });
 
-      if (result && typeof result === 'object' && Symbol.asyncIterator in result) {
-        // Streaming response
-        for await (const chunk of result as AsyncGenerator<string>) {
-          assistantMsg.content += chunk;
+        const collectedActions: ChatAction[] = [];
+
+        for await (const event of stream) {
+          switch (event.type) {
+            case 'text':
+              assistantMsg.content += event.content;
+              messages = [...messages.slice(0, -1), { ...assistantMsg }];
+              scrollToBottom();
+              break;
+
+            case 'tool_call':
+              assistantMsg.content += `\n🔧 *${event.tool}*(${JSON.stringify(event.args)})`;
+              messages = [...messages.slice(0, -1), { ...assistantMsg }];
+              scrollToBottom();
+              break;
+
+            case 'tool_result':
+              if (event.result.success) {
+                assistantMsg.content += `\n✅ ${event.tool} completed`;
+              } else {
+                assistantMsg.content += `\n❌ ${event.tool} failed: ${event.result.error ?? 'Unknown error'}`;
+              }
+              messages = [...messages.slice(0, -1), { ...assistantMsg }];
+              scrollToBottom();
+              break;
+
+            case 'approval_request': {
+              // Register in the core approval system
+              const reqId = event.id;
+              pendingApprovalIds = [...pendingApprovalIds, reqId];
+
+              collectedActions.push(
+                {
+                  label: `✅ ${t('common.confirm') || 'Approve'}: ${event.description}`,
+                  variant: 'default',
+                  payload: { approvalId: reqId, approved: true },
+                },
+                {
+                  label: `❌ ${t('common.cancel') || 'Reject'}`,
+                  variant: 'destructive',
+                  payload: { approvalId: reqId, approved: false },
+                },
+              );
+
+              assistantMsg.content += `\n⚠️ **${t('chat.approvalRequired') || 'Approval required'}**: ${event.description}`;
+              assistantMsg.actions = [...collectedActions];
+              messages = [...messages.slice(0, -1), { ...assistantMsg }];
+              scrollToBottom();
+              break;
+            }
+
+            case 'component':
+              assistantMsg.content += `\n📊 [${event.name}]`;
+              messages = [...messages.slice(0, -1), { ...assistantMsg }];
+              scrollToBottom();
+              break;
+
+            case 'done':
+              break;
+          }
+        }
+      } else if (provider) {
+        // ─── ChatProvider path: raw text stream ─────────────
+        const result = provider.sendMessage(
+          messagesToSend,
+          { signal: abortController.signal },
+        );
+
+        if (result && typeof result === 'object' && Symbol.asyncIterator in result) {
+          for await (const chunk of result as AsyncGenerator<string>) {
+            assistantMsg.content += chunk;
+            messages = [...messages.slice(0, -1), { ...assistantMsg }];
+            scrollToBottom();
+          }
+        } else {
+          const text = await (result as Promise<string>);
+          assistantMsg.content = text;
           messages = [...messages.slice(0, -1), { ...assistantMsg }];
           scrollToBottom();
         }
-      } else {
-        // Non-streaming response
-        const text = await (result as Promise<string>);
-        assistantMsg.content = text;
-        messages = [...messages.slice(0, -1), { ...assistantMsg }];
-        scrollToBottom();
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return;
@@ -228,6 +301,17 @@
   }
 
   function handleAction(action: ChatAction, msg: ChatMessage) {
+    // Handle approval actions from AgentProvider
+    if (action.payload?.approvalId) {
+      const id = action.payload.approvalId as string;
+      const approved = action.payload.approved as boolean;
+      resolveApproval(id, approved);
+      pendingApprovalIds = pendingApprovalIds.filter(pid => pid !== id);
+      // Remove action buttons after resolution
+      msg.actions = undefined;
+      messages = [...messages];
+      return;
+    }
     if (onAction) {
       onAction(action, msg);
     }
@@ -252,7 +336,7 @@
 
 <svelte:window onkeydown={handleGlobalKeydown} />
 
-{#if provider}
+{#if provider || agent}
   <!-- FAB Button -->
   {#if !open}
     <div transition:scale={{ duration: 200 }}>

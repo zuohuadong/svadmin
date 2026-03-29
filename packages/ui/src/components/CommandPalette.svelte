@@ -1,16 +1,23 @@
 <script lang="ts">
-  import { getResources } from '@svadmin/core';
+  import { getResources, getAgentProvider, getChatProvider } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
   import { t } from '@svadmin/core/i18n';
   import { toggleTheme } from '@svadmin/core';
   import { Command } from 'cmdk-sv';
   import * as Dialog from './ui/dialog/index.js';
-  import { Search, LayoutDashboard, Plus, Sun, FileText } from 'lucide-svelte';
+  import { Search, LayoutDashboard, Plus, Sun, FileText, Bot, Sparkles } from 'lucide-svelte';
 
-  let { open = $bindable(false) } = $props<{ open?: boolean }>();
+  interface Props {
+    open?: boolean;
+    /** Callback fired when user selects "Ask AI" with a query string */
+    onAskAI?: (query: string) => void;
+  }
+
+  let { open = $bindable(false), onAskAI }: Props = $props();
   let searchValue = $state('');
 
   const resources = getResources();
+  const hasAI = $derived(!!(getAgentProvider() || getChatProvider()));
 
   function close() {
     open = false;
@@ -19,6 +26,14 @@
 
   function act(fn: () => void) {
     fn();
+    close();
+  }
+
+  function askAI() {
+    const query = searchValue.trim();
+    if (onAskAI && query) {
+      onAskAI(query);
+    }
     close();
   }
 
@@ -32,15 +47,41 @@
         <Search class="mr-2 h-4 w-4 shrink-0 opacity-50" />
         <Command.Input
           bind:value={searchValue}
-          placeholder={t('common.search')}
+          placeholder={hasAI ? (t('commandPalette.searchOrAsk') || 'Search or ask AI...') : t('common.search')}
           class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
         />
         <kbd class="ml-2 text-[10px] font-mono font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">ESC</kbd>
       </div>
       <Command.List class="max-h-[320px] overflow-y-auto overflow-x-hidden p-1">
         <Command.Empty class="py-6 text-center text-sm text-muted-foreground">
-          {t('common.noData')}
+          {#if hasAI && searchValue.trim()}
+            <button
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer text-sm font-medium"
+              onclick={askAI}
+            >
+              <Sparkles class="h-3.5 w-3.5" />
+              {t('commandPalette.askAI') || 'Ask AI'}: "{searchValue.trim()}"
+            </button>
+          {:else}
+            {t('common.noData')}
+          {/if}
         </Command.Empty>
+
+        <!-- AI -->
+        {#if hasAI && searchValue.trim()}
+          <Command.Group heading="AI">
+            <Command.Item
+              value="ask-ai-{searchValue}"
+              onSelect={askAI}
+              class={itemClass}
+            >
+              <Sparkles class="h-4 w-4 text-primary" />
+              <span class="text-primary font-medium">{t('commandPalette.askAI') || 'Ask AI'}</span>
+              <span class="text-muted-foreground truncate ml-1">"{searchValue.trim()}"</span>
+            </Command.Item>
+          </Command.Group>
+          <Command.Separator class="mx-1 my-1 h-px bg-border" />
+        {/if}
 
         <!-- Navigation -->
         <Command.Group heading={t('common.home')}>
@@ -91,3 +132,4 @@
     </Command.Root>
   </Dialog.DialogContent>
 </Dialog.Dialog>
+

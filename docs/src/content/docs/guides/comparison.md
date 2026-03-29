@@ -90,6 +90,21 @@ svadmin is a compile-time admin framework — no virtual DOM, no runtime diffing
 | Overtime tracking | ✅ Built-in hooks | ❌ | ❌ |
 | Steps form | ✅ `useStepsForm` | ✅ | ❌ |
 
+### AI & Intelligence
+
+| Feature | **svadmin** | **Refine** | **React Admin** |
+|---------|-----------|-----------|----------------|
+| AI chat integration | ✅ ChatProvider (streaming + sync) | ❌ | ❌ |
+| Admin context injection | ✅ ChatContext auto-injects resource/view | ❌ | ❌ |
+| Tool calling | ✅ AgentProvider + AdminTool | ❌ | ❌ |
+| Approval gates | ✅ needsApproval + resolveApproval | ❌ | ❌ |
+| Field inference | ✅ Sample data + OpenAPI dual-engine | ✅ Sample data | ❌ |
+| Agent-ready scaffolding | ✅ `AGENTS.md` built-in | ❌ | ❌ |
+| MCP data gateway | 🟡 Planned `@svadmin/mcp` | ❌ | ❌ |
+| AI code generation | ❌ | ✅ Refine AI Agent (commercial) | ❌ |
+
+> **Positioning**: Refine focuses on “AI writes your Admin” (dev-time AI); svadmin focuses on “AI built into your Admin” (runtime AI). Both are valid, but runtime AI delivers direct value to end users.
+
 ## When to Choose svadmin
 
 - **You want maximum performance** — No virtual DOM, no runtime diffing. Svelte compiles components to direct DOM operations at build time, resulting in faster initial render, lower memory usage, and zero framework overhead at runtime
@@ -99,6 +114,7 @@ svadmin is a compile-time admin framework — no virtual DOM, no runtime diffing
 - **You want full type safety** — ResourceTypeMap + Elysia/Drizzle inference
 - **Bundle size matters** — Svelte's compiled output is significantly smaller than React's runtime + virtual DOM
 - **You need fine-grained reactivity** — Svelte 5 runes update only the exact DOM nodes that changed, unlike React which re-renders entire component subtrees
+- **You want AI built into your admin** — ChatProvider + AgentProvider with tool calling, approval gates, and streaming out of the box
 
 ## When to Choose Refine
 
