@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/zuohuadong/svadmin/compare/core-v0.14.0...core-v0.15.0) (2026-03-29)
+
+
+### Features
+
+* **ui:** add Settings Hub with profile, appearance, and system info pages ([a1b284d](https://github.com/zuohuadong/svadmin/commit/a1b284d613ffe20234e05f2df7c052c9fd1fac00))
+
 ## [0.14.0](https://github.com/zuohuadong/svadmin/compare/core-v0.13.0...core-v0.14.0) (2026-03-28)
 
 
