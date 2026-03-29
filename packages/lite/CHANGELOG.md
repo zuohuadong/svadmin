@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/zuohuadong/svadmin/compare/lite-v0.2.0...lite-v0.2.1) (2026-03-29)
+
+
+### Bug Fixes
+
+* **lite:** add publishConfig to allow OIDC publishing for new scoped package ([24743f1](https://github.com/zuohuadong/svadmin/commit/24743f1403d54351c482dc8e5a7c07d8c8889b17))
+
 ## [0.2.0](https://github.com/zuohuadong/svadmin/compare/lite-v0.1.0...lite-v0.2.0) (2026-03-29)
 
 
