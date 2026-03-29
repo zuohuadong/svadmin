@@ -69,15 +69,15 @@ export function useTable<
 
   const querySorters = $derived(sortersMode === 'server' ? effectiveSorters : []);
   const queryFilters = $derived(filtersMode === 'server' ? effectiveFilters : []);
-  const queryPagination = paginationMode === 'server'
+  const queryPagination = $derived(paginationMode === 'server'
     ? pagination
-    : { current: 1, pageSize: 999999, mode: paginationMode as 'client' | 'off' };
+    : { current: 1, pageSize: 999999, mode: paginationMode as 'client' | 'off' });
 
   const tableQueryInfo = useList<TQueryFnData, TError>({
     resource,
-    pagination: queryPagination,
-    sorters: querySorters,
-    filters: queryFilters,
+    get pagination() { return queryPagination; },
+    get sorters() { return querySorters; },
+    get filters() { return queryFilters; },
     meta,
     dataProviderName,
     ...restOptions

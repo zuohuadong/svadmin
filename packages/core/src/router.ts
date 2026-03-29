@@ -53,9 +53,9 @@ export function matchRoute(
 /**
  * Navigate to a path. Uses RouterProvider if available, falls back to hash.
  */
-export function navigate(path: string): void {
+export function navigate(path: string, options?: { replaceState?: boolean }): void {
   if (_routerProvider) {
-    _routerProvider.go({ to: path });
+    _routerProvider.go({ to: path, type: options?.replaceState ? 'replace' : 'push' });
   } else {
     window.location.hash = '#' + path.replace(/^#/, '');
   }

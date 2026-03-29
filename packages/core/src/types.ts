@@ -364,7 +364,7 @@ export interface FieldDefinition {
  */
 export interface ResourceTypeMap {}
 
-/** When ResourceTypeMap is empty → string (backward compatible); otherwise → registered keys */
+/** When ResourceTypeMap is empty → string; otherwise → registered keys */
 export type KnownResources = keyof ResourceTypeMap extends never
   ? string
   : Extract<keyof ResourceTypeMap, string>

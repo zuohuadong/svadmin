@@ -8,7 +8,7 @@ import type { RouterProvider } from './router-provider';
 
 /**
  * Accepts either:
- *   - A single DataProvider (backwards compatible)
+ *   - A single DataProvider
  *   - A record of named providers: { default: rest, cms: graphql }
  */
 export type DataProviderInput = DataProvider | Record<string, DataProvider>;

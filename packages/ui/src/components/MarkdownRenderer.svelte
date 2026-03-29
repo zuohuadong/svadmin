@@ -1,13 +1,9 @@
 <script lang="ts">
-  // @ts-expect-error - missing types
   import { Marked } from "marked";
-  // @ts-expect-error - missing types
   import { markedHighlight } from "marked-highlight";
-  // @ts-expect-error - missing types
   import * as hljsModule from "highlight.js";
   const hljs = "default" in hljsModule ? hljsModule.default : hljsModule;
   import "highlight.js/styles/github-dark.css"; // or your preferred theme
-  // @ts-expect-error - missing types
   import DOMPurify from "isomorphic-dompurify";
   import { Check, Copy } from "lucide-svelte";
   import { Button } from "./ui/button/index.js";

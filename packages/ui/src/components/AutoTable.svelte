@@ -13,7 +13,7 @@
   import { useList, useDelete, getResource } from '@svadmin/core';
   import type { Pagination as PaginationState, Sort, Filter, FieldDefinition } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
-  import { canAccess } from '@svadmin/core/permissions';
+  import { useCan } from '@svadmin/core';
   import { readURLState, writeURLState } from '@svadmin/core';
   import { t } from '@svadmin/core/i18n';
   import { fade } from 'svelte/transition';
@@ -136,10 +136,14 @@
   const deleteMutation = deleteResult.mutation;
 
   // ─── Permissions ──────────────────────────────────────────────
-  const canCreate = $derived(canAccess(resourceName, 'create').can && resource.canCreate !== false);
-  const canEdit = $derived(canAccess(resourceName, 'edit').can && resource.canEdit !== false);
-  const canDelete = $derived(canAccess(resourceName, 'delete').can && resource.canDelete !== false);
-  const canExport = $derived(canAccess(resourceName, 'export').can);
+  const canCreatePerm = useCan(() => ({ resource: resourceName, action: 'create' }));
+  const canEditPerm = useCan(() => ({ resource: resourceName, action: 'edit' }));
+  const canDeletePerm = useCan(() => ({ resource: resourceName, action: 'delete' }));
+  const canExportPerm = useCan(() => ({ resource: resourceName, action: 'export' }));
+  const canCreate = $derived(canCreatePerm.allowed && resource.canCreate !== false);
+  const canEdit = $derived(canEditPerm.allowed && resource.canEdit !== false);
+  const canDelete = $derived(canDeletePerm.allowed && resource.canDelete !== false);
+  const canExport = $derived(canExportPerm.allowed);
 
   // ─── TanStack Table state ────────────────────────────────────
   let sorting = $state<SortingState>(untrack(() =>

@@ -75,7 +75,7 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
   });
 
   $effect(() => {
-    if (query.isSuccess) {
+    if (query.isSuccess && options.successNotification) {
       fireSuccessNotification(options.successNotification, '', query.data, undefined, resource);
     } else if (query.isError) {
       fireErrorNotification(options.errorNotification, 'Fetch failed', query.error);
