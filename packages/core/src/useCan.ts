@@ -22,48 +22,28 @@ export interface UseCanResult {
 
 /**
  * Reactive permission check backed by TanStack Query for caching and deduplication.
+ * Accepts a getter function for Svelte 5 fine-grained reactivity.
  *
  * @example
  * ```ts
- * // Simple usage (backward compatible)
- * const can = useCan('posts', 'delete');
+ * const can = useCan(() => ({ resource: 'posts', action: 'delete', params: { id: 1 } }));
  * if (can.allowed) { ... }
- *
- * // With options object
- * const can = useCan({ resource: 'posts', action: 'delete', params: { id: 1 } });
  * ```
  */
-export function useCan(
-  resourceOrOptions: string | UseCanOptions | (() => UseCanOptions),
-  action?: Action,
-  params?: Record<string, unknown>
-): UseCanResult {
-  const getOptions = (): UseCanOptions => {
-    if (typeof resourceOrOptions === 'function') {
-      return resourceOrOptions();
-    }
-    if (typeof resourceOrOptions === 'string') {
-      return { resource: resourceOrOptions, action: action ?? 'list', params };
-    }
-    return resourceOrOptions;
-  };
-
-  // @tanstack/svelte-query v6 Accessor pattern
+export function useCan(options: () => UseCanOptions): UseCanResult {
   const query = createQuery<CanResult>(() => {
-    const options = getOptions();
+    const opts = options();
     return {
-      queryKey: ['useCan', options.resource, options.action, options.params] as const,
-      queryFn: () => canAccessAsync(options.resource, options.action, options.params),
-      enabled: options.queryOptions?.enabled ?? true,
-      staleTime: options.queryOptions?.staleTime ?? 5 * 60 * 1000, // 5 min default cache
+      queryKey: ['useCan', opts.resource, opts.action, opts.params] as const,
+      queryFn: () => canAccessAsync(opts.resource, opts.action, opts.params),
+      enabled: opts.queryOptions?.enabled ?? true,
+      staleTime: opts.queryOptions?.staleTime ?? 5 * 60 * 1000,
     };
   });
 
-  // Access via query store — use safe property access with fallbacks
   return {
     get allowed() { return (query.data as CanResult | undefined)?.can ?? true; },
     get reason() { return (query.data as CanResult | undefined)?.reason; },
     get isLoading() { return query.isLoading; },
   };
 }
-

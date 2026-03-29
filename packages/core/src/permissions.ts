@@ -73,17 +73,7 @@ export function getAccessControlOptions() {
 }
 
 /**
- * Synchronous access check. Returns `{ can: true }` if no provider is set.
- * When a provider is registered, this warns since provider.can() is always async.
- */
-export function canAccess(resource: string, action: Action, params?: Record<string, unknown>): CanResult {
-  if (!provider) return { can: true };
-  console.warn('[permissions] canAccess called synchronously but provider.can() is async. Defaulting to { can: true }. Use canAccessAsync() instead.');
-  return { can: true };
-}
-
-/**
- * Async access check. Preferred over `canAccess()`.
+ * Async access check. Returns `{ can: true }` if no provider is registered.
  */
 export async function canAccessAsync(resource: string, action: Action, params?: Record<string, unknown>): Promise<CanResult> {
   if (!provider) return { can: true };

@@ -1,6 +1,6 @@
 // Unit tests for permissions module
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { setAccessControlProvider, getAccessControlProvider, getAccessControlOptions, canAccess, canAccessAsync } from './permissions';
+import { setAccessControlProvider, getAccessControlProvider, getAccessControlOptions, canAccessAsync } from './permissions';
 import type { Action, AccessControlProvider } from './permissions';
 
 describe('permissions', () => {
@@ -9,12 +9,6 @@ describe('permissions', () => {
     setAccessControlProvider({
       can: async () => ({ can: true }),
     });
-  });
-
-  test('canAccess returns { can: true } when provider is async (warns)', () => {
-    // canAccess is sync but provider.can() is async — should default to { can: true }
-    const result = canAccess('posts', 'list' as Action);
-    expect(result.can).toBe(true);
   });
 
   test('canAccessAsync respects deny rule', async () => {

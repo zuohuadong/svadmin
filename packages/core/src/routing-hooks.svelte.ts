@@ -42,7 +42,6 @@ export function useGo() {
     if (routerProvider?.go) {
       routerProvider.go({ to: targetUrl, type: options.type });
     } else {
-      // @ts-expect-error SvelteKit / internal navigate might only take 1 arg or options obj
       navigate(targetUrl, options.type === 'replace' ? { replaceState: true } : undefined);
     }
   };

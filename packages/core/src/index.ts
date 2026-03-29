@@ -27,7 +27,7 @@ export {
 } from './hooks.svelte';
 export { matchRoute, navigate, currentPath, setActiveRouterProvider } from './router';
 export { readURLState, writeURLState } from './url-sync';
-export { setAccessControlProvider, getAccessControlProvider, getAccessControlOptions, canAccess, canAccessAsync } from './permissions';
+export { setAccessControlProvider, getAccessControlProvider, getAccessControlOptions, canAccessAsync } from './permissions';
 export { useLive, useSubscription, usePublish } from './live.svelte';
 export { toast } from './toast.svelte';
 export { notify, closeNotification, setNotificationProvider, getNotificationProvider } from './notification.svelte';

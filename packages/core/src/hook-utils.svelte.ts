@@ -97,6 +97,7 @@ export function fireSuccessNotification(
   resource?: string,
 ): void {
   if (config === false) return;
+  if (!config && !defaultMessage) return;
   if (typeof config === 'function') {
     const result = config(data, values, resource);
     toast.success(result.message);

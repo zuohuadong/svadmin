@@ -125,8 +125,8 @@ export interface UseFormReturn<
   readonly autoSave: { status: 'idle' | 'saving' | 'saved' | 'error'; data: unknown; error: unknown };
 
   // ─── Raw query/mutation (escape hatch) ────────────────────────
-  readonly query: ReturnType<typeof createQuery> | null;
-  readonly mutation: ReturnType<typeof createMutation>;
+  readonly query: unknown;
+  readonly mutation: unknown;
 }
 
 // ─── Implementation ──────────────────────────────────────────────────
@@ -423,6 +423,6 @@ export function useForm<
 
     // Raw escape hatches
     query,
-    mutation: (action === 'edit' ? updateMut : createMut) as unknown as ReturnType<typeof createMutation>,
+    mutation: action === 'edit' ? updateMut : createMut,
   };
 }
