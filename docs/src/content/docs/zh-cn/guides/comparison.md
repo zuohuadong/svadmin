@@ -100,7 +100,7 @@ svadmin 是编译时 admin 框架 — 无虚拟 DOM、无运行时 diff，直接
 | 命令面板 AI 模式 | ✅ ⌘K 自然语言查询 | ❌ | ❌ |
 | 字段推断 | ✅ 样本数据 + OpenAPI 双引擎 | ✅ 样本数据 | ❌ |
 | Agent 友好脚手架 | ✅ `AGENTS.md` 内置 | ❌ | ❌ |
-| MCP 数据网关 | 🟡 规划中 `@svadmin/mcp` | ❌ | ❌ |
+| MCP 数据网关 | ✅ `@svadmin/mcp` | ❌ | ❌ |
 | AI 代码生成器 | ❌ | ✅ Refine AI Agent（商业产品） | ❌ |
 
 > **定位差异**：Refine 侧重「AI 帮你写 Admin」（开发时 AI）；svadmin 侧重「Admin 里内置 AI」（运行时 AI）。两者互不冲突，但运行时 AI 对终端用户的价值更直接。
