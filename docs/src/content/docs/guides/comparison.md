@@ -53,6 +53,7 @@ svadmin is a compile-time admin framework — no virtual DOM, no runtime diffing
 | SSO (OIDC/OAuth2) | ✅ `@svadmin/sso` plugin | ✅ Enterprise (paid) | ❌ No |
 | Router agnostic | ✅ Hash / SvelteKit | ✅ React Router / Next | ✅ React Router |
 | i18n | ✅ | ✅ | ✅ |
+| Zero-JS / IE11 Fallback | ✅ `@svadmin/lite` (SSR) | ❌ Hydration Required | ❌ Hydration Required |
 
 ### Data & Mutations
 
@@ -71,10 +72,13 @@ svadmin is a compile-time admin framework — no virtual DOM, no runtime diffing
 |---------|-----------|-----------|----------------|
 | AutoTable | ✅ Zero-config | ❌ DIY | ✅ `<DataGrid>` |
 | AutoForm | ✅ Zero-config | ❌ DIY | ✅ `<SimpleForm>` |
-| Field components | 16 types | UI kit dependent | 20+ types |
+| Field components | 16 types (incl ArrayField) | UI kit dependent | 20+ types |
 | Dark mode | ✅ 7 themes | UI kit dependent | ✅ |
 | Glassmorphism | ✅ Auth pages | ❌ | ❌ |
 | Command palette | ✅ Built-in | ❌ | ❌ |
+| 3D Permission Matrix | ✅ Free Enterprise Component | ❌ Official unspecified | ❌ DIY |
+| Audit Log Diff Viewer | ✅ Free Enterprise Component | ✅ Paid feature | ❌ DIY |
+| Zero-refresh Tenant Switch | ✅ Free Enterprise Component | ❌ DIY | ❌ DIY |
 
 ### Developer Experience
 
