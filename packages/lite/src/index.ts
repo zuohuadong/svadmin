@@ -52,3 +52,9 @@ export * from './components/pages/index';
 
 // Layout & Navigation
 export * from './components/layout/index';
+
+// Advanced UX (gracefully degraded)
+export * from './components/advanced/index';
+
+// Widgets & Charts (SSR static alternatives)
+export * from './components/widgets/index';
