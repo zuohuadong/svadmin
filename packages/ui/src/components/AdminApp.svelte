@@ -6,6 +6,7 @@
   import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme, setRouterProvider, getAuthProvider, createHashRouterProvider, configureTheme } from '@svadmin/core';
   import { t } from '@svadmin/core/i18n';
   import { navigate } from '@svadmin/core/router';
+  import { currentPath } from '@svadmin/core/router';
   import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
   import { setComponentRegistry, type ComponentRegistry } from '../component-registry.svelte.js';
   import Layout from './Layout.svelte';
@@ -21,6 +22,7 @@
   import DevTools from './DevTools.svelte';
   import Sidebar from './Sidebar.svelte';
   import Header from './Header.svelte';
+  import SettingsPage from './SettingsPage.svelte';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
   import { Badge } from './ui/badge/index.js';
@@ -149,7 +151,9 @@
     <Layout {title} {menu}>
       {#key route + (params.resource ?? '') + (params.id ?? '')}
       <div class="svadmin-page-enter">
-      {#if route === '/'}
+      {#if currentPath().startsWith('/settings')}
+        <SettingsPage />
+      {:else if route === '/' || route === ''}
         {#if dashboard}
           {@render dashboard()}
         {:else}

@@ -59,6 +59,9 @@ export { default as KeyboardShortcuts } from "./components/KeyboardShortcuts.sve
 export { default as InlineEdit } from "./components/InlineEdit.svelte";
 export { default as VirtualTable } from "./components/VirtualTable.svelte";
 export { default as DraggableHeader } from "./components/DraggableHeader.svelte";
+export { default as SettingsPage } from "./components/SettingsPage.svelte";
+export { default as AppearanceSettings } from "./components/AppearanceSettings.svelte";
+export { default as AboutSettings } from "./components/AboutSettings.svelte";
 
 // Dashboard Charts (zero-dependency SVG)
 export { BarChart, LineChart, PieChart } from './components/charts/index.js';

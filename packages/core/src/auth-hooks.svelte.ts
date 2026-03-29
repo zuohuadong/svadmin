@@ -181,7 +181,9 @@ export function useGetIdentity() {
   let isLoading = $state(true);
   let error = $state<Error | null>(null);
 
-  if (provider) {
+  function fetch() {
+    if (!provider) { isLoading = false; return; }
+    isLoading = true;
     provider.getIdentity().then(identity => {
       data = identity;
       isLoading = false;
@@ -190,14 +192,15 @@ export function useGetIdentity() {
       isLoading = false;
       console.warn('[svadmin] useGetIdentity failed:', err);
     });
-  } else {
-    isLoading = false;
   }
+
+  fetch();
 
   return {
     get data() { return data; },
     get isLoading() { return isLoading; },
     get error() { return error; },
+    refetch: fetch,
   };
 }
 

@@ -44,6 +44,8 @@ export interface AdminOptions {
   disableRouteChangeHandler?: boolean;
   onLiveEvent?: (event: unknown) => void;
   menuItems?: (items: { name: string; route: string; label: string; icon?: string; parentName?: string; order?: number }[]) => { name: string; route: string; label: string; icon?: string; parentName?: string; order?: number }[];
+  /** Default page size for tables. Falls back to localStorage 'svadmin-default-page-size' or 10. */
+  defaultPageSize?: number;
 }
 
 const defaultTextTransformers: TextTransformers = {

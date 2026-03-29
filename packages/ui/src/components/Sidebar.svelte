@@ -325,6 +325,9 @@
               <Moon class="h-4 w-4" />
             {/if}
           </TooltipButton>
+          <TooltipButton tooltip={t('settings.title')} variant="ghost" size="icon-sm" onclick={() => navigate('/settings')} class="text-sidebar-foreground/60 hover:text-sidebar-foreground">
+            <Settings class="h-4 w-4" />
+          </TooltipButton>
           <TooltipButton tooltip={t('common.logout')} variant="ghost" size="icon-sm" onclick={onLogout} class="text-sidebar-foreground/60 hover:text-destructive">
             <LogOut class="h-4 w-4" />
           </TooltipButton>

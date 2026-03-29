@@ -222,6 +222,8 @@ export interface AuthProvider {
   register?: (params: Record<string, unknown>) => Promise<AuthActionResult>;
   forgotPassword?: (params: Record<string, unknown>) => Promise<AuthActionResult>;
   updatePassword?: (params: Record<string, unknown>) => Promise<AuthActionResult>;
+  /** Update user profile (name, avatar, etc.) */
+  updateProfile?: (params: { name?: string; avatar?: string | File; [key: string]: unknown }) => Promise<AuthActionResult>;
   onError?: (error: unknown) => Promise<{ redirectTo?: string; logout?: boolean }>;
 }
 

@@ -77,7 +77,8 @@
   const urlState = readURLState();
 
   // Snapshot resource values for initial state (untrack to avoid reactive tracking)
-  const initPageSize = untrack(() => resource.pageSize ?? 10);
+  const storedPageSize = typeof localStorage !== 'undefined' ? parseInt(localStorage.getItem('svadmin-default-page-size') ?? '', 10) : NaN;
+  const initPageSize = untrack(() => resource.pageSize ?? (isNaN(storedPageSize) ? 10 : storedPageSize));
   const initDefaultSort = untrack(() => resource.defaultSort);
 
   let pagination = $state<{ current: number; pageSize: number }>(untrack(() => externalPagination ?? {
