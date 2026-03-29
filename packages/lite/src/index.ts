@@ -30,3 +30,6 @@ export { default as LiteLogin } from './components/LiteLogin.svelte';
 export { default as LiteShow } from './components/LiteShow.svelte';
 export { default as LiteSearch } from './components/LiteSearch.svelte';
 export { default as LiteAlert } from './components/LiteAlert.svelte';
+export { default as LitePermissionMatrix } from './components/LitePermissionMatrix.svelte';
+export { default as LiteAuditLog } from './components/LiteAuditLog.svelte';
+export { default as LiteArrayField } from './components/LiteArrayField.svelte';

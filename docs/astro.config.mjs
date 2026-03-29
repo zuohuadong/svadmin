@@ -83,6 +83,8 @@ export default defineConfig({
             { slug: 'components/crud-pages' },
             { slug: 'components/buttons' },
             { slug: 'components/autosave' },
+            { slug: 'components/enterprise' },
+            { slug: 'components/ai-components' },
           ],
         },
         {

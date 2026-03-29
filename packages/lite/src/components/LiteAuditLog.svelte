@@ -1,0 +1,104 @@
+<script lang="ts">
+  /**
+   * LiteAuditLog — SSR-compatible audit log viewer.
+   * Pure HTML table with pagination links. No client-side JS required.
+   */
+
+  interface AuditEntry {
+    id: string | number;
+    userName?: string;
+    action: string;
+    resource?: string;
+    createdAt: string;
+    ipAddress?: string;
+    details?: string;
+  }
+
+  interface Props {
+    logs: AuditEntry[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    basePath?: string;
+  }
+
+  let {
+    logs,
+    total = 0,
+    page = 1,
+    pageSize = 20,
+    basePath = '?',
+  }: Props = $props();
+
+  const totalPages = $derived(Math.ceil(total / pageSize) || 1);
+
+  function formatDate(d: string) {
+    return new Date(d).toLocaleString();
+  }
+
+  function actionClass(action: string): string {
+    const a = action.toLowerCase();
+    if (a.includes('delete') || a.includes('remove')) return 'lite-badge-danger';
+    if (a.includes('create') || a.includes('add')) return 'lite-badge-success';
+    if (a.includes('update') || a.includes('edit')) return 'lite-badge-warning';
+    return 'lite-badge-default';
+  }
+</script>
+
+<div class="lite-audit-log">
+  <h2 style="margin-bottom:16px;">Audit Logs</h2>
+  
+  <table class="lite-table">
+    <thead>
+      <tr>
+        <th style="width:160px;">Time</th>
+        <th>User</th>
+        <th>Action</th>
+        <th>Resource</th>
+        <th style="width:120px;">IP Address</th>
+      </tr>
+    </thead>
+    <tbody>
+      {#each logs as log}
+        <tr>
+          <td style="font-family:monospace;font-size:12px;color:#64748b;">{formatDate(log.createdAt)}</td>
+          <td>{log.userName ?? '—'}</td>
+          <td><span class="lite-badge {actionClass(log.action)}">{log.action}</span></td>
+          <td style="color:#64748b;">{log.resource ?? '—'}</td>
+          <td style="font-family:monospace;font-size:12px;color:#64748b;">{log.ipAddress ?? '—'}</td>
+        </tr>
+      {:else}
+        <tr>
+          <td colspan="5" style="text-align:center;padding:24px;color:#94a3b8;">No audit logs found.</td>
+        </tr>
+      {/each}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  {#if totalPages > 1}
+    <div class="lite-pagination" style="margin-top:12px;">
+      {#if page > 1}
+        <a href="{basePath}page={page - 1}" class="lite-btn lite-btn-sm">&laquo; Prev</a>
+      {/if}
+      <span style="padding:0 12px;font-size:14px;color:#64748b;">Page {page} / {totalPages} ({total} total)</span>
+      {#if page < totalPages}
+        <a href="{basePath}page={page + 1}" class="lite-btn lite-btn-sm">Next &raquo;</a>
+      {/if}
+    </div>
+  {/if}
+</div>
+
+<style>
+  .lite-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .lite-badge-danger { background: #fef2f2; color: #dc2626; }
+  .lite-badge-success { background: #f0fdf4; color: #16a34a; }
+  .lite-badge-warning { background: #fffbeb; color: #d97706; }
+  .lite-badge-default { background: #f1f5f9; color: #475569; }
+</style>
