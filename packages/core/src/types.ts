@@ -317,7 +317,7 @@ export interface FieldDefinition {
   label: string;
   type: 'text' | 'number' | 'boolean' | 'date' | 'select' | 'multiselect' | 'tags'
     | 'textarea' | 'richtext' | 'image' | 'images' | 'json' | 'relation' | 'color'
-    | 'url' | 'email' | 'phone' | 'file' | 'markdown' | 'password';
+    | 'url' | 'email' | 'phone' | 'file' | 'markdown' | 'password' | 'array';
   required?: boolean;
   searchable?: boolean;
   sortable?: boolean;
@@ -334,6 +334,8 @@ export interface FieldDefinition {
   resource?: string;       // related resource name
   optionLabel?: string;    // field to use as label
   optionValue?: string;    // field to use as value
+  // Array support
+  subFields?: FieldDefinition[]; // nested fields for array types
   // Validation
   validate?: (value: unknown) => string | null;
   // Grouping

@@ -15,6 +15,7 @@
   import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
   import ComboboxField from './ComboboxField.svelte';
+  import ArrayField from './fields/ArrayField.svelte';
   import { Plus, X } from 'lucide-svelte';
   import type { Snippet } from 'svelte';
 
@@ -85,6 +86,9 @@
 
   {#if children}
     {@render children()}
+
+  {:else if field.type === 'array'}
+    <ArrayField {field} {value} {onchange} />
 
   {:else if field.type === 'text' || field.type === 'image'}
     <Input
