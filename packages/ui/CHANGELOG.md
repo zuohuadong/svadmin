@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.20.0...ui-v0.20.1) (2026-03-29)
+
+
+### Bug Fixes
+
+* **ui:** resolve svelte2tsx compilation errors for exported types ([f19db4f](https://github.com/zuohuadong/svadmin/commit/f19db4fc0b9cae9ce58863321fbe445b00ba22db))
+
 ## [0.20.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.19.0...ui-v0.20.0) (2026-03-29)
 
 
