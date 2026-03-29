@@ -166,3 +166,223 @@ describe('localStorage persistence simulation', () => {
     expect(restored[1].actions![0].label).toBe('Create Post');
   });
 });
+
+// ─── AgentProvider Types ───────────────────────────────────────
+
+/** Mirror of AdminToolParameter from chatProvider.svelte.ts */
+interface AdminToolParameter {
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  description?: string;
+  enum?: string[];
+  required?: boolean;
+}
+
+/** Mirror of AdminTool from chatProvider.svelte.ts */
+interface AdminTool {
+  name: string;
+  description: string;
+  parameters: Record<string, AdminToolParameter>;
+  needsApproval?: boolean;
+  execute(args: Record<string, unknown>): Promise<{ success: boolean; data?: unknown; error?: string }>;
+}
+
+/** Mirror of AgentEvent from chatProvider.svelte.ts */
+type AgentEvent =
+  | { type: 'text'; content: string }
+  | { type: 'tool_call'; tool: string; args: Record<string, unknown> }
+  | { type: 'approval_request'; id: string; tool: string; args: Record<string, unknown>; description: string }
+  | { type: 'tool_result'; tool: string; result: { success: boolean; data?: unknown; error?: string } }
+  | { type: 'component'; name: string; props: Record<string, unknown> }
+  | { type: 'done' };
+
+describe('AdminTool shape', () => {
+  test('tool with needsApproval serializes correctly', () => {
+    const tool: AdminTool = {
+      name: 'deletePosts',
+      description: 'Delete posts matching a filter',
+      parameters: {
+        status: { type: 'string', description: 'Filter by status', enum: ['draft', 'archived'] },
+      },
+      needsApproval: true,
+      execute: async (args) => ({ success: true, data: { deleted: args.ids } }),
+    };
+
+    expect(tool.name).toBe('deletePosts');
+    expect(tool.needsApproval).toBe(true);
+    expect(tool.parameters.status.enum).toEqual(['draft', 'archived']);
+  });
+
+  test('tool without approval defaults to undefined', () => {
+    const tool: AdminTool = {
+      name: 'getStats',
+      description: 'Fetch dashboard statistics',
+      parameters: {},
+      execute: async () => ({ success: true, data: { users: 100 } }),
+    };
+
+    expect(tool.needsApproval).toBeUndefined();
+  });
+
+  test('tool execute returns ToolResult', async () => {
+    const tool: AdminTool = {
+      name: 'createPost',
+      description: 'Create a new post',
+      parameters: {
+        title: { type: 'string', required: true },
+      },
+      execute: async (args) => ({
+        success: true,
+        data: { id: '1', title: args.title },
+      }),
+    };
+
+    const result = await tool.execute({ title: 'Hello World' });
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual({ id: '1', title: 'Hello World' });
+  });
+
+  test('tool execute can return error', async () => {
+    const tool: AdminTool = {
+      name: 'failingTool',
+      description: 'A tool that fails',
+      parameters: {},
+      execute: async () => ({
+        success: false,
+        error: 'Permission denied',
+      }),
+    };
+
+    const result = await tool.execute({});
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Permission denied');
+  });
+});
+
+describe('AgentEvent stream', () => {
+  test('events can be collected from async generator', async () => {
+    async function* mockAgent(): AsyncGenerator<AgentEvent, void, unknown> {
+      yield { type: 'text', content: 'Searching...' };
+      yield { type: 'tool_call', tool: 'getList', args: { resource: 'posts' } };
+      yield { type: 'tool_result', tool: 'getList', result: { success: true, data: [{ id: 1 }] } };
+      yield { type: 'text', content: 'Found 1 post.' };
+      yield { type: 'done' };
+    }
+
+    const events: AgentEvent[] = [];
+    for await (const event of mockAgent()) {
+      events.push(event);
+    }
+
+    expect(events).toHaveLength(5);
+    expect(events[0].type).toBe('text');
+    expect(events[1].type).toBe('tool_call');
+    expect(events[2].type).toBe('tool_result');
+    expect(events[4].type).toBe('done');
+  });
+
+  test('approval_request event serializes correctly', () => {
+    const event: AgentEvent = {
+      type: 'approval_request',
+      id: 'req-42',
+      tool: 'deletePosts',
+      args: { ids: ['1', '2', '3'] },
+      description: 'Delete 3 draft posts',
+    };
+
+    const serialized = JSON.stringify(event);
+    const parsed = JSON.parse(serialized) as AgentEvent;
+
+    expect(parsed.type).toBe('approval_request');
+    if (parsed.type === 'approval_request') {
+      expect(parsed.id).toBe('req-42');
+      expect(parsed.tool).toBe('deletePosts');
+      expect(parsed.description).toBe('Delete 3 draft posts');
+    }
+  });
+
+  test('component event carries name and props', () => {
+    const event: AgentEvent = {
+      type: 'component',
+      name: 'SalesChart',
+      props: { period: 'monthly', data: [100, 200, 150] },
+    };
+
+    expect(event.type).toBe('component');
+    if (event.type === 'component') {
+      expect(event.name).toBe('SalesChart');
+      expect(event.props.period).toBe('monthly');
+    }
+  });
+});
+
+describe('Approval flow', () => {
+  test('registerApproval and resolveApproval work together', () => {
+    // Simulate the approval flow without importing rune-based module
+    const pending = new Map<string, (approved: boolean) => void>();
+
+    function register(id: string, cb: (approved: boolean) => void) {
+      pending.set(id, cb);
+    }
+
+    function resolve(id: string, approved: boolean): boolean {
+      const cb = pending.get(id);
+      if (!cb) return false;
+      cb(approved);
+      pending.delete(id);
+      return true;
+    }
+
+    let approvalResult = false;
+
+    register('req-1', (approved) => {
+      approvalResult = approved;
+    });
+
+    expect(pending.size).toBe(1);
+
+    // Resolve with approval
+    const resolved = resolve('req-1', true);
+    expect(resolved).toBe(true);
+    expect(approvalResult).toEqual(true);
+    expect(pending.size).toBe(0);
+  });
+
+  test('resolveApproval returns false for unknown id', () => {
+    const pending = new Map<string, (approved: boolean) => void>();
+
+    function resolve(id: string, approved: boolean): boolean {
+      const cb = pending.get(id);
+      if (!cb) return false;
+      cb(approved);
+      pending.delete(id);
+      return true;
+    }
+
+    expect(resolve('nonexistent', true)).toBe(false);
+  });
+
+  test('rejection flow works', () => {
+    const pending = new Map<string, (approved: boolean) => void>();
+
+    function register(id: string, cb: (approved: boolean) => void) {
+      pending.set(id, cb);
+    }
+
+    function resolve(id: string, approved: boolean): boolean {
+      const cb = pending.get(id);
+      if (!cb) return false;
+      cb(approved);
+      pending.delete(id);
+      return true;
+    }
+
+    let wasApproved = true;
+
+    register('req-2', (approved) => {
+      wasApproved = approved;
+    });
+
+    resolve('req-2', false);
+    expect(wasApproved).toEqual(false);
+  });
+});

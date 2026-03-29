@@ -90,6 +90,20 @@ svadmin 是编译时 admin 框架 — 无虚拟 DOM、无运行时 diff，直接
 | 超时跟踪 | ✅ 内置 hooks | ❌ | ❌ |
 | 步骤表单 | ✅ `useStepsForm` | ✅ | ❌ |
 
+### AI 与智能化
+
+| 功能 | **svadmin** | **Refine** | **React Admin** |
+|------|-----------|-----------|----------------|
+| AI 聊天集成 | ✅ ChatProvider（流式 + 非流式） | ❌ | ❌ |
+| 管理上下文注入 | ✅ ChatContext 自动传递当前资源/视图 | ❌ | ❌ |
+| 工具调用操作 | ✅ ChatAction 按钮 | ❌ | ❌ |
+| 字段推断 | ✅ 样本数据 + OpenAPI 双引擎 | ✅ 样本数据 | ❌ |
+| Agent 友好脚手架 | ✅ `AGENTS.md` 内置 | ❌ | ❌ |
+| MCP 数据网关 | 🟡 规划中 `@svadmin/mcp` | ❌ | ❌ |
+| AI 代码生成器 | ❌ | ✅ Refine AI Agent（商业产品） | ❌ |
+
+> **定位差异**：Refine 侧重「AI 帮你写 Admin」（开发时 AI）；svadmin 侧重「Admin 里内置 AI」（运行时 AI）。两者互不冲突，但运行时 AI 对终端用户的价值更直接。
+
 ## 什么时候选 svadmin
 
 - **你追求极致性能** — 无虚拟 DOM、无运行时 diff 开销。Svelte 在构建时将组件编译为直接 DOM 操作，首次渲染更快、内存占用更低、运行时零框架开销
@@ -99,6 +113,7 @@ svadmin 是编译时 admin 框架 — 无虚拟 DOM、无运行时 diff，直接
 - **你需要完整类型安全** — ResourceTypeMap + Elysia/Drizzle 推导
 - **你在乎包体积** — Svelte 编译产物显著小于 React 的运行时 + 虚拟 DOM
 - **你需要细粒度响应式** — Svelte 5 runes 只更新实际变化的 DOM 节点，React 则需要重渲染整个组件子树
+- **你想在管理面板内集成 AI** — ChatProvider 开箱即用，自动注入当前资源上下文，支持流式响应与操作按钮
 
 ## 什么时候选 Refine
 

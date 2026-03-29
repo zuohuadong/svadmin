@@ -34,8 +34,8 @@ export { notify, closeNotification, setNotificationProvider, getNotificationProv
 export { t, setLocale, getLocale, getAvailableLocales, addTranslations, useTranslation } from './i18n.svelte';
 export { audit, setAuditHandler, setAuditLogProvider, getAuditLogProvider } from './audit';
 export type { AuditLogProvider } from './audit';
-export { setChatProvider, getChatProvider, setChatContext, getChatContext } from './chatProvider.svelte';
-export type { ChatProvider, ChatMessage, ChatContext, ChatAction } from './chatProvider.svelte';
+export { setChatProvider, getChatProvider, setChatContext, getChatContext, setAgentProvider, getAgentProvider, registerApproval, resolveApproval, hasPendingApprovals } from './chatProvider.svelte';
+export type { ChatProvider, ChatMessage, ChatContext, ChatAction, AgentProvider, AgentEvent, AgentOptions, AdminTool, AdminToolParameter, ToolResult } from './chatProvider.svelte';
 export { getTheme, setTheme, toggleTheme, getResolvedTheme, getColorTheme, setColorTheme, colorThemes, configureTheme, getThemeConfig, clearCssOverrides, builtinPresets, registerColorPreset, getColorPresets } from './theme.svelte';
 export type { ThemeMode, ColorTheme, ThemeStrategy, ThemeConfig, ColorPreset } from './theme.svelte';
 export { setUnsavedChanges, getUnsavedChanges, initUnsavedChangesNotifier } from './unsaved-changes.svelte';
