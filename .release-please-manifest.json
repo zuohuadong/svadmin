@@ -20,5 +20,7 @@
   "packages/nestjs-query": "0.8.0",
   "packages/nestjsx-crud": "0.8.0",
   "packages/sanity": "0.8.0",
-  "packages/strapi": "0.8.0"
+  "packages/strapi": "0.8.0",
+  "packages/lite": "0.1.0",
+  "packages/mcp": "0.1.0"
 }
