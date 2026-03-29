@@ -10,7 +10,7 @@ export const resources: ResourceDefinition[] = [
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '60px' },
       { key: 'title', label: 'Title', type: 'text', required: true, searchable: true },
-      { key: 'body', label: 'Body', type: 'textarea', showInList: false },
+      { key: 'body', label: 'Body', type: 'richtext', showInList: false },
       { key: 'userId', label: 'Author', type: 'number', width: '80px' },
     ],
     defaultSort: { field: 'id', order: 'desc' },

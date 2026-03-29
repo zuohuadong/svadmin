@@ -13,6 +13,7 @@
     "@lucide/svelte": "^0.577.0",
     "@supabase/supabase-js": "^2.99.3",
     "@svadmin/core": "workspace:*",
+    "@svadmin/editor": "workspace:*",
     "@svadmin/simple-rest": "workspace:*",
     "@svadmin/ui": "workspace:*",
     "@tanstack/svelte-query": "^6.1.0",
@@ -26,6 +27,10 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@tailwindcss/vite": "^4.2.0",
+    "highlight.js": "^11.11.1",
+    "isomorphic-dompurify": "^3.7.1",
+    "marked": "^17.0.5",
+    "marked-highlight": "^2.2.3",
     "svelte": "^5.46.0",
     "svelte-check": "^4.0.0",
     "tailwindcss": "^4.2.0",

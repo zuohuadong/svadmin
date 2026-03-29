@@ -1,0 +1,697 @@
+/* ─── @svadmin/editor — ProseMirror & Custom Styles ──────────────── */
+
+/* Base editor container */
+.svadmin-editor {
+  --editor-border: hsl(var(--border));
+  --editor-bg: hsl(var(--background));
+  --editor-fg: hsl(var(--foreground));
+  --editor-muted: hsl(var(--muted-foreground));
+  --editor-primary: hsl(var(--primary));
+  --editor-primary-fg: hsl(var(--primary-foreground));
+  --editor-ring: hsl(var(--ring));
+  --editor-radius: var(--radius, 0.5rem);
+
+  position: relative;
+  border: 1px solid var(--editor-border);
+  border-radius: var(--editor-radius);
+  background: var(--editor-bg);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.svadmin-editor:focus-within {
+  border-color: var(--editor-ring);
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.15);
+}
+
+/* ─── Toolbar ─────────────────────────────────────────────────── */
+
+.svadmin-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--editor-border);
+  background: hsl(var(--muted) / 0.3);
+  min-height: 40px;
+}
+
+.svadmin-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.svadmin-toolbar-group + .svadmin-toolbar-group::before {
+  content: '';
+  display: block;
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--editor-border);
+  opacity: 0.6;
+}
+
+.svadmin-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--editor-fg);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.svadmin-toolbar-btn:hover {
+  background: hsl(var(--muted) / 0.7);
+}
+
+.svadmin-toolbar-btn:active {
+  transform: scale(0.95);
+}
+
+.svadmin-toolbar-btn[data-active="true"] {
+  background: hsl(var(--primary) / 0.1);
+  color: var(--editor-primary);
+}
+
+.svadmin-toolbar-btn[data-active="true"]::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--editor-primary);
+}
+
+.svadmin-toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.svadmin-toolbar-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Toolbar select */
+.svadmin-toolbar-select {
+  height: 32px;
+  padding: 0 8px;
+  padding-right: 24px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--editor-fg);
+  font-size: 13px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  transition: background-color 0.15s ease;
+}
+
+.svadmin-toolbar-select:hover {
+  background-color: hsl(var(--muted) / 0.7);
+}
+
+.svadmin-toolbar-select:focus {
+  outline: none;
+  background-color: hsl(var(--muted) / 0.7);
+}
+
+/* ─── Editor Content Area ─────────────────────────────────────── */
+
+.svadmin-editor-content {
+  padding: 16px 20px;
+  min-height: 200px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.svadmin-editor-content .tiptap {
+  outline: none;
+  min-height: 180px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--editor-fg);
+}
+
+.svadmin-editor-content .tiptap > * + * {
+  margin-top: 0.75em;
+}
+
+/* Placeholder */
+.svadmin-editor-content .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--editor-muted);
+  pointer-events: none;
+  height: 0;
+  font-style: italic;
+  opacity: 0.6;
+}
+
+/* ─── Typography ──────────────────────────────────────────────── */
+
+.svadmin-editor-content .tiptap h1 {
+  font-size: 2em;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 1em;
+  margin-bottom: 0.4em;
+}
+
+.svadmin-editor-content .tiptap h2 {
+  font-size: 1.5em;
+  font-weight: 650;
+  line-height: 1.3;
+  margin-top: 0.8em;
+  margin-bottom: 0.3em;
+}
+
+.svadmin-editor-content .tiptap h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-top: 0.6em;
+  margin-bottom: 0.25em;
+}
+
+.svadmin-editor-content .tiptap h4 {
+  font-size: 1.1em;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.svadmin-editor-content .tiptap p {
+  margin: 0;
+}
+
+.svadmin-editor-content .tiptap strong {
+  font-weight: 650;
+}
+
+.svadmin-editor-content .tiptap em {
+  font-style: italic;
+}
+
+.svadmin-editor-content .tiptap u {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.svadmin-editor-content .tiptap s {
+  text-decoration: line-through;
+}
+
+.svadmin-editor-content .tiptap sub {
+  vertical-align: sub;
+  font-size: 0.75em;
+}
+
+.svadmin-editor-content .tiptap sup {
+  vertical-align: super;
+  font-size: 0.75em;
+}
+
+/* ─── Links ───────────────────────────────────────────────────── */
+
+.svadmin-editor-content .tiptap a {
+  color: var(--editor-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.svadmin-editor-content .tiptap a:hover {
+  opacity: 0.8;
+}
+
+/* ─── Lists ───────────────────────────────────────────────────── */
+
+.svadmin-editor-content .tiptap ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+}
+
+.svadmin-editor-content .tiptap ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+}
+
+.svadmin-editor-content .tiptap li {
+  margin: 0.2em 0;
+}
+
+.svadmin-editor-content .tiptap li > p {
+  margin: 0;
+}
+
+/* Task lists */
+.svadmin-editor-content .tiptap ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.svadmin-editor-content .tiptap ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.svadmin-editor-content .tiptap ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.svadmin-editor-content .tiptap ul[data-type="taskList"] li > label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--editor-primary);
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.svadmin-editor-content .tiptap ul[data-type="taskList"] li[data-checked="true"] > div > p {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+/* ─── Blockquote ──────────────────────────────────────────────── */
+
+.svadmin-editor-content .tiptap blockquote {
+  border-left: 3px solid var(--editor-primary);
+  padding-left: 1em;
+  margin-left: 0;
+  color: var(--editor-muted);
+  font-style: italic;
+}
+
+/* ─── Code ────────────────────────────────────────────────────── */
+
+.svadmin-editor-content .tiptap code {
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--destructive, 0 84% 60%));
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.875em;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+.svadmin-editor-content .tiptap pre {
+  background: hsl(var(--card));
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.875em;
+  line-height: 1.6;
+}
+
+.svadmin-editor-content .tiptap pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* ─── Horizontal Rule ─────────────────────────────────────────── */
+
+.svadmin-editor-content .tiptap hr {
+  border: none;
+  border-top: 1px solid var(--editor-border);
+  margin: 1.5em 0;
+}
+
+/* ─── Images ──────────────────────────────────────────────────── */
+
+.svadmin-editor-content .tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 0.5em 0;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.svadmin-editor-content .tiptap img:hover {
+  box-shadow: 0 0 0 2px var(--editor-primary);
+}
+
+.svadmin-editor-content .tiptap img.ProseMirror-selectednode {
+  box-shadow: 0 0 0 2px var(--editor-primary);
+}
+
+/* ─── Tables ──────────────────────────────────────────────────── */
+
+.svadmin-editor-content .tiptap table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5em 0;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid var(--editor-border);
+}
+
+.svadmin-editor-content .tiptap table td,
+.svadmin-editor-content .tiptap table th {
+  border: 1px solid var(--editor-border);
+  padding: 8px 12px;
+  min-width: 80px;
+  vertical-align: top;
+  position: relative;
+}
+
+.svadmin-editor-content .tiptap table th {
+  background: hsl(var(--muted) / 0.4);
+  font-weight: 600;
+  text-align: left;
+}
+
+.svadmin-editor-content .tiptap table td > p,
+.svadmin-editor-content .tiptap table th > p {
+  margin: 0;
+}
+
+.svadmin-editor-content .tiptap table .selectedCell {
+  background: hsl(var(--primary) / 0.08);
+}
+
+.svadmin-editor-content .tiptap table .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid hsl(var(--primary) / 0.3);
+  pointer-events: none;
+}
+
+/* Table column resize handle */
+.svadmin-editor-content .tiptap .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background: var(--editor-primary);
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.svadmin-editor-content .tiptap .tableWrapper {
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+/* ─── Highlight ───────────────────────────────────────────────── */
+
+.svadmin-editor-content .tiptap mark {
+  background: hsl(50 100% 70% / 0.5);
+  padding: 1px 2px;
+  border-radius: 2px;
+}
+
+/* ─── Text alignment ──────────────────────────────────────────── */
+
+.svadmin-editor-content .tiptap [style*="text-align: center"] {
+  text-align: center;
+}
+
+.svadmin-editor-content .tiptap [style*="text-align: right"] {
+  text-align: right;
+}
+
+.svadmin-editor-content .tiptap [style*="text-align: justify"] {
+  text-align: justify;
+}
+
+/* ─── Bubble Menu ─────────────────────────────────────────────── */
+
+.svadmin-bubble-menu {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: hsl(var(--popover));
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  box-shadow:
+    0 4px 6px -1px hsl(0 0% 0% / 0.1),
+    0 2px 4px -2px hsl(0 0% 0% / 0.1);
+  z-index: 50;
+  animation: svadmin-menu-in 0.15s ease-out;
+}
+
+.svadmin-bubble-menu .svadmin-toolbar-btn {
+  width: 30px;
+  height: 30px;
+}
+
+.svadmin-bubble-menu .svadmin-toolbar-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ─── Floating Menu ───────────────────────────────────────────── */
+
+.svadmin-floating-menu {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: hsl(var(--popover));
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  box-shadow:
+    0 4px 6px -1px hsl(0 0% 0% / 0.1),
+    0 2px 4px -2px hsl(0 0% 0% / 0.1);
+  z-index: 50;
+  animation: svadmin-menu-in 0.15s ease-out;
+}
+
+.svadmin-floating-menu .svadmin-toolbar-btn {
+  width: 30px;
+  height: 30px;
+}
+
+.svadmin-floating-menu .svadmin-toolbar-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ─── Slash Command Menu ──────────────────────────────────────── */
+
+.svadmin-slash-menu {
+  position: absolute;
+  min-width: 220px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: hsl(var(--popover));
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  box-shadow:
+    0 10px 15px -3px hsl(0 0% 0% / 0.1),
+    0 4px 6px -4px hsl(0 0% 0% / 0.1);
+  padding: 6px;
+  z-index: 100;
+  animation: svadmin-menu-in 0.15s ease-out;
+}
+
+.svadmin-slash-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--editor-fg);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+  text-align: left;
+}
+
+.svadmin-slash-menu-item:hover,
+.svadmin-slash-menu-item[data-selected="true"] {
+  background: hsl(var(--muted) / 0.5);
+}
+
+.svadmin-slash-menu-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: hsl(var(--muted) / 0.5);
+  flex-shrink: 0;
+}
+
+.svadmin-slash-menu-item-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.svadmin-slash-menu-item-label {
+  font-weight: 500;
+}
+
+.svadmin-slash-menu-item-desc {
+  font-size: 11px;
+  color: var(--editor-muted);
+}
+
+.svadmin-slash-menu-group {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--editor-muted);
+  padding: 8px 10px 4px;
+}
+
+/* ─── Color picker ────────────────────────────────────────────── */
+
+.svadmin-color-picker {
+  padding: 8px;
+  background: hsl(var(--popover));
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  box-shadow:
+    0 4px 6px -1px hsl(0 0% 0% / 0.1),
+    0 2px 4px -2px hsl(0 0% 0% / 0.1);
+  z-index: 50;
+  animation: svadmin-menu-in 0.15s ease-out;
+}
+
+.svadmin-color-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 3px;
+}
+
+.svadmin-color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid hsl(0 0% 0% / 0.1);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.svadmin-color-swatch:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 2px var(--editor-primary);
+  z-index: 1;
+}
+
+/* ─── Link popover ────────────────────────────────────────────── */
+
+.svadmin-link-popover {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: hsl(var(--popover));
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  box-shadow:
+    0 4px 6px -1px hsl(0 0% 0% / 0.1),
+    0 2px 4px -2px hsl(0 0% 0% / 0.1);
+  z-index: 50;
+  animation: svadmin-menu-in 0.15s ease-out;
+}
+
+.svadmin-link-input {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--editor-border);
+  border-radius: 6px;
+  background: var(--editor-bg);
+  color: var(--editor-fg);
+  font-size: 13px;
+  min-width: 240px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.svadmin-link-input:focus {
+  border-color: var(--editor-ring);
+}
+
+/* ─── Footer / Status bar ─────────────────────────────────────── */
+
+.svadmin-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 4px 12px;
+  border-top: 1px solid var(--editor-border);
+  background: hsl(var(--muted) / 0.2);
+  font-size: 11px;
+  color: var(--editor-muted);
+}
+
+/* ─── Animations ──────────────────────────────────────────────── */
+
+@keyframes svadmin-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Drop cursor ─────────────────────────────────────────────── */
+
+.svadmin-editor-content .ProseMirror-gapcursor {
+  position: relative;
+}
+
+.svadmin-editor-content .ProseMirror-gapcursor::after {
+  border-top: 1px solid var(--editor-fg);
+}
+
+/* Drag handle indicator */
+.svadmin-editor-content .ProseMirror .is-empty::before {
+  transition: opacity 0.15s ease;
+}
+
+/* ─── Scrollbar styling ───────────────────────────────────────── */
+
+.svadmin-editor-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.svadmin-editor-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.svadmin-editor-content::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+.svadmin-editor-content::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}

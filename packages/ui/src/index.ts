@@ -93,6 +93,9 @@ export { default as RelationField } from './components/fields/RelationField.svel
 export { default as JsonField } from './components/fields/JsonField.svelte';
 export { default as RichTextField } from './components/fields/RichTextField.svelte';
 
+// Rich text editor (requires @svadmin/editor)
+export { Editor as RichTextEditor } from '@svadmin/editor';
+
 // CRUD Buttons
 export {
   CreateButton, EditButton, DeleteButton, ShowButton, ListButton,

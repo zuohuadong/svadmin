@@ -163,13 +163,43 @@
       required={field.required}
     />
 
-  {:else if field.type === 'textarea' || field.type === 'richtext'}
+  {:else if field.type === 'richtext'}
+    {#await import('@svadmin/editor')}
+      <Textarea
+        id={field.key}
+        value={strVal}
+        oninput={(e) => onchange((e.target as HTMLTextAreaElement).value)}
+        required={field.required}
+        rows={10}
+        placeholder={t('field.enterValue', { label: field.label })}
+        class="resize-y"
+      />
+    {:then editorMod}
+      <editorMod.Editor
+        value={strVal}
+        placeholder={t('field.enterValue', { label: field.label })}
+        preset="full"
+        onchange={(html) => onchange(html)}
+      />
+    {:catch}
+      <Textarea
+        id={field.key}
+        value={strVal}
+        oninput={(e) => onchange((e.target as HTMLTextAreaElement).value)}
+        required={field.required}
+        rows={10}
+        placeholder={t('field.enterValue', { label: field.label })}
+        class="resize-y"
+      />
+    {/await}
+
+  {:else if field.type === 'textarea'}
     <Textarea
       id={field.key}
       value={strVal}
       oninput={(e) => onchange((e.target as HTMLTextAreaElement).value)}
       required={field.required}
-      rows={field.type === 'richtext' ? 10 : 4}
+      rows={4}
       placeholder={t('field.enterValue', { label: field.label })}
       class="resize-y"
     />

@@ -30,7 +30,8 @@
     "marked": "^15.0.0",
     "marked-highlight": "^2.2.0",
     "highlight.js": "^11.0.0",
-    "isomorphic-dompurify": "^2.0.0"
+    "isomorphic-dompurify": "^2.0.0",
+    "@svadmin/editor": "^0.1.0"
   },
   "peerDependenciesMeta": {
     "marked": {
@@ -43,6 +44,9 @@
       "optional": true
     },
     "isomorphic-dompurify": {
+      "optional": true
+    },
+    "@svadmin/editor": {
       "optional": true
     }
   },
