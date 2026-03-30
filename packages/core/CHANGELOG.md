@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.1](https://github.com/zuohuadong/svadmin/compare/core-v0.18.0...core-v0.18.1) (2026-03-30)
+
+
+### Bug Fixes
+
+* **core:** sync casl and casbin adapters with AccessControlProvider CanParams update ([47dedac](https://github.com/zuohuadong/svadmin/commit/47dedac167b72bc0814367912c8709d93567363a))
+* **core:** sync casl/casbin adapters with CanParams[] update ([ba2cee2](https://github.com/zuohuadong/svadmin/commit/ba2cee24882afe054582d5625321b8a5a868906f))
+
 ## [0.18.0](https://github.com/zuohuadong/svadmin/compare/core-v0.17.1...core-v0.18.0) (2026-03-30)
 
 
