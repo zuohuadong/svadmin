@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.1](https://github.com/zuohuadong/svadmin/compare/core-v0.19.0...core-v0.19.1) (2026-03-30)
+
+
+### Bug Fixes
+
+* **core:** quality refinements — error handling, memory leaks, Svelte 5 compat ([01013db](https://github.com/zuohuadong/svadmin/commit/01013dbd3741d1e3abc11e6158e5358694ff8269))
+* **core:** quality refinements — error handling, memory leaks, Svelte 5 compat ([a92829a](https://github.com/zuohuadong/svadmin/commit/a92829aa34910f4df2b850bc33c076e9f1ceb66c))
+
 ## [0.19.0](https://github.com/zuohuadong/svadmin/compare/core-v0.18.1...core-v0.19.0) (2026-03-30)
 
 
