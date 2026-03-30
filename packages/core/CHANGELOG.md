@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.2](https://github.com/zuohuadong/svadmin/compare/core-v0.19.1...core-v0.19.2) (2026-03-30)
+
+
+### 💅 Elegance & Refactoring
+
+* **core:** architectural refinements (notify, auth hooks, SSR, protective guards) ([f2e9333](https://github.com/zuohuadong/svadmin/commit/f2e93333826ab585ec1d72a2fe4d3cd8f524514f))
+* **core:** architectural refinements (notify, auth hooks, SSR, protective guards) ([59a8ad1](https://github.com/zuohuadong/svadmin/commit/59a8ad1e6051cf1fea2fa816878c2ce0bd997790))
+
 ## [0.19.1](https://github.com/zuohuadong/svadmin/compare/core-v0.19.0...core-v0.19.1) (2026-03-30)
 
 
