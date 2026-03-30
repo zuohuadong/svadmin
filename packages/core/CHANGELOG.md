@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.18.0](https://github.com/zuohuadong/svadmin/compare/core-v0.17.1...core-v0.18.0) (2026-03-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* Deprecated legacy useHasPermission API. usePermissions now returns immediate .has() and .can() methods and drops .data envelope. AutoTable drops global cellRenderer prop in favor of columns definitions map. Sidebar now defaults to SvelteKit path routing instead of hash-based (#).
+
+### Code Refactoring
+
+* modernize enterprise architecture and resolve technical debt ([860ae60](https://github.com/zuohuadong/svadmin/commit/860ae607b1d3002e3318c51047d6219bc073050f))
+
 ## [0.17.1](https://github.com/zuohuadong/svadmin/compare/core-v0.17.0...core-v0.17.1) (2026-03-30)
 
 
