@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.22.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.21.0...ui-v0.22.0) (2026-03-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ui:** The rich text editor is no longer bundled by default in @svadmin/ui. The static string dependency \`import('@svadmin/editor')\` inside FieldRenderer has been removed, preventing Vite from forcing its resolution during build. Users who want the Tiptap rich text editor must now explicitly provide it via global Dependency Injection.
+
+### Code Refactoring
+
+* **ui:** decouple @svadmin/editor from UI package ([3ea61e9](https://github.com/zuohuadong/svadmin/commit/3ea61e9c796dbad29b8eef43fb8a5252e8ad496d))
+
 ## [0.21.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.20.3...ui-v0.21.0) (2026-03-30)
 
 
