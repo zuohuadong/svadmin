@@ -74,9 +74,13 @@ describe('AccessControlProvider', () => {
     let callCount = 0;
     setAccessControlProvider({
       can: async (params) => {
+<<<<<<< Updated upstream
         callCount++;
         expect((params as CanParams).resource).toBe('posts');
         if ((params as CanParams).action === 'delete') {
+=======
+        if ((params as CanParams).resource === 'posts' && (params as CanParams).action === 'delete') {
+>>>>>>> Stashed changes
           return { can: false, reason: 'Cannot delete posts' };
         }
         return { can: true };
