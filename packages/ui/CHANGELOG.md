@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.22.1...ui-v0.23.0) (2026-03-30)
+
+
+### Features
+
+* **core:** enterprise improvements for i18n and routing ([9388aa9](https://github.com/zuohuadong/svadmin/commit/9388aa92b687287f27280cff20345339107af28e))
+
 ## [0.22.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.22.0...ui-v0.22.1) (2026-03-30)
 
 
