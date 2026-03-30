@@ -98,7 +98,7 @@
 
   function isActive(itemPath: string): boolean {
     if (itemPath === '/') return path === '/';
-    return path.startsWith(itemPath);
+    return path === itemPath || path.startsWith(itemPath + "/");
   }
 
   /** Prefetch resource data on hover for instant navigation */

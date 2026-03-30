@@ -266,7 +266,9 @@ export function useOnError() {
 
 /**
  * Fetches permissions from authProvider.getPermissions().
- * Returns a reactive integrated object.
+ * Returns a reactive object with convenience methods for permission checks.
+ * 
+ * Supports `refetch()` for session-level permission refresh (e.g., after role change).
  * 
  * @example
  * ```svelte
@@ -282,9 +284,12 @@ export function usePermissions<T = unknown>() {
   let permissions = $state<T | null>(null);
   let isLoading = $state(true);
   let error = $state<Error | null>(null);
-  let version = $state(0); // Force reactive invalidation
+  let version = $state(0);
 
-  if (provider?.getPermissions) {
+  function fetch() {
+    if (!provider?.getPermissions) { isLoading = false; return; }
+    isLoading = true;
+    error = null;
     provider.getPermissions().then(p => {
       permissions = p as T;
       version++;
@@ -294,19 +299,18 @@ export function usePermissions<T = unknown>() {
       isLoading = false;
       console.warn('[svadmin] usePermissions failed:', err);
     });
-  } else {
-    isLoading = false;
   }
+
+  fetch();
 
   return {
     get isLoading() { return isLoading; },
     get error() { return error; },
     get version() { return version; },
-    
-    /** Get the raw permissions data */
     get raw() { return permissions; },
+    refetch: fetch,
 
-    /** Convenience: check if a specific permission exists */
+    /** Check if a specific permission string exists */
     has(perm: string): boolean {
       if (!permissions) return false;
       if (Array.isArray(permissions)) return permissions.includes(perm);
@@ -315,12 +319,10 @@ export function usePermissions<T = unknown>() {
       return false;
     },
 
-    /** Convenience: check resource action (Casbin style representation if applicable) */
+    /** Check resource:action style permission */
     can(resource: string, action: string): boolean {
-      // Tries to map to a standard permission string format like "resource:action" 
-      // Replace with your own logic if your permissions are structured differently.
       return this.has(`${resource}:${action}`);
-    }
+    },
   };
 }
 

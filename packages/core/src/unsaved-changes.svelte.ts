@@ -1,62 +1,116 @@
-// UnsavedChangesNotifier — warns user before leaving page with unsaved changes
-// Svelte 5 component using runes
+// UnsavedChangesNotifier — guards against accidental navigation with dirty forms
+// Supports: browser tab close, hash-based SPA routing, and framework router interception
 
-// No lifecycle imports needed — uses module-level $state pattern
+import { t } from './i18n.svelte';
 
-let warnWhenUnsavedChanges = $state(false);
+let dirty = $state(false);
 
-/**
- * Call this to mark the form as dirty (has unsaved changes).
- * When set to true, navigating away or closing the tab will trigger a warning.
- */
-export function setUnsavedChanges(dirty: boolean) {
-  warnWhenUnsavedChanges = dirty;
+/** Mark whether the current form has unsaved changes */
+export function setUnsavedChanges(value: boolean) {
+  dirty = value;
 }
 
 export function getUnsavedChanges(): boolean {
-  return warnWhenUnsavedChanges;
+  return dirty;
 }
 
-const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
-  if (warnWhenUnsavedChanges) {
-    e.preventDefault();
-    // Modern browsers ignore custom messages but require returnValue to be set
-    e.returnValue = '';
-    return '';
-  }
-};
+/**
+ * Navigation interceptor callback type.
+ * Frameworks like SvelteKit can register a cancel function here.
+ * Return `true` to allow navigation, `false` to block it.
+ */
+type NavigationGuard = (opts: { cancel: () => void }) => void;
+
+let _navigationGuard: NavigationGuard | null = null;
+
+/**
+ * Register a framework-level navigation guard.
+ * 
+ * In SvelteKit, call this from your root layout:
+ * ```ts
+ * import { beforeNavigate } from '$app/navigation';
+ * import { registerNavigationGuard } from '@svadmin/core';
+ * 
+ * registerNavigationGuard(({ cancel }) => {
+ *   beforeNavigate(({ cancel: kitCancel }) => {
+ *     cancel = kitCancel;
+ *   });
+ * });
+ * ```
+ * 
+ * Or more idiomatically, use the built-in `initUnsavedChangesNotifier` 
+ * and pass a `beforeNavigate` callback.
+ */
+export function registerNavigationGuard(guard: NavigationGuard): void {
+  _navigationGuard = guard;
+}
 
 /**
  * Initialize the UnsavedChangesNotifier.
- * Call this in your root layout or AdminApp component.
- * It handles both browser tab close and in-app navigation.
+ * 
+ * @param options.beforeNavigate - Framework-level navigation interceptor.
+ *   For SvelteKit: pass the `beforeNavigate` function from `$app/navigation`.
+ *   For hash-based SPAs: omit this, hash navigation is handled automatically.
+ * 
+ * @example SvelteKit
+ * ```svelte
+ * <script>
+ *   import { beforeNavigate } from '$app/navigation';
+ *   import { initUnsavedChangesNotifier } from '@svadmin/core';
+ *   initUnsavedChangesNotifier({ beforeNavigate });
+ * </script>
+ * ```
+ * 
+ * @example Hash-based SPA
+ * ```ts
+ * initUnsavedChangesNotifier();
+ * ```
  */
-export function initUnsavedChangesNotifier() {
+export function initUnsavedChangesNotifier(options?: {
+  beforeNavigate?: (callback: (nav: { cancel: () => void }) => void) => void;
+}) {
   if (typeof window === 'undefined') return;
 
-  window.addEventListener('beforeunload', beforeUnloadHandler);
+  const message = t('common.unsavedChanges');
 
-  // For hash-based navigation, intercept hashchange
-  const hashChangeHandler = (e: HashChangeEvent) => {
-    if (warnWhenUnsavedChanges) {
-      const confirmed = confirm('You have unsaved changes. Are you sure you want to leave?');
-      if (!confirmed) {
-        e.preventDefault();
-        // Restore original hash
-        if (e.oldURL) {
-          const oldHash = new URL(e.oldURL).hash;
-          history.replaceState(null, '', oldHash || '#');
+  // 1. Browser tab close / refresh
+  const onBeforeUnload = (e: BeforeUnloadEvent) => {
+    if (!dirty) return;
+    e.preventDefault();
+    e.returnValue = '';
+  };
+  window.addEventListener('beforeunload', onBeforeUnload);
+
+  // 2. Framework router (SvelteKit, etc.)
+  if (options?.beforeNavigate) {
+    options.beforeNavigate(({ cancel }) => {
+      if (dirty) {
+        if (!confirm(message)) {
+          cancel();
+        } else {
+          dirty = false;
         }
-      } else {
-        warnWhenUnsavedChanges = false;
       }
+    });
+  }
+
+  // 3. Hash-based fallback for SPAs without a framework router
+  const onHashChange = (e: HashChangeEvent) => {
+    if (!dirty) return;
+    if (!confirm(message)) {
+      e.preventDefault();
+      if (e.oldURL) {
+        history.replaceState(null, '', new URL(e.oldURL).hash || '#');
+      }
+    } else {
+      dirty = false;
     }
   };
+  window.addEventListener('hashchange', onHashChange);
 
-  window.addEventListener('hashchange', hashChangeHandler);
-
+  // Cleanup
   return () => {
-    window.removeEventListener('beforeunload', beforeUnloadHandler);
-    window.removeEventListener('hashchange', hashChangeHandler);
+    window.removeEventListener('beforeunload', onBeforeUnload);
+    window.removeEventListener('hashchange', onHashChange);
   };
 }
