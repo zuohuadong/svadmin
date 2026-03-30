@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.22.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.22.0...ui-v0.22.1) (2026-03-30)
+
+
+### Bug Fixes
+
+* **ui:** `DropdownMenu` missing open state rendering constraints ([31992fe](https://github.com/zuohuadong/svadmin/commit/31992fe7145f8b591aee1f134af8a3e70f87ffc8))
+* **ui:** fix DropdownMenu being open by default and unable to close ([52910ef](https://github.com/zuohuadong/svadmin/commit/52910efef0458e0dff9de38f927e36904f52356c))
+
 ## [0.22.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.21.0...ui-v0.22.0) (2026-03-30)
 
 
