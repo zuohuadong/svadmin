@@ -71,8 +71,6 @@ export function initUnsavedChangesNotifier(options?: {
 }) {
   if (typeof window === 'undefined') return;
 
-  const message = t('common.unsavedChanges');
-
   // 1. Browser tab close / refresh
   const onBeforeUnload = (e: BeforeUnloadEvent) => {
     if (!dirty) return;
@@ -85,7 +83,7 @@ export function initUnsavedChangesNotifier(options?: {
   if (options?.beforeNavigate) {
     options.beforeNavigate(({ cancel }) => {
       if (dirty) {
-        if (!confirm(message)) {
+        if (!confirm(t('common.unsavedChanges'))) {
           cancel();
         } else {
           dirty = false;
@@ -97,7 +95,7 @@ export function initUnsavedChangesNotifier(options?: {
   // 3. Hash-based fallback for SPAs without a framework router
   const onHashChange = (e: HashChangeEvent) => {
     if (!dirty) return;
-    if (!confirm(message)) {
+    if (!confirm(t('common.unsavedChanges'))) {
       e.preventDefault();
       if (e.oldURL) {
         history.replaceState(null, '', new URL(e.oldURL).hash || '#');

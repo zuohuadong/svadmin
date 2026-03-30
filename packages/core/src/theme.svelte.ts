@@ -336,7 +336,7 @@ function applyTheme(m: ThemeMode): void {
 }
 
 // Apply on init
-applyTheme(mode);
+applyTheme(getStoredTheme());
 
 // Listen for system preference changes
 if (typeof window !== 'undefined') {
@@ -383,7 +383,7 @@ function applyColorTheme(ct: ColorTheme): void {
 }
 
 // Apply on init
-applyColorTheme(colorTheme);
+applyColorTheme(getStoredColorTheme());
 
 export function getColorTheme(): ColorTheme {
   return colorTheme;

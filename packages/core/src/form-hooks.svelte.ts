@@ -326,10 +326,16 @@ export function useForm<
 
     if (!runValidation()) { toast.warning(t('validation.required')); return; }
     redirectOverride = overrides?.redirect;
-    if (action === 'create' || action === 'clone') await createMut.mutateAsync(values);
-    else await updateMut.mutateAsync(values);
-    // Untaint on success
-    tainted = {};
+    try {
+      if (action === 'create' || action === 'clone') await createMut.mutateAsync(values);
+      else await updateMut.mutateAsync(values);
+      // Untaint on success
+      tainted = {};
+    } catch (error) {
+      // Errors are already handled by the mutation's onError callback.
+      // We catch here to prevent unhandled promise rejections.
+      handleHttpError(error instanceof Error ? error : new Error(String(error)));
+    }
   }
 
   // ─── AutoSave ───────────────────────────────────────────────────
