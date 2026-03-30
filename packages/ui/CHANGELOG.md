@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.20.1...ui-v0.20.2) (2026-03-30)
+
+
+### Bug Fixes
+
+* **ui:** remove static export of Editor to prevent TS missing module errors ([769299d](https://github.com/zuohuadong/svadmin/commit/769299d6cb37207461e5a78cd4c6d4062a8ba0ab))
+
 ## [0.20.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.20.0...ui-v0.20.1) (2026-03-29)
 
 
