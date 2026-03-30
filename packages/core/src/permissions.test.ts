@@ -71,11 +71,12 @@ describe('AccessControlProvider', () => {
   });
 
   test('provider can() is called via canAccessAsync', async () => {
+    let callCount = 0;
     setAccessControlProvider({
       can: async (params) => {
+        callCount++;
         expect((params as CanParams).resource).toBe('posts');
-        expect((params as CanParams).action).toBe('list');
-        if ((params as CanParams).resource === 'posts' && (params as CanParams).action === 'delete') {
+        if ((params as CanParams).action === 'delete') {
           return { can: false, reason: 'Cannot delete posts' };
         }
         return { can: true };
@@ -87,6 +88,7 @@ describe('AccessControlProvider', () => {
 
     const allowed = await canAccessAsync('posts', 'list') as CanResult;
     expect(allowed.can).toBe(true);
+    expect(callCount).toBe(2);
   });
 
   test('params.id is passed through', async () => {
