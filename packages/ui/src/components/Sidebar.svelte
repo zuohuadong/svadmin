@@ -17,15 +17,22 @@
     ChevronLeft, ChevronDown, LogOut, Sun, Moon, Palette
   } from 'lucide-svelte';
 
-  let { collapsed, identity, title, onToggle, onLogout, menu, legacyHashRouting = false }: {
+  let { collapsed, identity, title, onToggle, onLogout, menu, routeMode = 'auto' }: {
     collapsed: boolean;
     identity: Identity | null;
     title: string;
     onToggle: () => void;
     onLogout: () => void;
     menu?: MenuItem[];
-    legacyHashRouting?: boolean;
+    /** 'hash' for SPA hash routing, 'path' for SvelteKit/filesystem routing, 'auto' to detect */
+    routeMode?: 'hash' | 'path' | 'auto';
   } = $props();
+
+  const useHash = $derived(
+    routeMode === 'hash' ? true
+    : routeMode === 'path' ? false
+    : typeof window !== 'undefined' && window.location.hash.startsWith('#/')
+  );
 
   const resources = getResources();
 
@@ -206,7 +213,7 @@
               {#each group.items as item}
                 {@const active = isActive(item.path)}
                 <a
-                  href={legacyHashRouting ? `#${item.path}` : item.path}
+                  href={useHash ? `#${item.path}` : item.path}
                   class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200
                   {active
                     ? 'bg-sidebar-accent text-sidebar-accent-foreground sidebar-nav-active'
@@ -229,7 +236,7 @@
                 {#snippet child({ props }: { props: Record<string, unknown> })}
                   <a
                     {...props}
-                    href={legacyHashRouting ? `#${item.path}` : item.path}
+                    href={useHash ? `#${item.path}` : item.path}
                     class="flex items-center justify-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200
                     {active
                       ? 'bg-sidebar-accent text-sidebar-accent-foreground'
@@ -245,7 +252,7 @@
             </Tooltip.Root>
           {:else}
             <a
-              href={legacyHashRouting ? `#${item.path}` : item.path}
+              href={useHash ? `#${item.path}` : item.path}
               class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200
               {active
                 ? 'bg-sidebar-accent text-sidebar-accent-foreground sidebar-nav-active'

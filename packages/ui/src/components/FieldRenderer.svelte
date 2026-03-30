@@ -78,7 +78,7 @@
 </script>
 
 <div class="space-y-1.5">
-  <Label for={field.key}>
+  <Label for={field.key} id="label-{field.key}">
     {field.label}
     {#if field.required}
       <span class="text-destructive">*</span>
@@ -233,7 +233,7 @@
     {/if}
 
   {:else if field.type === 'multiselect'}
-    <div class="space-y-2 rounded-lg border border-input p-3 max-h-48 overflow-y-auto">
+    <div class="space-y-2 rounded-lg border border-input p-3 max-h-48 overflow-y-auto" role="group" aria-labelledby="label-{field.key}">
       {#each field.options ?? [] as opt}
         <label class="flex items-center gap-2 text-sm cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors">
           <Checkbox

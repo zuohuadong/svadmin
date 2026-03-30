@@ -519,13 +519,42 @@ export function addTranslations(locale: string, translations: Record<string, str
 }
 
 /**
- * useTranslation — standard i18n hook
- * Returns { translate, getLocale, changeLocale }
+ * Reactive translation hook for Svelte 5.
+ * 
+ * The returned `t` getter is tracked by `$derived`, so any component 
+ * using it will re-render when the locale changes via `setLocale()`.
+ * 
+ * @example
+ * ```svelte
+ * <script>
+ *   import { useTranslation } from '@svadmin/core/i18n';
+ *   const { t, locale, setLocale } = useTranslation();
+ * </script>
+ * <h1>{t('common.welcome', { title: 'Admin' })}</h1>
+ * <button onclick={() => setLocale('en')}>EN</button>
+ * ```
  */
 export function useTranslation() {
+  // $derived.by creates a reactive dependency on currentLocale
+  const translate = $derived.by(() => {
+    const dict = locales[currentLocale] ?? locales['en'];
+    return (key: string, params?: Record<string, string | number>): string => {
+      let text = dict[key] ?? key;
+      if (params) {
+        for (const [k, v] of Object.entries(params)) {
+          text = text.replace(`{${k}}`, String(v));
+        }
+      }
+      return text;
+    };
+  });
+
   return {
-    translate: t,
-    getLocale,
-    changeLocale: setLocale,
+    /** Reactive translator — re-evaluates when locale changes */
+    get t() { return translate; },
+    get locale() { return currentLocale; },
+    setLocale,
+    getAvailableLocales,
   };
 }
+
