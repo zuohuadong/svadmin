@@ -48,13 +48,20 @@ export function createCasbinAccessControl(
   options: CasbinAdapterOptions,
 ): AccessControlProvider {
   return {
-    can: async ({ resource, action }: CanParams): Promise<CanResult> => {
-      const user = options.getUser();
-      const allowed = await enforcer.enforce(user, resource, action);
-      return {
-        can: allowed,
-        reason: allowed ? undefined : `User "${user}" cannot "${action}" on "${resource}"`,
+    can: async (params: CanParams | CanParams[]): Promise<CanResult | CanResult[]> => {
+      const executeCheck = async ({ resource, action }: CanParams) => {
+        const user = options.getUser();
+        const allowed = await enforcer.enforce(user, resource, action);
+        return {
+          can: allowed,
+          reason: allowed ? undefined : `User "${user}" cannot "${action}" on "${resource}"`,
+        };
       };
+
+      if (Array.isArray(params)) {
+        return Promise.all(params.map(p => executeCheck(p)));
+      }
+      return executeCheck(params);
     },
     options: options.providerOptions,
   };

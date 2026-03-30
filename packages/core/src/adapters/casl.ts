@@ -38,13 +38,22 @@ export function createCaslAccessControl(
   options?: AccessControlProvider['options'],
 ): AccessControlProvider {
   return {
-    can: async ({ resource, action, params }: CanParams): Promise<CanResult> => {
-      const field = params?.field as string | undefined;
-      const allowed = ability.can(action, resource, field);
-      return {
-        can: allowed,
-        reason: allowed ? undefined : `Cannot "${action}" on "${resource}"${field ? ` (field: ${field})` : ''}`,
+    can: async (params: CanParams | CanParams[]): Promise<CanResult | CanResult[]> => {
+      const executeCheck = async ({ resource, action, params: actionParams }: CanParams) => {
+        const field = actionParams?.field as string | undefined;
+        // CaslAbility's can only accepts string for subject based on its internal definition in this file
+        // To support object subjects when CanParams might pass them, cast it to any here to satisfy the local interface
+        const allowed = ability.can(action as string, resource as any, field);
+        return {
+          can: allowed,
+          reason: allowed ? undefined : `Cannot "${action}" on "${resource}"${field ? ` (field: ${field})` : ''}`,
+        };
       };
+
+      if (Array.isArray(params)) {
+        return Promise.all(params.map(p => executeCheck(p)));
+      }
+      return executeCheck(params);
     },
     options,
   };
