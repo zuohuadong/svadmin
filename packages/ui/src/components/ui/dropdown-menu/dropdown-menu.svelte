@@ -16,12 +16,16 @@
 		...restProps
 	}: Props = $props();
 
+	import { setContext } from "svelte";
+
 	function handleClickOutside(e: MouseEvent) {
 		if (ref && !ref.contains(e.target as Node)) {
 			open = false;
 			onOpenChange?.(false);
 		}
 	}
+
+	setContext("svadmin-dropdown-open", () => open);
 
 	$effect(() => {
 		if (open) {
