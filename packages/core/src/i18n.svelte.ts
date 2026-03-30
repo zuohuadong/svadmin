@@ -477,6 +477,7 @@ const locales: Record<string, Locale> = {
 
 /** Detect best locale from browser language */
 function detectLocale(): string {
+  if (typeof navigator === 'undefined') return 'en'; // Safe default for SSR
   const browserLang = navigator.language || navigator.languages?.[0] || 'zh-CN';
   // Exact match
   if (locales[browserLang]) return browserLang;

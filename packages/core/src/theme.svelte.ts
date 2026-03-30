@@ -27,7 +27,7 @@ export interface ColorPreset {
 }
 
 /** Built-in color presets — consumers can extend via registerColorPreset(). */
-export const builtinPresets: Record<string, ColorPreset> = {
+export const builtinPresets: Record<string, ColorPreset> = $state({
   neutral: {
     name: 'neutral',
     label: 'Neutral',
@@ -189,7 +189,7 @@ export const builtinPresets: Record<string, ColorPreset> = {
       '--chart-1': 'oklch(0.541 0.281 293.009)',
     },
   },
-};
+});
 
 /** Register a custom color preset. Overwrites any built-in preset with the same name. */
 export function registerColorPreset(preset: ColorPreset): void {
@@ -292,11 +292,11 @@ export function clearCssOverrides(keys?: string[]): void {
 }
 
 // ── Color themes (display metadata, derived from presets) ──
-export const colorThemes: { id: ColorTheme | string; label: string; color: string }[] = Object.values(builtinPresets).map(p => ({
+export const colorThemes: { id: ColorTheme | string; label: string; color: string }[] = $state(Object.values(builtinPresets).map(p => ({
   id: p.name as ColorTheme,
   label: p.label,
   color: p.color,
-}));
+})));
 
 // ── Dark/Light mode ──────────────────────────────────────
 
