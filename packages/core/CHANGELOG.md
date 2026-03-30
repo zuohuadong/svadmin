@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.19.0](https://github.com/zuohuadong/svadmin/compare/core-v0.18.1...core-v0.19.0) (2026-03-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core:** useTranslation now returns { t, locale, setLocale, getAvailableLocales } instead of { translate, getLocale, changeLocale }. The locale is a reactive property instead of a getter function.
+
+### Features
+
+* **core:** enterprise improvements for i18n and routing ([9388aa9](https://github.com/zuohuadong/svadmin/commit/9388aa92b687287f27280cff20345339107af28e))
+
+
+### Code Refactoring
+
+* **core:** adopt elegant useTranslation API ([ae97678](https://github.com/zuohuadong/svadmin/commit/ae976780076f695f013d53136fd496b7cc9a20bb))
+
 ## [0.18.1](https://github.com/zuohuadong/svadmin/compare/core-v0.18.0...core-v0.18.1) (2026-03-30)
 
 
