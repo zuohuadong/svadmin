@@ -22,7 +22,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   color: #0f172a;            /* slate-900 — aligned with --foreground */
@@ -49,41 +49,52 @@ a:hover {
 
 .lite-sidebar {
   width: 230px;
-  background: #0f172a;       /* slate-900 — aligned with sidebar dark bg */
-  color: #e2e8f0;            /* slate-200 */
+  background: #ffffff;
+  color: #0f172a;
   padding: 16px 0;
   flex-shrink: 0;
+  border-right: 1px solid #e2e8f0;
 }
 
 .lite-sidebar-brand {
   padding: 0 16px 16px;
   font-size: 16px;
   font-weight: 700;
-  color: #fff;
-  letter-spacing: -0.01em;
-  border-bottom: 1px solid #1e293b; /* slate-800 */
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  border-bottom: 1px solid #f1f5f9;
   margin-bottom: 8px;
 }
 
 .lite-sidebar a {
   display: block;
+  position: relative;
   padding: 8px 16px;
-  color: #94a3b8;            /* slate-400 */
+  color: #64748b;
   font-size: 13px;
   font-weight: 500;
   transition: background 0.15s ease, color 0.15s ease;
-  border-left: 3px solid transparent;
 }
 .lite-sidebar a:hover {
-  background: #1e293b;       /* slate-800 */
-  color: #f1f5f9;
+  background: #f8fafc;
+  color: #0f172a;
   text-decoration: none;
 }
 .lite-sidebar a.active {
-  background: #1e293b;
-  color: #fff;
-  border-left-color: #4f46e5; /* indigo-600 brand accent */
+  background: #f8fafc;
+  color: #0f172a;
   text-decoration: none;
+}
+.lite-sidebar a.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  border-radius: 0 3px 3px 0;
+  background: #4f46e5;
 }
 
 /* ─── Multi-Level Menu (details/summary) ──────────────────── */
@@ -95,7 +106,7 @@ a:hover {
   list-style: none;
   cursor: pointer;
   padding: 8px 16px;
-  color: #cbd5e1;            /* slate-300 */
+  color: #64748b;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -106,11 +117,11 @@ a:hover {
   display: none;
 }
 .lite-menu-group summary:hover {
-  color: #fff;
-  background: #1e293b;
+  color: #0f172a;
+  background: #f8fafc;
 }
 .lite-menu-group[open] > summary {
-  color: #e2e8f0;
+  color: #0f172a;
 }
 .lite-menu-group[open] > summary::after {
   content: " \25BE";
@@ -135,22 +146,25 @@ a:hover {
 
 .lite-header h1 {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
   color: #0f172a;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
 /* ─── Cards ────────────────────────────────────────────────── */
 .lite-card {
   background: #fff;
-  border: 1px solid #e2e8f0;  /* slate-200 — aligned with --border */
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 24px;
   margin-bottom: 16px;
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 2px 8px rgba(15, 23, 42, 0.02); /* multi-layer translucent shadow */
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 4px 16px -4px rgba(0, 0, 0, 0.02);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.lite-card:hover {
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 8px 24px -6px rgba(0, 0, 0, 0.04);
+  transform: translateY(-1px);
 }
 
 /* ─── Table ────────────────────────────────────────────────── */
@@ -196,7 +210,7 @@ a:hover {
 }
 
 .lite-table tr:hover td {
-  background: #f8fafc;
+  background: #f8f7fd;
 }
 
 .lite-table td.actions {
@@ -218,7 +232,7 @@ a:hover {
   text-decoration: none;
   vertical-align: middle;
   line-height: 1.5;
-  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease, transform 0.1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .lite-btn:hover {
   background: #f8fafc;
@@ -228,6 +242,9 @@ a:hover {
 .lite-btn:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); /* indigo ring */
+}
+.lite-btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .lite-btn-primary {
@@ -295,7 +312,7 @@ a:hover {
 .lite-input:focus {
   outline: none;
   border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(79, 70, 229, 0.3);
 }
 
 .lite-input-error {
@@ -342,7 +359,7 @@ textarea.lite-input {
 .lite-select:focus {
   outline: none;
   border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(79, 70, 229, 0.3);
 }
 
 /* ─── Forms — Custom Checkbox ─────────────────────────────── */
