@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.24.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.24.0...ui-v0.24.1) (2026-03-31)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** restore sidebar expand button when collapsed ([7342bf0](https://github.com/zuohuadong/svadmin/commit/7342bf06bef3c10abc79a626858df61847a4271e))
+* **ui:** restore sidebar expand button when collapsed ([086fb29](https://github.com/zuohuadong/svadmin/commit/086fb29768dd7518d4677afd30e69f1428d6323d))
+* **ui:** unify search and filter layout, support select options ([bc3f799](https://github.com/zuohuadong/svadmin/commit/bc3f799f93d84f8a252d5b0d254758673a488046))
+* **ui:** unify search and filter layout, support select options ([ba84768](https://github.com/zuohuadong/svadmin/commit/ba847687655e3f9c292f56bec9bfd83802dc9ee6))
+
 ## [0.24.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.23.2...ui-v0.24.0) (2026-03-31)
 
 
