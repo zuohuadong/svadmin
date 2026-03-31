@@ -28,7 +28,7 @@
   import * as DropdownMenu from './ui/dropdown-menu/index.js';
   import * as PaginationUI from './ui/pagination/index.js';
   import * as ContextMenu from './ui/context-menu/index.js';
-  import { Select } from './ui/select/index.js';
+  import { Pagination } from './ui/pagination/index.js';
   import {
     Plus, Pencil, Trash2,
     Search, Download, Upload, ChevronDown, ChevronUp, SlidersHorizontal, Filter as FilterIcon,
@@ -356,13 +356,20 @@
         </Button>
       {/if}
       {#if selectedCount > 0 && canDelete}
-        <Button variant="destructive" size="sm" onclick={confirmBatchDelete}>
+        <Button
+          variant="destructive"
+          size="sm"
+          class="h-9 whitespace-nowrap"
+          onclick={confirmBatchDelete}
+        >
           <Trash2 class="h-4 w-4" data-icon="inline-start" /> {t('common.batchDelete', { count: selectedCount })}
         </Button>
       {/if}
+      
       {#if selectedCount > 0 && batchActions}
         {@render batchActions({ selectedIds: Object.keys(rowSelection) })}
       {/if}
+
       <!-- Column Visibility Picker (DropdownMenu) -->
       <DropdownMenu.Root>
         <DropdownMenu.Trigger>
@@ -429,16 +436,16 @@
               <div class="space-y-1">
                 <label class="text-xs text-muted-foreground" for="filter-{field.key}">{field.label}</label>
                 {#if field.type === 'select' && field.options}
-                  <Select
+                  <select
                     id="filter-{field.key}"
-                    class="h-9 text-sm w-full font-normal"
+                    class="h-9 text-sm w-full font-normal flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     bind:value={filterValues[field.key]}
                   >
                     <option value="">全部</option>
                     {#each field.options as opt}
                       <option value={opt.value}>{opt.label}</option>
                     {/each}
-                  </Select>
+                  </select>
                 {:else}
                   <Input
                     id="filter-{field.key}"
@@ -761,18 +768,21 @@
   <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
     <div class="flex items-center gap-2">
       <span>{t('common.total', { total: query.data?.total ?? 0 })}</span>
-      <Select
-        class="hidden sm:inline-block h-8 w-auto text-xs"
+      <select
+        class="h-8 w-[70px] px-1 py-1 flex items-center justify-between rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         value={String(pagination.pageSize ?? 10)}
-        onchange={(e: Event) => {
+        onchange={(e) => {
           const size = Number((e.target as HTMLSelectElement).value);
-          pagination = { ...pagination, pageSize: size, current: 1 };
+          if (!isNaN(size)) {
+            pagination = { ...pagination, pageSize: size, current: 1 };
+          }
         }}
       >
-        {#each [10, 20, 50, 100] as size}
-          <option value={size}>{size} / {t('common.perPage')}</option>
-        {/each}
-      </Select>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
     </div>
     <PaginationUI.Root>
       <PaginationUI.Content>
