@@ -85,6 +85,39 @@ jobs:
           set -e
           PUBLISH_FAILED=0
 
+          # Rewrite workspace:* to actual semver strings for npm publish
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            const pkgs = fs.readdirSync('packages').filter(p => fs.statSync('packages/'+p).isDirectory());
+            const versions = {};
+            pkgs.forEach(p => {
+              const pjson = path.join('packages', p, 'package.json');
+              if (fs.existsSync(pjson)) {
+                versions[require('./'+pjson).name] = require('./'+pjson).version;
+              }
+            });
+            pkgs.forEach(p => {
+              const pjson = path.join('packages', p, 'package.json');
+              if (!fs.existsSync(pjson)) return;
+              const pkg = require('./'+pjson);
+              let changed = false;
+              ['dependencies', 'devDependencies', 'peerDependencies'].forEach(t => {
+                if (pkg[t]) {
+                  for (const k in pkg[t]) {
+                    if (pkg[t][k] === 'workspace:*' && versions[k]) {
+                      pkg[t][k] = '^' + versions[k];
+                      changed = true;
+                    }
+                  }
+                }
+              });
+              if (changed) {
+                fs.writeFileSync(pjson, JSON.stringify(pkg, null, 2) + '\n');
+              }
+            });
+          "
+
           # With independent versioning, only packages whose version was bumped
           # by release-please will have a new version not yet on npm.
           for pkg_dir in packages/*/; do

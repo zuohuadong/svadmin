@@ -69,14 +69,14 @@
     },
     "packages/airtable": {
       "name": "@svadmin/airtable",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
       },
     },
     "packages/appwrite": {
       "name": "@svadmin/appwrite",
-      "version": "0.8.1",
+      "version": "0.8.2",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
         "appwrite": ">=14.0.0",
@@ -118,14 +118,14 @@
     },
     "packages/directus": {
       "name": "@svadmin/directus",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
       },
     },
     "packages/drizzle": {
       "name": "@svadmin/drizzle",
-      "version": "0.10.0",
+      "version": "0.10.1",
       "devDependencies": {
         "drizzle-orm": "^0.45.1",
       },
@@ -167,16 +167,16 @@
         "lucide-svelte": "^0.577.0",
       },
       "devDependencies": {
-        "@svadmin/core": "^0.19.3",
+        "@svadmin/core": "workspace:*",
       },
       "peerDependencies": {
-        "@svadmin/core": "^0.19.3",
+        "@svadmin/core": "workspace:*",
         "svelte": "^5.0.0",
       },
     },
     "packages/elysia": {
       "name": "@svadmin/elysia",
-      "version": "0.10.0",
+      "version": "0.10.1",
       "peerDependencies": {
         "@elysiajs/eden": ">=1.0.0",
         "@svadmin/core": "^0.5.0",
@@ -185,14 +185,14 @@
     },
     "packages/firebase": {
       "name": "@svadmin/firebase",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
       },
     },
     "packages/graphql": {
       "name": "@svadmin/graphql",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "dependencies": {
         "graphql-request": "^7.1.0",
       },
@@ -202,14 +202,14 @@
     },
     "packages/hasura": {
       "name": "@svadmin/hasura",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
       },
     },
     "packages/lite": {
       "name": "@svadmin/lite",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "dependencies": {
         "sveltekit-superforms": "^2.22.0",
         "zod": "^3.24.0",
@@ -222,35 +222,35 @@
     },
     "packages/mcp": {
       "name": "@svadmin/mcp",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
       },
     },
     "packages/medusa": {
       "name": "@svadmin/medusa",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
       },
     },
     "packages/nestjs-query": {
       "name": "@svadmin/nestjs-query",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
       },
     },
     "packages/nestjsx-crud": {
       "name": "@svadmin/nestjsx-crud",
-      "version": "0.9.1",
+      "version": "0.9.2",
       "peerDependencies": {
         "@svadmin/core": "workspace:*",
       },
     },
     "packages/pocketbase": {
       "name": "@svadmin/pocketbase",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
         "pocketbase": ">=0.21.0",
@@ -258,21 +258,21 @@
     },
     "packages/sanity": {
       "name": "@svadmin/sanity",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
       },
     },
     "packages/simple-rest": {
       "name": "@svadmin/simple-rest",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
       },
     },
     "packages/sso": {
       "name": "@svadmin/sso",
-      "version": "0.8.1",
+      "version": "0.8.2",
       "devDependencies": {
         "typescript": "^5.7.0",
       },
@@ -282,14 +282,14 @@
     },
     "packages/strapi": {
       "name": "@svadmin/strapi",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
       },
     },
     "packages/supabase": {
       "name": "@svadmin/supabase",
-      "version": "0.8.1",
+      "version": "0.8.2",
       "peerDependencies": {
         "@supabase/supabase-js": "^2.0.0",
         "@svadmin/core": "^0.5.0",
@@ -297,7 +297,7 @@
     },
     "packages/sveltekit": {
       "name": "@svadmin/sveltekit",
-      "version": "0.8.1",
+      "version": "0.8.2",
       "peerDependencies": {
         "@svadmin/core": "^0.5.0",
         "@sveltejs/kit": "^2.0.0",
@@ -306,7 +306,7 @@
     },
     "packages/ui": {
       "name": "@svadmin/ui",
-      "version": "0.23.1",
+      "version": "0.23.2",
       "dependencies": {
         "@lucide/svelte": "^0.577.0",
         "@tanstack/svelte-table": "^9.0.0-alpha.10",

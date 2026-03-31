@@ -16,7 +16,7 @@
     }
   },
   "peerDependencies": {
-    "@svadmin/core": "^0.19.3"
+    "@svadmin/core": "workspace:*"
   },
   "license": "MIT",
   "author": "zuohuadong",

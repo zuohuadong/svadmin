@@ -16,7 +16,7 @@
     }
   },
   "peerDependencies": {
-    "@svadmin/core": "^0.19.3",
+    "@svadmin/core": "workspace:*",
     "refine-sqlx": "^0.9.0"
   },
   "license": "MIT",

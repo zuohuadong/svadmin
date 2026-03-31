@@ -21,7 +21,7 @@
   },
   "peerDependencies": {
     "svelte": "^5.0.0",
-    "@svadmin/core": "^0.19.3",
+    "@svadmin/core": "workspace:*",
     "@sveltejs/kit": "^2.0.0"
   },
   "dependencies": {
