@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/zuohuadong/svadmin/compare/airtable-v0.9.1...airtable-v0.9.2) (2026-03-31)
+
+
+### 🔧 Miscellaneous Chores
+
+* **release:** decouple workspace versions for local dev and use dynamic npm publishing ([a54fbe7](https://github.com/zuohuadong/svadmin/commit/a54fbe7270a1afd2b482bdae2684de3139379784))
+
 ## [0.9.1](https://github.com/zuohuadong/svadmin/compare/airtable-v0.9.0...airtable-v0.9.1) (2026-03-31)
 
 

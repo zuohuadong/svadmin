@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/zuohuadong/svadmin/compare/elysia-v0.10.1...elysia-v0.10.2) (2026-03-31)
+
+
+### 🔧 Miscellaneous Chores
+
+* **release:** decouple workspace versions for local dev and use dynamic npm publishing ([a54fbe7](https://github.com/zuohuadong/svadmin/commit/a54fbe7270a1afd2b482bdae2684de3139379784))
+
 ## [0.10.1](https://github.com/zuohuadong/svadmin/compare/elysia-v0.10.0...elysia-v0.10.1) (2026-03-31)
 
 
