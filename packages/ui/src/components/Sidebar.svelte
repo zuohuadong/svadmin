@@ -14,7 +14,7 @@
   import { Avatar } from './ui/avatar/index.js';
   import {
     LayoutDashboard, FileText, Users, Settings, Home,
-    ChevronLeft, ChevronDown, LogOut, Sun, Moon, Palette
+    ChevronLeft, ChevronRight, ChevronDown, LogOut, Sun, Moon, Palette
   } from 'lucide-svelte';
 
   let { collapsed, identity, title, onToggle, onLogout, menu, routeMode = 'auto' }: {
@@ -181,7 +181,9 @@
         <ChevronLeft class="h-4 w-4" />
       </TooltipButton>
     {:else}
-      <div></div>
+      <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle} class="mx-auto mt-2 mb-2 block">
+        <ChevronRight class="h-4 w-4" />
+      </TooltipButton>
     {/if}
   </div>
 
