@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.9.1](https://github.com/zuohuadong/svadmin/compare/nestjsx-crud-v0.9.0...nestjsx-crud-v0.9.1) (2026-03-31)
+
+
+### 💅 Elegance & Refactoring
+
+* **core:** decouple sonner-svelte from core to make it truly headless ([e9ea226](https://github.com/zuohuadong/svadmin/commit/e9ea226cd1765fe3d43a0d53705a14ec27e5be44))
+* **core:** make core fully headless by decoupling sonner-svelte ([6f6c561](https://github.com/zuohuadong/svadmin/commit/6f6c5618597df5fcb8257f3bd09ba813710bce6c))
+* **nestjsx-crud:** remove unused query-string dependency ([e9ea226](https://github.com/zuohuadong/svadmin/commit/e9ea226cd1765fe3d43a0d53705a14ec27e5be44))
+
 ## [0.9.0](https://github.com/zuohuadong/svadmin/compare/nestjsx-crud-v0.8.0...nestjsx-crud-v0.9.0) (2026-03-30)
 
 

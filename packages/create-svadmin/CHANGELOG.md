@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.10.0...create-svadmin-v0.10.1) (2026-03-31)
+
+
+### 💅 Elegance & Refactoring
+
+* **core:** eliminate all backward-compat debt and fix reactivity… ([19996d7](https://github.com/zuohuadong/svadmin/commit/19996d7cc79365985baf9de157aac300ec62ec7d))
+
 ## [0.10.0](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.9.0...create-svadmin-v0.10.0) (2026-03-28)
 
 

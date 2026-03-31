@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/zuohuadong/svadmin/compare/auth-utils-v0.7.0...auth-utils-v0.7.1) (2026-03-31)
+
+
+### 💅 Elegance & Refactoring
+
+* **core:** eliminate all backward-compat debt and fix reactivity… ([19996d7](https://github.com/zuohuadong/svadmin/commit/19996d7cc79365985baf9de157aac300ec62ec7d))
+
 ## [0.7.0](https://github.com/zuohuadong/svadmin/compare/auth-utils-v0.6.0...auth-utils-v0.7.0) (2026-03-28)
 
 

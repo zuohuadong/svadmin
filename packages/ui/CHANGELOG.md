@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.23.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.23.0...ui-v0.23.1) (2026-03-31)
+
+
+### 💅 Elegance & Refactoring
+
+* **core:** decouple sonner-svelte from core to make it truly headless ([e9ea226](https://github.com/zuohuadong/svadmin/commit/e9ea226cd1765fe3d43a0d53705a14ec27e5be44))
+* **core:** make core fully headless by decoupling sonner-svelte ([6f6c561](https://github.com/zuohuadong/svadmin/commit/6f6c5618597df5fcb8257f3bd09ba813710bce6c))
+* **nestjsx-crud:** remove unused query-string dependency ([e9ea226](https://github.com/zuohuadong/svadmin/commit/e9ea226cd1765fe3d43a0d53705a14ec27e5be44))
+* **ui:** encapsulate Headless UI dependencies and remove vaul-svelte ([695b42b](https://github.com/zuohuadong/svadmin/commit/695b42bafd6f94027fdab6c137f795b6eae262da))
+* **ui:** encapsulate UI headless dependencies and remove vaul-svelte ([c7484fd](https://github.com/zuohuadong/svadmin/commit/c7484fd43879487cfddbf5242d712526a9518e8b))
+
 ## [0.23.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.22.1...ui-v0.23.0) (2026-03-30)
 
 
