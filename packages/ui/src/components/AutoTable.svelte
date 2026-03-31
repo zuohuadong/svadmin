@@ -388,64 +388,78 @@
     </div>
   </div>
 
-  <!-- Search -->
-  {#if searchableFields.length > 0}
-    <div class="relative max-w-sm">
-      <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-      <Input
-        type="text"
-        bind:value={searchText}
-        oninput={() => { pagination = { ...pagination, current: 1 }; }}
-        placeholder={t('common.search')}
-        class="pl-10"
-      />
-    </div>
-  {/if}
+  <!-- Search and Advanced Filters -->
+  <div class="flex flex-wrap items-center gap-2">
+    {#if searchableFields.length > 0}
+      <div class="relative max-w-sm flex-1 sm:min-w-[250px]">
+        <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          type="text"
+          bind:value={searchText}
+          oninput={() => { pagination = { ...pagination, current: 1 }; }}
+          placeholder={t('common.search')}
+          class="pl-10 h-9"
+        />
+      </div>
+    {/if}
 
-  <!-- Advanced Filters (Popover) -->
-  {#if filterableFields.length > 0}
-    <Popover.Root>
-      <Popover.Trigger>
-        {#snippet child({ props })}
-          <Button variant="outline" size="sm" {...props}>
-            <FilterIcon class="h-4 w-4" data-icon="inline-start" />
-            {t('common.filter')}
-            {#if activeFilterCount > 0}
-              <Badge variant="secondary" class="ml-1 h-5 min-w-5 px-1">{activeFilterCount}</Badge>
-            {/if}
-          </Button>
-        {/snippet}
-      </Popover.Trigger>
-      <Popover.Content class="w-80">
-        <div class="space-y-3">
-          <h4 class="font-medium text-sm">{t('common.filter')}</h4>
-          {#each filterableFields as field}
-            <div class="space-y-1">
-              <label class="text-xs text-muted-foreground" for="filter-{field.key}">{field.label}</label>
-              <Input
-                id="filter-{field.key}"
-                type="text"
-                bind:value={filterValues[field.key]}
-                placeholder={field.label}
-                class="h-8 text-sm"
-              />
+    {#if filterableFields.length > 0}
+      <Popover.Root>
+        <Popover.Trigger>
+          {#snippet child({ props })}
+            <Button variant="outline" size="sm" class="h-9 px-3" {...props}>
+              <FilterIcon class="h-4 w-4" data-icon="inline-start" />
+              {t('common.filter')}
+              {#if activeFilterCount > 0}
+                <Badge variant="secondary" class="ml-1 h-5 min-w-5 px-1">{activeFilterCount}</Badge>
+              {/if}
+            </Button>
+          {/snippet}
+        </Popover.Trigger>
+        <Popover.Content class="w-80">
+          <div class="space-y-3">
+            <h4 class="font-medium text-sm">{t('common.filter')}</h4>
+            {#each filterableFields as field}
+              <div class="space-y-1">
+                <label class="text-xs text-muted-foreground" for="filter-{field.key}">{field.label}</label>
+                {#if field.type === 'select' && field.options}
+                  <Select
+                    id="filter-{field.key}"
+                    class="h-9 text-sm w-full font-normal"
+                    bind:value={filterValues[field.key]}
+                  >
+                    <option value="">全部</option>
+                    {#each field.options as opt}
+                      <option value={opt.value}>{opt.label}</option>
+                    {/each}
+                  </Select>
+                {:else}
+                  <Input
+                    id="filter-{field.key}"
+                    type="text"
+                    bind:value={filterValues[field.key]}
+                    placeholder={field.label}
+                    class="h-9 text-sm"
+                  />
+                {/if}
+              </div>
+            {/each}
+            <div class="flex gap-2 pt-2">
+              <Button size="sm" class="flex-1" onclick={() => { pagination = { ...pagination, current: 1 }; }}>
+                {t('common.confirm')}
+              </Button>
+              <Button variant="outline" size="sm" onclick={() => {
+                filterValues = {};
+                pagination = { ...pagination, current: 1 };
+              }}>
+                {t('common.reset')}
+              </Button>
             </div>
-          {/each}
-          <div class="flex gap-2">
-            <Button size="sm" class="flex-1" onclick={() => { pagination = { ...pagination, current: 1 }; }}>
-              {t('common.confirm')}
-            </Button>
-            <Button variant="outline" size="sm" onclick={() => {
-              filterValues = {};
-              pagination = { ...pagination, current: 1 };
-            }}>
-              {t('common.reset')}
-            </Button>
           </div>
-        </div>
-      </Popover.Content>
-    </Popover.Root>
-  {/if}
+        </Popover.Content>
+      </Popover.Root>
+    {/if}
+  </div>
 
   <!-- Table (TanStack-powered) -->
   <div class="rounded-lg bg-card shadow-sm ring-1 ring-border/10 overflow-hidden" role="region" aria-label="{resource.label} {t('common.list')}">
