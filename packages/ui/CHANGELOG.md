@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.24.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.23.2...ui-v0.24.0) (2026-03-31)
+
+
+### 🚀 Features
+
+* **ui:** upgrade marked optional peerDependencies strictly to newest major versions (v17) ([0bab9e4](https://github.com/zuohuadong/svadmin/commit/0bab9e474d1473edfa19bbe6624a9653f250b37b))
+
+
+### 🔧 Miscellaneous Chores
+
+* **release:** decouple workspace versions for local dev and use dynamic npm publishing ([a54fbe7](https://github.com/zuohuadong/svadmin/commit/a54fbe7270a1afd2b482bdae2684de3139379784))
+
 ## [0.23.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.23.1...ui-v0.23.2) (2026-03-31)
 
 

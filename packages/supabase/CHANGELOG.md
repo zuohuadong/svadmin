@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.3](https://github.com/zuohuadong/svadmin/compare/supabase-v0.8.2...supabase-v0.8.3) (2026-03-31)
+
+
+### 🔧 Miscellaneous Chores
+
+* **release:** decouple workspace versions for local dev and use dynamic npm publishing ([a54fbe7](https://github.com/zuohuadong/svadmin/commit/a54fbe7270a1afd2b482bdae2684de3139379784))
+
 ## [0.8.2](https://github.com/zuohuadong/svadmin/compare/supabase-v0.8.1...supabase-v0.8.2) (2026-03-31)
 
 

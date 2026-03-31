@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/zuohuadong/svadmin/compare/mcp-v0.2.1...mcp-v0.2.2) (2026-03-31)
+
+
+### 🔧 Miscellaneous Chores
+
+* **release:** decouple workspace versions for local dev and use dynamic npm publishing ([a54fbe7](https://github.com/zuohuadong/svadmin/commit/a54fbe7270a1afd2b482bdae2684de3139379784))
+
 ## [0.2.1](https://github.com/zuohuadong/svadmin/compare/mcp-v0.2.0...mcp-v0.2.1) (2026-03-31)
 
 

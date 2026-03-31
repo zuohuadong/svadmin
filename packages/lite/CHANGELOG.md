@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/zuohuadong/svadmin/compare/lite-v0.2.2...lite-v0.2.3) (2026-03-31)
+
+
+### 🔧 Miscellaneous Chores
+
+* **release:** decouple workspace versions for local dev and use dynamic npm publishing ([a54fbe7](https://github.com/zuohuadong/svadmin/commit/a54fbe7270a1afd2b482bdae2684de3139379784))
+
 ## [0.2.2](https://github.com/zuohuadong/svadmin/compare/lite-v0.2.1...lite-v0.2.2) (2026-03-31)
 
 
