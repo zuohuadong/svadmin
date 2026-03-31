@@ -60,6 +60,8 @@
     pagination?: { current: number; pageSize: number };
     /** Externally controlled sorters */
     sorters?: Sort[];
+    /** Custom batch actions to render when rows are selected */
+    batchActions?: Snippet<[{ selectedIds: string[] }]>;
   }
 
   let {
@@ -71,6 +73,7 @@
     rowActions,
     emptyState,
     expandedRowRender,
+    batchActions,
     pagination: externalPagination,
     sorters: externalSorters,
   }: Props = $props();
@@ -356,6 +359,9 @@
         <Button variant="destructive" size="sm" onclick={confirmBatchDelete}>
           <Trash2 class="h-4 w-4" data-icon="inline-start" /> {t('common.batchDelete', { count: selectedCount })}
         </Button>
+      {/if}
+      {#if selectedCount > 0 && batchActions}
+        {@render batchActions({ selectedIds: Object.keys(rowSelection) })}
       {/if}
       <!-- Column Visibility Picker (DropdownMenu) -->
       <DropdownMenu.Root>
