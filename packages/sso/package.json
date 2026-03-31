@@ -31,7 +31,7 @@
     "src"
   ],
   "peerDependencies": {
-    "@svadmin/core": ">=0.4.0"
+    "@svadmin/core": "^0.19.3"
   },
   "devDependencies": {
     "typescript": "^5.7.0"

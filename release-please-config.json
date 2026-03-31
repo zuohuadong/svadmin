@@ -8,6 +8,7 @@
     {"type": "docs", "section": "📝 Documentation", "hidden": false},
     {"type": "chore", "section": "🔧 Miscellaneous Chores", "hidden": false}
   ],
+  "plugins": ["node-workspace"],
   "packages": {
     "packages/core": {
       "release-type": "node",
