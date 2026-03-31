@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.25.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.24.1...ui-v0.25.0) (2026-03-31)
+
+
+### 🚀 Features
+
+* **ui:** add batchActions snippet prop to AutoTable for bulk operations ([c9e200d](https://github.com/zuohuadong/svadmin/commit/c9e200d65d568dd88225e71595ca68fa68efc756))
+
+
+### 🐛 Bug Fixes
+
+* **ui:** bypass svelte 5 props_invalid_value crash on undefined filter values by manually managing select and input state bindings ([c800d66](https://github.com/zuohuadong/svadmin/commit/c800d6675ee57fde7bafa3e467cb0bdf7f45b188))
+* **ui:** use native html select for AutoTable filters ([43c9dfe](https://github.com/zuohuadong/svadmin/commit/43c9dfe8097366646bc5f13cb654084bf9b54232))
+
 ## [0.24.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.24.0...ui-v0.24.1) (2026-03-31)
 
 
