@@ -16,7 +16,10 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
-    "./app.css": "./src/app.css",
+    "./app.css": {
+      "style": "./src/app.css",
+      "default": "./src/app.css"
+    },
     "./components/*": "./src/components/*"
   },
   "peerDependencies": {
