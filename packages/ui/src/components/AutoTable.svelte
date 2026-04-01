@@ -28,7 +28,6 @@
   import * as DropdownMenu from './ui/dropdown-menu/index.js';
   import * as PaginationUI from './ui/pagination/index.js';
   import * as ContextMenu from './ui/context-menu/index.js';
-  import { Pagination } from './ui/pagination/index.js';
   import {
     Plus, Pencil, Trash2,
     Search, Download, Upload, ChevronDown, ChevronUp, SlidersHorizontal, Filter as FilterIcon,
