@@ -5,8 +5,8 @@
 @import "@svadmin/ui/app.css";
 
 /* Scan workspace-linked packages — Tailwind v4 skips node_modules by default */
-@source "../node_modules/@svadmin/ui";
-@source "../node_modules/@svadmin/core";
+@source "../node_modules/@svadmin/ui/src";
+@source "../node_modules/@svadmin/core/src";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -20,52 +20,3 @@
    ║  rose, orange, violet. Custom presets can be registered   ║
    ║  via registerColorPreset() from @svadmin/core.            ║
    ╚═══════════════════════════════════════════════════════════╝ */
-
-
-
-/* ╔═══════════════════════════════════════════════════════════╗
-   ║                    BASE STYLES                           ║
-   ╚═══════════════════════════════════════════════════════════╝ */
-
-@layer base {
-  * {
-    border-color: var(--border);
-  }
-  body {
-    background-color: var(--background);
-    color: var(--foreground);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    @apply antialiased min-h-screen;
-  }
-}
-
-/* ╔═══════════════════════════════════════════════════════════╗
-   ║              GLASS / GRADIENT EFFECTS                    ║
-   ╚═══════════════════════════════════════════════════════════╝ */
-
-@layer components {
-  .glass {
-    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg
-           border border-white/20 dark:border-slate-800/30 shadow-xl;
-  }
-  .glass-card {
-    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg
-           border border-white/20 dark:border-slate-800/30
-           shadow-xl rounded-2xl p-6
-           transition-all duration-300
-           hover:shadow-2xl hover:scale-[1.01];
-  }
-}
-
-@layer utilities {
-  .text-gradient {
-    @apply bg-clip-text text-transparent
-           bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500;
-  }
-}
-
-/* ── Scrollbar ─────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: hsl(214.3 31.8% 80%); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: hsl(214.3 31.8% 65%); }
