@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.25.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.25.1...ui-v0.25.2) (2026-04-01)
+
+
+### 🐛 Bug Fixes
+
+* **create-svadmin:** fix Tailwind v4 scaffolding and broken deps ([974a314](https://github.com/zuohuadong/svadmin/commit/974a314d736236e8de8ceba846ce97cdc2d9352e))
+* **create-svadmin:** fix Tailwind v4 scaffolding and broken deps ([945a611](https://github.com/zuohuadong/svadmin/commit/945a611e9bc3f8063ff47e9be598835227539241))
+
 ## [0.25.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.25.0...ui-v0.25.1) (2026-04-01)
 
 
