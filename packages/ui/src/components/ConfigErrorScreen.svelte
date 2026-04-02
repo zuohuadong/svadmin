@@ -64,7 +64,7 @@
         {#if missingVars.length > 0}
           <div class="rounded-lg overflow-hidden shadow-sm">
             {#each missingVars as v, i (v.key)}
-              <div class="flex items-center justify-between px-3 py-2.5 gap-2 {i < missingVars.length - 1 ? 'border-b : ''}">
+              <div class="flex items-center justify-between px-3 py-2.5 gap-2 {i < missingVars.length - 1 ? 'border-b' : ''}">
                 <div class="flex flex-col gap-0.5 min-w-0">
                   <code class="text-[0.8125rem] font-semibold text-foreground font-mono">{v.key}</code>
                   {#if v.description}
