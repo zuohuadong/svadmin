@@ -8,7 +8,7 @@
   import { navigate } from '@svadmin/core/router';
   import { currentPath } from '@svadmin/core/router';
   import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
-  import { setComponentRegistry, type ComponentRegistry } from '../component-registry.svelte.js';
+  import { setComponentRegistry, getComponentRegistry, type ComponentRegistry } from '../component-registry.svelte.js';
   import Layout from './Layout.svelte';
   import AutoTable from './AutoTable.svelte';
   import AutoForm from './AutoForm.svelte';
@@ -164,19 +164,23 @@
         {/if}
       {:else if route === '/:resource'}
         {#key params.resource}
-          <AutoTable resourceName={params.resource} />
+          {@const Comp = getComponentRegistry().AutoTable}
+          <Comp resourceName={params.resource} />
         {/key}
       {:else if route === '/:resource/create'}
         {#key params.resource}
-          <AutoForm resourceName={params.resource} mode="create" />
+          {@const Comp = getComponentRegistry().AutoForm}
+          <Comp resourceName={params.resource} mode="create" />
         {/key}
       {:else if route === '/:resource/edit/:id'}
         {#key `${params.resource}-${params.id}`}
-          <AutoForm resourceName={params.resource} mode="edit" id={params.id} />
+          {@const Comp = getComponentRegistry().AutoForm}
+          <Comp resourceName={params.resource} mode="edit" id={params.id} />
         {/key}
       {:else if route === '/:resource/show/:id'}
         {#key `${params.resource}-${params.id}`}
-          <ShowPage resourceName={params.resource} id={params.id} />
+          {@const Comp = getComponentRegistry().ShowPage}
+          <Comp resourceName={params.resource} id={params.id} />
         {/key}
       {/if}
       </div>
