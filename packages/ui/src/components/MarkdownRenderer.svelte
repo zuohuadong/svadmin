@@ -1,12 +1,20 @@
 <script lang="ts">
-  import { Marked } from "marked";
-  import { markedHighlight } from "marked-highlight";
-  import * as hljsModule from "highlight.js";
-  const hljs = "default" in hljsModule ? hljsModule.default : hljsModule;
-  import "highlight.js/styles/github-dark.css"; // or your preferred theme
-  import DOMPurify from "isomorphic-dompurify";
+  import * as markedPkg from "marked";
+  import * as markedHighlightPkg from "marked-highlight";
+  import * as hljsPkg from "highlight.js";
+  import * as DOMPurifyPkg from "isomorphic-dompurify";
   import { Check, Copy } from "lucide-svelte";
   import { Button } from "./ui/button/index.js";
+
+  const Marked = markedPkg.Marked;
+  const markedHighlight = markedHighlightPkg.markedHighlight;
+  const hljsModule = hljsPkg.default || hljsPkg;
+  const DOMPurify = 'default' in DOMPurifyPkg ? DOMPurifyPkg.default : DOMPurifyPkg;
+
+  // Only safely import css if hljs exists
+  if (hljsModule && Object.keys(hljsModule).length > 0) {
+    import("highlight.js/styles/github-dark.css").catch(() => {});
+  }
 
   interface Props {
     /** The raw markdown string to render */
@@ -19,20 +27,24 @@
 
   let { content, streaming = false, class: className = "" }: Props = $props();
 
-  // Configure marked with syntax highlighting
-  const marked = new Marked(
+  const hasMarkdownDeps = !!(Marked && markedHighlight && DOMPurify && Object.keys(DOMPurify).length > 0);
+
+  // Configure marked with syntax highlighting if available
+  const markedObj = hasMarkdownDeps ? new Marked(
     markedHighlight({
       langPrefix: "hljs language-",
       highlight(code: string, lang: string) {
-        const language = hljs.getLanguage(lang) ? lang : "plaintext";
-        return hljs.highlight(code, { language }).value;
+        const language = hljsModule.getLanguage && hljsModule.getLanguage(lang) ? lang : "plaintext";
+        return hljsModule.highlight ? hljsModule.highlight(code, { language }).value : code;
       },
     }),
-  );
+  ) : null;
 
   // Render HTML safely
   const html = $derived(
-    DOMPurify.sanitize(marked.parse(content || "") as string),
+    hasMarkdownDeps
+      ? DOMPurify.sanitize(markedObj.parse(content || "") as string)
+      : `<div style="white-space: pre-wrap">${String(content || "").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>`
   );
 
   // Handle copy code blocks
