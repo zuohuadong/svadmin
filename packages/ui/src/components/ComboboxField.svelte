@@ -89,10 +89,10 @@
   </Button>
 
   {#if open}
-    <div class="absolute z-50 mt-1 w-full rounded-md bg-popover shadow-lg">
+    <div class="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
       <Command.Root class="flex flex-col overflow-hidden rounded-md bg-popover text-popover-foreground">
         {#if searchable}
-          <div class="flex items-center px-2">
+          <div class="flex items-center border-b px-2">
             <Search class="mr-1.5 h-3.5 w-3.5 shrink-0 opacity-50" />
             <Command.Input
               bind:value={searchInputValue}

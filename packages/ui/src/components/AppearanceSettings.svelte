@@ -67,7 +67,10 @@
         {#each themeOptions as opt}
           {@const active = currentTheme === opt.value}
           <button
-            class="relative flex flex-col items-center gap-2 rounded-xl p-4 transition-all duration-200 {active ? 'border-primary bg-primary/5 shadow-sm' : 'border-border hover:border-muted-foreground/30 hover:bg-accent/50'} shadow-sm"
+            class="relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all duration-200
+              {active
+                ? 'border-primary bg-primary/5 shadow-sm'
+                : 'border-border hover:border-muted-foreground/30 hover:bg-accent/50'}"
             onclick={() => setTheme(opt.value)}
           >
             {#if active}
@@ -126,7 +129,8 @@
           <p class="text-xs text-muted-foreground">{localeNames[currentLocale] ?? currentLocale}</p>
         </div>
         <select
-          class="h-9 rounded-md bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-sm"
+          class="h-9 rounded-md border border-input bg-background px-3 text-sm ring-offset-background
+            focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           value={currentLocale}
           onchange={(e) => setLocale((e.target as HTMLSelectElement).value)}
         >
@@ -143,7 +147,7 @@
         <div>
           <p class="text-sm font-medium text-foreground">{t('settings.sidebarDensity')}</p>
         </div>
-        <div class="flex rounded-lg overflow-hidden shadow-sm">
+        <div class="flex rounded-lg border border-input overflow-hidden">
           <button
             class="px-3 py-1.5 text-xs font-medium transition-colors
               {density === 'compact' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-accent'}"
@@ -164,7 +168,7 @@
         <div>
           <p class="text-sm font-medium text-foreground">{t('settings.defaultPageSize')}</p>
         </div>
-        <div class="flex rounded-lg overflow-hidden shadow-sm">
+        <div class="flex rounded-lg border border-input overflow-hidden">
           {#each pageSizeOptions as size}
             <button
               class="px-3 py-1.5 text-xs font-mono font-medium transition-colors

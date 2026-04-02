@@ -437,7 +437,7 @@
                 {#if field.type === 'select' && field.options}
                   <select
                     id="filter-{field.key}"
-                    class="h-9 text-sm w-full font-normal flex w-full items-center justify-between rounded-md bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm"
+                    class="h-9 text-sm w-full font-normal flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     value={filterValues[field.key] ?? ''}
                     onchange={(e) => filterValues[field.key] = (e.currentTarget as HTMLSelectElement).value}
                   >
@@ -770,7 +770,7 @@
     <div class="flex items-center gap-2">
       <span>{t('common.total', { total: query.data?.total ?? 0 })}</span>
       <select
-        class="h-8 w-[70px] px-1 py-1 flex items-center justify-between rounded-md bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm"
+        class="h-8 w-[70px] px-1 py-1 flex items-center justify-between rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         value={String(pagination.pageSize ?? 10)}
         onchange={(e) => {
           const size = Number((e.target as HTMLSelectElement).value);

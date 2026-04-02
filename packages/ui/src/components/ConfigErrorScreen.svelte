@@ -62,9 +62,9 @@
       </Card.CardHeader>
       <Card.CardContent class="space-y-4">
         {#if missingVars.length > 0}
-          <div class="rounded-lg overflow-hidden shadow-sm">
+          <div class="rounded-lg border overflow-hidden">
             {#each missingVars as v, i (v.key)}
-              <div class="flex items-center justify-between px-3 py-2.5 gap-2 {i < missingVars.length - 1 ? 'border-b : ''}">
+              <div class="flex items-center justify-between px-3 py-2.5 gap-2 {i < missingVars.length - 1 ? 'border-b border-border/50' : ''}">
                 <div class="flex flex-col gap-0.5 min-w-0">
                   <code class="text-[0.8125rem] font-semibold text-foreground font-mono">{v.key}</code>
                   {#if v.description}
@@ -90,8 +90,8 @@
         {/if}
 
         {#if envTemplate}
-          <div class="rounded-lg overflow-hidden shadow-sm">
-            <div class="flex items-center justify-between px-3 py-2 bg-muted/50 shadow-sm">
+          <div class="rounded-lg border overflow-hidden">
+            <div class="flex items-center justify-between px-3 py-2 bg-muted/50 border-b border-border/50">
               <span class="text-xs font-medium text-muted-foreground">{t('config.envFilePath')}</span>
               <TooltipButton
                 tooltip={t('common.copyAll')}

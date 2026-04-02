@@ -290,7 +290,7 @@
             ></span>
           </Button>
           {#if colorPickerOpen}
-            <div class="absolute bottom-full left-0 mb-1 z-50 w-40 rounded-lg bg-popover p-1 text-popover-foreground shadow-lg animate-in fade-in-0 zoom-in-95">
+            <div class="absolute bottom-full left-0 mb-1 z-50 w-40 rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg animate-in fade-in-0 zoom-in-95">
               {#each colorThemes as ct}
                 <button
                   class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"

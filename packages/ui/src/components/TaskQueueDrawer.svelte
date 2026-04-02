@@ -68,11 +68,11 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div
-      class="bg-card shadow-2xl w-full max-w-sm h-full flex flex-col animate-in slide-in-from-right duration-200 shadow-sm"
+      class="bg-card shadow-2xl w-full max-w-sm h-full flex flex-col border-l border-border animate-in slide-in-from-right duration-200"
       onclick={(e) => e.stopPropagation()}
     >
       <!-- Header -->
-      <div class="p-4 flex items-center justify-between bg-muted/30 shadow-sm">
+      <div class="p-4 border-b border-border flex items-center justify-between bg-muted/30">
         <div class="flex items-center gap-2">
           <ListTodo class="h-5 w-5 text-muted-foreground" />
           <h2 class="text-sm font-semibold">Background Tasks</h2>
@@ -89,7 +89,7 @@
       <div class="flex-1 overflow-y-auto">
         {#each tasks as task}
           {@const Icon = statusIcon[task.status]}
-          <div class="p-4 hover:bg-muted/30 transition-colors">
+          <div class="p-4 border-b border-border hover:bg-muted/30 transition-colors">
             <div class="flex items-start justify-between gap-2">
               <div class="flex items-start gap-3 flex-1 min-w-0">
                 <div class="{statusColor[task.status]} mt-0.5 shrink-0">

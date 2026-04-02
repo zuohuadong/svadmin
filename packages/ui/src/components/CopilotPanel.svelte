@@ -68,11 +68,11 @@ Keep it concise, professional, and use bullet points.`;
 
 {#if open}
   <div 
-    class="fixed right-0 top-14 bottom-0 w-80 bg-card shadow-2xl z-40 flex flex-col shadow-sm"
+    class="fixed right-0 top-14 bottom-0 w-80 bg-card border-l shadow-2xl z-40 flex flex-col"
     transition:slide={{ axis: 'x', duration: 300 }}
   >
     <!-- Header -->
-    <div class="h-14 flex items-center justify-between px-4 bg-muted/20 shadow-sm">
+    <div class="h-14 flex items-center justify-between px-4 border-b bg-muted/20">
       <div class="flex items-center gap-2 font-medium">
         <Sparkles class="h-4 w-4 text-primary" />
         Copilot Sidebar
@@ -83,7 +83,7 @@ Keep it concise, professional, and use bullet points.`;
     </div>
 
     <!-- Context Meta -->
-    <div class="px-4 py-3 bg-muted/10 text-xs text-muted-foreground flex flex-col gap-1 shadow-sm">
+    <div class="px-4 py-3 border-b bg-muted/10 text-xs text-muted-foreground flex flex-col gap-1">
       <div class="flex items-center gap-2">
         <span class="w-16">Resource:</span>
         <span class="font-mono text-foreground">{ctx.currentResource || 'Dashboard'}</span>
@@ -122,11 +122,11 @@ Keep it concise, professional, and use bullet points.`;
         
         <div class="text-sm">
           {#if !insightText && !isPredicting}
-            <div class="text-muted-foreground italic text-center py-4 bg-muted/30 rounded-lg shadow-sm">
+            <div class="text-muted-foreground italic text-center py-4 bg-muted/30 rounded-lg border border-dashed">
               No insights loaded.
             </div>
           {:else}
-            <div class="bg-primary/5 p-3 rounded-xl border-primary/10 prose prose-sm dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 shadow-sm">
+            <div class="bg-primary/5 p-3 rounded-xl border border-primary/10 prose prose-sm dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-li:my-0.5">
               <MarkdownRenderer content={insightText} streaming={isPredicting} />
             </div>
           {/if}
@@ -140,16 +140,16 @@ Keep it concise, professional, and use bullet points.`;
         </h4>
         <div class="space-y-2">
           {#if ctx.currentView === 'list'}
-            <button class="w-full flex items-center gap-2 text-left p-2 rounded-lg hover:bg-muted border-transparent hover:border-border transition-colors text-sm shadow-sm">
+            <button class="w-full flex items-center gap-2 text-left p-2 rounded-lg hover:bg-muted border border-transparent hover:border-border transition-colors text-sm">
               <div class="bg-background rounded shadow-sm p-1"><Check class="h-3.5 w-3.5 text-muted-foreground" /></div>
               <span>Generate monthly report</span>
             </button>
-            <button class="w-full flex items-center gap-2 text-left p-2 rounded-lg hover:bg-muted border-transparent hover:border-border transition-colors text-sm shadow-sm">
+            <button class="w-full flex items-center gap-2 text-left p-2 rounded-lg hover:bg-muted border border-transparent hover:border-border transition-colors text-sm">
               <div class="bg-background rounded shadow-sm p-1"><Check class="h-3.5 w-3.5 text-muted-foreground" /></div>
               <span>Find anomalies in {ctx.currentResource}</span>
             </button>
           {:else if ctx.currentView === 'edit' || ctx.currentView === 'create'}
-            <button class="w-full flex items-center gap-2 text-left p-2 rounded-lg hover:bg-muted border-transparent hover:border-border transition-colors text-sm shadow-sm">
+            <button class="w-full flex items-center gap-2 text-left p-2 rounded-lg hover:bg-muted border border-transparent hover:border-border transition-colors text-sm">
               <div class="bg-background rounded shadow-sm p-1"><Check class="h-3.5 w-3.5 text-muted-foreground" /></div>
               <span>Auto-fill form from context</span>
             </button>
