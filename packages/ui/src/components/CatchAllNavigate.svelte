@@ -14,7 +14,7 @@
 
 {#if auth.isLoading}
   <div class="flex h-screen w-screen items-center justify-center">
-    <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent"></div>
+    <div class="h-8 w-8 animate-spin rounded-full border-r-transparent shadow-sm"></div>
   </div>
 {:else if auth.isAuthenticated}
   <NavigateToResource />

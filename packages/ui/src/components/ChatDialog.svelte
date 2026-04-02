@@ -360,7 +360,7 @@
   <!-- Chat Panel -->
   {#if open}
     <div
-      class="fixed z-[9998] flex flex-col rounded-2xl border bg-card shadow-2xl overflow-hidden bottom-3 right-3 sm:bottom-6 sm:right-6"
+      class="fixed z-[9998] flex flex-col rounded-2xl bg-card shadow-2xl overflow-hidden bottom-3 right-3 sm:bottom-6 sm:right-6 shadow-sm"
       class:w-[calc(100vw-1.5rem)]={!minimized}
       class:sm:w-[400px]={!minimized}
       class:h-[calc(100dvh-6rem)]={!minimized}
@@ -438,7 +438,7 @@
               <div class="flex flex-col gap-2 w-full max-w-[240px]">
                 {#each suggestions as suggestion}
                   <button
-                    class="text-left text-xs px-3 py-2 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+                    class="text-left text-xs px-3 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer shadow-sm"
                     onclick={() => { inputValue = suggestion; }}
                   >
                     {suggestion}
@@ -462,7 +462,7 @@
                       <div class="chat-markdown">{@html renderMarkdown(msg.content)}</div>
                       <!-- Action Buttons -->
                       {#if msg.actions && msg.actions.length > 0}
-                        <div class="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-border/50">
+                        <div class="flex flex-wrap gap-1.5 mt-2 pt-2">
                           {#each msg.actions as action}
                             <Button
                               variant={action.variant ?? 'outline'}
@@ -491,7 +491,7 @@
         </div>
 
         <!-- Input area -->
-        <div class="shrink-0 border-t bg-card p-3">
+        <div class="shrink-0 bg-card p-3 shadow-sm">
           <div class="flex items-end gap-2">
             <textarea
               bind:value={inputValue}
@@ -499,7 +499,7 @@
               placeholder={t('chat.placeholder') || 'Type a message...'}
               rows={1}
               disabled={isStreaming}
-              class="flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 disabled:opacity-50 max-h-[100px] min-h-[40px]"
+              class="flex-1 resize-none rounded-xl bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 disabled:opacity-50 max-h-[100px] min-h-[40px] shadow-sm"
             ></textarea>
             {#if isStreaming}
               <Button
@@ -523,7 +523,7 @@
             {/if}
           </div>
           <p class="text-[10px] text-muted-foreground mt-1.5 text-center">
-            <kbd class="px-1 py-0.5 rounded border border-border bg-muted text-[9px] font-mono">Ctrl+Shift+L</kbd>
+            <kbd class="px-1 py-0.5 rounded bg-muted text-[9px] font-mono shadow-sm">Ctrl+Shift+L</kbd>
             {t('chat.shortcutHint') || 'to toggle'}
           </p>
         </div>

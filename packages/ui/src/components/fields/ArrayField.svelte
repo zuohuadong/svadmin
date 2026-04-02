@@ -45,7 +45,7 @@
   }
 </script>
 
-<div class="space-y-4 rounded-lg border border-dashed p-4">
+<div class="space-y-4 rounded-lg p-4 shadow-sm">
   <div class="flex items-center justify-between">
     <div class="text-sm font-medium text-foreground">
       {field.label}
@@ -60,7 +60,7 @@
   
   <div class="space-y-4 pt-2">
     {#each arrayVal as item, i}
-      <div class="relative rounded-md border bg-card p-4 pt-6 shadow-sm">
+      <div class="relative rounded-md bg-card p-4 pt-6 shadow-sm">
         <div class="absolute right-2 top-2">
           <TooltipButton tooltip={t('common.remove') || 'Remove'} variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleRemove(i)}>
             <Trash2 class="h-4 w-4" />

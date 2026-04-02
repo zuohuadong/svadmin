@@ -65,8 +65,8 @@ ${context}`;
   }
 </script>
 
-<div class="rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col {className}">
-  <div class="flex items-center justify-between p-4 border-b">
+<div class="rounded-xl bg-card text-card-foreground shadow-sm flex flex-col {className}">
+  <div class="flex items-center justify-between p-4">
     <div class="flex items-center gap-2 font-medium">
       <Sparkles class="h-4 w-4 text-amber-500" />
       {title}
