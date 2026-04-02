@@ -131,7 +131,7 @@
   {#if !authChecked}
     <div class="flex h-screen items-center justify-center">
       <div class="space-y-4 text-center">
-        <div class="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary mx-auto"></div>
+        <div class="h-8 w-8 animate-spin rounded-full border-t-primary mx-auto shadow-sm"></div>
         <p class="text-sm text-muted-foreground">Loading...</p>
       </div>
     </div>

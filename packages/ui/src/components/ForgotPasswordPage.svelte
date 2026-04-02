@@ -95,7 +95,7 @@
             </Button>
           </form>
 
-          <div class="flex items-center justify-center mt-5 pt-5 border-t">
+          <div class="flex items-center justify-center mt-5 pt-5">
             <Button variant="link" class="text-sm h-auto p-0 font-medium inline-flex items-center gap-1" onclick={() => navigate('/login')}>
               <ArrowLeft class="h-3 w-3" />
               {t('auth.backToLogin')}

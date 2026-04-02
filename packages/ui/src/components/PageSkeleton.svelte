@@ -23,10 +23,10 @@
     {/if}
   </div>
 
-  <div class="rounded-md border p-4 space-y-4">
+  <div class="rounded-md p-4 space-y-4 shadow-sm">
     {#if type === 'list'}
       <!-- Table Header -->
-      <div class="flex gap-4 border-b pb-4">
+      <div class="flex gap-4 pb-4">
         {#each Array(4) as _}
           <Skeleton class="h-6 flex-1" />
         {/each}

@@ -168,7 +168,7 @@
       </ScrollArea>
 
       <!-- Generated code -->
-      <div class="rounded-lg border overflow-hidden">
+      <div class="rounded-lg overflow-hidden shadow-sm">
         <div class="flex items-center justify-between bg-muted px-3 py-1.5 text-xs text-muted-foreground">
           <span>Generated ResourceDefinition</span>
           <Button variant="ghost" size="sm" class="h-6 text-xs gap-1" onclick={copyCode}>
