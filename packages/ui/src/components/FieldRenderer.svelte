@@ -138,7 +138,7 @@
         type="color"
         value={strVal || '#000000'}
         oninput={(e) => onchange((e.target as HTMLInputElement).value)}
-        class="h-10 w-14 cursor-pointer rounded-md bg-background p-1 shadow-sm"
+        class="h-10 w-14 cursor-pointer rounded-md border border-input bg-background p-1"
       />
       <Input
         type="text"
@@ -149,7 +149,7 @@
       />
       {#if strVal}
         <span
-          class="h-8 w-8 rounded-full shadow-sm"
+          class="h-8 w-8 rounded-full border border-border shadow-sm"
           style="background-color: {strVal}"
         ></span>
       {/if}
@@ -234,7 +234,7 @@
 
   {:else if field.type === 'multiselect'}
     <div 
-      class="space-y-2 rounded-lg p-3 max-h-48 overflow-y-auto shadow-sm"
+      class="space-y-2 rounded-lg border border-input p-3 max-h-48 overflow-y-auto"
       role="group" 
       aria-labelledby="label-{field.key}"
     >
@@ -319,7 +319,7 @@
             class="flex-1"
           />
           {#if url}
-            <img src={url} alt="preview" class="h-9 w-9 rounded object-cover shadow-sm" />
+            <img src={url} alt="preview" class="h-9 w-9 rounded object-cover border" />
           {/if}
           <TooltipButton tooltip={t('common.removeImage')} variant="ghost" size="icon" class="h-8 w-8 shrink-0" onclick={() => removeImage(i)}>
             <X class="h-3.5 w-3.5" />

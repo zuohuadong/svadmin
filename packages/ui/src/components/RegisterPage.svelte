@@ -96,7 +96,7 @@
           </Button>
         </form>
 
-        <div class="flex items-center justify-center gap-1 mt-5 pt-5">
+        <div class="flex items-center justify-center gap-1 mt-5 pt-5 border-t">
           <span class="text-sm text-muted-foreground">{t('auth.hasAccount')}</span>
           <Button variant="link" class="text-sm h-auto p-0 font-medium" onclick={() => navigate('/login')}>
             {t('auth.login')}

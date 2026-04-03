@@ -88,7 +88,7 @@
   </div>
 
   {#if error}
-    <div class="p-6 border-destructive/20 bg-destructive/5 text-destructive rounded-lg text-center shadow-sm">
+    <div class="p-6 border border-destructive/20 bg-destructive/5 text-destructive rounded-lg text-center">
       <p>{error}</p>
     </div>
   {:else}
@@ -214,7 +214,7 @@
 
       <!-- JSON Diff Viewer -->
       <div class="flex-1 p-6 overflow-y-auto bg-foreground/[0.03] dark:bg-background/50">
-        <pre class="whitespace-pre-wrap text-xs font-mono leading-relaxed text-foreground/80 bg-muted/30 rounded-lg p-4 shadow-sm">{typeof drawerLog.details === 'object' ? JSON.stringify(drawerLog.details, null, 2) : drawerLog.details}</pre>
+        <pre class="whitespace-pre-wrap text-xs font-mono leading-relaxed text-foreground/80 bg-muted/30 rounded-lg p-4 border border-border">{typeof drawerLog.details === 'object' ? JSON.stringify(drawerLog.details, null, 2) : drawerLog.details}</pre>
       </div>
 
       <!-- Footer -->

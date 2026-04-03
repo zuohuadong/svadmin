@@ -72,7 +72,7 @@
     onkeydown={handleKeydown}
     onblur={save}
     disabled={saving}
-    class="h-7 w-full rounded bg-background px-2 text-sm outline-none ring-1 ring-primary/50 focus:ring-2 focus:ring-primary transition-all shadow-sm"
+    class="h-7 w-full rounded border bg-background px-2 text-sm outline-none ring-1 ring-primary/50 focus:ring-2 focus:ring-primary transition-all"
   />
 {:else}
   <span

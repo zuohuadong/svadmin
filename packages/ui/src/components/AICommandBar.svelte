@@ -89,7 +89,7 @@
       shouldFilter={!aiMode}
       class="flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground [&_[data-cmdk-group-heading]]:text-muted-foreground [&_[data-cmdk-group-heading]]:px-2 [&_[data-cmdk-group-heading]]:py-1.5 [&_[data-cmdk-group-heading]]:text-xs [&_[data-cmdk-group-heading]]:font-semibold [&_[data-cmdk-group-heading]]:uppercase [&_[data-cmdk-group-heading]]:tracking-wider"
     >
-      <div class="flex items-center px-3 h-12 relative" data-cmdk-input-wrapper="">
+      <div class="flex items-center border-b px-3 h-12 relative" data-cmdk-input-wrapper="">
         {#if aiMode}
           <Sparkles class="mr-2 h-4 w-4 shrink-0 text-warning animate-pulse" />
         {:else}
@@ -115,7 +115,7 @@
       {#if !aiMode}
         <Command.List class="max-h-[360px] overflow-y-auto overflow-x-hidden p-1">
           <Command.Empty class="py-6 text-center text-sm text-muted-foreground">
-            No standard commands found. Press <kbd class="px-1 py-0.5 rounded bg-muted font-sans text-[10px] shadow-sm">Ctrl+Enter</kbd> to ask AI.
+            No standard commands found. Press <kbd class="px-1 py-0.5 rounded bg-muted border font-sans text-[10px]">Ctrl+Enter</kbd> to ask AI.
           </Command.Empty>
 
           <!-- Navigation -->
@@ -166,7 +166,7 @@
             </div>
           </div>
         </div>
-        <div class="p-2 flex justify-end gap-2 bg-muted/10 shadow-sm">
+        <div class="p-2 border-t flex justify-end gap-2 bg-muted/10">
           <button 
             class="text-xs px-3 py-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground"
             onclick={() => { aiMode = false; searchValue = ''; }}
