@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.3](https://github.com/zuohuadong/svadmin/compare/simple-rest-v0.9.2...simple-rest-v0.9.3) (2026-04-03)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** fix unclosed string literal in ConfigErrorScreen ternary ([#85](https://github.com/zuohuadong/svadmin/issues/85)) ([cee2db1](https://github.com/zuohuadong/svadmin/commit/cee2db17c87b314f8cbf7f1822b63bb57645f87d))
+
 ## [0.9.2](https://github.com/zuohuadong/svadmin/compare/simple-rest-v0.9.1...simple-rest-v0.9.2) (2026-03-31)
 
 
