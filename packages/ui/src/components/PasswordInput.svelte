@@ -72,7 +72,7 @@
       size="icon"
       type="button"
       class="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 z-[1]"
-      onclick={() => showPassword = !showPassword}
+      onclick={(e) => { e.preventDefault(); showPassword = !showPassword; }}
       tabindex={-1}
     >
       {#if showPassword}
