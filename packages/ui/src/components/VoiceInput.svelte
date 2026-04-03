@@ -91,7 +91,8 @@
     };
   });
 
-  function toggleListening() {
+  function toggleListening(e?: MouseEvent) {
+    if (e) e.preventDefault();
     if (!recognition) return;
     
     if (isListening) {
