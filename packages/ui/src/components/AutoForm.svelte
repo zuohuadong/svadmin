@@ -159,7 +159,7 @@
 
       {#if hasGroups}
         {#each groups as group}
-          <Card.Root class="shadow-sm">
+          <Card.Root class="border-border/40 shadow-sm">
             {#if group.name}
               <Card.Header>
                 <Card.Title class="text-lg">{group.name}</Card.Title>
@@ -186,7 +186,7 @@
           </Card.Root>
         {/each}
       {:else}
-        <Card.Root class="shadow-sm">
+        <Card.Root class="border-border/40 shadow-sm">
           <Card.Content class="space-y-5 px-4 sm:px-6 pb-4 sm:pb-6 pt-0">
             {#each formFields as field (field.key)}
               <div class:border-destructive={!!form.errors[field.key]}>

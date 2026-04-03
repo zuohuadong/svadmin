@@ -43,14 +43,14 @@
 <Dialog.Dialog bind:open>
   <Dialog.DialogContent class="overflow-hidden p-0 sm:max-w-[560px]">
     <Command.Root class="flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground [&_[data-cmdk-group-heading]]:text-muted-foreground [&_[data-cmdk-group-heading]]:px-2 [&_[data-cmdk-group-heading]]:py-1.5 [&_[data-cmdk-group-heading]]:text-xs [&_[data-cmdk-group-heading]]:font-semibold [&_[data-cmdk-group-heading]]:uppercase [&_[data-cmdk-group-heading]]:tracking-wider">
-      <div class="flex items-center px-3" data-cmdk-input-wrapper="">
+      <div class="flex items-center border-b px-3" data-cmdk-input-wrapper="">
         <Search class="mr-2 h-4 w-4 shrink-0 opacity-50" />
         <Command.Input
           bind:value={searchValue}
           placeholder={hasAI ? (t('commandPalette.searchOrAsk') || 'Search or ask AI...') : t('common.search')}
           class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
         />
-        <kbd class="ml-2 text-[10px] font-mono font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded shadow-sm">ESC</kbd>
+        <kbd class="ml-2 text-[10px] font-mono font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">ESC</kbd>
       </div>
       <Command.List class="max-h-[320px] overflow-y-auto overflow-x-hidden p-1">
         <Command.Empty class="py-6 text-center text-sm text-muted-foreground">

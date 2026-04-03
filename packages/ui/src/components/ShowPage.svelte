@@ -36,7 +36,7 @@
   </PageHeader>
 
   {#if query.query.isLoading}
-    <Card.Root class="overflow-hidden shadow-sm">
+    <Card.Root class="overflow-hidden border-border/40 shadow-sm">
       <Card.Content class="p-0">
         {#each showFields.slice(0, 6) as _, i}
           <div class="flex flex-col sm:flex-row px-4 sm:px-6 py-3 sm:py-4 {i % 2 === 1 ? 'bg-muted/20' : ''}">
@@ -47,7 +47,7 @@
       </Card.Content>
     </Card.Root>
   {:else if query.query.data?.data}
-    <Card.Root class="overflow-hidden shadow-sm">
+    <Card.Root class="overflow-hidden border-border/40 shadow-sm">
       <Card.Content class="p-0">
         {#each showFields as field, i}
           {@const value = (query.query.data!.data as Record<string, unknown>)[field.key]}

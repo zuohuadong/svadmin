@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.26.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.25.3...ui-v0.26.0) (2026-04-02)
+
+
+### 🚀 Features
+
+* **ui:** remove default border classes in favor of shadow-based depth ([b580d88](https://github.com/zuohuadong/svadmin/commit/b580d889680aa7305183211ea1f74105c834fa0b))
+* **ui:** remove default border classes in favor of shadow-based depth ([748de0a](https://github.com/zuohuadong/svadmin/commit/748de0a6ecd5dc8f9e02e127fd4f6331b29f2947))
+
+
+### 🐛 Bug Fixes
+
+* **ui:** apply Stripe-style design tokens — subtler borders and card-fill inputs ([636594d](https://github.com/zuohuadong/svadmin/commit/636594dd463ded7224fd072943a615192620fed8))
+* **ui:** revert borderless PR [#82](https://github.com/zuohuadong/svadmin/issues/82), apply proper Stripe-style design tokens ([492e19e](https://github.com/zuohuadong/svadmin/commit/492e19ed4419aefb68fe461813c9f18f104234ba))
+
+## [0.25.3](https://github.com/zuohuadong/svadmin/compare/ui-v0.25.2...ui-v0.25.3) (2026-04-02)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** add children snippet rendering to AlertDialog header and footer ([bfbf452](https://github.com/zuohuadong/svadmin/commit/bfbf452c0b36799380a152afbe17497757bbfbf6))
+* **ui:** gracefully handle missing optional marked dependencies ([dc90d72](https://github.com/zuohuadong/svadmin/commit/dc90d72b71991d78914b36c2c6e7fb7755af0630))
+* **ui:** gracefully handle missing optional marked dependencies ([d1cdcb7](https://github.com/zuohuadong/svadmin/commit/d1cdcb7b09c749c5efd80cc1b71d5e3e1c304cea))
+
 ## [0.25.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.25.1...ui-v0.25.2) (2026-04-01)
 
 

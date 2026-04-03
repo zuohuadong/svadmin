@@ -125,7 +125,7 @@
 
 {#if error}
   <div class="h-full flex items-center justify-center">
-    <div class="max-w-md p-6 border-destructive/20 bg-destructive/10 text-destructive rounded-lg flex flex-col items-center gap-3 text-center shadow-sm">
+    <div class="max-w-md p-6 border border-destructive/20 bg-destructive/10 text-destructive rounded-lg flex flex-col items-center gap-3 text-center">
       <AlertCircle class="h-8 w-8" />
       <h3 class="font-bold text-lg">{t('common.error') ?? 'Error'}</h3>
       <p>{error}</p>

@@ -34,8 +34,8 @@
     --accent-foreground: oklch(0.2 0.04 265);
     --destructive: oklch(0.577 0.245 27.325);
     --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(0.912 0.008 264);
-    --input: oklch(0.912 0.008 264);
+    --border: oklch(0.935 0.005 264);
+    --input: oklch(0.935 0.005 264);
     --ring: oklch(0.488 0.243 264.376);
     --chart-1: oklch(0.488 0.243 264.376);
     --chart-2: oklch(0.6 0.118 184.704);
@@ -54,7 +54,7 @@
     --sidebar-primary-foreground: oklch(0.985 0 0);
     --sidebar-accent: oklch(0.94 0.025 264);
     --sidebar-accent-foreground: oklch(0.33 0.17 264);
-    --sidebar-border: oklch(0.912 0.008 264);
+    --sidebar-border: oklch(0.935 0.005 264);
     --sidebar-ring: oklch(0.488 0.243 264.376);
   }
 
@@ -75,8 +75,8 @@
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
     --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(0.23 0.025 265);
-    --input: oklch(0.23 0.025 265);
+    --border: oklch(0.27 0.02 265);
+    --input: oklch(0.27 0.02 265);
     --ring: oklch(0.55 0.18 264);
     --chart-1: oklch(0.585 0.233 264);
     --chart-2: oklch(0.696 0.17 162.48);
@@ -95,7 +95,7 @@
     --sidebar-primary-foreground: oklch(0.985 0 0);
     --sidebar-accent: oklch(0.488 0.243 264.376 / 10%);
     --sidebar-accent-foreground: oklch(0.7 0.15 264);
-    --sidebar-border: oklch(0.23 0.025 265);
+    --sidebar-border: oklch(0.27 0.02 265);
     --sidebar-ring: oklch(0.55 0.18 264);
   }
 
@@ -107,6 +107,13 @@
   [data-slot="textarea"] {
     /* Subtle interaction shadow */
     box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 0 0 1px rgb(0 0 0 / 0.02);
+  }
+
+  /* Stripe-style: form inputs use card background instead of transparent */
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="select"] {
+    background-color: var(--card);
   }
   
   [data-slot="card"] {
