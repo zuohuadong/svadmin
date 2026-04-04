@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.4](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.10.3...create-svadmin-v0.10.4) (2026-04-04)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update all dependencies and fix Svelte 5 & Tiptap breaking changes ([250f19c](https://github.com/zuohuadong/svadmin/commit/250f19c35d6fbed58f8e1710e1fab9087cf69f5a))
+
 ## [0.10.3](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.10.2...create-svadmin-v0.10.3) (2026-04-03)
 
 

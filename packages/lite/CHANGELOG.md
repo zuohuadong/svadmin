@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/zuohuadong/svadmin/compare/lite-v0.2.4...lite-v0.2.5) (2026-04-04)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update all dependencies and fix Svelte 5 & Tiptap breaking changes ([250f19c](https://github.com/zuohuadong/svadmin/commit/250f19c35d6fbed58f8e1710e1fab9087cf69f5a))
+
 ## [0.2.4](https://github.com/zuohuadong/svadmin/compare/lite-v0.2.3...lite-v0.2.4) (2026-04-03)
 
 
