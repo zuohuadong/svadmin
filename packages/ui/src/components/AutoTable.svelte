@@ -120,7 +120,18 @@
   const activeFilters = $derived.by(() => {
     const result: Filter[] = [...filters];
     if (searchText.trim() && searchableFields.length > 0) {
-      result.push({ field: searchableFields[0].key, operator: 'contains', value: searchText });
+      if (searchableFields.length === 1) {
+        result.push({ field: searchableFields[0].key, operator: 'contains', value: searchText });
+      } else {
+        result.push({
+          operator: 'or',
+          value: searchableFields.map(f => ({
+            field: f.key,
+            operator: 'contains',
+            value: searchText
+          }))
+        } as any);
+      }
     }
     // Add popover filters
     for (const [key, value] of Object.entries(filterValues)) {
