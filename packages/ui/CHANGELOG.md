@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.3](https://github.com/zuohuadong/svadmin/compare/ui-v0.26.2...ui-v0.26.3) (2026-04-04)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** global search ignores multiple searchable fields ([#89](https://github.com/zuohuadong/svadmin/issues/89)) ([2b775a2](https://github.com/zuohuadong/svadmin/commit/2b775a20a25ce569cf707baa6bdceca30246a94b))
+
 ## [0.26.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.26.1...ui-v0.26.2) (2026-04-04)
 
 
