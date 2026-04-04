@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.4](https://github.com/zuohuadong/svadmin/compare/graphql-v0.9.3...graphql-v0.9.4) (2026-04-04)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update all dependencies and fix Svelte 5 & Tiptap breaking changes ([250f19c](https://github.com/zuohuadong/svadmin/commit/250f19c35d6fbed58f8e1710e1fab9087cf69f5a))
+
 ## [0.9.3](https://github.com/zuohuadong/svadmin/compare/graphql-v0.9.2...graphql-v0.9.3) (2026-04-03)
 
 

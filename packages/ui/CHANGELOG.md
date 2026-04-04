@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.26.1...ui-v0.26.2) (2026-04-04)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update all dependencies and fix Svelte 5 & Tiptap breaking changes ([250f19c](https://github.com/zuohuadong/svadmin/commit/250f19c35d6fbed58f8e1710e1fab9087cf69f5a))
+
 ## [0.26.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.26.0...ui-v0.26.1) (2026-04-03)
 
 
