@@ -135,7 +135,7 @@ async function init(): Promise<void> {
       '@svadmin/ui': '^0.25.0',
       '@tanstack/svelte-query': '^6.0.0',
       'highlight.js': '^11.11.1',
-      'lucide-svelte': '^0.475.0',
+      '@lucide/svelte': '^0.475.0',
     },
     devDependencies: {
       '@sveltejs/vite-plugin-svelte': '^5.0.0',

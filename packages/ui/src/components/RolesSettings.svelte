@@ -5,7 +5,7 @@
   import PermissionMatrix from './PermissionMatrix.svelte';
   import type { RoleInfo, ResourceInfo, ActionInfo } from '../types.js';
   import { toast } from '@svadmin/core/toast';
-  import { AlertCircle } from 'lucide-svelte';
+  import { AlertCircle } from '@lucide/svelte';
 
   const authProvider = getAuthProvider();
   const rawResources = getResources();
