@@ -1,6 +1,6 @@
 {
   "packages/core": "0.19.5",
-  "packages/ui": "0.27.0",
+  "packages/ui": "0.27.1",
   "packages/sveltekit": "0.8.4",
   "packages/drizzle": "0.10.4",
   "packages/simple-rest": "0.9.3",
@@ -8,7 +8,7 @@
   "packages/pocketbase": "0.9.3",
   "packages/supabase": "0.8.4",
   "packages/elysia": "0.10.3",
-  "packages/create-svadmin": "0.11.0",
+  "packages/create-svadmin": "0.11.1",
   "packages/airtable": "0.9.3",
   "packages/appwrite": "0.8.4",
   "packages/auth-utils": "0.7.2",

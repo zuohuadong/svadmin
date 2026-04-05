@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.11.0...create-svadmin-v0.11.1) (2026-04-05)
+
+
+### 🐛 Bug Fixes
+
+* **ui,create-svadmin:** replace residual lucide-svelte imports with @lucide/svelte ([#93](https://github.com/zuohuadong/svadmin/issues/93)) ([2e2a7dd](https://github.com/zuohuadong/svadmin/commit/2e2a7ddf865d3d3a404ebf83f3f16f85fe9c0c40))
+
 ## [0.11.0](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.10.4...create-svadmin-v0.11.0) (2026-04-05)
 
 
