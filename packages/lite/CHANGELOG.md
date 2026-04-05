@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/zuohuadong/svadmin/compare/lite-v0.2.5...lite-v0.3.0) (2026-04-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** @lucide/svelte replaces lucide-svelte as icon package. @tiptap/* upgraded from v2 to v3. zod upgraded from v3 to v4 in @svadmin/lite.
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** major dependency audit - tiptap v3, zod v4, lucide unification ([4f4ca97](https://github.com/zuohuadong/svadmin/commit/4f4ca97e17e77b0aff769d14a7a8d23fb5e1c16f))
+
 ## [0.2.5](https://github.com/zuohuadong/svadmin/compare/lite-v0.2.4...lite-v0.2.5) (2026-04-04)
 
 

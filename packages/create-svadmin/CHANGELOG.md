@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.11.0](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.10.4...create-svadmin-v0.11.0) (2026-04-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** @lucide/svelte replaces lucide-svelte as icon package. @tiptap/* upgraded from v2 to v3. zod upgraded from v3 to v4 in @svadmin/lite.
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** major dependency audit - tiptap v3, zod v4, lucide unification ([4f4ca97](https://github.com/zuohuadong/svadmin/commit/4f4ca97e17e77b0aff769d14a7a8d23fb5e1c16f))
+* **deps:** upgrade TypeScript 5.8 to 6.0 ([5cc750e](https://github.com/zuohuadong/svadmin/commit/5cc750edde9c9f1f404d5a7eb8eb0bccecf1f44c))
+
 ## [0.10.4](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.10.3...create-svadmin-v0.10.4) (2026-04-04)
 
 
