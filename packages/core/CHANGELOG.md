@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.5](https://github.com/zuohuadong/svadmin/compare/core-v0.19.4...core-v0.19.5) (2026-04-05)
+
+
+### 🐛 Bug Fixes
+
+* **i18n:** add missing common.noDataHint translation keys ([#91](https://github.com/zuohuadong/svadmin/issues/91)) ([7842107](https://github.com/zuohuadong/svadmin/commit/78421072c182f3076f2cf71078fc82ad0c21509b))
+
 ## [0.19.4](https://github.com/zuohuadong/svadmin/compare/core-v0.19.3...core-v0.19.4) (2026-04-03)
 
 

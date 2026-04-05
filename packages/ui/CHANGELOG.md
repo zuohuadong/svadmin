@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.27.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.26.3...ui-v0.27.0) (2026-04-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** @lucide/svelte replaces lucide-svelte as icon package. @tiptap/* upgraded from v2 to v3. zod upgraded from v3 to v4 in @svadmin/lite.
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** major dependency audit - tiptap v3, zod v4, lucide unification ([4f4ca97](https://github.com/zuohuadong/svadmin/commit/4f4ca97e17e77b0aff769d14a7a8d23fb5e1c16f))
+
 ## [0.26.3](https://github.com/zuohuadong/svadmin/compare/ui-v0.26.2...ui-v0.26.3) (2026-04-04)
 
 
