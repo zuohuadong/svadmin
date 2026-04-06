@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.27.1...ui-v0.28.0) (2026-04-06)
+
+
+### 🚀 Features
+
+* **ui:** enhance Sidebar group typography and expand default icon map ([#95](https://github.com/zuohuadong/svadmin/issues/95)) ([2b80b64](https://github.com/zuohuadong/svadmin/commit/2b80b64af8ae3f69eb03f3c9cb90ab80ca1634ed))
+
 ## [0.27.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.27.0...ui-v0.27.1) (2026-04-05)
 
 
