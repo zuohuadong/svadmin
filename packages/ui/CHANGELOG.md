@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.28.0...ui-v0.29.0) (2026-04-06)
+
+
+### 🚀 Features
+
+* **ui:** add siteUrl prop to optionally render a Go To Site button in the header ([#97](https://github.com/zuohuadong/svadmin/issues/97)) ([abf5de0](https://github.com/zuohuadong/svadmin/commit/abf5de07d581b1b59a8deab4e01657591dc10025))
+
 ## [0.28.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.27.1...ui-v0.28.0) (2026-04-06)
 
 
