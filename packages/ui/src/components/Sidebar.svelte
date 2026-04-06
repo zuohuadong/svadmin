@@ -14,7 +14,9 @@
   import { Avatar } from './ui/avatar/index.js';
   import {
     LayoutDashboard, FileText, Users, Settings, Home,
-    ChevronLeft, ChevronDown, LogOut, Sun, Moon, Palette
+    ChevronLeft, ChevronDown, LogOut, Sun, Moon, Palette,
+    Image as ImageIcon, Layout, Folder, Type, Video,
+    Download, ListTodo, TrendingUp, Sparkles, Images, Bot, Key, KeyRound, CreditCard, BookOpen, Wrench
   } from 'lucide-svelte';
 
   let { collapsed, identity, title, onToggle, onLogout, menu }: {
@@ -28,12 +30,28 @@
 
   const resources = getResources();
 
-  const iconMap: Record<string, typeof LayoutDashboard> = {
-    dashboard: LayoutDashboard,
-    posts: FileText,
-    users: Users,
-    settings: Settings,
-    home: Home,
+  const iconMap: Record<string, any> = {
+    'palette': Palette,
+    'image': ImageIcon,
+    'layout': Layout,
+    'folder': Folder,
+    'type': Type,
+    'video': Video,
+    'settings': Settings,
+    'download': Download,
+    'list-todo': ListTodo,
+    'trending-up': TrendingUp,
+    'sparkles': Sparkles,
+    'images': Images,
+    'bot': Bot,
+    'key': Key,
+    'key-round': KeyRound,
+    'credit-card': CreditCard,
+    'book-open': BookOpen,
+    'wrench': Wrench,
+    'users': Users,
+    'home': Home,
+    'dashboard': LayoutDashboard
   };
 
   interface NavItem {
@@ -69,7 +87,7 @@
           items.push({
             path: `/${r.name}`,
             label: r.label,
-            Icon: iconMap[r.name] ?? Settings,
+            Icon: iconMap[r.icon ?? ''] ?? Settings,
             group: r.group,
           });
         }
@@ -195,7 +213,7 @@
           openGroups = next;
         }}>
           <Collapsible.Trigger
-            class="flex w-full items-center justify-between px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/40 hover:text-sidebar-foreground/60 transition-colors"
+            class="flex w-full items-center justify-between px-3 py-1.5 text-sm font-semibold tracking-wider text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
           >
             <span>{group.name}</span>
             <ChevronDown class="h-3 w-3 transition-transform {openGroups.has(group.name) ? 'rotate-180' : ''}" />
