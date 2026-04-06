@@ -45,6 +45,8 @@
     components?: Partial<ComponentRegistry>;
     /** Custom multi-level menu configuration */
     menu?: MenuItem[];
+    /** External URL to the main application or workspace (renders a shortcut in the header) */
+    siteUrl?: string;
   }
 
   let {
@@ -60,6 +62,7 @@
     loginPage,
     components: userComponents,
     menu,
+    siteUrl,
   }: Props = $props();
 
   // Default component registry
@@ -148,7 +151,7 @@
   {:else if route === '/login' || route === '/register' || route === '/forgot-password' || route === '/update-password'}
     <ConfigErrorScreen title="{title} — {t('common.configRequired')}" />
   {:else if isAuthenticated || !authProvider}
-    <Layout {title} {menu}>
+    <Layout {title} {menu} {siteUrl}>
       {#key route + (params.resource ?? '') + (params.id ?? '')}
       <div class="svadmin-page-enter">
       {#if currentPath().startsWith('/settings')}

@@ -22,7 +22,7 @@
   let shortcutsOpen = $state(false);
   let mobileMenuOpen = $state(false);
 
-  let { children, title = 'Admin', menu }: { children: Snippet; title?: string; menu?: MenuItem[] } = $props();
+  let { children, title = 'Admin', menu, siteUrl }: { children: Snippet; title?: string; menu?: MenuItem[]; siteUrl?: string } = $props();
 
   let hasAuth = true;
   let auth: ReturnType<typeof getAuthProvider> | null = null;
@@ -138,6 +138,7 @@
     >
       <!-- Header with mobile hamburger -->
       <Header
+        {siteUrl}
         showSearch={true}
         onSearchClick={() => { commandOpen = true; }}
       >

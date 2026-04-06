@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Moon, Sun, Search } from '@lucide/svelte';
+  import { Moon, Sun, Search, MonitorUp } from '@lucide/svelte';
   import { Button } from './ui/button';
   import TooltipButton from './TooltipButton.svelte';
   import { getResolvedTheme, toggleTheme } from '@svadmin/core';
@@ -15,6 +15,7 @@
     children,
     /** Slot for additional actions on the right side of the header */
     rightActions,
+    siteUrl,
   } = $props<{
     showThemeToggle?: boolean;
     showBreadcrumbs?: boolean;
@@ -22,6 +23,7 @@
     onSearchClick?: () => void;
     children?: import('svelte').Snippet;
     rightActions?: import('svelte').Snippet;
+    siteUrl?: string;
   }>();
 
   // Retrieve optional component overrides from registry
@@ -48,6 +50,12 @@
   <div class="ml-auto flex items-center gap-2">
     {#if rightActions}
       {@render rightActions()}
+    {/if}
+
+    {#if siteUrl}
+      <TooltipButton tooltip={t('common.goToSite') || 'Site'} href={siteUrl} target="_blank" rel="noopener noreferrer" class="rounded-full flex items-center justify-center">
+        <MonitorUp class="h-4 w-4 text-muted-foreground transition-colors hover:text-foreground" />
+      </TooltipButton>
     {/if}
 
     {#if CustomNotificationPanel}
