@@ -341,7 +341,12 @@ applyTheme(getStoredTheme());
 // Listen for system preference changes
 if (typeof window !== 'undefined') {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (mode === 'system') applyTheme('system');
+    if (mode === 'system') {
+      applyTheme('system');
+      // Re-apply color preset for new resolved mode (light/dark values differ)
+      const preset = builtinPresets[colorTheme];
+      if (preset) applyColorPreset(preset);
+    }
   });
 }
 
@@ -355,6 +360,9 @@ export function setTheme(newMode: ThemeMode): void {
     localStorage.setItem(STORAGE_KEY, newMode);
   }
   applyTheme(newMode);
+  // Re-apply color preset — light/dark CSS variable overrides differ
+  const preset = builtinPresets[colorTheme];
+  if (preset) applyColorPreset(preset);
 }
 
 export function toggleTheme(): void {
@@ -384,6 +392,10 @@ function applyColorTheme(ct: ColorTheme): void {
 
 // Apply on init
 applyColorTheme(getStoredColorTheme());
+{
+  const initPreset = builtinPresets[getStoredColorTheme()];
+  if (initPreset) applyColorPreset(initPreset);
+}
 
 export function getColorTheme(): ColorTheme {
   return colorTheme;
@@ -395,4 +407,7 @@ export function setColorTheme(ct: ColorTheme): void {
     localStorage.setItem(COLOR_STORAGE_KEY, ct);
   }
   applyColorTheme(ct);
+  // Apply the preset's CSS variable overrides for the current resolved theme
+  const preset = builtinPresets[ct];
+  if (preset) applyColorPreset(preset);
 }
