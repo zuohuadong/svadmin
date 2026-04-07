@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.29.0...ui-v0.29.1) (2026-04-07)
+
+
+### 🐛 Bug Fixes
+
+* **core,ui:** connect color theme switching to CSS variable overrides ([4a62936](https://github.com/zuohuadong/svadmin/commit/4a62936be2d2ab9b17d8ebb1b945cc8238d9d4f7))
+
 ## [0.29.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.28.0...ui-v0.29.0) (2026-04-06)
 
 

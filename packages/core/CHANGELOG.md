@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.1](https://github.com/zuohuadong/svadmin/compare/core-v0.20.0...core-v0.20.1) (2026-04-07)
+
+
+### 🐛 Bug Fixes
+
+* **core,ui:** connect color theme switching to CSS variable overrides ([4a62936](https://github.com/zuohuadong/svadmin/commit/4a62936be2d2ab9b17d8ebb1b945cc8238d9d4f7))
+
 ## [0.20.0](https://github.com/zuohuadong/svadmin/compare/core-v0.19.5...core-v0.20.0) (2026-04-06)
 
 
