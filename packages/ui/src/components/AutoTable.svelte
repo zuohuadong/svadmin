@@ -3,13 +3,13 @@
   import { cn } from '../utils.js';
   import {
     createTable,
-    getCoreRowModel,
     type ColumnDef,
     type SortingState,
     type RowSelectionState,
     type VisibilityState,
     type ExpandedState,
   } from '@tanstack/svelte-table';
+  import { getCoreRowModel } from '@tanstack/table-core';
 
   import { useList, useDelete, getResource } from '@svadmin/core';
   import type { Pagination as PaginationState, Sort, Filter, FieldDefinition } from '@svadmin/core';

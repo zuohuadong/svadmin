@@ -19,7 +19,9 @@ export function getUnsavedChanges(): boolean {
  * Frameworks like SvelteKit can register a cancel function here.
  * Return `true` to allow navigation, `false` to block it.
  */
-type NavigationGuard = (opts: { cancel: () => void }) => void;
+interface NavigationGuard {
+  (opts: { cancel: () => void }): void;
+}
 
 let _navigationGuard: NavigationGuard | null = null;
 

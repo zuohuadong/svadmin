@@ -7,20 +7,22 @@
     "./src/app.css"
   ],
   "files": [
-    "src/**/*"
+    "dist/**/*"
   ],
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js",
+      "svelte": "./dist/index.js"
     },
     "./app.css": {
-      "style": "./src/app.css",
-      "default": "./src/app.css"
+      "style": "./dist/app.css",
+      "default": "./dist/app.css",
+      "svelte": "./dist/app.css"
     },
-    "./components/*": "./src/components/*"
+    "./components/*": "./dist/components/*"
   },
   "peerDependencies": {
     "@svadmin/core": "workspace:*",
@@ -69,5 +71,11 @@
   "homepage": "https://github.com/zuohuadong/svadmin#readme",
   "bugs": {
     "url": "https://github.com/zuohuadong/svadmin/issues"
+  },
+  "devDependencies": {
+    "@tanstack/table-core": "8.21.3"
+  },
+  "scripts": {
+    "build": "svelte-package -i src -o dist"
   }
 }
