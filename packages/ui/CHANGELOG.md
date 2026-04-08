@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.29.1...ui-v0.29.2) (2026-04-08)
+
+
+### 🐛 Bug Fixes
+
+* **build:** resolve vite 8 rolldown and svelte-table compatibility ([#100](https://github.com/zuohuadong/svadmin/issues/100)) ([e6d26f3](https://github.com/zuohuadong/svadmin/commit/e6d26f300312684b3831c9f7b61f4886f8dae955))
+
 ## [0.29.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.29.0...ui-v0.29.1) (2026-04-07)
 
 
