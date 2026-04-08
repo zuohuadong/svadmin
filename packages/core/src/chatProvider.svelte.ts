@@ -183,7 +183,9 @@ export function getAgentProvider(): AgentProvider | null {
 
 // ─── Tool Approval ─────────────────────────────────────────────
 
-type ApprovalCallback = (approved: boolean) => void;
+interface ApprovalCallback {
+  (approved: boolean): void;
+}
 const pendingApprovals = new Map<string, ApprovalCallback>();
 
 /**

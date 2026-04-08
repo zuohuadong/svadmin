@@ -1,8 +1,8 @@
 // Minimal i18n — simple key-value translation
 
-type Locale = Record<string, string>;
 
-const locales: Record<string, Locale> = {
+
+const locales: Record<string, Record<string, string>> = {
   'zh-CN': {
     // Common
     'common.save': '保存',
