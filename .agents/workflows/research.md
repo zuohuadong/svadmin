@@ -1,5 +1,5 @@
 ---
-description: Parallel research workflow - investigate multiple sources simultaneously
+description: 并行研究 — 同时调查多个来源并综合分析
 ---
 // turbo-all
 
