@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.5](https://github.com/zuohuadong/svadmin/compare/appwrite-v0.8.4...appwrite-v0.8.5) (2026-04-09)
+
+
+### 🐛 Bug Fixes
+
+* **quality:** address build warnings and test noise ([19a7637](https://github.com/zuohuadong/svadmin/commit/19a7637a6cd09bc660d71d058ca275124271254f))
+
 ## [0.8.4](https://github.com/zuohuadong/svadmin/compare/appwrite-v0.8.3...appwrite-v0.8.4) (2026-04-03)
 
 

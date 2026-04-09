@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.4](https://github.com/zuohuadong/svadmin/compare/core-v0.20.3...core-v0.20.4) (2026-04-09)
+
+
+### 🐛 Bug Fixes
+
+* **quality:** address build warnings and test noise ([19a7637](https://github.com/zuohuadong/svadmin/commit/19a7637a6cd09bc660d71d058ca275124271254f))
+
 ## [0.20.3](https://github.com/zuohuadong/svadmin/compare/core-v0.20.2...core-v0.20.3) (2026-04-09)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/zuohuadong/svadmin/compare/supabase-v0.8.4...supabase-v0.9.0) (2026-04-09)
+
+
+### 🚀 Features
+
+* **supabase:** expose access token in getIdentity ([d1b4f63](https://github.com/zuohuadong/svadmin/commit/d1b4f631fbf41549611a8e60806da77c20bd8754))
+
 ## [0.8.4](https://github.com/zuohuadong/svadmin/compare/supabase-v0.8.3...supabase-v0.8.4) (2026-04-03)
 
 
