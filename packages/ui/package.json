@@ -7,7 +7,7 @@
     "./src/app.css"
   ],
   "files": [
-    "dist/**/*"
+    "dist"
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.d.ts",
