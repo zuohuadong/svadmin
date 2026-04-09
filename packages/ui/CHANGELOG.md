@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.3](https://github.com/zuohuadong/svadmin/compare/ui-v0.29.2...ui-v0.29.3) (2026-04-09)
+
+
+### 🐛 Bug Fixes
+
+* **build:** ensure dist directory is included in published ui package ([9353d64](https://github.com/zuohuadong/svadmin/commit/9353d648fa7ef888669dd614e650fed8f9e52f5e))
+
 ## [0.29.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.29.1...ui-v0.29.2) (2026-04-08)
 
 
