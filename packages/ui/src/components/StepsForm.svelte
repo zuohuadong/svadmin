@@ -53,15 +53,17 @@
     return d;
   })());
 
+  const validator = $derived(deriveValidator(flatStepsFields));
+
   // ─── useStepsForm: form state + step navigation ──────────────────
   const form = useStepsForm({
     get resource() { return resourceName; },
     get action() { return mode; },
     get id() { return id; },
-    defaultValues: defaults,
+    get defaultValues() { return defaults; },
     redirect: 'list',
     warnWhenUnsavedChanges: true,
-    validate: deriveValidator(flatStepsFields),
+    get validate() { return validator; },
   });
 
   const totalSteps = $derived(steps.length);

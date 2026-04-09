@@ -76,7 +76,9 @@
   };
 
   // Merge user overrides and set context
-  setComponentRegistry({ ...defaultComponents, ...userComponents });
+  $effect(() => {
+    setComponentRegistry({ ...defaultComponents, ...userComponents });
+  });
 
   // Resolve router provider (default to hash)
   const resolvedRouter = $derived(routerProvider ?? createHashRouterProvider());

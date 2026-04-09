@@ -120,7 +120,7 @@
     }
   }
 
-  const isFullOrProse = preset === 'full' || preset === 'prose';
+  const isFullOrProse = $derived(preset === 'full' || preset === 'prose');
 </script>
 
 <div class="svadmin-editor-toolbar">

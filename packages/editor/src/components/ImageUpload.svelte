@@ -56,6 +56,13 @@
     dragover = false;
   }
 
+  function handleDropZoneKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput?.click();
+    }
+  }
+
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -124,6 +131,9 @@
   {:else}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
+      role="button"
+      tabindex="0"
+      aria-label={t('editor.image.upload')}
       style="
         border: 2px dashed {dragover ? 'var(--editor-primary)' : 'var(--editor-border)'};
         border-radius: 8px;
@@ -136,6 +146,7 @@
       ondrop={handleDrop}
       ondragover={handleDragOver}
       ondragleave={handleDragLeave}
+      onkeydown={handleDropZoneKeydown}
       onclick={() => fileInput?.click()}
     >
       {#if uploading}

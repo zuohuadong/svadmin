@@ -252,7 +252,7 @@ export function useForm<
   }
 
   // ─── Query (edit/clone mode) ────────────────────────────────────
-  const query = (action === 'edit' || action === 'clone') && currentId != null
+  const query = (action === 'edit' || action === 'clone')
     ? createQuery(() => ({
         queryKey: [resource, 'one', currentId],
         queryFn: async () => {

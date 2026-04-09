@@ -1,3 +1,3 @@
 [test]
 # Exclude Playwright e2e tests — they use @playwright/test runner, not bun:test
-pathIgnorePatterns = ["e2e/**", "docs/**"]
+pathIgnorePatterns = ["e2e/**", "docs/**", "**/dist/**"]

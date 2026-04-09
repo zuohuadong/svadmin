@@ -69,15 +69,17 @@
     return d;
   })());
 
+  const validator = $derived(deriveValidator(formFields));
+
   // ─── useForm: single source of truth for values, errors, tainted ──
   const form = useForm({
     get resource() { return resourceName; },
     get action() { return mode; },
     get id() { return id; },
-    defaultValues: defaults,
+    get defaultValues() { return defaults; },
     redirect: 'list',
     warnWhenUnsavedChanges: true,
-    validate: deriveValidator(formFields),
+    get validate() { return validator; },
   });
 
   // ─── Submission error (non-field, e.g. network error) ─────────────
