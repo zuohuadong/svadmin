@@ -130,7 +130,7 @@ export class TableState<TData extends BaseRecord = BaseRecord, TError = HttpErro
   }
 
   /** Underlying TanStack Query result */
-  get query() { return this._queryResult.query; }
+  get query() { return this._queryResult; }
 
   /** Table data rows */
   get data(): TData[] { return (this.query.data as GetListResult<TData> | undefined)?.data ?? []; }

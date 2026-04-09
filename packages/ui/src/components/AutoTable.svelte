@@ -149,7 +149,7 @@
     get sorters() { return sorters; },
     get filters() { return activeFilters; },
   });
-  const query = listResult.query;
+  const query = listResult;
   const deleteResult = useDelete({ get resource() { return resourceName; } });
   const deleteMutation = deleteResult.mutation;
 
@@ -623,7 +623,7 @@
                                 recordId={id}
                                 {field}
                                 value={cell.getValue()}
-                                onSave={() => listResult.query.refetch()}
+                                onSave={() => listResult.refetch()}
                               />
                             {:else if field?.key === primaryKey}
                               <span class="font-mono text-xs">{cell.getValue() ?? '—'}</span>

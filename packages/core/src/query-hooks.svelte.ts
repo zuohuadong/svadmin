@@ -16,6 +16,26 @@ import type {
 } from './types';
 import type { LiveMode, LiveEvent } from './live.svelte';
 
+/**
+ * Extend a Tanstack Query result with additional properties.
+ * The query object is returned as-is, with extra properties accessible via Proxy.
+ */
+function extendQuery<Q extends object, E extends Record<string, unknown>>(
+  query: Q,
+  extensions: () => E,
+): Q & E {
+  return new Proxy(query, {
+    get(target, prop, receiver) {
+      const ext = extensions();
+      if (prop in ext) return ext[prop as keyof E];
+      return Reflect.get(target, prop, receiver);
+    },
+    has(target, prop) {
+      return prop in extensions() || Reflect.has(target, prop);
+    },
+  }) as Q & E;
+}
+
 // ─── useList ───────────────────────────────────────────────────
 
 export interface UseListOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
@@ -82,10 +102,7 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
     }
   });
 
-  return {
-    query,
-    get overtime() { return overtime; }
-  };
+  return extendQuery(query, () => ({ overtime }));
 }
 
 // ─── useOne ────────────────────────────────────────────────────
@@ -139,8 +156,9 @@ export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError
     }
   });
 
-  return { query, get overtime() { return overtime; } };
+  return extendQuery(query, () => ({ overtime }));
 }
+
 // ─── useShow ──────────────────────────────────────────────────
 export function useShow<TData extends BaseRecord = BaseRecord, TError = HttpError>(
   options: UseOneOptions<TData, TError> = {}
@@ -155,12 +173,7 @@ export function useShow<TData extends BaseRecord = BaseRecord, TError = HttpErro
     get id() { return showId; },
   });
 
-  return {
-    get query() { return result.query; },
-    get showId() { return showId; },
-    setShowId,
-    get overtime() { return result.overtime; },
-  };
+  return extendQuery(result, () => ({ showId, setShowId }));
 }
 
 // ─── useMany ───────────────────────────────────────────────────
@@ -205,7 +218,7 @@ export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpErro
     else if (query.isError) fireErrorNotification(options.errorNotification, 'Fetch failed', query.error);
   });
 
-  return { query, get overtime() { return overtime; } };
+  return extendQuery(query, () => ({ overtime }));
 }
 
 export function useApiUrl(dataProviderName?: string): string {

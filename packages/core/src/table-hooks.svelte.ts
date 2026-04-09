@@ -83,7 +83,7 @@ export function useTable<
     ...restOptions
   });
 
-  const query = tableQueryInfo.query;
+  const query = tableQueryInfo;
   const overtime = tableQueryInfo.overtime;
 
   function setSorters(newSorters: Sort[]) { currentSorters = newSorters; }
