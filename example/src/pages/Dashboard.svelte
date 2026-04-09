@@ -7,12 +7,12 @@
   const commentsQuery = useList({ resource: 'comments', pagination: { current: 1, pageSize: 1 } });
 
   const stats = $derived([
-    { label: 'Total Posts', value: postsQuery.query.data?.total ?? '—', Icon: FileText, color: 'bg-blue-50 text-blue-600' },
-    { label: 'Total Users', value: usersQuery.query.data?.total ?? '—', Icon: Users, color: 'bg-green-50 text-green-600' },
-    { label: 'Total Comments', value: commentsQuery.query.data?.total ?? '—', Icon: MessageCircle, color: 'bg-purple-50 text-purple-600' },
+    { label: 'Total Posts', value: postsQuery.data?.total ?? '—', Icon: FileText, color: 'bg-blue-50 text-blue-600' },
+    { label: 'Total Users', value: usersQuery.data?.total ?? '—', Icon: Users, color: 'bg-green-50 text-green-600' },
+    { label: 'Total Comments', value: commentsQuery.data?.total ?? '—', Icon: MessageCircle, color: 'bg-purple-50 text-purple-600' },
   ]);
 
-  const isLoading = $derived(postsQuery.query.isLoading || usersQuery.query.isLoading || commentsQuery.query.isLoading);
+  const isLoading = $derived(postsQuery.isLoading || usersQuery.isLoading || commentsQuery.isLoading);
 
   const recentPosts = useList({ resource: 'posts', pagination: { current: 1, pageSize: 5 } });
   const recentUsers = useList({ resource: 'users', pagination: { current: 1, pageSize: 5 } });
@@ -48,7 +48,7 @@
         <a href="#/posts" class="text-sm text-primary hover:underline">View all</a>
       </div>
       <div class="divide-y divide-gray-50">
-        {#each recentPosts.query.data?.data ?? [] as post}
+        {#each recentPosts.data?.data ?? [] as post}
           <div class="flex items-center justify-between px-5 py-3">
             <div>
               <p class="text-sm font-medium text-gray-900">{post.title}</p>
@@ -65,7 +65,7 @@
         <a href="#/users" class="text-sm text-primary hover:underline">View all</a>
       </div>
       <div class="divide-y divide-gray-50">
-        {#each recentUsers.query.data?.data ?? [] as user}
+        {#each recentUsers.data?.data ?? [] as user}
           <div class="flex items-center justify-between px-5 py-3">
             <div>
               <p class="text-sm font-medium text-gray-900">{user.name}</p>
