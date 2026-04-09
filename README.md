@@ -227,7 +227,6 @@ export default defineConfig({
       "@svadmin/ui > cmdk-sv",
       "@svadmin/ui > bits-ui",
       "@svadmin/ui > @tanstack/svelte-table",
-      "@svadmin/ui > lucide-svelte",
       "@svadmin/ui > @lucide/svelte",
       "highlight.js",
       "marked",

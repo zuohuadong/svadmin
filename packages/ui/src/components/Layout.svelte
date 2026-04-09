@@ -22,7 +22,7 @@
   let shortcutsOpen = $state(false);
   let mobileMenuOpen = $state(false);
 
-  let { children, title = 'Admin', menu, siteUrl }: { children: Snippet; title?: string; menu?: MenuItem[]; siteUrl?: string } = $props();
+  let { children, title = 'Admin', menu, siteUrl, routeMode = 'auto' }: { children: Snippet; title?: string; menu?: MenuItem[]; siteUrl?: string; routeMode?: 'hash' | 'path' | 'auto' } = $props();
 
   let hasAuth = true;
   let auth: ReturnType<typeof getAuthProvider> | null = null;
@@ -121,13 +121,13 @@
   <div class="flex h-screen bg-background" in:fade={{ duration: 200, delay: 50 }}>
     <!-- Desktop sidebar -->
     <div class="hidden md:block">
-      <Sidebar {collapsed} {identity} {title} {menu} onToggle={() => collapsed = !collapsed} onLogout={handleLogout} />
+      <Sidebar {collapsed} {identity} {title} {menu} {routeMode} onToggle={() => collapsed = !collapsed} onLogout={handleLogout} />
     </div>
 
     <!-- Mobile sidebar via Sheet -->
     <Sheet.Root bind:open={mobileMenuOpen} side="left">
       <div class="md:hidden">
-        <Sidebar collapsed={false} {identity} {title} {menu} onToggle={() => { mobileMenuOpen = false; }} onLogout={handleLogout} />
+        <Sidebar collapsed={false} {identity} {title} {menu} {routeMode} onToggle={() => { mobileMenuOpen = false; }} onLogout={handleLogout} />
       </div>
     </Sheet.Root>
 
