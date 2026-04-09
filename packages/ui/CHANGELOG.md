@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.4](https://github.com/zuohuadong/svadmin/compare/ui-v0.29.3...ui-v0.29.4) (2026-04-09)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** build before publish to include dist ([ca25048](https://github.com/zuohuadong/svadmin/commit/ca250484a583968609e07b937ceadb1b4863249c))
+
 ## [0.29.3](https://github.com/zuohuadong/svadmin/compare/ui-v0.29.2...ui-v0.29.3) (2026-04-09)
 
 
