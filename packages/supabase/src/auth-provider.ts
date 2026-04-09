@@ -72,6 +72,18 @@ export function createSupabaseAuthProvider(client: SupabaseClient): AuthProvider
 
     async onError(error: unknown): Promise<{ redirectTo?: string; logout?: boolean }> {
       if (error instanceof Error && error.message.includes('401')) {
+        // Pre-flight check: race-condition guard
+        // Supabase might have just refreshed the token in the background right after our fetch failed
+        const { data: { session } } = await client.auth.getSession();
+        
+        if (session?.access_token) {
+          // Token is actually still valid in Supabase! The 401 was a stale race condition.
+          // We intercept and swallow the logout action so the user isn't falsely kicked.
+          return {};
+        }
+
+        // Truly expired
+        await client.auth.signOut();
         return { redirectTo: '/login', logout: true };
       }
       return {};
