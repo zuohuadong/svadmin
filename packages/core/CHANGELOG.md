@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.3](https://github.com/zuohuadong/svadmin/compare/core-v0.20.2...core-v0.20.3) (2026-04-09)
+
+
+### 🐛 Bug Fixes
+
+* **core:** add bun types to tsconfig.json to resolve test compilation errors ([ce6fb1e](https://github.com/zuohuadong/svadmin/commit/ce6fb1e5f0de00d844513f0d68c37ba81b2149d1))
+
 ## [0.20.2](https://github.com/zuohuadong/svadmin/compare/core-v0.20.1...core-v0.20.2) (2026-04-08)
 
 
