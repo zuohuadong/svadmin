@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.21.0](https://github.com/zuohuadong/svadmin/compare/core-v0.20.4...core-v0.21.0) (2026-04-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core:** useList, useOne, useShow, useMany now return the Tanstack Query result directly instead of wrapping it in { query, overtime }.
+
+### 🚀 Features
+
+* **core:** flatten query hook return values ([#107](https://github.com/zuohuadong/svadmin/issues/107)) ([6082bd1](https://github.com/zuohuadong/svadmin/commit/6082bd1c6290701219b2b5eaf72f4b52845cd258))
+
 ## [0.20.4](https://github.com/zuohuadong/svadmin/compare/core-v0.20.3...core-v0.20.4) (2026-04-09)
 
 

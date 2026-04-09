@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.30.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.29.5...ui-v0.30.0) (2026-04-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core:** useList, useOne, useShow, useMany now return the Tanstack Query result directly instead of wrapping it in { query, overtime }.
+
+### 🚀 Features
+
+* **core:** flatten query hook return values ([#107](https://github.com/zuohuadong/svadmin/issues/107)) ([6082bd1](https://github.com/zuohuadong/svadmin/commit/6082bd1c6290701219b2b5eaf72f4b52845cd258))
+
+
+### 🐛 Bug Fixes
+
+* **ui:** pass routeMode properly from AdminApp to Sidebar (fixes FINOHSIANG/AoristCross[#10](https://github.com/zuohuadong/svadmin/issues/10)) ([3fabf1e](https://github.com/zuohuadong/svadmin/commit/3fabf1e348685487090ce6372186432c0d69bd1d))
+
 ## [0.29.5](https://github.com/zuohuadong/svadmin/compare/ui-v0.29.4...ui-v0.29.5) (2026-04-09)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.0...supabase-v0.9.1) (2026-04-09)
+
+
+### 🐛 Bug Fixes
+
+* **supabase:** prevent false logout during token refresh race condition ([cdeecc6](https://github.com/zuohuadong/svadmin/commit/cdeecc6501eebd7f5b63dfc23ae566b6707b2371))
+
 ## [0.9.0](https://github.com/zuohuadong/svadmin/compare/supabase-v0.8.4...supabase-v0.9.0) (2026-04-09)
 
 
