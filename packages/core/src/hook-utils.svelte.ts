@@ -54,26 +54,23 @@ export interface LiveSubscriptionParams {
   enabled?: boolean;
 }
 
-export function createLiveSubscription(params: LiveSubscriptionParams): void {
-  const {
-    resource,
-    liveProvider,
-    liveMode = 'off',
-    onLiveEvent,
-    enabled = true,
-  } = params;
-
-  if (!liveProvider || liveMode === 'off' || !enabled) return;
-
+export function createLiveSubscription(paramsFn: () => LiveSubscriptionParams): void {
   const queryClient = useQueryClient();
 
   $effect(() => {
+    const params = paramsFn();
+    const liveProvider = params.liveProvider;
+    const liveMode = params.liveMode ?? 'off';
+    const enabled = params.enabled ?? true;
+
+    if (!liveProvider || liveMode === 'off' || !enabled) return;
+
     const unsubscribe = liveProvider.subscribe({
-      resource,
+      resource: params.resource,
       callback: (event: LiveEvent) => {
-        onLiveEvent?.(event);
+        params.onLiveEvent?.(event);
         if (liveMode === 'auto') {
-          queryClient.invalidateQueries({ queryKey: [resource] });
+          queryClient.invalidateQueries({ queryKey: [params.resource] });
         }
       },
     });
