@@ -335,8 +335,10 @@ function applyTheme(m: ThemeMode): void {
   }
 }
 
-// Apply on init
-applyTheme(getStoredTheme());
+// Apply on init (browser only)
+if (typeof window !== 'undefined') {
+  applyTheme(getStoredTheme());
+}
 
 // Listen for system preference changes
 if (typeof window !== 'undefined') {
@@ -390,9 +392,9 @@ function applyColorTheme(ct: ColorTheme): void {
   }
 }
 
-// Apply on init
-applyColorTheme(getStoredColorTheme());
-{
+// Apply on init (browser only)
+if (typeof window !== 'undefined') {
+  applyColorTheme(getStoredColorTheme());
   const initPreset = builtinPresets[getStoredColorTheme()];
   if (initPreset) applyColorPreset(initPreset);
 }

@@ -25,6 +25,7 @@ export interface RouterProvider {
 export function createHashRouterProvider(): RouterProvider {
   return {
     go({ to, query, type = 'push' }) {
+      if (typeof window === 'undefined') return;
       let url = to;
       if (query) {
         const params = new URLSearchParams(query).toString();
@@ -39,9 +40,13 @@ export function createHashRouterProvider(): RouterProvider {
       }
     },
     back() {
+      if (typeof window === 'undefined') return;
       history.back();
     },
     parse() {
+      if (typeof window === 'undefined') {
+        return { resource: undefined, action: undefined, id: undefined, params: {}, pathname: '/' };
+      }
       const hash = window.location.hash.slice(1) || '/';
       const [pathname, queryString] = hash.split('?');
       const params: Record<string, string> = {};
@@ -67,6 +72,7 @@ export function createHashRouterProvider(): RouterProvider {
 export function createHistoryRouterProvider(basePath = ''): RouterProvider {
   return {
     go({ to, query, type = 'push' }) {
+      if (typeof window === 'undefined') return;
       let url = `${basePath}${to}`;
       if (query) {
         const params = new URLSearchParams(query).toString();
@@ -81,9 +87,13 @@ export function createHistoryRouterProvider(basePath = ''): RouterProvider {
       window.dispatchEvent(new PopStateEvent('popstate'));
     },
     back() {
+      if (typeof window === 'undefined') return;
       history.back();
     },
     parse() {
+      if (typeof window === 'undefined') {
+        return { resource: undefined, action: undefined, id: undefined, params: {}, pathname: '/' };
+      }
       const pathname = window.location.pathname.replace(basePath, '') || '/';
       const params: Record<string, string> = {};
       for (const [k, v] of new URLSearchParams(window.location.search).entries()) {
