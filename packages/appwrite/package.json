@@ -17,7 +17,9 @@
   },
   "peerDependencies": {
     "@svadmin/core": "workspace:*",
-    "appwrite": ">=14.0.0"
+    "appwrite": ">=14.0.0",
+    "@refinedev/appwrite": "^5.0.0",
+    "@svadmin/refine-adapter": "workspace:*"
   },
   "keywords": [
     "svadmin",

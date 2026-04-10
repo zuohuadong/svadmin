@@ -17,7 +17,9 @@
   },
   "peerDependencies": {
     "@svadmin/core": "workspace:*",
-    "@supabase/supabase-js": "^2.0.0"
+    "@supabase/supabase-js": "^2.0.0",
+    "@refinedev/supabase": "^5.0.0",
+    "@svadmin/refine-adapter": "workspace:*"
   },
   "license": "MIT",
   "author": "zuohuadong",

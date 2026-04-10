@@ -1,137 +1,21 @@
-// Simple REST DataProvider — fetch-based, zero dependencies
-// Compatible with json-server, RESTful APIs, and any JSON backend
+import type { DataProvider } from '@svadmin/core';
+import { createRefineAdapter } from '@svadmin/refine-adapter';
 
-import type {
-  DataProvider, GetListParams, GetListResult, GetOneParams, GetOneResult,
-  CreateParams, CreateResult, UpdateParams, UpdateResult, DeleteParams, DeleteResult,
-  GetManyParams, GetManyResult, CreateManyParams, CreateManyResult,
-  UpdateManyParams, UpdateManyResult, DeleteManyParams, DeleteManyResult,
-  CustomParams, CustomResult, BaseRecord
-} from '@svadmin/core';
 
-export interface SimpleRestOptions {
-  apiUrl: string;
-  headers?: Record<string, string> | (() => Record<string, string>);
+/**
+ * Creates a simple-rest data provider using the official @refinedev/simple-rest package.
+ * Requires `@refinedev/simple-rest` to be installed.
+ * 
+ * @param args Arguments required by @refinedev/simple-rest
+ * @returns A fully compatible svadmin DataProvider
+ */
+export function createSimpleRestDataProvider(...args: any[]): DataProvider {
+  
+  // @ts-ignore
+  import * as pkg from '@refinedev/simple-rest';
+  const init = pkg.default || pkg.dataProvider || pkg.DataProvider;
+  const refineProvider = init(...args);
+  return createRefineAdapter(refineProvider);
 }
 
-function getHeaders(opts: SimpleRestOptions): Record<string, string> {
-  const base = { 'Content-Type': 'application/json' };
-  const extra = typeof opts.headers === 'function' ? opts.headers() : (opts.headers ?? {});
-  return { ...base, ...extra };
-}
-
-export function createSimpleRestDataProvider(opts: SimpleRestOptions): DataProvider {
-  const { apiUrl } = opts;
-
-  async function request<T>(url: string, init?: RequestInit): Promise<T> {
-    const response = await fetch(url, { ...init, headers: { ...getHeaders(opts), ...init?.headers } });
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    return response.json();
-  }
-
-  return {
-    getApiUrl: () => apiUrl,
-
-    async getList<T extends BaseRecord = BaseRecord>({ resource, pagination, sorters, filters }: GetListParams): Promise<GetListResult<T>> {
-      const params = new URLSearchParams();
-      const { current = 1, pageSize = 10 } = pagination ?? {};
-      params.set('_page', String(current));
-      params.set('_limit', String(pageSize));
-
-      if (sorters?.length) {
-        params.set('_sort', sorters.map(s => s.field).join(','));
-        params.set('_order', sorters.map(s => s.order).join(','));
-      }
-
-      if (filters?.length) {
-        for (const f of filters) {
-          if (f.operator === 'eq') params.set(f.field, String(f.value));
-          else if (f.operator === 'contains') params.set(`${f.field}_like`, String(f.value));
-          else params.set(`${f.field}_${f.operator}`, String(f.value));
-        }
-      }
-
-      const url = `${apiUrl}/${resource}?${params.toString()}`;
-      const response = await fetch(url, { headers: getHeaders(opts) });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const data = await response.json() as unknown as unknown as T[];
-      const total = parseInt(response.headers.get('X-Total-Count') ?? String(data.length), 10);
-      return { data, total };
-    },
-
-    async getOne<T extends BaseRecord = BaseRecord>({ resource, id }: GetOneParams): Promise<GetOneResult<T>> {
-      const data = await request<unknown>(`${apiUrl}/${resource}/${id}`);
-      return { data: data as unknown as unknown as T };
-    },
-
-    async create<T extends BaseRecord = BaseRecord>({ resource, variables }: CreateParams): Promise<CreateResult<T>> {
-      const data = await request<unknown>(`${apiUrl}/${resource}`, {
-        method: 'POST',
-        body: JSON.stringify(variables),
-      });
-      return { data: data as unknown as unknown as T };
-    },
-
-    async update<T extends BaseRecord = BaseRecord>({ resource, id, variables }: UpdateParams): Promise<UpdateResult<T>> {
-      const data = await request<unknown>(`${apiUrl}/${resource}/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(variables),
-      });
-      return { data: data as unknown as unknown as T };
-    },
-
-    async deleteOne<T extends BaseRecord = BaseRecord>({ resource, id }: DeleteParams): Promise<DeleteResult<T>> {
-      const data = await request<unknown>(`${apiUrl}/${resource}/${id}`, { method: 'DELETE' });
-      return { data: data as unknown as unknown as T };
-    },
-
-    async getMany<T extends BaseRecord = BaseRecord>({ resource, ids }: GetManyParams): Promise<GetManyResult<T>> {
-      const params = ids.map(id => `id=${id}`).join('&');
-      const data = await request<unknown[]>(`${apiUrl}/${resource}?${params}`);
-      return { data: data as unknown as unknown as T[] };
-    },
-
-    async createMany<T extends BaseRecord = BaseRecord>({ resource, variables }: CreateManyParams): Promise<CreateManyResult<T>> {
-      const results: T[] = [];
-      for (const vars of variables) {
-        const data = await request<unknown>(`${apiUrl}/${resource}`, {
-          method: 'POST',
-          body: JSON.stringify(vars),
-        });
-        results.push(data as unknown as T);
-      }
-      return { data: results };
-    },
-
-    async updateMany<T extends BaseRecord = BaseRecord>({ resource, ids, variables }: UpdateManyParams): Promise<UpdateManyResult<T>> {
-      const results: T[] = [];
-      for (const id of ids) {
-        const data = await request<unknown>(`${apiUrl}/${resource}/${id}`, {
-          method: 'PATCH',
-          body: JSON.stringify(variables),
-        });
-        results.push(data as unknown as T);
-      }
-      return { data: results };
-    },
-
-    async deleteMany<T extends BaseRecord = BaseRecord>({ resource, ids }: DeleteManyParams): Promise<DeleteManyResult<T>> {
-      const results: T[] = [];
-      for (const id of ids) {
-        const data = await request<unknown>(`${apiUrl}/${resource}/${id}`, { method: 'DELETE' });
-        results.push(data as unknown as T);
-      }
-      return { data: results };
-    },
-
-    async custom<T = unknown>({ url, method, payload, headers }: CustomParams): Promise<CustomResult<T>> {
-      const data = await request<unknown>(url, {
-        method: method.toUpperCase(),
-        headers,
-        body: payload ? JSON.stringify(payload) : undefined,
-      });
-      return { data: data as unknown as unknown as T };
-    },
-  };
-}
+export type SimpleRestOptions = any;
