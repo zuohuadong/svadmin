@@ -93,11 +93,15 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
     liveParams: options.liveParams,
     enabled: queryOptions?.enabled ?? true,
   });
+  let lastSuccess = $state(0);
+  let lastError = $state(0);
 
   $effect(() => {
-    if (query.isSuccess && options.successNotification) {
+    if (query.isSuccess && options.successNotification && query.dataUpdatedAt > lastSuccess) {
+      lastSuccess = query.dataUpdatedAt;
       fireSuccessNotification(options.successNotification, '', query.data, undefined, resource);
-    } else if (query.isError) {
+    } else if (query.isError && query.errorUpdatedAt > lastError) {
+      lastError = query.errorUpdatedAt;
       fireErrorNotification(options.errorNotification, 'Fetch failed', query.error);
     }
   });
@@ -159,11 +163,15 @@ export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError
     liveParams: options.liveParams,
     enabled: (queryOptions?.enabled ?? true) && id != null,
   });
+  let lastSuccess = $state(0);
+  let lastError = $state(0);
 
   $effect(() => {
-    if (query.isSuccess && options.successNotification) {
+    if (query.isSuccess && options.successNotification && query.dataUpdatedAt > lastSuccess) {
+      lastSuccess = query.dataUpdatedAt;
       fireSuccessNotification(options.successNotification, '', query.data, undefined, resource);
-    } else if (query.isError) {
+    } else if (query.isError && query.errorUpdatedAt > lastError) {
+      lastError = query.errorUpdatedAt;
       fireErrorNotification(options.errorNotification, 'Fetch failed', query.error);
     }
   });
@@ -236,10 +244,17 @@ export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpErro
     liveParams: options.liveParams,
     enabled: (queryOptions?.enabled ?? true) && ids.length > 0,
   });
+  let lastSuccess = $state(0);
+  let lastError = $state(0);
 
   $effect(() => {
-    if (query.isSuccess && options.successNotification) fireSuccessNotification(options.successNotification, '', query.data, undefined, resource);
-    else if (query.isError) fireErrorNotification(options.errorNotification, 'Fetch failed', query.error);
+    if (query.isSuccess && options.successNotification && query.dataUpdatedAt > lastSuccess) {
+      lastSuccess = query.dataUpdatedAt;
+      fireSuccessNotification(options.successNotification, '', query.data, undefined, resource);
+    } else if (query.isError && query.errorUpdatedAt > lastError) {
+      lastError = query.errorUpdatedAt;
+      fireErrorNotification(options.errorNotification, 'Fetch failed', query.error);
+    }
   });
 
   return extendQuery(query, () => ({ overtime }));
