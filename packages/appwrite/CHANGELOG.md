@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.6](https://github.com/zuohuadong/svadmin/compare/appwrite-v0.8.5...appwrite-v0.8.6) (2026-04-10)
+
+
+### 🐛 Bug Fixes
+
+* **core:** resolve regressions across SSR auth, mutation hooks, lite components and editor types ([5b716e2](https://github.com/zuohuadong/svadmin/commit/5b716e22dd1f0664b3a884b8d74a583590467065))
+* **providers,auth:** lazy dynamic imports for peer deps, SSR safeguards for window.location access ([2bc5819](https://github.com/zuohuadong/svadmin/commit/2bc5819d59ad223f71e42fa208c8e717412b2552))
+
+
+### 💅 Elegance & Refactoring
+
+* **core:** migrate 9 data provider pkgs to refine-adapter ([1ba465d](https://github.com/zuohuadong/svadmin/commit/1ba465d1f7de63e7efb6d632ad1f4750be07cfd5))
+
 ## [0.8.5](https://github.com/zuohuadong/svadmin/compare/appwrite-v0.8.4...appwrite-v0.8.5) (2026-04-09)
 
 

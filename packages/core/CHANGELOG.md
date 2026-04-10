@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.21.1](https://github.com/zuohuadong/svadmin/compare/core-v0.21.0...core-v0.21.1) (2026-04-10)
+
+
+### 🐛 Bug Fixes
+
+* **core:** complete clone routing, SSR hardening, refine-adapter safety ([e896f2a](https://github.com/zuohuadong/svadmin/commit/e896f2ae786dde01cb82dbb38ecbe2f4bc4830fa))
+* **core:** resolve data provider regressions and type errors ([8728fcc](https://github.com/zuohuadong/svadmin/commit/8728fcc737cbf6ece7400de7282984e3f2dce9f0))
+* **core:** resolve functional regressions in routing, forms, and live providers ([09e4f69](https://github.com/zuohuadong/svadmin/commit/09e4f69246ae96c1e4357391e2b53aaad8756902))
+* **core:** resolve regressions across SSR auth, mutation hooks, lite components and editor types ([5b716e2](https://github.com/zuohuadong/svadmin/commit/5b716e22dd1f0664b3a884b8d74a583590467065))
+* **core:** resolve routing, auth SSR, live events and clone logic regressions from audit ([a025c8c](https://github.com/zuohuadong/svadmin/commit/a025c8c66847dd7fae5fa9ce5bfe81d7a8550dc4))
+* **ui,supabase:** clone route support, SSR localStorage guards, missing i18n key ([e1e96ad](https://github.com/zuohuadong/svadmin/commit/e1e96ad991ae1bb545aade3033b9776ae8805347))
+
 ## [0.21.0](https://github.com/zuohuadong/svadmin/compare/core-v0.20.4...core-v0.21.0) (2026-04-09)
 
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.30.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.30.0...ui-v0.30.1) (2026-04-10)
+
+
+### 🐛 Bug Fixes
+
+* **core:** resolve functional regressions in routing, forms, and live providers ([09e4f69](https://github.com/zuohuadong/svadmin/commit/09e4f69246ae96c1e4357391e2b53aaad8756902))
+* **ui,supabase:** clone route support, SSR localStorage guards, missing i18n key ([e1e96ad](https://github.com/zuohuadong/svadmin/commit/e1e96ad991ae1bb545aade3033b9776ae8805347))
+* **ui:** explicitly upgrade @tanstack/table-core to v9.x to resolve alpha and v8 type conflicts ([933e7a3](https://github.com/zuohuadong/svadmin/commit/933e7a3e2afa13b6c1e66b9e194d629e4aa77c73))
+
 ## [0.30.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.29.5...ui-v0.30.0) (2026-04-09)
 
 

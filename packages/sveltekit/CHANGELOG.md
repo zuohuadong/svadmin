@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.5](https://github.com/zuohuadong/svadmin/compare/sveltekit-v0.8.4...sveltekit-v0.8.5) (2026-04-10)
+
+
+### 🐛 Bug Fixes
+
+* **core:** resolve data provider regressions and type errors ([8728fcc](https://github.com/zuohuadong/svadmin/commit/8728fcc737cbf6ece7400de7282984e3f2dce9f0))
+
 ## [0.8.4](https://github.com/zuohuadong/svadmin/compare/sveltekit-v0.8.3...sveltekit-v0.8.4) (2026-04-03)
 
 
