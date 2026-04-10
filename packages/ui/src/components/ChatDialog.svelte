@@ -94,6 +94,8 @@
         }
       }
     }, 300);
+
+    return () => { if (persistTimer) clearTimeout(persistTimer); };
   });
 
   function genId(): string {

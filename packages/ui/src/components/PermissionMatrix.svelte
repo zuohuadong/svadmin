@@ -2,6 +2,7 @@
   import { Shield, AlertCircle, Check } from '@lucide/svelte';
   import type { Snippet } from 'svelte';
   import type { RoleInfo, ResourceInfo, ActionInfo } from '../types.js';
+  import { t } from '@svadmin/core/i18n';
   
   let {
     // Basic metadata lists
@@ -51,9 +52,9 @@
     <div>
       <h1 class="text-2xl font-bold text-foreground flex items-center gap-2">
         <Shield class="w-6 h-6 text-primary" />
-        统一操作权限矩阵
+        {t('permissions.title') || 'Permission Matrix'}
       </h1>
-      <p class="text-muted-foreground mt-1 text-sm">直观配置系统模块与角色的鉴权规则网络。</p>
+      <p class="text-muted-foreground mt-1 text-sm">{t('permissions.description') || 'Configure authorization rules for system modules and roles.'}</p>
     </div>
     
     <!-- Toast Feedback -->
@@ -72,7 +73,7 @@
   <div class="flex flex-col md:flex-row gap-6 flex-1 min-h-[500px]">
     <!-- Left: Role Selector Sidebar -->
     <div class="w-full md:w-64 flex-shrink-0 bg-card rounded-xl shadow-sm border border-border p-4 flex flex-col">
-      <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-2">业务受众角色</h2>
+      <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-2">{t('permissions.roles') || 'Roles'}</h2>
       <div class="space-y-1 flex-1 overflow-y-auto">
         {#each roles as role}
           <button 
@@ -84,7 +85,7 @@
           </button>
         {/each}
         {#if roles.length === 0}
-          <p class="text-center text-muted-foreground text-sm p-4">暂无角色</p>
+          <p class="text-center text-muted-foreground text-sm p-4">{t('permissions.noRoles') || 'No roles available'}</p>
         {/if}
       </div>
       
@@ -102,10 +103,10 @@
       <div class="p-5 border-b border-border bg-muted/30 flex items-center justify-between">
         <div class="flex items-center gap-4">
           <div>
-            <h2 class="text-lg font-bold text-foreground">当前视角: 
-              <span class="text-primary">{roles.find(r => r.code === selectedRole)?.name || '未选择'}</span>
+            <h2 class="text-lg font-bold text-foreground">{t('permissions.currentRole') || 'Current role'}: 
+              <span class="text-primary">{roles.find(r => r.code === selectedRole)?.name || (t('permissions.noneSelected') || 'None selected')}</span>
             </h2>
-            <p class="text-xs text-muted-foreground mt-1">勾选以即时挂载/收回操作权限</p>
+            <p class="text-xs text-muted-foreground mt-1">{t('permissions.toggleHint') || 'Toggle checkboxes to grant or revoke permissions'}</p>
           </div>
           
           <!-- Slot for header extra logic -->
@@ -116,7 +117,7 @@
         
         {#if conflictCount > 0}
           <div class="px-3 py-1.5 bg-destructive/10 text-destructive rounded-lg text-xs font-medium ring-1 ring-destructive/20 flex items-center gap-1.5">
-            <AlertCircle class="w-4 h-4" /> {conflictCount} 重叠/冲突规则
+            <AlertCircle class="w-4 h-4" /> {conflictCount} {t('permissions.conflicts') || 'conflicting rules'}
           </div>
         {/if}
       </div>
@@ -126,7 +127,7 @@
         <table class="min-w-full rounded-lg overflow-hidden shadow-sm ring-1 ring-border/10">
           <thead class="bg-muted/50">
             <tr>
-              <th scope="col" class="py-3 pr-3 pl-4 text-left text-sm font-semibold text-foreground w-48">模块域与资源点</th>
+              <th scope="col" class="py-3 pr-3 pl-4 text-left text-sm font-semibold text-foreground w-48">{t('permissions.resources') || 'Resources'}</th>
               {#each actions as action}
                 <th scope="col" class="px-2 py-3 text-center text-sm font-semibold text-foreground">
                   <div class="flex flex-col items-center">
@@ -140,7 +141,7 @@
           <tbody class="bg-card">
             {#if resources.length === 0}
               <tr>
-                 <td colspan={actions.length + 1} class="py-10 text-center text-muted-foreground">暂无可用资源</td>
+                 <td colspan={actions.length + 1} class="py-10 text-center text-muted-foreground">{t('permissions.noResources') || 'No resources available'}</td>
               </tr>
             {/if}
             {#each resources as resource, i}

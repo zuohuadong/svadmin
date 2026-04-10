@@ -144,8 +144,8 @@ async function init(): Promise<void> {
       'svelte-check': '^4.0.0',
       'tailwindcss': '^4.0.0',
       'tw-animate-css': '^1.0.0',
-      'typescript': '^5.7.0',
-      'vite': '^6.1.0',
+      'typescript': '^5.8.0',
+      'vite': '^8.0.0',
     }
   };
 
