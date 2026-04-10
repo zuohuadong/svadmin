@@ -59,6 +59,7 @@ export default defineConfig({
           translations: { 'zh-CN': '提供器' },
           items: [
             { slug: 'providers/data-provider' },
+            { slug: 'providers/refine-adapter' },
             { slug: 'providers/auth' },
             { slug: 'providers/router' },
             { slug: 'providers/live' },

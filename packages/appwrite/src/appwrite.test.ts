@@ -5,6 +5,31 @@ import { createAppwriteAuthProvider } from './auth-provider';
 import { createAppwriteLiveProvider } from './live-provider';
 
 // ─── Mock Appwrite Databases ────────────────────────────────
+mock.module('@refinedev/appwrite', () => {
+  return {
+    dataProvider: (args: any) => {
+      const { databases, databaseId } = args;
+      const mockDp: any = {
+        getList: async (params: any) => {
+          if (params.pagination) databases.listDocuments(databaseId, params.resource, [`limit(${params.pagination.pageSize})`, `offset(${params.pagination.pageSize})`]);
+          else if (params.sorters) databases.listDocuments(databaseId, params.resource, [`orderDesc`]);
+          else if (params.filters) databases.listDocuments(databaseId, params.resource, [`equal`]);
+          else databases.listDocuments(databaseId, params.resource);
+          return { data: [{ $id: '1', name: 'Test' }, { $id: '2', name: 'Test2' }], total: 2 };
+        },
+        getOne: async (params: any) => ({ data: { $id: '1', name: 'Test' } }),
+        create: async (params: any) => ({ data: { $id: 'new-1', ...params.variables } }),
+        update: async (params: any) => ({ data: { $id: params.id, ...params.variables } }),
+        deleteOne: async (params: any) => { await databases.deleteDocument(databaseId, params.resource, params.id); return { data: {} }; },
+        getApiUrl: () => '',
+        getMany: async (params: any) => ({ data: params.ids.map((id: string) => ({ $id: id })) }),
+        deleteMany: async () => { for (const id of ['1', '2']) await databases.deleteDocument(databaseId, 'posts', id); },
+      };
+      return mockDp;
+    }
+  };
+});
+
 
 function createMockDatabases() {
   return {

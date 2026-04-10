@@ -31,6 +31,8 @@ interface DataProvider {
 
 ## 内置 Provider
 
+> 大部分 svadmin 数据源通过 [`@svadmin/refine-adapter`](/zh-cn/providers/refine-adapter) 桥接对应的 `@refinedev/*` 包。你也可以直接使用该适配器来桥接 svadmin 尚未提供专用包的 Refine 数据源。
+
 ### Simple REST
 
 ```typescript

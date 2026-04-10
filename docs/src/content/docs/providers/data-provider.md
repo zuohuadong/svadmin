@@ -31,6 +31,8 @@ interface DataProvider {
 
 ## Built-in Providers
 
+> Most svadmin data providers are powered by their corresponding `@refinedev/*` package via [`@svadmin/refine-adapter`](/providers/refine-adapter). You can also use the adapter directly to bridge any Refine provider that svadmin doesn't have a dedicated package for yet.
+
 ### Simple REST
 
 ```typescript

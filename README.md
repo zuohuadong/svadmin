@@ -63,11 +63,17 @@
 
 ### Core / 核心
 
-| Package           | Description / 描述                                           |
-| ----------------- | ------------------------------------------------------------ |
-| `@svadmin/core`   | Hooks, providers, types, utilities, Resource Type Registry   |
-| `@svadmin/ui`     | Pre-built admin components / 预构建管理组件（shadcn-svelte） |
-| `@svadmin/create` | CLI scaffolding tool / CLI 脚手架工具                        |
+| Package                  | Description / 描述                                           |
+| ------------------------ | ------------------------------------------------------------ |
+| `@svadmin/core`          | Hooks, providers, types, utilities, Resource Type Registry   |
+| `@svadmin/ui`            | Pre-built admin components / 预构建管理组件（shadcn-svelte） |
+| `@svadmin/create`        | CLI scaffolding tool / CLI 脚手架工具                        |
+| `@svadmin/refine-adapter`| Bridge any @refinedev/* data provider to svadmin / 桥接 Refine 生态数据源 |
+| `@svadmin/sveltekit`     | SvelteKit router integration / SvelteKit 路由集成            |
+| `@svadmin/lite`          | SSR-only variant (no client JS) / 纯 SSR 变体               |
+| `@svadmin/sso`           | OIDC/OAuth2 SSO plugin / 单点登录插件                        |
+| `@svadmin/editor`        | Rich-text editor component / 富文本编辑器组件                |
+| `@svadmin/mcp`           | MCP (Model Context Protocol) integration / AI 工具集成       |
 
 ### Data Providers / 数据适配器
 
@@ -75,6 +81,7 @@
 | ----------------------- | -------------------------------------------- |
 | `@svadmin/simple-rest`  | REST API (zero deps, JWT/Cookie auth)        |
 | `@svadmin/supabase`     | Supabase (data + auth + live)                |
+| `@svadmin/drizzle`      | Drizzle ORM (SQLite, PostgreSQL, MySQL, D1)  |
 | `@svadmin/pocketbase`   | PocketBase (data + auth + live)              |
 | `@svadmin/appwrite`     | Appwrite (data + auth + live)                |
 | `@svadmin/graphql`      | GraphQL                                      |
@@ -355,22 +362,26 @@ const myProvider: DataProvider = {
 ## 🏗️ Architecture / 架构
 
 ```
-┌──────────────────────────────────────┐
-│            Your App / 你的应用         │
-│  (resources, pages, providers)       │
-├──────────────────────────────────────┤
-│          @svadmin/ui                 │
-│  AdminApp · AutoTable · AutoForm     │
-│  ShowPage · 16 Fields · shadcn-svelte│
-├──────────────────────────────────────┤
-│          @svadmin/core               │
-│  30+ Hooks · Context · Router · i18n │
-│  Permissions · Audit · Theme         │
-│  Resource Type Registry · Helpers    │
-├──────────┬───────────┬───────────────┤
-│ /supabase│/simple-rest│ /pocketbase  │
-│ /appwrite│ /graphql  │ /elysia  ... │
-└──────────┴───────────┴───────────────┘
+┌──────────────────────────────────────────┐
+│             Your App / 你的应用            │
+│   (resources, pages, providers)           │
+├──────────────────────────────────────────┤
+│           @svadmin/ui                     │
+│  AdminApp · AutoTable · AutoForm          │
+│  ShowPage · 16 Fields · shadcn-svelte     │
+├──────────────────────────────────────────┤
+│           @svadmin/core                   │
+│  30+ Hooks · Context · Router · i18n      │
+│  Permissions · Audit · Theme              │
+│  Resource Type Registry · Helpers         │
+├──────────┬───────────┬───────────────────┤
+│ /supabase│ /drizzle  │ /simple-rest      │
+│ /appwrite│ /graphql  │ /elysia           │
+│ /firebase│ /hasura   │ /pocketbase  ...  │
+├──────────┴───────────┴───────────────────┤
+│       @svadmin/refine-adapter             │
+│  Bridge any @refinedev/* provider         │
+└──────────────────────────────────────────┘
 ```
 
 ## 📖 Documentation / 文档

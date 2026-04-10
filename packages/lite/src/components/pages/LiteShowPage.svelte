@@ -48,9 +48,9 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px;">
       {#each showFields as field}
         <div>
-          <label style="display: block; font-size: 13px; font-weight: 500; color: #64748b; margin-bottom: 8px;">
+          <div style="display: block; font-size: 13px; font-weight: 500; color: #64748b; margin-bottom: 8px;">
             {field.label}
-          </label>
+          </div>
           <div style="color: #0f172a; font-size: 14px;">
             <LiteShowField {field} value={record[field.key]} />
           </div>
