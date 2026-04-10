@@ -22,24 +22,24 @@
   // Sidebar density
   const DENSITY_KEY = 'svadmin-sidebar-density';
   let density = $state<'compact' | 'standard'>(
-    (typeof localStorage !== 'undefined' ? localStorage.getItem(DENSITY_KEY) : null) as 'compact' | 'standard' ?? 'standard'
+    (typeof window !== 'undefined' ? localStorage.getItem(DENSITY_KEY) : null) as 'compact' | 'standard' ?? 'standard'
   );
 
   function setDensity(d: 'compact' | 'standard') {
     density = d;
-    if (typeof localStorage !== 'undefined') localStorage.setItem(DENSITY_KEY, d);
+    if (typeof window !== 'undefined') localStorage.setItem(DENSITY_KEY, d);
   }
 
   // Page size
   const PAGE_SIZE_KEY = 'svadmin-default-page-size';
   const pageSizeOptions = [10, 20, 50];
   let pageSize = $state<number>(
-    typeof localStorage !== 'undefined' ? parseInt(localStorage.getItem(PAGE_SIZE_KEY) ?? '10', 10) : 10
+    typeof window !== 'undefined' ? parseInt(localStorage.getItem(PAGE_SIZE_KEY) ?? '10', 10) : 10
   );
 
   function setPageSize(size: number) {
     pageSize = size;
-    if (typeof localStorage !== 'undefined') localStorage.setItem(PAGE_SIZE_KEY, String(size));
+    if (typeof window !== 'undefined') localStorage.setItem(PAGE_SIZE_KEY, String(size));
   }
 
   // Locale display names

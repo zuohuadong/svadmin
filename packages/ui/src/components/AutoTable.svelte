@@ -84,7 +84,7 @@
   const urlState = readURLState();
 
   // Snapshot resource values for initial state (untrack to avoid reactive tracking)
-  const storedPageSize = typeof localStorage !== 'undefined' ? parseInt(localStorage.getItem('svadmin-default-page-size') ?? '', 10) : NaN;
+  const storedPageSize = typeof window !== 'undefined' ? parseInt(localStorage.getItem('svadmin-default-page-size') ?? '', 10) : NaN;
   const initPageSize = untrack(() => resource.pageSize ?? (isNaN(storedPageSize) ? 10 : storedPageSize));
   const initDefaultSort = untrack(() => resource.defaultSort);
 
@@ -171,7 +171,7 @@
   let columnVisibility = $state<VisibilityState>((() => {
     // Try to restore from localStorage first
     const storageKey = `svadmin-columns-${resourceName}`;
-    if (typeof localStorage !== 'undefined') {
+    if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem(storageKey);
         if (stored) return JSON.parse(stored);
@@ -191,7 +191,7 @@
   // Persist column visibility to localStorage
   $effect(() => {
     const storageKey = `svadmin-columns-${resourceName}`;
-    if (typeof localStorage !== 'undefined') {
+    if (typeof window !== 'undefined') {
       try {
         localStorage.setItem(storageKey, JSON.stringify(columnVisibility));
       } catch { /* ignore quota errors */ }

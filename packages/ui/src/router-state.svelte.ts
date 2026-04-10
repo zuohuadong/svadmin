@@ -17,10 +17,12 @@ const ROUTES = [
   '/:resource/create',
   '/:resource/edit/:id',
   '/:resource/show/:id',
+  '/:resource/clone/:id',
   '/:parent/:parentId/:resource',
   '/:parent/:parentId/:resource/create',
   '/:parent/:parentId/:resource/edit/:id',
   '/:parent/:parentId/:resource/show/:id',
+  '/:parent/:parentId/:resource/clone/:id',
 ];
 
 function sync() {

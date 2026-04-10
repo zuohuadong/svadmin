@@ -191,6 +191,11 @@
           {@const Comp = getComponentRegistry().ShowPage}
           <Comp resourceName={params.resource} id={params.id} />
         {/key}
+      {:else if route === '/:resource/clone/:id'}
+        {#key `${params.resource}-clone-${params.id}`}
+          {@const Comp = getComponentRegistry().AutoForm}
+          <Comp resourceName={params.resource} mode="create" id={params.id} />
+        {/key}
       {/if}
       </div>
       {/key}

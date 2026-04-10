@@ -32,7 +32,7 @@
   // Restore saved order from localStorage
   $effect(() => {
     const storageKey = `svadmin-colorder-${resourceName}`;
-    if (typeof localStorage === 'undefined') return;
+    if (typeof window === 'undefined') return;
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -79,7 +79,7 @@
 
     // Persist to localStorage
     const storageKey = `svadmin-colorder-${resourceName}`;
-    if (typeof localStorage !== 'undefined') {
+    if (typeof window !== 'undefined') {
       try {
         localStorage.setItem(storageKey, JSON.stringify(newColumns.map(c => c.id)));
       } catch { /* ignore */ }
