@@ -13,8 +13,8 @@ export interface LiveEvent {
 }
 
 export interface LiveProvider {
-  subscribe(params: { resource: string; callback: (event: LiveEvent) => void }): () => void;
-  unsubscribe?(params: { resource: string }): void;
+  subscribe(params: { resource: string; liveParams?: Record<string, unknown>; callback: (event: LiveEvent) => void }): () => void;
+  unsubscribe?(params: { resource: string; liveParams?: Record<string, unknown> }): void;
   publish?(event: LiveEvent): void;
 }
 

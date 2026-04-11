@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/svelte-query';
 import { useParsed } from './useParsed.svelte';
 import { getAdminOptions } from './options.svelte';
-import { getDataProviderForResource } from './context.svelte';
+import { getDataProviderForResource, getResource } from './context.svelte';
 import { createQuery, createMutation } from '@tanstack/svelte-query';
 import { notify } from './notification.svelte';
 import { t } from './i18n.svelte';
@@ -161,7 +161,7 @@ export function useForm<
   } = options;
 
   const provider = getDataProviderForResource(resource, dataProviderName);
-  const parsedMeta = typeof window !== 'undefined' ? Object.fromEntries(new URLSearchParams(window.location.search).entries()) : {};
+  const parsedMeta = useParsed().params || {};
   const queryMeta = { ...parsedMeta, ...hookMeta, ...hookQueryMeta };
   const mutationMeta = { ...parsedMeta, ...hookMeta, ...hookMutationMeta };
 
@@ -294,10 +294,11 @@ export function useForm<
     onSuccess: (data: { data: TData }) => {
       if (invalidateScopes !== false) queryClient.invalidateQueries({ queryKey: [resource] });
       if (successNotification !== false) notify({ type: 'success', message: typeof successNotification === 'string' ? successNotification : t('common.createSuccess') });
-      audit({ action: 'create', resource, recordId: String((data.data as Record<string, unknown>).id) });
+      const pk = getResource(resource).primaryKey ?? 'id';
+      audit({ action: 'create', resource, recordId: String((data.data as Record<string, unknown>)[pk]) });
       onMutationSuccess?.(data);
       if (redirectOverride !== false) {
-        const newId = (data.data as Record<string, unknown>).id;
+        const newId = (data.data as Record<string, unknown>)[pk];
         if (newId != null) currentId = newId as string | number;
         doRedirect(redirectOverride ?? redirectDefault);
       }

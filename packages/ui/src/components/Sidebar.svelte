@@ -1,7 +1,8 @@
 <script lang="ts">
   import { getResources, canAccessAsync } from '@svadmin/core';
   import type { Identity, MenuItem } from '@svadmin/core';
-  import { currentPath, navigate } from '@svadmin/core/router';
+  import { navigate } from '@svadmin/core/router';
+  import { getRoute } from '../router-state.svelte.js';
   import { t, getLocale, setLocale, getAvailableLocales } from '@svadmin/core/i18n';
   import { toggleTheme, getResolvedTheme, colorThemes, getColorTheme, setColorTheme } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
@@ -118,9 +119,7 @@
   const localeLabel = $derived(getLocale() === 'zh-CN' ? '中' : 'EN');
 
   // Track current hash for active state
-  let path = $state(currentPath());
-
-  function onHashChange() { path = currentPath(); }
+  const path = $derived(getRoute());
 
   function isActive(itemPath: string): boolean {
     if (itemPath === '/') return path === '/';
@@ -196,7 +195,7 @@
   });
 </script>
 
-<svelte:window onhashchange={onHashChange} />
+
 
 <aside
   aria-label="Sidebar navigation"

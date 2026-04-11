@@ -67,6 +67,7 @@ export function createLiveSubscription(paramsFn: () => LiveSubscriptionParams): 
 
     const unsubscribe = liveProvider.subscribe({
       resource: params.resource,
+      liveParams: params.liveParams,
       callback: (event: LiveEvent) => {
         params.onLiveEvent?.(event);
         if (liveMode === 'auto') {

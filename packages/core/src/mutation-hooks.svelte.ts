@@ -1,6 +1,6 @@
 import { createMutation, useQueryClient } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options.svelte';
-import { getDataProviderForResource } from './context.svelte';
+import { getDataProviderForResource, getResource } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 import { audit } from './audit';
 import { UndoError } from './types';
@@ -63,7 +63,9 @@ export function useCreate<TData extends BaseRecord = BaseRecord, TError = HttpEr
         queryClient.invalidateQueries({ queryKey: [resName] });
       }
       fireSuccessNotification(params.successNotification, 'Created successfully', data.data, params.variables, resName);
-      audit({ action: 'create', resource: resName, recordId: String((data.data as Record<string, unknown>).id) });
+      const res = getResource(resName);
+      const pk = res.primaryKey ?? 'id';
+      audit({ action: 'create', resource: resName, recordId: String((data.data as Record<string, unknown>)[pk]) });
       if (typeof options.mutationOptions?.onSuccess === 'function') {
         (options.mutationOptions.onSuccess as Function)(data, params, context);
       }
@@ -152,7 +154,10 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       }
     },
     onMutate: async (params) => {
-      if (mutationMode === 'pessimistic') return undefined;
+      const userOnMutate = (options.mutationOptions as any)?.onMutate;
+      const userContext = typeof userOnMutate === 'function' ? await userOnMutate(params) : undefined;
+      
+      if (mutationMode === 'pessimistic') return { _svadmin_ctx: true, userContext };
       const resName = params.resource ?? defaultResource;
       const targetId = params.id ?? defaultId;
       
@@ -160,7 +165,9 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       const previousDetail = queryClient.getQueryData([resName, 'one', targetId]);
       const previousList = queryClient.getQueriesData({ queryKey: [resName, 'list'] });
       
+      const pk = getResource(resName).primaryKey ?? 'id';
       const updater = params.optimisticUpdateMap;
+      
       if (updater?.detail) {
         queryClient.setQueryData([resName, 'one', targetId], (old: unknown) => updater.detail!(old, params.variables, targetId));
       } else {
@@ -173,13 +180,14 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
         queryClient.setQueriesData({ queryKey: [resName, 'list'] }, (old: unknown) => {
           if (!old || typeof old !== 'object' || !('data' in old)) return old;
           const o = old as { data: Record<string, unknown>[] };
-          return { ...o, data: o.data.map((item) => String(item.id) === String(targetId) ? { ...item, ...params.variables } : item) };
+          return { ...o, data: o.data.map((item) => String(item[pk]) === String(targetId) ? { ...item, ...params.variables } : item) };
         });
       }
 
-      return { previousDetail, previousList };
+      return { _svadmin_ctx: true, userContext, previousDetail, previousList };
     },
     onSuccess: (data, params, context) => {
+      const extractedCtx = (context as any)?._svadmin_ctx ? (context as any).userContext : context;
       const resName = params.resource ?? defaultResource;
       const targetId = params.id ?? defaultId;
       if (params.invalidates !== false) {
@@ -188,10 +196,11 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       fireSuccessNotification(params.successNotification, 'Updated successfully', data.data, params.variables, resName);
       audit({ action: 'update', resource: resName, recordId: String(targetId) });
       if (typeof options.mutationOptions?.onSuccess === 'function') {
-        (options.mutationOptions.onSuccess as Function)(data, params, context);
+        (options.mutationOptions.onSuccess as Function)(data, params, extractedCtx);
       }
     },
     onError: (error, params, context: unknown) => {
+      const extractedCtx = (context as any)?._svadmin_ctx ? (context as any).userContext : context;
       const resName = params.resource ?? defaultResource;
       const targetId = params.id ?? defaultId;
       const ctx = context as { previousDetail?: unknown; previousList?: [unknown, unknown][] } | undefined;
@@ -202,7 +211,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       if (error instanceof UndoError) return;
       fireErrorNotification(params.errorNotification, 'Update failed', error);
       if (typeof options.mutationOptions?.onError === 'function') {
-        (options.mutationOptions.onError as Function)(error, params, context);
+        (options.mutationOptions.onError as Function)(error, params, extractedCtx);
       }
     },
   }));
@@ -279,22 +288,28 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
       }
     },
     onMutate: async (params) => {
-      if (mutationMode === 'pessimistic') return undefined;
+      const userOnMutate = (options.mutationOptions as any)?.onMutate;
+      const userContext = typeof userOnMutate === 'function' ? await userOnMutate(params) : undefined;
+      
+      if (mutationMode === 'pessimistic') return { _svadmin_ctx: true, userContext };
       const resName = params.resource ?? defaultResource;
       const targetId = params.id ?? defaultId;
       
       await queryClient.cancelQueries({ queryKey: [resName] });
       const previousList = queryClient.getQueriesData({ queryKey: [resName, 'list'] });
       
+      const pk = getResource(resName).primaryKey ?? 'id';
+      
       queryClient.setQueriesData({ queryKey: [resName, 'list'] }, (old: unknown) => {
         if (!old || typeof old !== 'object' || !('data' in old)) return old;
         const o = old as { data: Record<string, unknown>[] };
-        return { ...o, data: o.data.filter((item) => String(item.id) !== String(targetId)) };
+        return { ...o, data: o.data.filter((item) => String(item[pk]) !== String(targetId)) };
       });
 
-      return { previousList };
+      return { _svadmin_ctx: true, userContext, previousList };
     },
     onSuccess: (data, params, context) => {
+      const extractedCtx = (context as any)?._svadmin_ctx ? (context as any).userContext : context;
       const resName = params.resource ?? defaultResource;
       const targetId = params.id ?? defaultId;
       if (params.invalidates !== false) {
@@ -303,10 +318,11 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
       fireSuccessNotification(params.successNotification, 'Deleted successfully', data.data, params.variables, resName);
       audit({ action: 'delete', resource: resName, recordId: String(targetId) });
       if (typeof options.mutationOptions?.onSuccess === 'function') {
-        (options.mutationOptions.onSuccess as Function)(data, params, context);
+        (options.mutationOptions.onSuccess as Function)(data, params, extractedCtx);
       }
     },
     onError: (error, params, context: unknown) => {
+      const extractedCtx = (context as any)?._svadmin_ctx ? (context as any).userContext : context;
       const ctx = context as { previousList?: [unknown, unknown][] } | undefined;
       if (ctx?.previousList) {
         ctx.previousList.forEach(([qk, data]) => queryClient.setQueryData(qk as string[], data));
@@ -314,7 +330,7 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
       if (error instanceof UndoError) return;
       fireErrorNotification(params.errorNotification, 'Delete failed', error);
       if (typeof options.mutationOptions?.onError === 'function') {
-        (options.mutationOptions.onError as Function)(error, params, context);
+        (options.mutationOptions.onError as Function)(error, params, extractedCtx);
       }
     },
   }));
