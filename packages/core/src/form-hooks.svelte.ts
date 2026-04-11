@@ -142,13 +142,13 @@ export function useForm<
   const parsed = useParsed();
   const adminOptions = getAdminOptions();
 
-  const resource = options.resource ?? parsed.resource ?? '';
+  const resource = $derived(options.resource ?? parsed.resource ?? '');
   let action = $state<'create' | 'edit' | 'clone'>(options.action ?? (parsed.action === 'list' ? 'create' : parsed.action as 'create' | 'edit' | 'clone') ?? 'create');
   let currentId = $state<string | number | undefined>(options.id ?? parsed.id);
 
-  const defaultRedirectOpt = action === 'clone' ? adminOptions.redirect?.afterClone : action === 'edit' ? adminOptions.redirect?.afterEdit : adminOptions.redirect?.afterCreate;
+  const defaultRedirectOpt = $derived(action === 'clone' ? adminOptions.redirect?.afterClone : action === 'edit' ? adminOptions.redirect?.afterEdit : adminOptions.redirect?.afterCreate);
   const {
-    redirect: redirectDefault = defaultRedirectOpt ?? 'list',
+    redirect: redirectOption,
     successNotification, errorNotification,
     onMutationSuccess, onMutationError,
     meta: hookMeta, queryMeta: hookQueryMeta, mutationMeta: hookMutationMeta,
@@ -161,8 +161,11 @@ export function useForm<
     onChange: onChangeFn,
     onSubmit: onSubmitFn,
   } = options;
+  // Reactive redirect: uses $derived `defaultRedirectOpt` so redirect target
+  // updates when `action` changes at runtime (e.g., via `setAction`).
+  const redirectDefault = $derived(redirectOption ?? defaultRedirectOpt ?? 'list');
 
-  const provider = getDataProviderForResource(resource, dataProviderName);
+  const provider = $derived(getDataProviderForResource(resource, dataProviderName));
   const parsedMeta = useParsed().params || {};
   const queryMeta = { ...parsedMeta, ...hookMeta, ...hookQueryMeta };
   const mutationMeta = { ...parsedMeta, ...hookMeta, ...hookMutationMeta };
@@ -256,21 +259,21 @@ export function useForm<
   }
 
   // ─── Query (edit/clone mode) ────────────────────────────────────
-  const query = (action === 'edit' || action === 'clone')
-    ? createQuery(() => ({
-        queryKey: [resource, 'one', currentId],
-        queryFn: async () => {
-          const result = await provider.getOne<BaseRecord>({ resource, id: currentId!, meta: queryMeta });
-          return result.data;
-        },
-        enabled: (queryOptions?.enabled ?? true) && currentId != null,
-        staleTime: queryOptions?.staleTime,
-      }))
-    : null;
+  // Always create the query — use `enabled` to conditionally activate.
+  // This ensures setAction('edit') at runtime will trigger a fetch.
+  const query = createQuery(() => ({
+    queryKey: [resource, 'one', currentId],
+    queryFn: async () => {
+      const result = await provider.getOne<BaseRecord>({ resource, id: currentId!, meta: queryMeta });
+      return result.data;
+    },
+    enabled: (queryOptions?.enabled ?? true) && (action === 'edit' || action === 'clone') && currentId != null,
+    staleTime: queryOptions?.staleTime,
+  }));
 
   // Auto-populate values from query data
   let queryInitializedId: string | number | undefined = undefined;
-  if (query) {
+  {
     $effect.pre(() => {
       if (queryInitializedId === currentId) return;
       const data = query.data as Record<string, unknown> | undefined;
@@ -363,7 +366,8 @@ export function useForm<
   let lastAutoSaveError = $state<unknown>(null);
 
   function triggerAutoSave() {
-    if (!autoSaveOpts?.enabled || action === 'create' || action === 'clone') return;
+    const currentAction = action; // read $state reactively at call time
+    if (!autoSaveOpts?.enabled || currentAction === 'create' || currentAction === 'clone') return;
     if (autoSaveTimer) clearTimeout(autoSaveTimer);
 
     autoSaveTimer = setTimeout(async () => {
@@ -429,10 +433,10 @@ export function useForm<
     reset,
 
     // State
-    get loading() { return query?.isLoading ?? false; },
+    get loading() { return query.isLoading ?? false; },
     get submitting() { return createMut.isPending || updateMut.isPending; },
     get action() { return action; },
-    resource,
+    get resource() { return resource; },
     get id() { return currentId; },
     get isDirty() { return Object.keys(tainted).length > 0; },
     setId,
@@ -452,6 +456,6 @@ export function useForm<
 
     // Raw escape hatches
     query,
-    mutation: action === 'edit' ? updateMut : createMut,
+    get mutation() { return action === 'edit' ? updateMut : createMut; },
   };
 }

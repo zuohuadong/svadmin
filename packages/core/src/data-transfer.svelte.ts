@@ -21,7 +21,7 @@ export interface UseExportOptions<TData extends BaseRecord = BaseRecord> {
  */
 export function useExport<TData extends BaseRecord = BaseRecord>(options: UseExportOptions<TData> = {}) {
   const parsed = useParsed();
-  const resource = options.resource ?? parsed.resource ?? '';
+  const resource = $derived(options.resource ?? parsed.resource ?? '');
   let isLoading = $state(false);
 
   async function triggerExport() {
@@ -109,7 +109,7 @@ export interface UseImportOptions<TData = Record<string, unknown>> {
  */
 export function useImport<TData = Record<string, unknown>>(options: UseImportOptions<TData> = {}) {
   const parsed = useParsed();
-  const resource = options.resource ?? parsed.resource ?? '';
+  const resource = $derived(options.resource ?? parsed.resource ?? '');
   let isLoading = $state(false);
   let mutationResult = $state<{ succeeded: unknown[]; errored: { request: unknown; error: unknown }[] } | null>(null);
 

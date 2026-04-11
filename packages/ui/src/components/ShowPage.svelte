@@ -11,6 +11,7 @@
   import ListButton from './buttons/ListButton.svelte';
   import EditButton from './buttons/EditButton.svelte';
   import DeleteButton from './buttons/DeleteButton.svelte';
+  import CloneButton from './buttons/CloneButton.svelte';
   import RefreshButton from './buttons/RefreshButton.svelte';
 
   let { resourceName, id } = $props<{ resourceName: string; id: string | number }>();
@@ -27,6 +28,9 @@
       <ListButton resource={resourceName} hideText />
       {#if resource.canEdit !== false}
         <EditButton resource={resourceName} recordItemId={id} hideText />
+      {/if}
+      {#if resource.canCreate !== false}
+        <CloneButton resource={resourceName} recordItemId={id} hideText />
       {/if}
       {#if resource.canDelete !== false}
         <DeleteButton resource={resourceName} recordItemId={id} hideText onSuccess={() => navigate(`/${resourceName}`)} />

@@ -9,18 +9,17 @@
   "files": [
     "dist"
   ],
-  "main": "dist/index.js",
-  "types": "dist/index.d.d.ts",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js",
-      "svelte": "./dist/index.js"
+      "types": "./src/index.ts",
+      "svelte": "./src/index.ts",
+      "default": "./src/index.ts"
     },
     "./app.css": {
-      "style": "./dist/app.css",
-      "default": "./dist/app.css",
-      "svelte": "./dist/app.css"
+      "style": "./src/app.css",
+      "default": "./src/app.css"
     },
     "./components/*": "./dist/components/*"
   },

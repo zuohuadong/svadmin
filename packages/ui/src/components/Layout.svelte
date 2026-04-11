@@ -35,22 +35,20 @@
   let identity = $state<Identity | null>(null);
 
   $effect(() => {
+    let cancelled = false;
     if (!auth) {
-      loading = false;
+      if (!cancelled) loading = false;
       return;
     }
-    (async () => {
-      try {
-        const { authenticated, redirectTo } = await auth.check();
-        if (!authenticated) {
-          navigate(redirectTo ?? '/login');
-          return;
-        }
-        identity = await auth.getIdentity();
-      } finally {
+    auth.getIdentity().then(id => {
+      if (!cancelled) {
+        identity = id;
         loading = false;
       }
-    })();
+    }).catch(() => {
+      if (!cancelled) loading = false;
+    });
+    return () => { cancelled = true; };
   });
 
   async function handleLogout() {

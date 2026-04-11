@@ -11,24 +11,37 @@
 
   const crumbs = $derived.by(() => {
     const result: Crumb[] = [{ label: t('common.home') ?? 'Home', href: formatLink('/') }];
-    const path = getPath().replace(/^\//, ''); // trim leading slash so segments[0] is the resource
+    const path = getPath().replace(/^\//, ''); 
     if (path === '') return result;
 
     const segments = path.split('/').filter(Boolean);
-    const resourceName = segments[0];
-    const res = resources.find(r => r.name === resourceName);
+    const resourceNames = resources.map(r => r.name);
+    
+    let currentPath = '';
 
-    if (res) {
-      result.push({ label: res.label, href: formatLink(`/${res.name}`) });
+    for (let i = 0; i < segments.length; i++) {
+       const seg = segments[i];
+       currentPath += `/${seg}`;
 
-      if (segments[1] === 'create') {
-        result.push({ label: t('common.create') ?? 'Create', href: formatLink(`/${res.name}/create`) });
-      } else if (segments[1] === 'edit' && segments[2]) {
-        result.push({ label: `${t('common.edit') ?? 'Edit'} #${segments[2]}`, href: formatLink(`/${res.name}/edit/${segments[2]}`) });
-      } else if (segments[1] === 'show' && segments[2]) {
-        result.push({ label: `${t('common.detail') ?? 'Details'} #${segments[2]}`, href: formatLink(`/${res.name}/show/${segments[2]}`) });
-      }
+       if (resourceNames.includes(seg)) {
+          const res = resources.find(r => r.name === seg)!;
+          result.push({ label: res.label, href: formatLink(currentPath) });
+       } else if (i > 0 && resourceNames.includes(segments[i-1])) {
+          // This is a parent ID (e.g. /teams/123/users)
+          result.push({ label: `#${seg}`, href: formatLink(currentPath) });
+       } else if (seg === 'create') {
+          result.push({ label: t('common.create') ?? 'Create', href: formatLink(currentPath) });
+       } else if (['edit', 'show', 'clone'].includes(seg) && segments[i+1]) {
+          const actionLabel = seg === 'edit' ? (t('common.edit') ?? 'Edit') : 
+                              seg === 'show' ? (t('common.detail') ?? 'Details') : 
+                              (t('common.clone') ?? 'Clone');
+          const id = segments[i+1];
+          currentPath += `/${id}`; // advance path by id
+          result.push({ label: `${actionLabel} #${id}`, href: formatLink(currentPath) });
+          i++; // skip next segment since we consumed the id
+       }
     }
+
     return result;
   });
 </script>

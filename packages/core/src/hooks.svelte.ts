@@ -54,9 +54,10 @@ export function useInfiniteList<TData extends BaseRecord = BaseRecord, TError = 
   const parsed = useParsed();
   const resource = options.resource ?? parsed.resource ?? '';
   const adminOptions = getAdminOptions();
-  const provider = getDataProviderForResource(resource, options.dataProviderName);
 
-  const query = createInfiniteQuery<{ data: TData[]; total: number }, TError>(() => ({
+  const query = createInfiniteQuery<{ data: TData[]; total: number }, TError>(() => {
+    const provider = getDataProviderForResource(resource, options.dataProviderName);
+    return {
     queryKey: [resource, 'infiniteList', options.sorters, options.filters, options.meta],
     queryFn: async ({ pageParam = 1 }) => {
       const result = await provider.getList<TData>({
@@ -76,7 +77,8 @@ export function useInfiniteList<TData extends BaseRecord = BaseRecord, TError = 
     },
     enabled: options.queryOptions?.enabled ?? true,
     staleTime: options.queryOptions?.staleTime ?? adminOptions.reactQuery?.staleTime,
-  }));
+    };
+  });
 
   const overtime = createOvertimeTracker(() => query.isLoading, options.overtimeOptions ?? adminOptions.overtime);
 
@@ -108,7 +110,6 @@ export interface UseSelectOptions<TData extends BaseRecord = BaseRecord, TOption
 export function useSelect<TData extends BaseRecord = BaseRecord, TOption = { label: string; value: string | number }>(options: UseSelectOptions<TData, TOption>) {
   const { resource, optionLabel = 'title', optionValue = 'id', sorters, filters, pagination, meta, dataProviderName, onSearch, debounce: debounceMs = 300 } = options;
   const adminOptions = getAdminOptions();
-  const provider = getDataProviderForResource(resource, dataProviderName);
 
   let searchText = $state('');
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -122,26 +123,32 @@ export function useSelect<TData extends BaseRecord = BaseRecord, TOption = { lab
 
   const effectivePageSize = options.fetchSize ?? pagination?.pageSize ?? 999;
 
-  const query = createQuery<{ data: TData[]; total: number }>(() => ({
+  const query = createQuery<{ data: TData[]; total: number }>(() => {
+    const provider = getDataProviderForResource(resource, dataProviderName);
+    return {
     queryKey: [resource, 'select', allFilters, sorters, pagination, meta],
     queryFn: () => provider.getList<TData>({ resource, sorters, filters: allFilters, pagination: { current: 1, pageSize: effectivePageSize }, meta }),
     enabled: options.queryOptions?.enabled ?? true,
     staleTime: options.queryOptions?.staleTime ?? adminOptions.reactQuery?.staleTime,
-  }));
+    };
+  });
 
   // Parallel query to ensure default values are always available in options
   const defaultValueIds = options.defaultValue ?? [];
   const defaultValueQuery = defaultValueIds.length > 0
-    ? createQuery<{ data: TData[] }>(() => ({
-        queryKey: [resource, 'select-defaults', defaultValueIds],
-        queryFn: async () => {
-          if (provider.getMany) return provider.getMany<TData>({ resource, ids: defaultValueIds, meta });
-          const results = await Promise.all(defaultValueIds.map(id => provider.getOne<TData>({ resource, id, meta })));
-          return { data: results.map(r => r.data) };
-        },
-        enabled: (options.defaultValueQueryOptions?.enabled ?? true) && defaultValueIds.length > 0,
-        staleTime: options.defaultValueQueryOptions?.staleTime ?? Infinity,
-      }))
+    ? createQuery<{ data: TData[] }>(() => {
+        const provider = getDataProviderForResource(resource, dataProviderName);
+        return {
+          queryKey: [resource, 'select-defaults', defaultValueIds],
+          queryFn: async () => {
+            if (provider.getMany) return provider.getMany<TData>({ resource, ids: defaultValueIds, meta });
+            const results = await Promise.all(defaultValueIds.map(id => provider.getOne<TData>({ resource, id, meta })));
+            return { data: results.map(r => r.data) };
+          },
+          enabled: (options.defaultValueQueryOptions?.enabled ?? true) && defaultValueIds.length > 0,
+          staleTime: options.defaultValueQueryOptions?.staleTime ?? Infinity,
+        };
+      })
     : null;
 
   const selectOptions = $derived.by(() => {
@@ -199,9 +206,10 @@ export interface UseCustomOptions<TData = unknown, TError = HttpError> {
 
 export function useCustom<TData = unknown, TError = HttpError>(options: UseCustomOptions<TData, TError>) {
   const adminOptions = getAdminOptions();
-  const provider = getDataProvider(options.dataProviderName);
 
-  const query = createQuery<{ data: TData }, TError>(() => ({
+  const query = createQuery<{ data: TData }, TError>(() => {
+    const provider = getDataProvider(options.dataProviderName);
+    return {
     queryKey: ['custom', options.url, options.method, options.config, options.meta],
     queryFn: async () => {
       if (!provider.custom) throw new Error('DataProvider does not support custom method');
@@ -218,7 +226,8 @@ export function useCustom<TData = unknown, TError = HttpError>(options: UseCusto
     },
     enabled: options.queryOptions?.enabled ?? true,
     staleTime: options.queryOptions?.staleTime ?? adminOptions.reactQuery?.staleTime,
-  }));
+    };
+  });
 
   const overtime = createOvertimeTracker(() => query.isLoading, options.overtimeOptions ?? adminOptions.overtime);
 
@@ -228,11 +237,11 @@ export function useCustom<TData = unknown, TError = HttpError>(options: UseCusto
 // ─── useCustomMutation ──────────────────────────────────────────────
 
 export function useCustomMutation<TData = unknown, TError = HttpError, TVariables = unknown>(dataProviderName?: string) {
-  const provider = getDataProvider(dataProviderName);
   const queryClient = useQueryClient();
 
   const mutation = createMutation<{ data: TData }, TError, { url: string; method: 'get' | 'post' | 'put' | 'patch' | 'delete'; values?: TVariables; meta?: Record<string, unknown> }>(() => ({
     mutationFn: async (params) => {
+      const provider = getDataProvider(dataProviderName);
       if (!provider.custom) throw new Error('DataProvider does not support custom method');
       return provider.custom<TData>({ url: params.url, method: params.method, payload: params.values, meta: params.meta });
     },
