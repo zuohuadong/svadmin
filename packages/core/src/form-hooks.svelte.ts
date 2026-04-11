@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/svelte-query';
 import { useParsed } from './useParsed.svelte';
 import { getAdminOptions } from './options.svelte';
-import { getDataProviderForResource, getResource, getLiveProvider } from './context.svelte';
+import { getDataProviderForResource, getResource, getLiveProvider, getAuthProvider } from './context.svelte';
 import { createQuery, createMutation } from '@tanstack/svelte-query';
 import { notify } from './notification.svelte';
 import { t } from './i18n.svelte';
@@ -246,7 +246,22 @@ export function useForm<
   }
 
   // ─── Server error handling ──────────────────────────────────────
+  async function checkError(error: unknown) {
+    try {
+      const authProvider = getAuthProvider({ optional: true });
+      if (!authProvider?.onError) return;
+      const result = await authProvider.onError(error);
+      if (result.logout) {
+        await authProvider.logout?.();
+        navigate(result.redirectTo ?? '/login');
+      } else if (result.redirectTo) {
+        navigate(result.redirectTo);
+      }
+    } catch { /* auth check failed silently */ }
+  }
+
   function handleHttpError(error: Error) {
+    checkError(error);
     if (error instanceof HttpError && error.errors && !disableServerSideValidation) {
       for (const [field, messages] of Object.entries(error.errors)) {
         const msg = Array.isArray(messages) ? messages[0] : messages;

@@ -1,6 +1,6 @@
 import { createQuery, createInfiniteQuery } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options.svelte';
-import { getDataProviderForResource, getDataProvider, getLiveProvider } from './context.svelte';
+import { getDataProviderForResource, getDataProvider, getLiveProvider, getAuthProvider } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 import {
   createOvertimeTracker,
@@ -37,6 +37,25 @@ function extendQuery<Q extends object, E extends Record<string, unknown>>(
       return prop in target;
     },
   }) as Q & E;
+}
+
+/**
+ * Delegate auth errors (401/403) to authProvider.onError() — refine pattern.
+ */
+async function checkError(error: unknown): Promise<void> {
+  try {
+    const authProvider = getAuthProvider({ optional: true });
+    if (!authProvider?.onError) return;
+    const result = await authProvider.onError(error);
+    if (result.logout) {
+      await authProvider.logout?.();
+      const { navigate } = await import('./router');
+      navigate(result.redirectTo ?? '/login');
+    } else if (result.redirectTo) {
+      const { navigate } = await import('./router');
+      navigate(result.redirectTo);
+    }
+  } catch { /* auth check failed silently */ }
 }
 
 // ─── useList ───────────────────────────────────────────────────
@@ -115,6 +134,7 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
       fireSuccessNotification(opts.successNotification, '', query.data, undefined, getResource());
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
+      checkError(query.error);
       fireErrorNotification(opts.errorNotification, 'Fetch failed', query.error);
     }
   });
@@ -182,6 +202,7 @@ export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError
       fireSuccessNotification(opts.successNotification, '', query.data, undefined, getResource());
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
+      checkError(query.error);
       fireErrorNotification(opts.errorNotification, 'Fetch failed', query.error);
     }
   });
@@ -265,6 +286,7 @@ export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpErro
       fireSuccessNotification(opts.successNotification, '', query.data, undefined, opts.resource);
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
+      checkError(query.error);
       fireErrorNotification(opts.errorNotification, 'Fetch failed', query.error);
     }
   });

@@ -1,6 +1,6 @@
 import { createMutation, useQueryClient } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options.svelte';
-import { getDataProviderForResource, getResource, getLiveProvider } from './context.svelte';
+import { getDataProviderForResource, getResource, getLiveProvider, getAuthProvider } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 import { audit } from './audit';
 import { UndoError } from './types';
@@ -22,6 +22,50 @@ function publishLiveEvent(resource: string, type: 'created' | 'updated' | 'delet
       });
     }
   } catch { /* LiveProvider not configured — skip silently */ }
+}
+
+/**
+ * Delegate auth errors (401/403) to authProvider.onError() — refine pattern.
+ * Non-blocking: logs errors silently if auth provider is not configured.
+ */
+async function checkError(error: unknown): Promise<void> {
+  try {
+    const authProvider = getAuthProvider({ optional: true });
+    if (!authProvider?.onError) return;
+    const result = await authProvider.onError(error);
+    if (result.logout) {
+      await authProvider.logout?.();
+      const { navigate } = await import('./router');
+      navigate(result.redirectTo ?? '/login');
+    } else if (result.redirectTo) {
+      const { navigate } = await import('./router');
+      navigate(result.redirectTo);
+    }
+  } catch { /* auth check failed silently */ }
+}
+
+/**
+ * Invalidate queries by scope. Respects per-mutation `invalidates` override.
+ * Default invalidation scopes per operation:
+ *   - create: ['list', 'many']
+ *   - update: ['list', 'many', 'detail']
+ *   - delete: ['list', 'many']
+ */
+function invalidateByScopes(
+  queryClient: ReturnType<typeof useQueryClient>,
+  resource: string,
+  scopes: string[] | false | undefined,
+  defaults: string[],
+  id?: string | number
+): void {
+  if (scopes === false) return;
+  const effectiveScopes = (scopes && scopes.length > 0) ? scopes : defaults;
+  for (const scope of effectiveScopes) {
+    if (scope === 'list') queryClient.invalidateQueries({ queryKey: [resource, 'list'] });
+    else if (scope === 'many') queryClient.invalidateQueries({ queryKey: [resource, 'many'] });
+    else if ((scope === 'detail' || scope === 'one') && id != null) queryClient.invalidateQueries({ queryKey: [resource, 'one', id] });
+    else if (scope === 'resourceAll') queryClient.invalidateQueries({ queryKey: [resource] });
+  }
 }
 
 // ─── useCreate ─────────────────────────────────────────────────
@@ -80,19 +124,14 @@ export function useCreate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       const newId = (data.data as Record<string, unknown>)[pk];
       audit({ action: 'create', resource: resName, recordId: String(newId) });
       publishLiveEvent(resName, 'created', newId != null ? [newId as string | number] : undefined);
+      // Invalidation in onSuccess for create (refine pattern — no optimistic data to reconcile on error)
+      invalidateByScopes(queryClient, resName, params.invalidates, ['list', 'many']);
       if (typeof options.mutationOptions?.onSuccess === 'function') {
         (options.mutationOptions.onSuccess as Function)(data, params, context);
       }
     },
-    // Invalidation in onSettled ensures cache is refreshed on BOTH success and error
-    onSettled: (_data, _error, params) => {
-      const resName = params.resource ?? defaultResource;
-      if (params.invalidates !== false) {
-        queryClient.invalidateQueries({ queryKey: [resName, 'list'] });
-        queryClient.invalidateQueries({ queryKey: [resName, 'many'] });
-      }
-    },
     onError: (error, params, context) => {
+      checkError(error);
       fireErrorNotification(params.errorNotification, 'Create failed', error);
       if (typeof options.mutationOptions?.onError === 'function') {
         (options.mutationOptions.onError as Function)(error, params, context);
@@ -240,13 +279,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
     onSettled: (_data, _error, params) => {
       const resName = params.resource ?? defaultResource;
       const targetId = params.id ?? defaultId;
-      if (params.invalidates !== false) {
-        queryClient.invalidateQueries({ queryKey: [resName, 'list'] });
-        queryClient.invalidateQueries({ queryKey: [resName, 'many'] });
-        if (targetId != null) {
-          queryClient.invalidateQueries({ queryKey: [resName, 'one', targetId] });
-        }
-      }
+      invalidateByScopes(queryClient, resName, params.invalidates, ['list', 'many', 'detail'], targetId != null ? targetId : undefined);
     },
     onError: (error, params, context: unknown) => {
       // Rollback ALL queries from snapshot (refine pattern — more robust than individual rollbacks)
@@ -257,6 +290,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
         }
       }
       if (error instanceof UndoError) return;
+      checkError(error);
       const extractedCtx = ctx?._svadmin_ctx ? ctx.userContext : context;
       fireErrorNotification(params.errorNotification, 'Update failed', error);
       if (typeof options.mutationOptions?.onError === 'function') {
@@ -389,10 +423,7 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
     // Invalidation in onSettled (refine pattern)
     onSettled: (_data, _error, params) => {
       const resName = params.resource ?? defaultResource;
-      if (params.invalidates !== false) {
-        queryClient.invalidateQueries({ queryKey: [resName, 'list'] });
-        queryClient.invalidateQueries({ queryKey: [resName, 'many'] });
-      }
+      invalidateByScopes(queryClient, resName, params.invalidates, ['list', 'many']);
     },
     onError: (error, params, context: unknown) => {
       // Rollback ALL queries from snapshot
@@ -403,6 +434,7 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
         }
       }
       if (error instanceof UndoError) return;
+      checkError(error);
       const extractedCtx = ctx?._svadmin_ctx ? ctx.userContext : context;
       fireErrorNotification(params.errorNotification, 'Delete failed', error);
       if (typeof options.mutationOptions?.onError === 'function') {
