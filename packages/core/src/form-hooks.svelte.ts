@@ -6,7 +6,7 @@ import { createQuery, createMutation } from '@tanstack/svelte-query';
 import { notify } from './notification.svelte';
 import { t } from './i18n.svelte';
 import { audit } from './audit';
-import { navigate } from './router';
+import { navigate, currentPath } from './router';
 import { HttpError } from './types';
 import type { BaseRecord, MutationMode, KnownResources } from './types';
 
@@ -271,10 +271,11 @@ export function useForm<
     $effect.pre(() => {
       if (queryInitializedId === currentId) return;
       const data = query.data as Record<string, unknown> | undefined;
-      if (data && (currentId == null || String(data.id) === String(currentId) || !data.id)) {
+      const pk = getResource(resource).primaryKey ?? 'id';
+      if (data && (currentId == null || String(data[pk]) === String(currentId) || !data[pk])) {
         // In clone mode, strip out identifiers
         const targetData = action === 'clone' 
-          ? Object.fromEntries(Object.entries(data).filter(([k]) => k !== 'id' && k !== '_id'))
+          ? Object.fromEntries(Object.entries(data).filter(([k]) => k !== 'id' && k !== '_id' && k !== pk))
           : data;
         // Merge: defaultValues < query data
         const merged = { ...(options.defaultValues ?? {}), ...targetData } as TVariables;
@@ -320,9 +321,14 @@ export function useForm<
   }));
 
   function doRedirect(to: 'list' | 'edit' | 'show' | false) {
-    if (to === 'list') navigate(`/${resource}`);
-    else if (to === 'edit' && currentId) navigate(`/${resource}/edit/${currentId}`);
-    else if (to === 'show' && currentId) navigate(`/${resource}/show/${currentId}`);
+    const path = currentPath().split('?')[0];
+    const parts = path.split('/');
+    const resIdx = parts.lastIndexOf(String(resource));
+    const base = resIdx >= 0 ? parts.slice(0, resIdx + 1).join('/') : `/${resource}`;
+
+    if (to === 'list') navigate(base);
+    else if (to === 'edit' && currentId) navigate(`${base}/edit/${currentId}`);
+    else if (to === 'show' && currentId) navigate(`${base}/show/${currentId}`);
   }
 
   // ─── Submit ─────────────────────────────────────────────────────

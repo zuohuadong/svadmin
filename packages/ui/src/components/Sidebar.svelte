@@ -2,7 +2,7 @@
   import { getResources, canAccessAsync } from '@svadmin/core';
   import type { Identity, MenuItem } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
-  import { getRoute } from '../router-state.svelte.js';
+  import { getPath } from '../router-state.svelte.js';
   import { t, getLocale, setLocale, getAvailableLocales } from '@svadmin/core/i18n';
   import { toggleTheme, getResolvedTheme, colorThemes, getColorTheme, setColorTheme } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
@@ -119,7 +119,7 @@
   const localeLabel = $derived(getLocale() === 'zh-CN' ? '中' : 'EN');
 
   // Track current hash for active state
-  const path = $derived(getRoute());
+  const path = $derived(getPath());
 
   function isActive(itemPath: string): boolean {
     if (itemPath === '/') return path === '/';

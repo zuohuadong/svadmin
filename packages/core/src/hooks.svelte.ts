@@ -151,14 +151,14 @@ export function useSelect<TData extends BaseRecord = BaseRecord, TOption = { lab
     const defaultQueryResult = defaultValueQuery as { data: { data: TData[] } | undefined } | null;
     const defaultData: TData[] = defaultQueryResult?.data?.data ?? [];
     const allData: TData[] = [...data];
-    const existingIds = new Set(data.map((d: TData) => String((d as Record<string, unknown>)[typeof optionValue === 'string' ? optionValue : 'id'])));
+    const resolveValue = (item: TData) => typeof optionValue === 'function' ? optionValue(item) : (item as Record<string, unknown>)[optionValue];
+    const existingIds = new Set(data.map((d: TData) => String(resolveValue(d))));
     for (const item of defaultData) {
-      const itemId = String((item as Record<string, unknown>)[typeof optionValue === 'string' ? optionValue : 'id']);
-      if (!existingIds.has(itemId)) allData.push(item);
+      if (!existingIds.has(String(resolveValue(item)))) allData.push(item);
     }
     return allData.map((item: TData) => {
       const label = typeof optionLabel === 'function' ? optionLabel(item) : String((item as Record<string, unknown>)[optionLabel] ?? '');
-      const value = typeof optionValue === 'function' ? optionValue(item) : (item as Record<string, unknown>)[optionValue];
+      const value = resolveValue(item);
       return { label, value } as unknown as TOption;
     });
   });

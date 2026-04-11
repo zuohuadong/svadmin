@@ -4,6 +4,7 @@ import type { RouterProvider } from '@svadmin/core';
 
 let _route = $state('/');
 let _params: Record<string, string> = $state({});
+let _path = $state('/');
 let _initialized = false;
 let _provider: RouterProvider | undefined;
 
@@ -35,11 +36,13 @@ function sync() {
     path = parsed.pathname || '/';
     const m = matchRoute(path, ROUTES);
     _route = m?.route ?? '/';
+    _path = path;
     _params = { ...(m?.params ?? {}), ...parsed.params };
   } else {
     path = typeof window !== 'undefined' ? window.location.hash.replace(/^#/, '') || '/' : '/';
     const m = matchRoute(path, ROUTES);
     _route = m?.route ?? '/';
+    _path = path;
     _params = m?.params ?? {};
   }
 }
@@ -58,6 +61,10 @@ export function initRouter(provider?: RouterProvider) {
 
 export function getRoute(): string {
   return _route;
+}
+
+export function getPath(): string {
+  return _path;
 }
 
 export function getParams(): Record<string, string> {

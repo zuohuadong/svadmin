@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getResources } from '@svadmin/core';
-  import { getRoute } from '../router-state.svelte.js';
+  import { getPath } from '../router-state.svelte.js';
   import { formatLink } from '@svadmin/core/router';
   import { t } from '@svadmin/core/i18n';
   import * as Breadcrumb from './ui/breadcrumb/index.js';
@@ -11,8 +11,8 @@
 
   const crumbs = $derived.by(() => {
     const result: Crumb[] = [{ label: t('common.home') ?? 'Home', href: formatLink('/') }];
-    const path = getRoute();
-    if (path === '/') return result;
+    const path = getPath().replace(/^\//, ''); // trim leading slash so segments[0] is the resource
+    if (path === '') return result;
 
     const segments = path.split('/').filter(Boolean);
     const resourceName = segments[0];

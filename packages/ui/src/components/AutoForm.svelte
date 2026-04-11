@@ -17,7 +17,7 @@
   interface Props {
     resourceName: string;
     id?: string | number;
-    mode?: 'create' | 'edit';
+    mode?: 'create' | 'edit' | 'clone';
     fieldRenderer?: Snippet<[{ field: FieldDefinition; value: unknown; onchange: (v: unknown) => void }]>;
     formActions?: Snippet<[{ isLoading: boolean; onSubmit: () => void }]>;
     headerContent?: Snippet;
