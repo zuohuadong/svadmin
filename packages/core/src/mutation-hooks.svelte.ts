@@ -68,6 +68,21 @@ function invalidateByScopes(
   }
 }
 
+function deepMerge(target: any, source: any): any {
+  if (!target || typeof target !== 'object') return source;
+  if (!source || typeof source !== 'object') return source;
+  if (Array.isArray(source) || source instanceof Date) return source;
+  const result = { ...target };
+  for (const key in source) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && !(source[key] instanceof Date)) {
+      result[key] = deepMerge(result[key] || {}, source[key]);
+    } else {
+      result[key] = source[key];
+    }
+  }
+  return result;
+}
+
 // ─── useCreate ─────────────────────────────────────────────────
 
 export interface UseCreateOptions {
@@ -92,8 +107,7 @@ export function useCreate<TData extends BaseRecord = BaseRecord, TError = HttpEr
   const adminOptions = getAdminOptions();
   const queryClient = useQueryClient();
 
-  let isMutating = $state(false);
-  const overtime = createOvertimeTracker(() => isMutating, options.overtimeOptions ?? adminOptions.overtime);
+  const overtime = createOvertimeTracker(() => mutation.isPending, options.overtimeOptions ?? adminOptions.overtime);
 
   const mutation = createMutation<
     { data: TData },
@@ -102,18 +116,13 @@ export function useCreate<TData extends BaseRecord = BaseRecord, TError = HttpEr
   >(() => ({
     ...options.mutationOptions,
     mutationFn: async (params) => {
-      isMutating = true;
       const resName = params.resource ?? defaultResource;
       const provider = getDataProviderForResource(resName, params.dataProviderName);
-      try {
-        return await provider.create<TData, TVariables>({
+      return await provider.create<TData, TVariables>({
           resource: resName,
           variables: params.variables,
           meta: params.meta,
         });
-      } finally {
-        isMutating = false;
-      }
     },
     onMutate: (options.mutationOptions as any)?.onMutate,
     onSuccess: (data, params, context) => {
@@ -179,8 +188,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
   const mutationMode = options.mutationMode ?? adminOptions.mutationMode ?? 'pessimistic';
   const undoableTimeout = options.undoableTimeout ?? adminOptions.undoableTimeout ?? 5000;
 
-  let isMutating = $state(false);
-  const overtime = createOvertimeTracker(() => isMutating, options.overtimeOptions ?? adminOptions.overtime);
+  const overtime = createOvertimeTracker(() => mutation.isPending, options.overtimeOptions ?? adminOptions.overtime);
 
   const mutation = createMutation<
     { data: TData },
@@ -189,7 +197,6 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
   >(() => ({
     ...options.mutationOptions,
     mutationFn: async (params) => {
-      isMutating = true;
       const resName = params.resource ?? defaultResource;
       const targetId = params.id ?? defaultId;
       if (targetId == null) throw new Error('useUpdate requires an id');
@@ -204,16 +211,12 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       }
 
       const provider = getDataProviderForResource(resName, params.dataProviderName);
-      try {
-        return await provider.update<TData, TVariables>({
+      return await provider.update<TData, TVariables>({
           resource: resName,
           id: targetId,
           variables: params.variables,
           meta: params.meta,
         });
-      } finally {
-        isMutating = false;
-      }
     },
     onMutate: async (params) => {
       const userOnMutate = (options.mutationOptions as any)?.onMutate;
@@ -238,7 +241,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
         if (typeof detailFn === 'function') {
           queryClient.setQueryData([resName, 'one', targetId], (old: unknown) => detailFn(old, params.variables, targetId));
         } else {
-          queryClient.setQueryData([resName, 'one', targetId], (old: Record<string, unknown> | undefined) => old ? { ...old, data: { ...(old as any).data, ...params.variables } } : old);
+          queryClient.setQueryData([resName, 'one', targetId], (old: Record<string, unknown> | undefined) => old ? { ...old, data: deepMerge((old as any).data || {}, params.variables) } : old);
         }
       }
       
@@ -334,8 +337,7 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
   const mutationMode = options.mutationMode ?? adminOptions.mutationMode ?? 'pessimistic';
   const undoableTimeout = options.undoableTimeout ?? adminOptions.undoableTimeout ?? 5000;
 
-  let isMutating = $state(false);
-  const overtime = createOvertimeTracker(() => isMutating, options.overtimeOptions ?? adminOptions.overtime);
+  const overtime = createOvertimeTracker(() => mutation.isPending, options.overtimeOptions ?? adminOptions.overtime);
 
   const mutation = createMutation<
     { data: TData },
@@ -344,7 +346,6 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
   >(() => ({
     ...options.mutationOptions,
     mutationFn: async (params) => {
-      isMutating = true;
       const resName = params.resource ?? defaultResource;
       const targetId = params.id ?? defaultId;
       if (targetId == null) throw new Error('useDelete requires an id');
@@ -359,16 +360,12 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
       }
 
       const provider = getDataProviderForResource(resName, params.dataProviderName);
-      try {
-        return await provider.deleteOne<TData, TVariables>({
+      return await provider.deleteOne<TData, TVariables>({
           resource: resName,
           id: targetId,
           variables: params.variables,
           meta: params.meta,
         });
-      } finally {
-        isMutating = false;
-      }
     },
     onMutate: async (params) => {
       const userOnMutate = (options.mutationOptions as any)?.onMutate;
@@ -386,6 +383,9 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
       
       const pk = getResource(resName).primaryKey ?? 'id';
       
+      // Optimistic scrub from detail queries
+      if (targetId != null) queryClient.removeQueries({ queryKey: [resName, 'one', targetId] });
+
       // Optimistic remove from list queries
       queryClient.setQueriesData({ queryKey: [resName, 'list'] }, (old: unknown) => {
         if (!old || typeof old !== 'object' || !('data' in old)) return old;

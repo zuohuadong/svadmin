@@ -407,16 +407,22 @@ export function useForm<
   let lastAutoSaveData = $state<unknown>(null);
   let lastAutoSaveError = $state<unknown>(null);
 
+  $effect(() => {
+    return () => {
+      if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    };
+  });
+
   function triggerAutoSave() {
     const currentAction = action; // read $state reactively at call time
-    if (!autoSaveOpts?.enabled || currentAction === 'create' || currentAction === 'clone') return;
+    if (!autoSaveOpts?.enabled || currentAction === 'create' || currentAction === 'clone' || currentId == null) return;
     if (autoSaveTimer) clearTimeout(autoSaveTimer);
 
     autoSaveTimer = setTimeout(async () => {
       const finalValues = autoSaveOpts.onFinish ? autoSaveOpts.onFinish(values) : values;
       autoSaveStatus = 'saving';
       try {
-        await provider.update<TData, TVariables>({ resource, id: currentId!, variables: finalValues, meta: mutationMeta });
+        await provider.update<TData, TVariables>({ resource, id: currentId, variables: finalValues, meta: mutationMeta });
         const scopes = autoSaveOpts.invalidates ?? ['resourceAll'];
         for (const scope of scopes) {
           if (scope === 'resourceAll') queryClient.invalidateQueries({ queryKey: [resource] });
