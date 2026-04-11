@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.4](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.3...supabase-v0.9.4) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **ui & core:** patch xss vulnerability, approval bridge, access lockout and type errors ([046ed42](https://github.com/zuohuadong/svadmin/commit/046ed42ca1e4011718cf616f374e3aa2397b08dc))
+
 ## [0.9.3](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.2...supabase-v0.9.3) (2026-04-11)
 
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.3](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.2...lite-v0.3.3) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **core:** batch resolve lite routing, forms, theme mapping and proxy logic ([26318fe](https://github.com/zuohuadong/svadmin/commit/26318fe59afd905874fd6f2bf4b6ecd169809a93))
+* **core:** resolve crud action targets, pb promises, sso decodes, and i18n missing keys ([53c77cb](https://github.com/zuohuadong/svadmin/commit/53c77cb8962aa21ed19e2a15a1934a4fc6a8cb55))
+* **lite:** restore native template interpolation and parse svadmin-session ([68c5212](https://github.com/zuohuadong/svadmin/commit/68c521227e6870e9e84fb785fc815e746f191d27))
+
 ## [0.3.2](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.1...lite-v0.3.2) (2026-04-11)
 
 

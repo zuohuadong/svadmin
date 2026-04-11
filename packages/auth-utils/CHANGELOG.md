@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3](https://github.com/zuohuadong/svadmin/compare/auth-utils-v0.7.2...auth-utils-v0.7.3) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **pocketbase,auth-utils:** resolve live teardown and unicode base64 issues ([8246b65](https://github.com/zuohuadong/svadmin/commit/8246b65af2d9424892e389e99c70f5ed093d9e53))
+
 ## [0.7.2](https://github.com/zuohuadong/svadmin/compare/auth-utils-v0.7.1...auth-utils-v0.7.2) (2026-04-03)
 
 

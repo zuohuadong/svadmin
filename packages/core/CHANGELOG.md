@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.22.1](https://github.com/zuohuadong/svadmin/compare/core-v0.22.0...core-v0.22.1) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **core & ui:** resolve layout remounts, auth retention and action leaks ([4d75ddb](https://github.com/zuohuadong/svadmin/commit/4d75ddbd0ef307a08da76fcb47e75f89c72dba47))
+* **core:** batch resolve lite routing, forms, theme mapping and proxy logic ([26318fe](https://github.com/zuohuadong/svadmin/commit/26318fe59afd905874fd6f2bf4b6ecd169809a93))
+* **core:** patch useImport parsing, hooks reactivity, and route bindings ([ca478c0](https://github.com/zuohuadong/svadmin/commit/ca478c0ac964796ad92930945f7200e7a08513aa))
+* **core:** refactor query hooks runtime reactivity and patch mcp/ws logic ([07897d7](https://github.com/zuohuadong/svadmin/commit/07897d715a2731f595f84395f8f4fa9285b2f616))
+* **core:** resolve crud action targets, pb promises, sso decodes, and i18n missing keys ([53c77cb](https://github.com/zuohuadong/svadmin/commit/53c77cb8962aa21ed19e2a15a1934a4fc6a8cb55))
+* **core:** router formatting, breadcrumb parsing, and hook caching ([2b31b0b](https://github.com/zuohuadong/svadmin/commit/2b31b0bc1587514c030bb6788116deb3f7269f34))
+* **ui & core:** patch xss vulnerability, approval bridge, access lockout and type errors ([046ed42](https://github.com/zuohuadong/svadmin/commit/046ed42ca1e4011718cf616f374e3aa2397b08dc))
+
 ## [0.22.0](https://github.com/zuohuadong/svadmin/compare/core-v0.21.2...core-v0.22.0) (2026-04-11)
 
 

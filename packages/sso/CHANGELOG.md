@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.6](https://github.com/zuohuadong/svadmin/compare/sso-v0.8.5...sso-v0.8.6) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **core:** resolve crud action targets, pb promises, sso decodes, and i18n missing keys ([53c77cb](https://github.com/zuohuadong/svadmin/commit/53c77cb8962aa21ed19e2a15a1934a4fc6a8cb55))
+
 ## [0.8.5](https://github.com/zuohuadong/svadmin/compare/sso-v0.8.4...sso-v0.8.5) (2026-04-10)
 
 

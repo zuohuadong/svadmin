@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.7](https://github.com/zuohuadong/svadmin/compare/sveltekit-v0.8.6...sveltekit-v0.8.7) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **core:** router formatting, breadcrumb parsing, and hook caching ([2b31b0b](https://github.com/zuohuadong/svadmin/commit/2b31b0bc1587514c030bb6788116deb3f7269f34))
+
 ## [0.8.6](https://github.com/zuohuadong/svadmin/compare/sveltekit-v0.8.5...sveltekit-v0.8.6) (2026-04-11)
 
 

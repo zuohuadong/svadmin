@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.31.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.31.0...ui-v0.31.1) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **core & ui:** resolve layout remounts, auth retention and action leaks ([4d75ddb](https://github.com/zuohuadong/svadmin/commit/4d75ddbd0ef307a08da76fcb47e75f89c72dba47))
+* **core:** batch resolve lite routing, forms, theme mapping and proxy logic ([26318fe](https://github.com/zuohuadong/svadmin/commit/26318fe59afd905874fd6f2bf4b6ecd169809a93))
+* **core:** router formatting, breadcrumb parsing, and hook caching ([2b31b0b](https://github.com/zuohuadong/svadmin/commit/2b31b0bc1587514c030bb6788116deb3f7269f34))
+* **ui & core:** patch xss vulnerability, approval bridge, access lockout and type errors ([046ed42](https://github.com/zuohuadong/svadmin/commit/046ed42ca1e4011718cf616f374e3aa2397b08dc))
+* **ui:** smartsuggest context, virtual table, and indicator components ([d58de85](https://github.com/zuohuadong/svadmin/commit/d58de857da1b8d3547b2d152dae1b728d5a87209))
+
 ## [0.31.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.30.2...ui-v0.31.0) (2026-04-11)
 
 

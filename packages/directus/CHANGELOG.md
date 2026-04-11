@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.4](https://github.com/zuohuadong/svadmin/compare/directus-v0.9.3...directus-v0.9.4) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **core:** batch resolve lite routing, forms, theme mapping and proxy logic ([26318fe](https://github.com/zuohuadong/svadmin/commit/26318fe59afd905874fd6f2bf4b6ecd169809a93))
+
 ## [0.9.3](https://github.com/zuohuadong/svadmin/compare/directus-v0.9.2...directus-v0.9.3) (2026-04-03)
 
 

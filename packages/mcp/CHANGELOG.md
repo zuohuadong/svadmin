@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/zuohuadong/svadmin/compare/mcp-v0.2.3...mcp-v0.2.4) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **core:** refactor query hooks runtime reactivity and patch mcp/ws logic ([07897d7](https://github.com/zuohuadong/svadmin/commit/07897d715a2731f595f84395f8f4fa9285b2f616))
+
 ## [0.2.3](https://github.com/zuohuadong/svadmin/compare/mcp-v0.2.2...mcp-v0.2.3) (2026-04-03)
 
 
