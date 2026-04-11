@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.6](https://github.com/zuohuadong/svadmin/compare/sveltekit-v0.8.5...sveltekit-v0.8.6) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **core:** resolve P2 lifecycle and routing bugs ([f9e3969](https://github.com/zuohuadong/svadmin/commit/f9e3969cb30b6ff94ef69a66ba19d939ef4998bb))
+
 ## [0.8.5](https://github.com/zuohuadong/svadmin/compare/sveltekit-v0.8.4...sveltekit-v0.8.5) (2026-04-10)
 
 

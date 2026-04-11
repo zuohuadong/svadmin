@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.30.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.30.1...ui-v0.30.2) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **core,ui:** ssr guards for router/theme, pin tanstack table alpha.10 ([d7025b9](https://github.com/zuohuadong/svadmin/commit/d7025b97842902cd6d171d0b60f60e1b8c687728))
+* **core:** resolve clone mode routing, actual path templates, and nested redirect bugs ([5a2636f](https://github.com/zuohuadong/svadmin/commit/5a2636fe30adea28a3eb4cf04a46534c90930060))
+* **core:** resolve custom primary keys, pessimistic mutation contexts, useParsed deps, and live sync ([323e8f4](https://github.com/zuohuadong/svadmin/commit/323e8f4b805cb8c35492823bc34ea12cddb89d77))
+* **core:** resolve reactivity and routing issues across hooks, ui, and auth ([0311806](https://github.com/zuohuadong/svadmin/commit/03118069696e16452aa16d6c737ee303348ef1f4))
+* **ui:** add timer cleanup to ChatDialog, i18n all PermissionMatrix strings ([2b7e8a0](https://github.com/zuohuadong/svadmin/commit/2b7e8a0a9eee8cde4aa949f067fddc5dcdb3ab7a))
+* **ui:** resolve routing, formatLink, and optional auth provider bugs ([acf7344](https://github.com/zuohuadong/svadmin/commit/acf73447b4fdb3aa3ae19b31147cdd5f347a3fe3))
+* **ui:** upgrade tanstack table to 9.0.0-alpha.32, fix autotable api compat ([8868f96](https://github.com/zuohuadong/svadmin/commit/8868f96762ec00f9ab40eec2e4600d389bc5c00a))
+
 ## [0.30.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.30.0...ui-v0.30.1) (2026-04-10)
 
 

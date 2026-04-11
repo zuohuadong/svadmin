@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.3](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.2...supabase-v0.9.3) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** upgrade tanstack table to 9.0.0-alpha.32, fix autotable api compat ([8868f96](https://github.com/zuohuadong/svadmin/commit/8868f96762ec00f9ab40eec2e4600d389bc5c00a))
+
 ## [0.9.2](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.1...supabase-v0.9.2) (2026-04-10)
 
 
