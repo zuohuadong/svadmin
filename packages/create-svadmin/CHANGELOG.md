@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.11.1...create-svadmin-v0.11.2) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** add timer cleanup to ChatDialog, i18n all PermissionMatrix strings ([2b7e8a0](https://github.com/zuohuadong/svadmin/commit/2b7e8a0a9eee8cde4aa949f067fddc5dcdb3ab7a))
+
 ## [0.11.1](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.11.0...create-svadmin-v0.11.1) (2026-04-05)
 
 

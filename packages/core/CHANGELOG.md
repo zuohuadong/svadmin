@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.21.2](https://github.com/zuohuadong/svadmin/compare/core-v0.21.1...core-v0.21.2) (2026-04-11)
+
+
+### 🐛 Bug Fixes
+
+* **core,hasura:** add ssr guard for csv export, migrate hasura to async import ([722dd3d](https://github.com/zuohuadong/svadmin/commit/722dd3da5a92cacc2681221736463b79e6beea05))
+* **core,ui:** ssr guards for router/theme, pin tanstack table alpha.10 ([d7025b9](https://github.com/zuohuadong/svadmin/commit/d7025b97842902cd6d171d0b60f60e1b8c687728))
+* **core:** resolve clone mode routing, actual path templates, and nested redirect bugs ([5a2636f](https://github.com/zuohuadong/svadmin/commit/5a2636fe30adea28a3eb4cf04a46534c90930060))
+* **core:** resolve custom primary keys, pessimistic mutation contexts, useParsed deps, and live sync ([323e8f4](https://github.com/zuohuadong/svadmin/commit/323e8f4b805cb8c35492823bc34ea12cddb89d77))
+* **core:** resolve P2 lifecycle and routing bugs ([f9e3969](https://github.com/zuohuadong/svadmin/commit/f9e3969cb30b6ff94ef69a66ba19d939ef4998bb))
+* **core:** resolve reactivity and routing issues across hooks, ui, and auth ([0311806](https://github.com/zuohuadong/svadmin/commit/03118069696e16452aa16d6c737ee303348ef1f4))
+* **core:** restore Svelte 5 reactivity context for data hooks and live subscriptions ([d788148](https://github.com/zuohuadong/svadmin/commit/d7881486f35c3a5720db3338ceaa6ea94c3b158e))
+* **lite:** resolve modal action binding, auth/delete redirects, and select components schemas ([f4da5cd](https://github.com/zuohuadong/svadmin/commit/f4da5cd9e5c81cf0c4673eb05777999b34632c4f))
+* **ui:** resolve routing, formatLink, and optional auth provider bugs ([acf7344](https://github.com/zuohuadong/svadmin/commit/acf73447b4fdb3aa3ae19b31147cdd5f347a3fe3))
+* **ui:** upgrade tanstack table to 9.0.0-alpha.32, fix autotable api compat ([8868f96](https://github.com/zuohuadong/svadmin/commit/8868f96762ec00f9ab40eec2e4600d389bc5c00a))
+
 ## [0.21.1](https://github.com/zuohuadong/svadmin/compare/core-v0.21.0...core-v0.21.1) (2026-04-10)
 
 
