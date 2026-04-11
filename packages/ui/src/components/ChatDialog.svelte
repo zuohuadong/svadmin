@@ -53,6 +53,19 @@
     });
   });
 
+  // ─── Listen for cross-component triggers ─────────────────────
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (e: CustomEvent<string>) => {
+      open = true;
+      minimized = false;
+      inputValue = e.detail;
+      sendMessage();
+    };
+    window.addEventListener('svadmin:ask-ai', handler as EventListener);
+    return () => window.removeEventListener('svadmin:ask-ai', handler as EventListener);
+  });
+
   // ─── Restore persisted history on mount ─────────────────────
   $effect(() => {
     if (initialized) return;
@@ -142,6 +155,12 @@
 
     messages = [...messages, userMsg];
     inputValue = '';
+    doSend();
+  }
+
+  async function doSend() {
+    if (isStreaming || (!provider && !agent)) return;
+    
     scrollToBottom();
 
     // Create placeholder assistant message
@@ -200,6 +219,16 @@
               // Register in the core approval system
               const reqId = event.id;
               pendingApprovalIds = [...pendingApprovalIds, reqId];
+              
+              registerApproval(reqId, (approved) => {
+                messages = [...messages, {
+                  id: genId(),
+                  role: 'user',
+                  content: approved ? `User approved execution of tool '${event.tool}'` : `User rejected execution of tool '${event.tool}'`,
+                  timestamp: Date.now()
+                }];
+                doSend();
+              });
 
               collectedActions.push(
                 {
@@ -319,9 +348,18 @@
     }
   }
 
+  function escapeHtml(unsafe: string) {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   /** Simple markdown→html: bold, italic, code blocks, inline code, line breaks */
   function renderMarkdown(text: string): string {
-    return text
+    return escapeHtml(text)
       .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="chat-code-block"><code>$2</code></pre>')
       .replace(/`([^`]+)`/g, '<code class="chat-inline-code">$1</code>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')

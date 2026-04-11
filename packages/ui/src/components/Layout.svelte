@@ -158,7 +158,14 @@
       </main>
     </div>
   </div>
-  <CommandPalette bind:open={commandOpen} />
+  <CommandPalette 
+    bind:open={commandOpen} 
+    onAskAI={(q) => {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('svadmin:ask-ai', { detail: q }));
+      }
+    }}
+  />
   <KeyboardShortcuts bind:open={shortcutsOpen} />
   <ChatDialog />
   <Toast />

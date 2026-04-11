@@ -1,7 +1,7 @@
 // useCan — reactive permission check hook with TanStack Query integration
 
 import { createQuery } from '@tanstack/svelte-query';
-import { canAccessAsync } from './permissions';
+import { canAccessAsync, getAccessControlProvider } from './permissions';
 import type { Action, CanResult } from './permissions';
 
 export interface UseCanOptions {
@@ -42,7 +42,11 @@ export function useCan(options: () => UseCanOptions): UseCanResult {
   });
 
   return {
-    get allowed() { return (query.data as CanResult | undefined)?.can ?? true; },
+    get allowed() { 
+      const p = getAccessControlProvider();
+      if (!p) return true;
+      return (query.data as CanResult | undefined)?.can ?? false; 
+    },
     get reason() { return (query.data as CanResult | undefined)?.reason; },
     get isLoading() { return query.isLoading; },
   };

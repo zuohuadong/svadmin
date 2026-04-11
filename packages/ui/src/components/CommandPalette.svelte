@@ -71,7 +71,7 @@
         {#if hasAI && searchValue.trim()}
           <Command.Group heading="AI">
             <Command.Item
-              value="ask-ai-{searchValue}"
+              value={"ask-ai-" + searchValue}
               onSelect={askAI}
               class={itemClass}
             >
@@ -111,7 +111,7 @@
         <Command.Group heading={t('common.actions')}>
           {#each resources as r}
             <Command.Item
-              value="create-{r.name}"
+              value={"create-" + r.name}
               onSelect={() => act(() => navigate(`/${r.name}/create`))}
               class={itemClass}
             >

@@ -148,7 +148,7 @@ describe('Supabase AuthProvider', () => {
   test('getPermissions surfaces role from user_metadata', async () => {
     const { createSupabaseAuthProvider } = await import('./auth-provider');
     const auth = createSupabaseAuthProvider(createMockSupabaseClient());
-    const role = await auth.getPermissions();
+    const role = await auth.getPermissions?.();
     expect(role).toBe('admin');
   });
 
@@ -202,7 +202,7 @@ describe('Supabase LiveProvider', () => {
     const client = createMockSupabaseClient();
     const live = createSupabaseLiveProvider(client);
     
-    live.publish({ type: 'INSERT', resource: 'posts', payload: { a: 1 } });
+    live.publish?.({ type: 'INSERT', resource: 'posts', payload: { a: 1 } });
     
     const channelMock = (client.channel as ReturnType<typeof mock>).mock.results[0].value;
     expect(channelMock.send).toHaveBeenCalled();
