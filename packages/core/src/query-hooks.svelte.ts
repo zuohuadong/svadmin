@@ -85,17 +85,17 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
 
   const overtime = createOvertimeTracker(() => query.isLoading, options.overtimeOptions ?? adminOptions.overtime);
 
-  createLiveSubscription({
+  createLiveSubscription((): LiveSubscriptionParams => ({
     resource,
     liveProvider: getLiveProvider(),
     liveMode: options.liveMode ?? adminOptions.liveMode,
-    onLiveEvent: (e) => {
+    onLiveEvent: (e: LiveEvent) => {
       options.onLiveEvent?.(e);
       adminOptions.onLiveEvent?.(e);
     },
     liveParams: options.liveParams,
     enabled: queryOptions?.enabled ?? true,
-  });
+  }));
 
   $effect(() => {
     if (query.isSuccess && options.successNotification) {
