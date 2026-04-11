@@ -12,7 +12,7 @@
   import { getAuthProvider } from '@svadmin/core';
   import type { Identity, MenuItem } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
-  import { currentPath } from '@svadmin/core/router';
+  import { getPath } from '../router-state.svelte.js';
   import { Skeleton } from './ui/skeleton/index.js';
   import { Button } from './ui/button/index.js';
   import * as Sheet from './ui/sheet/index.js';
@@ -150,7 +150,7 @@
 
       <!-- Content area -->
       <main class="flex-1 overflow-y-auto p-6 md:p-8">
-        {#key currentPath()}
+        {#key getPath()}
           <div in:fly={{ x: 20, duration: 150 }} out:fade={{ duration: 80 }}>
             {@render children()}
           </div>

@@ -68,8 +68,8 @@ function isDataProvider(value: unknown): value is DataProvider {
 
 let authProvider = $state<AuthProvider | null>(null);
 
-export function setAuthProvider(provider: AuthProvider): void {
-  authProvider = provider;
+export function setAuthProvider(provider: AuthProvider | null | undefined): void {
+  authProvider = provider || null;
 }
 
 export function getAuthProvider(): AuthProvider;

@@ -81,15 +81,11 @@
   function validateCurrentStep(): boolean {
     let valid = true;
     form.clearErrors();
-    for (const field of currentFields) {
-      const value = form.values[field.key];
-      if (field.required && (value === undefined || value === null || value === '')) {
-        form.setFieldError(field.key, t('validation.required'));
-        valid = false;
-      } else if (field.validate) {
-        const msg = field.validate(value);
-        if (msg) {
-          form.setFieldError(field.key, msg);
+    const errors = validator(form.values);
+    if (errors) {
+      for (const field of currentFields) {
+        if (errors[field.key]) {
+          form.setFieldError(field.key, errors[field.key]);
           valid = false;
         }
       }

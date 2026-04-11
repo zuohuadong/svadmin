@@ -48,10 +48,13 @@ function sync() {
 }
 
 export function initRouter(provider?: RouterProvider) {
-  if (_initialized) return;
-  _initialized = true;
   _provider = provider;
   setActiveRouterProvider(provider);
+  if (_initialized) {
+    sync(); // Re-sync manually since provider might have switched format/URLs
+    return;
+  }
+  _initialized = true;
   sync();
   if (typeof window !== 'undefined') {
     window.addEventListener('hashchange', sync);

@@ -89,7 +89,7 @@
 
   // Set up initial context synchronously so children can access resources immediately during first render
   setDataProvider(dataProvider);
-  if (authProvider) setAuthProvider(authProvider);
+  setAuthProvider(authProvider);
   setResources(resources);
   setRouterProvider(resolvedRouter);
   if (locale) setLocale(locale);
@@ -99,7 +99,7 @@
   // Set up context — use $effect so prop changes are tracked
   $effect.pre(() => {
     setDataProvider(dataProvider);
-    if (authProvider) setAuthProvider(authProvider);
+    setAuthProvider(authProvider);
     setResources(resources);
     setRouterProvider(resolvedRouter);
     if (locale) setLocale(locale);

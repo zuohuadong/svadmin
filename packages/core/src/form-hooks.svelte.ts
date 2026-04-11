@@ -275,6 +275,14 @@ export function useForm<
   let queryInitializedId: string | number | undefined = undefined;
   {
     $effect.pre(() => {
+      // Discard previous fetch lock and default when switched strictly back to create
+      if (action === 'create' && currentId === undefined && queryInitializedId !== undefined) {
+        queryInitializedId = undefined;
+        const def = (options.defaultValues ?? {}) as TVariables;
+        values = { ...def };
+        initialValues = { ...def };
+        return;
+      }
       if (queryInitializedId === currentId) return;
       const data = query.data as Record<string, unknown> | undefined;
       const pk = getResource(resource).primaryKey ?? 'id';
