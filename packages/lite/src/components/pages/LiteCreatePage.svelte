@@ -34,6 +34,6 @@
     {errors}
     {values}
     action="?/${resource.name}_create"
-    cancelUrl={`{basePath}/${resource.name}`}
+    cancelUrl={`${basePath}/${resource.name}`}
   />
 </div>

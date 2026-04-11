@@ -79,11 +79,11 @@
   {#if totalPages > 1}
     <div class="lite-pagination" style="margin-top:12px;">
       {#if page > 1}
-        <a href={`{basePath}page={page - 1}`} class="lite-btn lite-btn-sm">&laquo; Prev</a>
+        <a href={`${basePath}page={page - 1}`} class="lite-btn lite-btn-sm">&laquo; Prev</a>
       {/if}
       <span style="padding:0 12px;font-size:14px;color:#64748b;">Page {page} / {totalPages} ({total} total)</span>
       {#if page < totalPages}
-        <a href={`{basePath}page={page + 1}`} class="lite-btn lite-btn-sm">Next &raquo;</a>
+        <a href={`${basePath}page={page + 1}`} class="lite-btn lite-btn-sm">Next &raquo;</a>
       {/if}
     </div>
   {/if}

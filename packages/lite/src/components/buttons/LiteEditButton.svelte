@@ -22,7 +22,7 @@
 </script>
 
 <a
-  href={`{basePath}/${resource}/edit/${recordItemId}`}
+  href={`${basePath}/${resource}/edit/${recordItemId}`}
   class="lite-btn {size === 'sm' ? 'lite-btn-sm' : ''} {className}"
   title={t('common.edit') || 'Edit'}
 >

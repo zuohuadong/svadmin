@@ -20,7 +20,7 @@
 </script>
 
 <a
-  href={`{basePath}/${resource}`}
+  href={`${basePath}/${resource}`}
   class="lite-btn {size === 'sm' ? 'lite-btn-sm' : ''} {className}"
   title={t('common.list') || 'List'}
 >

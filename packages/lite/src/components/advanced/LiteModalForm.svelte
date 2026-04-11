@@ -27,7 +27,7 @@
   const href = $derived(
     mode === 'create'
       ? `${basePath}/${resource.name}/create`
-      : `${basePath}/${resource.name}/${recordId}/edit`
+      : `${basePath}/${resource.name}/edit/${recordId}`
   );
 
   const buttonLabel = $derived(

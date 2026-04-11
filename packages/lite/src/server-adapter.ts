@@ -158,21 +158,31 @@ export function createAuthGuard(
       return resolve(event);
     }
 
-    try {
-      const check = await authProvider.check();
-      if (!check.authenticated) {
-        return new Response(null, {
-          status: 302,
-          headers: { Location: loginPath },
-        });
-      }
-    } catch {
+    // Local Lite Session Verify 
+    const session = event.cookies.get('svadmin-session');
+    if (!session) {
       return new Response(null, {
         status: 302,
         headers: { Location: loginPath },
       });
     }
 
+    try {
+      const check = await authProvider.check();
+      if (!check.authenticated) {
+        event.cookies.delete('svadmin-session', { path: '/' });
+        return new Response(null, {
+          status: 302,
+          headers: { Location: loginPath },
+        });
+      }
+    } catch {
+      event.cookies.delete('svadmin-session', { path: '/' });
+      return new Response(null, {
+        status: 302,
+        headers: { Location: loginPath },
+      });
+    }
     return resolve(event);
   };
 }
