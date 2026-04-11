@@ -37,7 +37,7 @@
       {/if}
       <LiteListButton resource={resource.name} {basePath} />
       {#if canDelete}
-        <LiteDeleteButton resource={resource.name} recordItemId={idStr} redirectUrl="{basePath}/{resource.name}" {basePath} />
+        <LiteDeleteButton resource={resource.name} recordItemId={idStr} redirectUrl={`{basePath}/${resource.name}`} {basePath} />
       {/if}
     </div>
   </div>
@@ -48,7 +48,7 @@
     {resource}
     {errors}
     values={record}
-    action="?/{resource.name}_update"
-    cancelUrl="{basePath}/{resource.name}"
+    action="?/${resource.name}_update"
+    cancelUrl={`{basePath}/${resource.name}`}
   />
 </div>

@@ -33,11 +33,11 @@
     <h1>{resource.label} #{id}</h1>
     <div>
       {#if canEdit}
-        <a href="{basePath}/{resource.name}/edit/{id}" class="lite-btn lite-btn-primary">
+        <a href={`{basePath}/${resource.name}/edit/${id}`} class="lite-btn lite-btn-primary">
           {t('common.edit') || 'Edit'}
         </a>
       {/if}
-      <a href="{basePath}/{resource.name}" class="lite-btn" style="margin-left:8px;">
+      <a href={`{basePath}/${resource.name}`} class="lite-btn" style="margin-left:8px;">
         {t('common.backToList') || 'Back to List'}
       </a>
     </div>

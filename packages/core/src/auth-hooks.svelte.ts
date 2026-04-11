@@ -242,6 +242,14 @@ export function usePermissions<T = unknown>() {
     fetch();
   }
 
+  const hasFn = (perm: string): boolean => {
+    if (!permissions) return false;
+    if (Array.isArray(permissions)) return permissions.includes(perm);
+    if (permissions instanceof Set) return (permissions as Set<string>).has(perm);
+    if (typeof permissions === 'object') return !!(permissions as Record<string, boolean>)[perm];
+    return false;
+  };
+
   return {
     get isLoading() { return isLoading; },
     get error() { return error; },
@@ -250,18 +258,10 @@ export function usePermissions<T = unknown>() {
     refetch: fetch,
 
     /** Check if a specific permission string exists */
-    has(perm: string): boolean {
-      if (!permissions) return false;
-      if (Array.isArray(permissions)) return permissions.includes(perm);
-      if (permissions instanceof Set) return (permissions as Set<string>).has(perm);
-      if (typeof permissions === 'object') return !!(permissions as Record<string, boolean>)[perm];
-      return false;
-    },
+    has: hasFn,
 
     /** Check resource:action style permission */
-    can(resource: string, action: string): boolean {
-      return this.has(`${resource}:${action}`);
-    },
+    can: (resource: string, action: string): boolean => hasFn(`${resource}:${action}`),
   };
 }
 

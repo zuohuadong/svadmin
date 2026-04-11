@@ -75,7 +75,7 @@
   {:else}
     {#each menuResources as res}
       <a
-        href="{basePath}/{res.name}"
+        href={`{basePath}/${res.name}`}
         class={res.name === currentResource ? 'active' : ''}
       >
         {res.label ?? res.name}
@@ -85,7 +85,7 @@
   {#if userName}
     <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 16px;border-top:1px solid #334155;font-size:12px;color:#94a3b8;">
       {userName}
-      <form method="POST" action="{basePath}/login?/logout" style="display:inline;margin-left:8px;">
+      <form method="POST" action={`{basePath}/login?/logout`} style="display:inline;margin-left:8px;">
         <button type="submit" class="lite-btn lite-btn-sm" style="color:#94a3b8;border-color:#475569;background:transparent;padding:2px 8px;">Logout</button>
       </form>
     </div>

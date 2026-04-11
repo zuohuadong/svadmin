@@ -7,6 +7,8 @@ export interface UseStepsFormOptions<
   TData extends BaseRecord = BaseRecord,
   TError = HttpError,
 > extends UseFormOptions<TVariables, TData, TError> {
+  /** Total number of steps. Defaults to 1 */
+  stepsCount?: number;
   /** Default step index. Starts at 0. */
   defaultStep?: number;
   /** Validate the form when navigating back? */
@@ -17,15 +19,20 @@ export interface UseStepsFormReturn<
   TVariables extends Record<string, unknown> = Record<string, unknown>,
   TData extends BaseRecord = BaseRecord,
 > extends UseFormReturn<TVariables, TData> {
-  currentStep: number;
-  gotoStep: (step: number) => void;
-  next: () => void;
-  prev: () => void;
+  steps: {
+    currentStep: number;
+    totalSteps: number;
+    canGoNext: boolean;
+    canGoPrev: boolean;
+    gotoStep: (step: number) => void;
+    nextStep: () => void;
+    prevStep: () => void;
+  };
 }
 
 /**
  * useStepsForm
- * Extends `useForm` with step navigation state (currentStep, next, prev, gotoStep).
+ * Extends `useForm` with a nested `steps` object tracking navigation state.
  */
 export function useStepsForm<
   TVariables extends Record<string, unknown> = Record<string, unknown>,
@@ -35,33 +42,36 @@ export function useStepsForm<
   const form = useForm<TVariables, TData, TError>(options);
 
   let currentStep = $state(options.defaultStep ?? 0);
+  const totalSteps = options.stepsCount ?? 1;
 
   function gotoStep(step: number) {
-    currentStep = Math.max(0, step);
+    currentStep = Math.max(0, Math.min(step, totalSteps - 1));
   }
 
-  function next() {
-    gotoStep(currentStep + 1);
+  function nextStep() {
+    if (currentStep < totalSteps - 1) gotoStep(currentStep + 1);
   }
 
-  function prev() {
-    if (currentStep > 0) {
-      gotoStep(currentStep - 1);
-    }
+  function prevStep() {
+    if (currentStep > 0) gotoStep(currentStep - 1);
   }
 
-  // Inject stepping features into the returned useForm object while preserving its reactive getters.
   const result = form as unknown as UseStepsFormReturn<TVariables, TData>;
 
-  Object.defineProperty(result, 'currentStep', {
-    get: () => currentStep,
-    enumerable: true,
-    configurable: true
-  });
+  const steps = {
+    get currentStep() { return currentStep; },
+    get totalSteps() { return totalSteps; },
+    get canGoNext() { return currentStep < totalSteps - 1; },
+    get canGoPrev() { return currentStep > 0; },
+    gotoStep,
+    nextStep,
+    prevStep,
+  };
 
-  result.gotoStep = gotoStep;
-  result.next = next;
-  result.prev = prev;
+  Object.defineProperty(result, 'steps', {
+    get: () => steps,
+    enumerable: true
+  });
 
   return result;
 }

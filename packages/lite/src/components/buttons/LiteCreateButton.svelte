@@ -20,7 +20,7 @@
 </script>
 
 <a
-  href="{basePath}/{resource}/create"
+  href={`${basePath}/${resource}/create`}
   class="lite-btn lite-btn-primary {size === 'sm' ? 'lite-btn-sm' : ''} {className}"
   title={t('common.create') || 'Create'}
 >

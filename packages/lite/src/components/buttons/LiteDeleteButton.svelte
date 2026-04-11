@@ -37,7 +37,7 @@
     <p style="margin: 0 0 8px; font-size: 13px; color: #111827;">
       {t('common.areYouSure') || 'Are you sure?'}
     </p>
-    <form method="POST" action="?/{resource}_delete" style="display:inline-flex; gap: 8px;">
+    <form method="POST" action="?/${resource}_delete" style="display:inline-flex; gap: 8px;">
       <input type="hidden" name="id" value={String(recordItemId)} />
       {#if redirectUrl}
         <input type="hidden" name="redirect" value={redirectUrl} />

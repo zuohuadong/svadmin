@@ -39,7 +39,7 @@
       {/if}
       <LiteListButton resource={resource.name} {basePath} />
       {#if canDelete}
-        <LiteDeleteButton resource={resource.name} recordItemId={idStr} redirectUrl="{basePath}/{resource.name}" {basePath} />
+        <LiteDeleteButton resource={resource.name} recordItemId={idStr} redirectUrl={`{basePath}/${resource.name}`} {basePath} />
       {/if}
     </div>
   </div>

@@ -5,7 +5,7 @@
 //   - 'dark-first': adds 'light' class for light mode (dark-first)
 
 export type ThemeMode = 'light' | 'dark' | 'system';
-export type ColorTheme = 'blue' | 'green' | 'rose' | 'orange' | 'violet' | 'zinc';
+export type ColorTheme = 'blue' | 'green' | 'rose' | 'orange' | 'violet' | 'neutral';
 
 /** Controls how the theme class is applied to <html> */
 export type ThemeStrategy = 'standard' | 'dark-first';

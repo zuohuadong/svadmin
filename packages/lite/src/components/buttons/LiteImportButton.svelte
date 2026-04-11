@@ -31,7 +31,7 @@
   </summary>
   <div class="lite-confirm-panel">
     <p style="margin: 0 0 8px; font-size: 13px;">{t('common.importData') || 'Import data (CSV/JSON)'}</p>
-    <form method="POST" action="?/{resource}_import" enctype="multipart/form-data" style="display:flex; flex-direction: column; gap: 8px;">
+    <form method="POST" action="?/${resource}_import" enctype="multipart/form-data" style="display:flex; flex-direction: column; gap: 8px;">
       <input type="file" name="file" accept=".csv,.json" required style="font-size: 13px;" />
       <div style="display:flex; gap: 8px; justify-content: flex-end;">
         <button 

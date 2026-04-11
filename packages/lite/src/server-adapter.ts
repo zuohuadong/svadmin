@@ -9,7 +9,7 @@ import type {
   ResourceDefinition, FieldDefinition,
   Sort, Filter,
 } from '@svadmin/core';
-import { fail, redirect, type RequestEvent } from '@sveltejs/kit';
+import { fail, redirect, isRedirect, type RequestEvent } from '@sveltejs/kit';
 
 // ─── List Loader ──────────────────────────────────────────────
 
@@ -107,6 +107,7 @@ export function createCrudActions(
         const result = await dp.create({ resource: resource.name, variables });
         return { success: true, id: (result.data as Record<string, unknown>)[pk] };
       } catch (e) {
+        if (isRedirect(e)) throw e;
         return { success: false, error: (e as Error).message, values: variables };
       }
     },
@@ -120,6 +121,7 @@ export function createCrudActions(
         await dp.update({ resource: resource.name, id, variables });
         return { success: true };
       } catch (e) {
+        if (isRedirect(e)) throw e;
         return { success: false, error: (e as Error).message, values: variables };
       }
     },
@@ -133,6 +135,7 @@ export function createCrudActions(
         if (redirectTo) throw redirect(303, redirectTo);
         return { success: true };
       } catch (e) {
+        if (isRedirect(e)) throw e;
         return { success: false, error: (e as Error).message };
       }
     },
@@ -196,6 +199,7 @@ export function createAuthActions(authProvider: AuthProvider) {
         }
         return { success: false, error: result.error?.message ?? 'Login failed' };
       } catch (e) {
+        if (isRedirect(e)) throw e;
         return { success: false, error: (e as Error).message };
       }
     },

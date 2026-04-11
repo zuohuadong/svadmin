@@ -1,17 +1,20 @@
 import type {
   DataProvider, GetListParams, GetListResult, GetOneParams, GetOneResult,
   CreateParams, CreateResult, UpdateParams, UpdateResult, DeleteParams, DeleteResult,
-  GetManyParams, GetManyResult, CustomParams, CustomResult, Sort, Filter
-, BaseRecord } from '@svadmin/core';
+  GetManyParams, GetManyResult, CustomParams, CustomResult, Sort, Filter, LogicalFilter,
+  BaseRecord
+} from '@svadmin/core';
 
-function buildDirectusFilter(filters?: Filter[]): Record<string, unknown> {
+function buildDirectusFilter(filters?: (Filter | LogicalFilter | any)[]): Record<string, unknown> {
   if (!filters?.length) return {};
-  const filter: Record<string, unknown> = {};
-  const opMap: Record<string, string> = { eq: '_eq', ne: '_neq', lt: '_lt', gt: '_gt', lte: '_lte', gte: '_gte', contains: '_contains', in: '_in', null: '_null' };
-  for (const f of filters) {
-    if ('field' in f) filter[f.field as string] = { [opMap[f.operator as string] ?? '_eq']: f.value };
-  }
-  return filter;
+  const opMap: Record<string, string> = { eq: '_eq', ne: '_neq', lt: '_lt', gt: '_gt', lte: '_lte', gte: '_gte', contains: '_contains', in: '_in', null: '_null', and: '_and', or: '_or' };
+  
+  const rules = filters.map(f => {
+    if ('field' in f) return { [f.field as string]: { [opMap[f.operator as string] ?? '_eq']: f.value } };
+    return { [opMap[f.operator]]: (f.value as any[]).map(sub => buildDirectusFilter([sub])) };
+  });
+
+  return rules.length === 1 ? rules[0] : { _and: rules };
 }
 
 export function createDirectusDataProvider(apiUrl: string, token?: string): DataProvider {

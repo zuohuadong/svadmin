@@ -67,12 +67,12 @@
   });
 
   const totalSteps = $derived(steps.length);
-  const progressValue = $derived(((form.currentStep + 1) / totalSteps) * 100);
-  const isLastStep = $derived(form.currentStep >= totalSteps - 1);
+  const progressValue = $derived(((form.steps.currentStep + 1) / totalSteps) * 100);
+  const isLastStep = $derived(form.steps.currentStep >= totalSteps - 1);
 
   // Fields for the current step
   const currentFields = $derived(
-    steps[form.currentStep]?.fields
+    steps[form.steps.currentStep]?.fields
       .map(key => resource.fields.find(f => f.key === key))
       .filter((f): f is FieldDefinition => f != null && f.key !== primaryKey) ?? []
   );
@@ -97,7 +97,7 @@
     if (!validateCurrentStep()) return;
 
     if (!isLastStep) {
-      form.next();
+      form.steps.nextStep();
       return;
     }
 
@@ -114,17 +114,17 @@
         <Button
           variant="ghost"
           type="button"
-          class="flex items-center gap-2 transition-colors h-auto py-1 px-2 {i === form.currentStep ? 'text-primary font-semibold' : 'text-muted-foreground'}"
-          onclick={() => form.gotoStep(i)}
+          class="flex items-center gap-2 transition-colors h-auto py-1 px-2 {i === form.steps.currentStep ? 'text-primary font-semibold' : 'text-muted-foreground'}"
+          onclick={() => form.steps.gotoStep(i)}
         >
           <span
             class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition-colors"
-            class:bg-primary={i <= form.currentStep}
-            class:text-primary-foreground={i <= form.currentStep}
-            class:bg-muted={i > form.currentStep}
-            class:text-muted-foreground={i > form.currentStep}
+            class:bg-primary={i <= form.steps.currentStep}
+            class:text-primary-foreground={i <= form.steps.currentStep}
+            class:bg-muted={i > form.steps.currentStep}
+            class:text-muted-foreground={i > form.steps.currentStep}
           >
-            {#if i < form.currentStep}
+            {#if i < form.steps.currentStep}
               <Check class="h-3.5 w-3.5" />
             {:else}
               {i + 1}
@@ -133,7 +133,7 @@
           <span class="hidden sm:inline">{step.title}</span>
         </Button>
         {#if i < steps.length - 1}
-          <div class="flex-1 mx-2 h-px bg-border" class:bg-primary={i < form.currentStep}></div>
+          <div class="flex-1 mx-2 h-px bg-border" class:bg-primary={i < form.steps.currentStep}></div>
         {/if}
       {/each}
     </div>
@@ -143,13 +143,13 @@
   <!-- Step content -->
   <Card.Root>
     <Card.CardHeader>
-      <Card.CardTitle>{steps[form.currentStep]?.title ?? ''}</Card.CardTitle>
+      <Card.CardTitle>{steps[form.steps.currentStep]?.title ?? ''}</Card.CardTitle>
       <Badge variant="outline" class="w-fit">
-        {t('common.step')} {form.currentStep + 1} / {totalSteps}
+        {t('common.step')} {form.steps.currentStep + 1} / {totalSteps}
       </Badge>
     </Card.CardHeader>
     <Card.CardContent>
-      {#key form.currentStep}
+      {#key form.steps.currentStep}
         <form class="space-y-5" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} in:fly={{ x: 30, duration: 250 }}>
         {#each currentFields as field (field.key)}
           <FieldRenderer
@@ -166,10 +166,10 @@
           <Button
             type="button"
             variant="outline"
-            onclick={() => form.currentStep === 0 ? navigate(`/${resourceName}`) : form.prev()}
+            onclick={() => form.steps.currentStep === 0 ? navigate(`/${resourceName}`) : form.steps.prevStep()}
           >
             <ArrowLeft class="h-4 w-4" data-icon="inline-start" />
-            {form.currentStep === 0 ? t('common.cancel') : t('common.back')}
+            {form.steps.currentStep === 0 ? t('common.cancel') : t('common.back')}
           </Button>
 
           <Button type="submit" disabled={form.submitting}>

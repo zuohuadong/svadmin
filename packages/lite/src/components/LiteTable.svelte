@@ -103,7 +103,7 @@
         {#if canEdit || canDelete}
           <td class="actions">
             {#if canEdit}
-              <a href="{basePath}/{resource.name}/edit/{id}" class="lite-btn lite-btn-sm">{t('common.edit') || 'Edit'}</a>
+              <a href={`{basePath}/${resource.name}/edit/${id}`} class="lite-btn lite-btn-sm">{t('common.edit') || 'Edit'}</a>
             {/if}
             {#if canDelete}
               <!-- Delete uses <details> for no-JS confirmation -->
