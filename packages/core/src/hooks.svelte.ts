@@ -23,10 +23,10 @@ export type { OvertimeResult, OvertimeOptions, NotificationConfig } from './hook
 
 import { createQuery, createInfiniteQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options.svelte';
-import { getDataProviderForResource, getDataProvider } from './context.svelte';
+import { getDataProviderForResource, getDataProvider, getLiveProvider } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
-import { createOvertimeTracker, fireSuccessNotification, fireErrorNotification } from './hook-utils.svelte';
-import type { NotificationConfig, OvertimeOptions } from './hook-utils.svelte';
+import { createOvertimeTracker, createLiveSubscription, fireSuccessNotification, fireErrorNotification } from './hook-utils.svelte';
+import type { NotificationConfig, OvertimeOptions, LiveSubscriptionParams } from './hook-utils.svelte';
 import type { BaseRecord, HttpError, Pagination, Sort, Filter, DataProvider, KnownResources } from './types';
 import type { LiveMode, LiveEvent } from './live.svelte';
 import { useList } from './query-hooks.svelte';
@@ -52,10 +52,10 @@ export interface UseInfiniteListOptions<TData extends BaseRecord = BaseRecord, T
 
 export function useInfiniteList<TData extends BaseRecord = BaseRecord, TError = HttpError>(options: UseInfiniteListOptions<TData, TError> = {}) {
   const parsed = useParsed();
-  const resource = options.resource ?? parsed.resource ?? '';
   const adminOptions = getAdminOptions();
 
   const query = createInfiniteQuery<{ data: TData[]; total: number }, TError>(() => {
+    const resource = options.resource ?? parsed.resource ?? '';
     const provider = getDataProviderForResource(resource, options.dataProviderName);
     return {
     queryKey: [resource, 'infiniteList', options.sorters, options.filters, options.meta],
@@ -81,6 +81,17 @@ export function useInfiniteList<TData extends BaseRecord = BaseRecord, TError = 
   });
 
   const overtime = createOvertimeTracker(() => query.isLoading, options.overtimeOptions ?? adminOptions.overtime);
+
+  createLiveSubscription((): LiveSubscriptionParams => ({
+    resource: options.resource ?? parsed.resource ?? '',
+    liveProvider: getLiveProvider(),
+    liveMode: options.liveMode ?? adminOptions.liveMode,
+    onLiveEvent: (e: LiveEvent) => {
+      options.onLiveEvent?.(e);
+      adminOptions.onLiveEvent?.(e);
+    },
+    enabled: options.queryOptions?.enabled ?? true,
+  }));
 
   return { query, get overtime() { return overtime; } };
 }

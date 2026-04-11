@@ -120,15 +120,20 @@ export function useImport<TData = Record<string, unknown>>(options: UseImportOpt
     const errored: { request: unknown; error: unknown }[] = [];
 
     try {
-      const text = await info.file.text();
-      const lines = text.split('\n').filter(l => l.trim() !== '');
-      if (lines.length < 2) return;
+      let text = await info.file.text();
+      // Strip BOM
+      if (text.charCodeAt(0) === 0xFEFF) {
+        text = text.slice(1);
+      }
 
-      const headers = parseCSVLine(lines[0]);
+      const rows = parseCSV(text);
+      if (rows.length < 2) return;
+
+      const headers = rows[0];
       const records: Record<string, unknown>[] = [];
 
-      for (let i = 1; i < lines.length; i++) {
-        const values = parseCSVLine(lines[i]);
+      for (let i = 1; i < rows.length; i++) {
+        const values = rows[i];
         const record: Record<string, unknown> = {};
         headers.forEach((h, idx) => { record[h] = values[idx] ?? ''; });
         records.push(options.mapData ? (options.mapData(record) as unknown as Record<string, unknown>) : record);
@@ -151,18 +156,23 @@ export function useImport<TData = Record<string, unknown>>(options: UseImportOpt
       } else {
         for (let i = 0; i < records.length; i += batchSize) {
           const batch = records.slice(i, i + batchSize);
-          try {
-            if (provider.createMany) {
+          if (provider.createMany) {
+            try {
               const res = await provider.createMany({ resource, variables: batch, meta: options.meta });
               succeeded.push(res);
-            } else {
-              for (const record of batch) {
+            } catch (error) {
+              errored.push({ request: batch, error });
+            }
+          } else {
+            // Fallback: loop internal items inside batch securely instead of breaking whole batch
+            for (const record of batch) {
+              try {
                 const res = await provider.create({ resource, variables: record, meta: options.meta });
                 succeeded.push(res);
+              } catch (error) {
+                errored.push({ request: record, error });
               }
             }
-          } catch (error) {
-            errored.push({ request: batch, error });
           }
           processed += batch.length;
           options.onProgress?.({ totalAmount: records.length, processedAmount: processed });
@@ -184,34 +194,53 @@ export function useImport<TData = Record<string, unknown>>(options: UseImportOpt
   };
 }
 
-/** Parse a single CSV line respecting quoted fields */
-function parseCSVLine(line: string): string[] {
-  const result: string[] = [];
-  let current = '';
+/** Parse full CSV text respecting quoted multi-line fields */
+function parseCSV(text: string): string[][] {
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentVal = '';
   let inQuotes = false;
 
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
     if (inQuotes) {
-      if (ch === '"' && line[i + 1] === '"') {
-        current += '"';
-        i++;
-      } else if (ch === '"') {
-        inQuotes = false;
+      if (ch === '"') {
+        if (i + 1 < text.length && text[i + 1] === '"') {
+          currentVal += '"';
+          i++; // skip escaped quote
+        } else {
+          inQuotes = false;
+        }
       } else {
-        current += ch;
+        currentVal += ch;
       }
     } else {
       if (ch === '"') {
         inQuotes = true;
       } else if (ch === ',') {
-        result.push(current.trim());
-        current = '';
+        currentRow.push(currentVal.trim());
+        currentVal = '';
+      } else if (ch === '\n' || ch === '\r') {
+        currentRow.push(currentVal.trim());
+        if (currentRow.some(v => v !== '')) {
+          rows.push(currentRow);
+        }
+        currentRow = [];
+        currentVal = '';
+        if (ch === '\r' && i + 1 < text.length && text[i + 1] === '\n') {
+          i++; // consume \n of \r\n
+        }
       } else {
-        current += ch;
+        currentVal += ch;
       }
     }
   }
-  result.push(current.trim());
-  return result;
+  
+  if (currentVal || currentRow.length > 0) {
+    currentRow.push(currentVal.trim());
+    if (currentRow.some(v => v !== '')) {
+      rows.push(currentRow);
+    }
+  }
+  return rows;
 }

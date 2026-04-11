@@ -5,6 +5,7 @@ import { getResources } from './context.svelte';
 
 interface ParsedRoute {
   resource?: string;
+  resourcePath?: string;
   action?: 'list' | 'create' | 'edit' | 'show' | 'clone';
   id?: string;
   params: Record<string, string>;
@@ -60,6 +61,7 @@ export function useParsed(): ParsedRoute {
 
     if (resourceIndex !== -1) {
       result.resource = segments[resourceIndex];
+      result.resourcePath = segments.slice(0, resourceIndex + 1).join('/');
 
       // Add parent path params based on `<parentResource>/<parentId>` structure
       for (let i = 0; i < resourceIndex; i += 2) {
@@ -92,6 +94,7 @@ export function useParsed(): ParsedRoute {
     } else {
       // Fallback if resource definitions are not loaded yet
       result.resource = segments[0];
+      result.resourcePath = segments[0];
 
       if (segments.length === 1) {
         result.action = 'list';
@@ -117,6 +120,7 @@ export function useParsed(): ParsedRoute {
 
   return {
     get resource() { return parsed.resource; },
+    get resourcePath() { return parsed.resourcePath; },
     get action() { return parsed.action; },
     get id() { return parsed.id; },
     get params() { return parsed.params; },

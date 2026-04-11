@@ -87,11 +87,11 @@ export function useNavigation() {
   const parsed = useParsed();
 
   return {
-    create: (resource?: string) => go({ type: 'push', resource: resource ?? parsed.resource, action: 'create' }),
-    edit: (resource?: string, id?: string | number) => go({ type: 'push', resource: resource ?? parsed.resource, action: 'edit', id: id ?? parsed.id }),
-    clone: (resource?: string, id?: string | number) => go({ type: 'push', resource: resource ?? parsed.resource, action: 'clone', id: id ?? parsed.id }),
-    show: (resource?: string, id?: string | number) => go({ type: 'push', resource: resource ?? parsed.resource, action: 'show', id: id ?? parsed.id }),
-    list: (resource?: string) => go({ type: 'push', resource: resource ?? parsed.resource, action: 'list' }),
+    create: (resource?: string) => go({ type: 'push', resource: resource ?? parsed.resourcePath ?? parsed.resource, action: 'create' }),
+    edit: (resource?: string, id?: string | number) => go({ type: 'push', resource: resource ?? parsed.resourcePath ?? parsed.resource, action: 'edit', id: id ?? parsed.id }),
+    clone: (resource?: string, id?: string | number) => go({ type: 'push', resource: resource ?? parsed.resourcePath ?? parsed.resource, action: 'clone', id: id ?? parsed.id }),
+    show: (resource?: string, id?: string | number) => go({ type: 'push', resource: resource ?? parsed.resourcePath ?? parsed.resource, action: 'show', id: id ?? parsed.id }),
+    list: (resource?: string) => go({ type: 'push', resource: resource ?? parsed.resourcePath ?? parsed.resource, action: 'list' }),
     push: (url: string) => go({ to: url, type: 'push' }),
     replace: (url: string) => go({ to: url, type: 'replace' }),
     goBack: useBack(),
