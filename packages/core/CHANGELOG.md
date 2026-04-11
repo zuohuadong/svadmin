@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.22.0](https://github.com/zuohuadong/svadmin/compare/core-v0.21.2...core-v0.22.0) (2026-04-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core & ui:** useList, useOne, useShow, useMany now return the Tanstack Query result directly instead of wrapping it in { query, overtime }.
+
+### 🐛 Bug Fixes
+
+* **core & ui:** resolve critical Svelte 5 context bounds, proxy loops, and package exports ([#110](https://github.com/zuohuadong/svadmin/issues/110)) ([b0a1fd7](https://github.com/zuohuadong/svadmin/commit/b0a1fd72b20e6a1d92de445ee2a95fbbf182d218))
+* **core:** restore live subscription callback typing and arrow function wrapper ([d11c986](https://github.com/zuohuadong/svadmin/commit/d11c986219df71d1846fe8583742045fd6411d67))
+
 ## [0.21.2](https://github.com/zuohuadong/svadmin/compare/core-v0.21.1...core-v0.21.2) (2026-04-11)
 
 

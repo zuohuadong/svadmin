@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.31.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.30.2...ui-v0.31.0) (2026-04-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core & ui:** useList, useOne, useShow, useMany now return the Tanstack Query result directly instead of wrapping it in { query, overtime }.
+
+### 🐛 Bug Fixes
+
+* **core & ui:** resolve critical Svelte 5 context bounds, proxy loops, and package exports ([#110](https://github.com/zuohuadong/svadmin/issues/110)) ([b0a1fd7](https://github.com/zuohuadong/svadmin/commit/b0a1fd72b20e6a1d92de445ee2a95fbbf182d218))
+
 ## [0.30.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.30.1...ui-v0.30.2) (2026-04-11)
 
 
