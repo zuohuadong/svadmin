@@ -27,7 +27,7 @@
   }>();
 
   // Retrieve optional component overrides from registry
-  const registry = getComponentRegistry();
+  const registry = getComponentRegistry() || {} as any;
   const CustomBreadcrumbs = registry.Breadcrumbs;
   const CustomThemeToggle = registry.ThemeToggle;
   const CustomUserMenu = registry.UserMenu;

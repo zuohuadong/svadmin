@@ -87,6 +87,15 @@
   const resolvedRouter = $derived(routerProvider ?? createHashRouterProvider());
   const resolvedRouteMode = $derived(routeMode ?? (routerProvider ? 'auto' : 'hash'));
 
+  // Set up initial context synchronously so children can access resources immediately during first render
+  setDataProvider(dataProvider);
+  if (authProvider) setAuthProvider(authProvider);
+  setResources(resources);
+  setRouterProvider(resolvedRouter);
+  if (locale) setLocale(locale);
+  if (userThemeConfig) configureTheme(userThemeConfig);
+  if (defaultTheme) setTheme(defaultTheme);
+
   // Set up context — use $effect so prop changes are tracked
   $effect.pre(() => {
     setDataProvider(dataProvider);
@@ -104,7 +113,8 @@
     },
   });
 
-  // Initialize router with provider
+  // Initialize router with provider synchronously
+  initRouter(resolvedRouter);
   $effect.pre(() => {
     initRouter(resolvedRouter);
   });

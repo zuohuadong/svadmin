@@ -26,6 +26,10 @@
 	}
 
 	setContext("svadmin-dropdown-open", () => open);
+	setContext("svadmin-dropdown-toggle", () => {
+		open = !open;
+		onOpenChange?.(open);
+	});
 
 	$effect(() => {
 		if (open) {
