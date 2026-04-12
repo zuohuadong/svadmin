@@ -80,11 +80,11 @@
   let navItems = $state.raw<NavItem[]>([]);
 
   $effect(() => {
-    // Re-run when locale or resources change
     const localeVal = getLocale();
+    const currentResources = getResources();
     let cancelled = false;
 
-    Promise.all(resources.map(async (r) => {
+    Promise.all(currentResources.map(async (r) => {
       try {
         const { can } = await canAccessAsync(r.name, 'list');
         return { r, can };

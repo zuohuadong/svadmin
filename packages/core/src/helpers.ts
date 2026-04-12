@@ -219,7 +219,7 @@ export function deriveValidator(
         case 'email': {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (typeof value === 'string' && !emailRegex.test(value)) {
-            errors[field.key] = t('validation.email', { defaultValue: 'Invalid email address' });
+            errors[field.key] = t('validation.invalidEmail');
           }
           break;
         }
@@ -227,13 +227,13 @@ export function deriveValidator(
           try {
             new URL(value as string);
           } catch {
-            errors[field.key] = t('validation.url', { defaultValue: 'Invalid URL' });
+            errors[field.key] = t('validation.invalidUrl');
           }
           break;
         }
         case 'number': {
           if (typeof value === 'string' && isNaN(Number(value))) {
-            errors[field.key] = t('validation.number', { defaultValue: 'Must be a number' });
+            errors[field.key] = t('validation.invalidNumber');
           }
           break;
         }

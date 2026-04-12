@@ -92,6 +92,8 @@
 
     return () => {
       if (recognition) {
+        isListening = false;
+        recognition.onend = () => {};
         recognition.stop();
         recognition.onstart = null;
         recognition.onresult = null;

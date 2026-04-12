@@ -43,3 +43,7 @@ export function notify(params: {
 export function closeNotification(key: string): void {
   notificationProvider?.close(key);
 }
+
+export function resetNotificationProvider(): void {
+  notificationProvider = null;
+}

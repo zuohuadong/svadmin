@@ -102,7 +102,7 @@
           rel={isExternal ? 'noopener noreferrer' : undefined}
           class="flex items-center justify-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200
           {active
-            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+            ? 'bg-card text-sidebar-primary shadow-sm ring-1 ring-foreground/5'
             : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
         >
           <Icon class="h-4 w-4 flex-shrink-0" />
@@ -121,7 +121,7 @@
     rel={isExternal ? 'noopener noreferrer' : undefined}
     class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200
     {active
-      ? 'bg-sidebar-accent text-sidebar-accent-foreground sidebar-nav-active'
+      ? 'bg-card text-sidebar-primary shadow-sm ring-1 ring-foreground/5 font-semibold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:bg-primary before:rounded-r-md overflow-hidden relative'
       : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
     style="padding-left: {12 + depth * 12}px"
   >

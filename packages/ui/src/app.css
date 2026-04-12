@@ -17,8 +17,8 @@
   }
 
   :root {
-    --radius: 0.5rem;
-    --background: oklch(0.98 0.002 264);
+    --radius: 0.75rem;
+    --background: oklch(0.975 0.005 264);
     --foreground: oklch(0.13 0.02 265);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.13 0.02 265);
@@ -272,7 +272,7 @@
   
   [data-slot="card"] {
     /* Classic Stripe soft shadow: faint ambient + directional drop */
-    box-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.05), 0 4px 16px -4px rgb(0 0 0 / 0.02);
+    box-shadow: 0 2px 5px -1px rgb(0 0 0 / 0.04), 0 1px 1px -1px rgb(0 0 0 / 0.04), 0 0 0 1px rgb(0 0 0 / 0.02);
   }
 
   [data-slot="dialog-content"],
@@ -304,14 +304,15 @@ button {
 }
 [data-slot="button"]:active:not(:disabled),
 button:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 /* Subtle glowing focus ring for inputs */
+[data-slot="button"]:focus-visible,
 [data-slot="input"]:focus-visible,
 [data-slot="textarea"]:focus-visible,
 [data-slot="select-trigger"]:focus-visible {
-  box-shadow: 0 0 0 1px var(--color-background), 0 0 0 3px color-mix(in oklch, var(--color-primary) 30%, transparent) !important;
+  box-shadow: 0 0 0 1px var(--color-background), 0 0 0 3px color-mix(in oklch, var(--color-primary) 20%, transparent) !important;
   border-color: var(--color-primary);
 }
 
@@ -338,7 +339,7 @@ button:active:not(:disabled) {
 }
 @media (hover: hover) {
   [data-slot="card"]:hover {
-    box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 8px 24px -6px rgb(0 0 0 / 0.04);
+    box-shadow: 0 6px 16px -4px rgb(0 0 0 / 0.06), 0 4px 8px -2px rgb(0 0 0 / 0.04), 0 0 0 1px rgb(0 0 0 / 0.02);
     transform: translateY(-1px);
   }
 }

@@ -3,6 +3,11 @@
 
 import type { DataProvider, AuthProvider, ResourceDefinition } from './types';
 import type { RouterProvider } from './router-provider';
+import { resetNotificationProvider } from './notification.svelte';
+import { resetAuditLogProvider } from './audit';
+import { resetAccessControlProvider } from './permissions';
+import { resetAdminOptions } from './options.svelte';
+import { resetI18n } from './i18n.svelte';
 
 // ─── DataProvider (supports single or multiple) ─────────────────
 
@@ -121,4 +126,19 @@ export function setLiveProvider(provider: import('./live.svelte').LiveProvider):
 
 export function getLiveProvider(): import('./live.svelte').LiveProvider | undefined {
   return liveProviderState;
+}
+
+// ─── Reset — for testing / HMR ─────────────────────────────────
+
+export function resetContext(): void {
+  providers = null;
+  authProvider = null;
+  resources = [];
+  routerProvider = undefined;
+  liveProviderState = undefined;
+  resetNotificationProvider();
+  resetAuditLogProvider();
+  resetAccessControlProvider();
+  resetAdminOptions();
+  resetI18n();
 }

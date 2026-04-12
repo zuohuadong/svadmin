@@ -15,7 +15,8 @@
 		...restProps
 	}: Props = $props();
 
-	let isOpen = $derived(getContext<() => boolean>("svadmin-dropdown-open")?.() ?? true);
+	const getOpen = getContext<() => boolean>("svadmin-dropdown-open");
+	let isOpen = $derived(getOpen?.() ?? true);
 </script>
 
 {#if isOpen}

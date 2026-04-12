@@ -105,7 +105,7 @@ export function useUpdatePassword() {
 // ─── useGetIdentity ──────────────────────────────────────────
 
 export function useGetIdentity() {
-  const provider = getAuthProvider();
+  const provider = getAuthProvider({ optional: true });
   let data = $state<Identity | null>(null);
   let isLoading = $state(true);
   let error = $state<Error | null>(null);
@@ -138,7 +138,7 @@ export function useGetIdentity() {
 // ─── useIsAuthenticated ──────────────────────────────────────
 
 export function useIsAuthenticated() {
-  const provider = getAuthProvider();
+  const provider = getAuthProvider({ optional: true });
   let isAuthenticated = $state(false);
   let isLoading = $state(true);
   let checkResult = $state<CheckResult | null>(null);

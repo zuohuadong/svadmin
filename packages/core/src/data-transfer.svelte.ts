@@ -200,6 +200,7 @@ function parseCSV(text: string): string[][] {
   let currentRow: string[] = [];
   let currentVal = '';
   let inQuotes = false;
+  let wasQuoted = false;
 
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
@@ -207,7 +208,7 @@ function parseCSV(text: string): string[][] {
       if (ch === '"') {
         if (i + 1 < text.length && text[i + 1] === '"') {
           currentVal += '"';
-          i++; // skip escaped quote
+          i++;
         } else {
           inQuotes = false;
         }
@@ -217,18 +218,21 @@ function parseCSV(text: string): string[][] {
     } else {
       if (ch === '"') {
         inQuotes = true;
+        wasQuoted = true;
       } else if (ch === ',') {
-        currentRow.push(currentVal.trim());
+        currentRow.push(wasQuoted ? currentVal : currentVal.trim());
         currentVal = '';
+        wasQuoted = false;
       } else if (ch === '\n' || ch === '\r') {
-        currentRow.push(currentVal.trim());
+        currentRow.push(wasQuoted ? currentVal : currentVal.trim());
         if (currentRow.some(v => v !== '')) {
           rows.push(currentRow);
         }
         currentRow = [];
         currentVal = '';
+        wasQuoted = false;
         if (ch === '\r' && i + 1 < text.length && text[i + 1] === '\n') {
-          i++; // consume \n of \r\n
+          i++;
         }
       } else {
         currentVal += ch;
@@ -237,7 +241,7 @@ function parseCSV(text: string): string[][] {
   }
   
   if (currentVal || currentRow.length > 0) {
-    currentRow.push(currentVal.trim());
+    currentRow.push(wasQuoted ? currentVal : currentVal.trim());
     if (currentRow.some(v => v !== '')) {
       rows.push(currentRow);
     }

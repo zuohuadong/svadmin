@@ -11,7 +11,7 @@
   } from '@tanstack/svelte-table';
   import { getCoreRowModel } from '@tanstack/table-core';
 
-  import { useList, useDelete, getResource } from '@svadmin/core';
+  import { useList, useDelete, getResource, notify } from '@svadmin/core';
   import type { Pagination as PaginationState, Sort, Filter, FieldDefinition } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
   import { useCan, getAccessControlProvider } from '@svadmin/core';
@@ -334,11 +334,13 @@
     const ids = Object.keys(rowSelection);
     confirmMessage = t('common.batchDeleteConfirm', { count: ids.length });
     confirmAction = async () => {
-      const results = await Promise.allSettled(ids.map(id => deleteMutation.mutateAsync({ id, resource: resourceName })));
+      const results = await Promise.allSettled(ids.map(id => deleteMutation.mutateAsync({ id, resource: resourceName, successNotification: false })));
+      const succeeded = results.filter(r => r.status === 'fulfilled').length;
       const failed = results.filter(r => r.status === 'rejected');
       if (failed.length > 0) {
-        console.error('Batch delete partial failure', failed);
-        // Rely on individual mutation error toasts, or show a summary
+        notify({ type: 'error', message: t('common.batchDeletePartialFail', { failed: failed.length, total: ids.length }) });
+      } else {
+        notify({ type: 'success', message: t('common.batchDeleteSuccess', { count: succeeded }) });
       }
       rowSelection = {};
       confirmOpen = false;
@@ -470,7 +472,7 @@
                     value={filterValues[field.key] ?? ''}
                     onchange={(e) => filterValues[field.key] = (e.currentTarget as HTMLSelectElement).value}
                   >
-                    <option value="">{t('common.all') ?? '全部'}</option>
+                    <option value="">{t('common.all')}</option>
                     {#each field.options as opt}
                       <option value={opt.value}>{opt.label}</option>
                     {/each}
@@ -505,7 +507,7 @@
   </div>
 
   <!-- Table (TanStack-powered) -->
-  <div class="rounded-lg bg-card shadow-sm ring-1 ring-border/10 overflow-hidden" role="region" aria-label="{resource.label} {t('common.list')}">
+  <div class="rounded-xl bg-card shadow-sm overflow-hidden" role="region" aria-label="{resource.label} {t('common.list')}">
     {#if query.isLoading}
       <div class="p-4 space-y-3">
         <div class="flex gap-4 mb-2">
@@ -541,7 +543,7 @@
                   {@const header = col.header as typeof headerGroup.headers[0]}
                   <Table.Head
                     {...dragProps}
-                    class={cn("bg-muted/50 hover:bg-muted/50", dragProps.class)}
+                    class={cn("bg-muted/20 hover:bg-muted/30 border-b border-border/40 uppercase tracking-wide text-[0.7rem] text-muted-foreground font-semibold", dragProps.class)}
                     style={header.getSize() !== 150 ? `width:${header.getSize()}px` : undefined}
                   >
                     {#if header.id === '_select'}
@@ -557,7 +559,7 @@
                       <Button
                         variant="ghost"
                         size="sm"
-                        class="flex items-center gap-1 hover:text-foreground -ml-3 h-auto py-1 px-2"
+                        class="flex items-center gap-1 hover:text-foreground -ml-2 h-auto py-1 px-2 uppercase tracking-wide text-[0.7rem] font-semibold"
                         onclick={() => header.column.toggleSorting()}
                       >
                         {visibleFields.find(f => f.key === header.id)?.label ?? header.id}
@@ -583,7 +585,7 @@
               <ContextMenu.Root>
                 <ContextMenu.Trigger>
                   {#snippet child({ props })}
-                    <Table.Row {...props} class="transition-colors border-0 even:bg-muted/20 {row.getIsSelected() ? 'bg-accent/50' : 'hover:bg-muted/40'}">
+                    <Table.Row {...props} class="transition-colors border-b border-border/40 {row.getIsSelected() ? 'bg-accent/50' : 'hover:bg-muted/40'}">
                       {#each row.getVisibleCells() as cell}
                         <Table.Cell>
                           {#if cell.column.id === '_select'}

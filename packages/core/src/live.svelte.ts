@@ -16,27 +16,39 @@ export interface LiveProvider {
   subscribe(params: { resource: string; liveParams?: Record<string, unknown>; callback: (event: LiveEvent) => void }): () => void;
   unsubscribe?(params: { resource: string; liveParams?: Record<string, unknown> }): void;
   publish?(event: LiveEvent): void;
+  onConnected?: () => void;
+  onDisconnected?: () => void;
+}
+
+export interface LiveProviderReconnectOptions {
+  enabled?: boolean;
+  retryCount?: number;
+  retryInterval?: number;
 }
 
 // ─── useLive — auto-invalidate queries on real-time events ──────
 
 export function useLive(
-  liveProvider: LiveProvider,
-  resource: string,
-  options?: { liveMode?: LiveMode; onLiveEvent?: (event: LiveEvent) => void }
+  liveProvider: LiveProvider | (() => LiveProvider),
+  resource: string | (() => string),
+  options?: { liveMode?: LiveMode | (() => LiveMode); onLiveEvent?: (event: LiveEvent) => void; liveParams?: Record<string, unknown> | (() => Record<string, unknown>) }
 ): void {
   const queryClient = useQueryClient();
 
   $effect(() => {
-    const liveMode = options?.liveMode ?? 'auto';
+    const lp = typeof liveProvider === 'function' ? liveProvider() : liveProvider;
+    const res = typeof resource === 'function' ? resource() : resource;
+    const liveMode = typeof options?.liveMode === 'function' ? options.liveMode() : (options?.liveMode ?? 'auto');
+    const liveParams = typeof options?.liveParams === 'function' ? options.liveParams() : options?.liveParams;
     if (liveMode === 'off') return;
 
-    const unsubscribe = liveProvider.subscribe({
-      resource,
+    const unsubscribe = lp.subscribe({
+      resource: res,
+      liveParams,
       callback: (event) => {
         options?.onLiveEvent?.(event);
         if (liveMode === 'auto') {
-          queryClient.invalidateQueries({ queryKey: [resource] });
+          queryClient.invalidateQueries({ queryKey: [res] });
         }
       },
     });
@@ -47,20 +59,25 @@ export function useLive(
 // ─── useSubscription — manual channel subscription ──────────────
 
 interface UseSubscriptionOptions {
-  resource: string;
-  liveProvider: LiveProvider;
+  resource: string | (() => string);
+  liveProvider: LiveProvider | (() => LiveProvider);
   onLiveEvent: (event: LiveEvent) => void;
-  enabled?: boolean;
+  enabled?: boolean | (() => boolean);
+  liveParams?: Record<string, unknown> | (() => Record<string, unknown>);
 }
 
 export function useSubscription(options: UseSubscriptionOptions): void {
   $effect(() => {
-    const { resource, liveProvider, onLiveEvent, enabled = true } = options;
+    const res = typeof options.resource === 'function' ? options.resource() : options.resource;
+    const lp = typeof options.liveProvider === 'function' ? options.liveProvider() : options.liveProvider;
+    const enabled = typeof options.enabled === 'function' ? options.enabled() : (options.enabled ?? true);
+    const liveParams = typeof options.liveParams === 'function' ? options.liveParams() : options.liveParams;
     if (!enabled) return;
 
-    const unsubscribe = liveProvider.subscribe({
-      resource,
-      callback: onLiveEvent,
+    const unsubscribe = lp.subscribe({
+      resource: res,
+      liveParams,
+      callback: options.onLiveEvent,
     });
     return unsubscribe;
   });

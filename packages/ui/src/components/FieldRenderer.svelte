@@ -20,11 +20,11 @@
   import type { Snippet } from 'svelte';
   import { getRichTextEditor } from '../editor-config.svelte.js';
 
-  let { field, value, onchange, children } = $props<{
+  let { field, value, onchange, disabled, children } = $props<{
     field: FieldDefinition;
     value: unknown;
     onchange: (val: unknown) => void;
-    /** Optional custom renderer snippet */
+    disabled?: boolean;
     children?: Snippet;
   }>();
 
@@ -98,6 +98,7 @@
       value={strVal}
       oninput={(e) => onchange((e.target as HTMLInputElement).value)}
       required={field.required}
+      {disabled}
       placeholder={t('field.enterValue', { label: field.label })}
     />
 
@@ -108,6 +109,7 @@
       value={strVal}
       oninput={(e) => onchange((e.target as HTMLInputElement).value)}
       required={field.required}
+      {disabled}
       placeholder="name@example.com"
     />
 
@@ -118,6 +120,7 @@
       value={strVal}
       oninput={(e) => onchange((e.target as HTMLInputElement).value)}
       required={field.required}
+      {disabled}
       placeholder="https://"
     />
 
@@ -128,6 +131,7 @@
       value={strVal}
       oninput={(e) => onchange((e.target as HTMLInputElement).value)}
       required={field.required}
+      {disabled}
       placeholder="+1 (555) 000-0000"
     />
 
@@ -139,6 +143,7 @@
         value={strVal || '#000000'}
         oninput={(e) => onchange((e.target as HTMLInputElement).value)}
         class="h-10 w-14 cursor-pointer rounded-md border border-input bg-background p-1"
+        disabled={disabled}
       />
       <Input
         type="text"
@@ -146,6 +151,7 @@
         oninput={(e) => onchange((e.target as HTMLInputElement).value)}
         placeholder="#000000"
         class="max-w-32 font-mono text-sm"
+        {disabled}
       />
       {#if strVal}
         <span
@@ -160,8 +166,12 @@
       id={field.key}
       type="number"
       value={String(numVal)}
-      oninput={(e) => onchange(parseFloat((e.target as HTMLInputElement).value) || 0)}
+      oninput={(e) => {
+        const v = (e.target as HTMLInputElement).value;
+        onchange(v === '' ? null : Number(v));
+      }}
       required={field.required}
+      {disabled}
     />
 
   {:else if field.type === 'richtext'}
@@ -173,6 +183,7 @@
         placeholder={t('field.enterValue', { label: field.label })}
         preset="full"
         onchange={(html: string) => onchange(html)}
+        {disabled}
       />
     {:else}
       <Textarea
@@ -180,6 +191,7 @@
         value={strVal}
         oninput={(e) => onchange((e.target as HTMLTextAreaElement).value)}
         required={field.required}
+        {disabled}
         rows={10}
         placeholder={t('field.enterValue', { label: field.label })}
         class="resize-y"
@@ -192,6 +204,7 @@
       value={strVal}
       oninput={(e) => onchange((e.target as HTMLTextAreaElement).value)}
       required={field.required}
+      {disabled}
       rows={4}
       placeholder={t('field.enterValue', { label: field.label })}
       class="resize-y"
@@ -206,6 +219,7 @@
       optionLabel={field.optionLabel ?? 'title'}
       optionValue={field.optionValue ?? 'id'}
       placeholder={t('field.selectPlaceholder')}
+      {disabled}
     />
 
   {:else if field.type === 'select'}
@@ -217,6 +231,7 @@
         value={value as string | number | null}
         onchange={(v) => onchange(v)}
         searchable={false}
+        {disabled}
       />
     {:else}
       <Select
@@ -224,6 +239,7 @@
         value={strVal}
         onchange={(e) => onchange((e.target as HTMLSelectElement).value)}
         required={field.required}
+        {disabled}
         placeholder={t('field.selectPlaceholder')}
       >
         {#each field.options ?? [] as opt}
@@ -244,6 +260,7 @@
             id={`${field.key}-${opt.value}`}
             checked={multiVal.includes(opt.value)}
             onCheckedChange={() => toggleMulti(opt.value)}
+            disabled={disabled}
           />
           {opt.label}
         </label>
@@ -270,6 +287,7 @@
         id={field.key}
         checked={boolVal}
         onCheckedChange={(v) => onchange(v)}
+        disabled={disabled}
       />
       <span class="text-sm text-muted-foreground">{boolVal ? t('common.yes') : t('common.no')}</span>
     </div>
@@ -294,6 +312,7 @@
         type="text"
         placeholder={t('field.tagsPlaceholder')}
         onkeydown={handleTagKeydown}
+        {disabled}
       />
     </div>
 
@@ -304,6 +323,7 @@
       value={strVal}
       oninput={(e) => onchange((e.target as HTMLInputElement).value)}
       required={field.required}
+      {disabled}
     />
 
   {:else if field.type === 'images'}
@@ -317,6 +337,7 @@
             oninput={(e) => updateImage(i, (e.target as HTMLInputElement).value)}
             placeholder="https://example.com/image.jpg"
             class="flex-1"
+            {disabled}
           />
           {#if url}
             <img src={url} alt="preview" class="h-9 w-9 rounded object-cover border" />
@@ -342,6 +363,7 @@
           // keep raw text until valid JSON
         }
       }}
+      {disabled}
       rows={6}
       class="resize-y font-mono text-xs"
     />
@@ -352,6 +374,7 @@
       type="text"
       value={strVal}
       oninput={(e) => onchange((e.target as HTMLInputElement).value)}
+      {disabled}
     />
   {/if}
 </div>

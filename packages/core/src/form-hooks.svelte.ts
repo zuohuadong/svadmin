@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/svelte-query';
 import { useParsed } from './useParsed.svelte';
 import { getAdminOptions } from './options.svelte';
-import { getDataProviderForResource, getResource, getLiveProvider, getAuthProvider } from './context.svelte';
+import { getDataProviderForResource, getResource, getLiveProvider } from './context.svelte';
 import { createQuery, createMutation } from '@tanstack/svelte-query';
 import { notify } from './notification.svelte';
 import { t } from './i18n.svelte';
@@ -9,6 +9,7 @@ import { audit } from './audit';
 import { navigate, currentPath } from './router';
 import { HttpError } from './types';
 import type { BaseRecord, MutationMode, KnownResources } from './types';
+import { checkError } from './hook-utils.svelte';
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -18,7 +19,7 @@ export interface UseFormOptions<
   TError = HttpError,
 > {
   resource?: KnownResources;
-  action?: 'create' | 'edit' | 'clone';
+  action?: 'create' | 'edit' | 'clone' | 'show';
   id?: string | number;
   redirect?: 'list' | 'edit' | 'show' | false;
 
@@ -41,7 +42,7 @@ export interface UseFormOptions<
   /** Called every time a field value changes. */
   onChange?: (event: { field: string; value: unknown; values: TVariables }) => void;
   /** Called before mutation. Return false or call cancel() to prevent submission. */
-  onSubmit?: (ctx: { values: TVariables; action: 'create' | 'edit' | 'clone'; cancel: () => void }) => void | boolean;
+  onSubmit?: (ctx: { values: TVariables; action: 'create' | 'edit' | 'clone' | 'show'; cancel: () => void }) => void | boolean;
 
   // ─── Meta ─────────────────────────────────────────────────────
   meta?: Record<string, unknown>;
@@ -114,12 +115,12 @@ export interface UseFormReturn<
   // ─── State ──────────────────────────────────────────────────────
   readonly loading: boolean;
   readonly submitting: boolean;
-  readonly action: 'create' | 'edit' | 'clone';
+  readonly action: 'create' | 'edit' | 'clone' | 'show';
   readonly resource: string;
   readonly id: string | number | undefined;
   readonly isDirty: boolean;
   setId: (id: string | number | undefined) => void;
-  setAction: (action: 'create' | 'edit' | 'clone') => void;
+  setAction: (action: 'create' | 'edit' | 'clone' | 'show') => void;
   mutationMode: MutationMode;
   redirect: (to: 'list' | 'edit' | 'show' | false) => void;
 
@@ -144,7 +145,7 @@ export function useForm<
   const adminOptions = getAdminOptions();
 
   const resource = $derived(options.resource ?? parsed.resource ?? '');
-  let action = $state<'create' | 'edit' | 'clone'>(options.action ?? (parsed.action === 'list' ? 'create' : parsed.action as 'create' | 'edit' | 'clone') ?? 'create');
+  let action = $state<'create' | 'edit' | 'clone' | 'show'>(options.action ?? (parsed.action === 'list' ? 'create' : parsed.action as 'create' | 'edit' | 'clone' | 'show') ?? 'create');
   let currentId = $state<string | number | undefined>(options.id ?? parsed.id);
 
   const defaultRedirectOpt = $derived(action === 'clone' ? adminOptions.redirect?.afterClone : action === 'edit' ? adminOptions.redirect?.afterEdit : adminOptions.redirect?.afterCreate);
@@ -167,12 +168,11 @@ export function useForm<
   const redirectDefault = $derived(redirectOption ?? defaultRedirectOpt ?? 'list');
 
   const provider = $derived(getDataProviderForResource(resource, dataProviderName));
-  const parsedMeta = useParsed().params || {};
-  const queryMeta = { ...parsedMeta, ...hookMeta, ...hookQueryMeta };
-  const mutationMeta = { ...parsedMeta, ...hookMeta, ...hookMutationMeta };
+  const queryMeta = $derived({ ...useParsed().params, ...hookMeta, ...hookQueryMeta });
+  const mutationMeta = $derived({ ...useParsed().params, ...hookMeta, ...hookMutationMeta });
 
   function setId(newId: string | number | undefined) { currentId = newId; }
-  function setAction(newAction: 'create' | 'edit' | 'clone') { action = newAction; }
+  function setAction(newAction: 'create' | 'edit' | 'clone' | 'show') { action = newAction; }
 
   // ─── Form values (single source of truth) ───────────────────────
   let values = $state<TVariables>((options.defaultValues ?? {}) as TVariables);
@@ -247,19 +247,6 @@ export function useForm<
   }
 
   // ─── Server error handling ──────────────────────────────────────
-  async function checkError(error: unknown) {
-    try {
-      const authProvider = getAuthProvider({ optional: true });
-      if (!authProvider?.onError) return;
-      const result = await authProvider.onError(error);
-      if (result.logout) {
-        await authProvider.logout?.();
-        navigate(result.redirectTo ?? '/login');
-      } else if (result.redirectTo) {
-        navigate(result.redirectTo);
-      }
-    } catch { /* auth check failed silently */ }
-  }
 
   function handleHttpError(error: Error) {
     checkError(error);
@@ -283,7 +270,7 @@ export function useForm<
       const result = await provider.getOne<BaseRecord>({ resource, id: currentId!, meta: queryMeta });
       return result.data;
     },
-    enabled: (queryOptions?.enabled ?? true) && (action === 'edit' || action === 'clone') && currentId != null,
+    enabled: (queryOptions?.enabled ?? true) && (action === 'edit' || action === 'clone' || action === 'show') && currentId != null,
     staleTime: queryOptions?.staleTime,
   }));
 
@@ -304,8 +291,9 @@ export function useForm<
       const pk = getResource(resource).primaryKey ?? 'id';
       if (data && (currentId == null || String(data[pk]) === String(currentId) || !data[pk])) {
         // In clone mode, strip out identifiers
+        const cloneStripKeys = new Set(['id', '_id', pk, 'createdAt', 'updatedAt', 'created_at', 'updated_at', 'createdBy', 'updated_by', 'created_by', 'updatedBy']);
         const targetData = action === 'clone' 
-          ? Object.fromEntries(Object.entries(data).filter(([k]) => k !== 'id' && k !== '_id' && k !== pk))
+          ? Object.fromEntries(Object.entries(data).filter(([k]) => !cloneStripKeys.has(k)))
           : data;
         // Merge: defaultValues < query data
         const merged = { ...(options.defaultValues ?? {}), ...targetData } as TVariables;

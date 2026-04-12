@@ -1,9 +1,6 @@
 /// <reference types="@sveltejs/kit" />
 import { goto } from '$app/navigation';
-import { page } from '$app/stores';
-import { get } from 'svelte/store';
-// NOTE: $app/stores is deprecated in SvelteKit 2.x in favor of $app/state (runes).
-// However, $app/state requires a .svelte.ts file to use runes. This works for now.
+import { page } from '$app/state';
 import type { RouterProvider } from '@svadmin/core';
 
 export function createSvelteKitRouterProvider(): RouterProvider {
@@ -27,7 +24,6 @@ export function createSvelteKitRouterProvider(): RouterProvider {
       }
     },
     formatLink(path: string) {
-      // SvelteKit natively resolves absolute/relative paths directly using href
       return path.startsWith('/') ? path : `/${path}`;
     },
     parse() {
@@ -35,21 +31,15 @@ export function createSvelteKitRouterProvider(): RouterProvider {
       let params: Record<string, string> = {};
       
       try {
-        const p = get(page) as any;
-        if (p?.url) {
-          pathname = p.url.pathname;
+        if (page.url) {
+          pathname = page.url.pathname;
         }
-        if (p?.params) {
-          // Do not spread path params into query params
-          // SvelteKit route params (e.g. /posts/edit/[id]) are handled at the root
-        }
-        if (p?.url?.searchParams) {
-          p.url.searchParams.forEach((v: string, k: string) => {
+        if (page.url?.searchParams) {
+          page.url.searchParams.forEach((v: string, k: string) => {
             params[k] = v;
           });
         }
-      } catch (e) {
-        // Fallback for SSR or non-SvelteKit context
+      } catch {
         if (typeof window !== 'undefined') {
           pathname = window.location.pathname;
           new URLSearchParams(window.location.search).forEach((v, k) => {
@@ -58,8 +48,8 @@ export function createSvelteKitRouterProvider(): RouterProvider {
         }
       }
 
-      let p_params = {} as any;
-      try { p_params = (get(page) as any)?.params ?? {}; } catch {}
+      let p_params: Record<string, string> = {};
+      try { p_params = (page.params ?? {}) as Record<string, string>; } catch {}
 
       return {
         resource: p_params?.resource,

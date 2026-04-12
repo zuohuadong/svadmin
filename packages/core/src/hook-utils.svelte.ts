@@ -3,7 +3,27 @@
 
 import { useQueryClient } from '@tanstack/svelte-query';
 import type { LiveProvider, LiveEvent, LiveMode } from './live.svelte';
+import { getAuthProvider } from './context.svelte';
 import { toast } from './toast.svelte';
+
+// ─── Auth Error Delegate ────────────────────────────────────────
+// Delegate auth errors (401/403) to authProvider.onError() — refine pattern
+
+export async function checkError(error: unknown): Promise<void> {
+  try {
+    const authProvider = getAuthProvider({ optional: true });
+    if (!authProvider?.onError) return;
+    const result = await authProvider.onError(error);
+    if (result.logout) {
+      await authProvider.logout?.();
+      const { navigate } = await import('./router');
+      navigate(result.redirectTo ?? '/login');
+    } else if (result.redirectTo) {
+      const { navigate } = await import('./router');
+      navigate(result.redirectTo);
+    }
+  } catch { /* auth check failed silently */ }
+}
 
 // ─── Overtime Tracker ───────────────────────────────────────────
 // Tracks elapsed time during loading, auto-cleans via $effect

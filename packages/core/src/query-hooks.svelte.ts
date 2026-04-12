@@ -1,8 +1,9 @@
 import { createQuery, createInfiniteQuery } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options.svelte';
-import { getDataProviderForResource, getDataProvider, getLiveProvider, getAuthProvider } from './context.svelte';
+import { getDataProviderForResource, getDataProvider, getLiveProvider } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 import {
+  checkError,
   createOvertimeTracker,
   createLiveSubscription,
   fireSuccessNotification,
@@ -36,25 +37,6 @@ function extendQuery<Q extends object, E extends Record<string, unknown>>(
       return Reflect.has(target, prop);
     },
   }) as Q & E;
-}
-
-/**
- * Delegate auth errors (401/403) to authProvider.onError() — refine pattern.
- */
-async function checkError(error: unknown): Promise<void> {
-  try {
-    const authProvider = getAuthProvider({ optional: true });
-    if (!authProvider?.onError) return;
-    const result = await authProvider.onError(error);
-    if (result.logout) {
-      await authProvider.logout?.();
-      const { navigate } = await import('./router');
-      navigate(result.redirectTo ?? '/login');
-    } else if (result.redirectTo) {
-      const { navigate } = await import('./router');
-      navigate(result.redirectTo);
-    }
-  } catch { /* auth check failed silently */ }
 }
 
 // ─── useList ───────────────────────────────────────────────────
@@ -192,6 +174,22 @@ export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError
 
   const overtime = createOvertimeTracker(() => query.isLoading, typeof optionsOrGetter === 'function' ? optionsOrGetter().overtimeOptions : optionsOrGetter.overtimeOptions ?? adminOptions.overtime);
 
+  createLiveSubscription((): LiveSubscriptionParams => {
+    const opts = getOptions();
+    const resource = getResource();
+    return {
+      resource,
+      liveProvider: getLiveProvider(),
+      liveMode: opts.liveMode ?? adminOptions.liveMode,
+      onLiveEvent: (e: LiveEvent) => {
+        opts.onLiveEvent?.(e);
+        adminOptions.onLiveEvent?.(e);
+      },
+      liveParams: opts.liveParams,
+      enabled: (opts.queryOptions?.enabled ?? true) && getId() != null,
+    };
+  });
+
   let lastSuccessAt = 0;
   let lastErrorAt = 0;
   $effect(() => {
@@ -275,6 +273,21 @@ export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpErro
   });
 
   const overtime = createOvertimeTracker(() => query.isLoading, typeof optionsOrGetter === 'function' ? optionsOrGetter().overtimeOptions : optionsOrGetter.overtimeOptions ?? adminOptions.overtime);
+
+  createLiveSubscription((): LiveSubscriptionParams => {
+    const opts = getOptions();
+    return {
+      resource: opts.resource,
+      liveProvider: getLiveProvider(),
+      liveMode: opts.liveMode ?? adminOptions.liveMode,
+      onLiveEvent: (e: LiveEvent) => {
+        opts.onLiveEvent?.(e);
+        adminOptions.onLiveEvent?.(e);
+      },
+      liveParams: opts.liveParams,
+      enabled: (opts.queryOptions?.enabled ?? true) && opts.ids.length > 0,
+    };
+  });
 
   let lastSuccessAt = 0;
   let lastErrorAt = 0;

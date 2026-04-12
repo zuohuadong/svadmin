@@ -7,11 +7,24 @@ interface RouteMatch {
   params: Record<string, string>;
 }
 
-// Store a reference to the active RouterProvider (set by router-state.svelte.ts)
+export type RouteGuard = (to: string, from: string) => boolean | Promise<boolean>;
+
 let _routerProvider: RouterProvider | undefined;
+let _beforeGuards: RouteGuard[] = [];
+let _afterGuards: ((to: string, from: string) => void)[] = [];
 
 export function setActiveRouterProvider(provider: RouterProvider | undefined) {
   _routerProvider = provider;
+}
+
+export function beforeEach(guard: RouteGuard): () => void {
+  _beforeGuards.push(guard);
+  return () => { _beforeGuards = _beforeGuards.filter(g => g !== guard); };
+}
+
+export function afterEach(guard: (to: string, from: string) => void): () => void {
+  _afterGuards.push(guard);
+  return () => { _afterGuards = _afterGuards.filter(g => g !== guard); };
 }
 
 // Parse route pattern like /products/edit/:id into regex
@@ -50,11 +63,19 @@ export function matchRoute(
   return null;
 }
 
-export function navigate(path: string, options?: { replaceState?: boolean }): void {
+export async function navigate(path: string, options?: { replaceState?: boolean }): Promise<void> {
+  const from = currentPath();
+  for (const guard of _beforeGuards) {
+    const allowed = await guard(path, from);
+    if (!allowed) return;
+  }
   if (_routerProvider) {
     _routerProvider.go({ to: path, type: options?.replaceState ? 'replace' : 'push' });
   } else if (typeof window !== 'undefined') {
     window.location.hash = '#' + path.replace(/^#/, '');
+  }
+  for (const guard of _afterGuards) {
+    guard(path, from);
   }
 }
 

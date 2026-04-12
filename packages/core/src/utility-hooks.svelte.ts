@@ -84,11 +84,11 @@ export interface MenuConfig {
 }
 
 export function useMenu() {
-  const adminOptions = getAdminOptions();
-  const resources = getResources();
   const parsed = useParsed();
 
   const menuItems = $derived.by<MenuConfig[]>(() => {
+    const adminOptions = getAdminOptions();
+    const resources = getResources();
     let items: MenuConfig[] = resources
       .filter((r: ResourceDefinition) => r.showInMenu !== false)
       .map((r: ResourceDefinition): MenuConfig => ({

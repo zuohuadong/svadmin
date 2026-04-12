@@ -6,6 +6,7 @@ export {
   setResources, getResources, getResource,
   setRouterProvider, getRouterProvider,
   setLiveProvider, getLiveProvider,
+  resetContext,
 } from './context.svelte';
 export type { DataProviderInput } from './context.svelte';
 export {
@@ -26,7 +27,8 @@ export {
   useNotification, useDataProvider,
   useMenu, useBreadcrumb, useThemedLayoutContext,
 } from './hooks.svelte';
-export { matchRoute, navigate, currentPath, setActiveRouterProvider } from './router';
+export { matchRoute, navigate, currentPath, setActiveRouterProvider, beforeEach, afterEach } from './router';
+export type { RouteGuard } from './router';
 export { readURLState, writeURLState } from './url-sync';
 export { setAccessControlProvider, getAccessControlProvider, getAccessControlOptions, canAccessAsync } from './permissions';
 export { useLive, useSubscription, usePublish } from './live.svelte';
@@ -42,6 +44,8 @@ export type { ThemeMode, ColorTheme, ThemeStrategy, ThemeConfig, ColorPreset } f
 export { setUnsavedChanges, getUnsavedChanges, initUnsavedChangesNotifier } from './unsaved-changes.svelte';
 export { setAdminOptions, getAdminOptions, getTextTransformers } from './options.svelte';
 export type { AdminOptions, TextTransformers, OvertimeConfig } from './options.svelte';
+export { checkError } from './hook-utils.svelte';
+export type { NotificationConfig, OvertimeOptions, OvertimeResult, LiveSubscriptionParams } from './hook-utils.svelte';
 
 export * from './query-keys';
 export { HttpError, UndoError } from './types';

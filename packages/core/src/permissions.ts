@@ -67,6 +67,10 @@ export function getAccessControlProvider(): AccessControlProvider | null {
   return provider;
 }
 
+export function resetAccessControlProvider(): void {
+  provider = null;
+}
+
 /** Get global button options from the AccessControlProvider */
 export function getAccessControlOptions() {
   return provider?.options ?? {};

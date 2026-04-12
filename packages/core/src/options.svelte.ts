@@ -69,16 +69,36 @@ const defaultOptions: AdminOptions = {
 
 let adminOptions = $state<AdminOptions>(defaultOptions);
 
-export function setAdminOptions(options: AdminOptions): void {
-  adminOptions = {
-    ...defaultOptions,
-    ...options,
-    textTransformers: { ...defaultTextTransformers, ...options.textTransformers },
-  };
+export function setAdminOptions(options: AdminOptions, merge?: boolean): void {
+  if (merge) {
+    adminOptions = {
+      ...adminOptions,
+      ...options,
+      textTransformers: { ...adminOptions.textTransformers, ...options.textTransformers },
+      redirect: { ...adminOptions.redirect, ...options.redirect },
+      reactQuery: { ...adminOptions.reactQuery, ...options.reactQuery },
+      title: { ...adminOptions.title, ...options.title },
+      overtime: { ...adminOptions.overtime, ...options.overtime },
+    };
+  } else {
+    adminOptions = {
+      ...defaultOptions,
+      ...options,
+      textTransformers: { ...defaultTextTransformers, ...options.textTransformers },
+      redirect: { ...defaultOptions.redirect, ...options.redirect },
+      reactQuery: { ...defaultOptions.reactQuery, ...options.reactQuery },
+      title: { ...defaultOptions.title, ...options.title },
+      overtime: { ...defaultOptions.overtime, ...options.overtime },
+    };
+  }
 }
 
 export function getAdminOptions(): AdminOptions {
   return adminOptions;
+}
+
+export function resetAdminOptions(): void {
+  adminOptions = defaultOptions;
 }
 
 /** Get the resolved text transformers (always returns full set) */

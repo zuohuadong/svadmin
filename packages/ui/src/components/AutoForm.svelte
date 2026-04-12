@@ -1,5 +1,6 @@
 <script lang="ts">
   import { useForm, getResource, deriveValidator } from '@svadmin/core';
+  import { slide } from 'svelte/transition';
   import type { FieldDefinition } from '@svadmin/core';
   import { t } from '@svadmin/core/i18n';
   import { navigate } from '@svadmin/core/router';
@@ -17,13 +18,14 @@
   interface Props {
     resourceName: string;
     id?: string | number;
-    mode?: 'create' | 'edit' | 'clone';
+    mode?: 'create' | 'edit' | 'clone' | 'show';
     fieldRenderer?: Snippet<[{ field: FieldDefinition; value: unknown; onchange: (v: unknown) => void }]>;
     formActions?: Snippet<[{ isLoading: boolean; onSubmit: () => void }]>;
     headerContent?: Snippet;
   }
 
   let { resourceName, id, mode = 'create', fieldRenderer, formActions, headerContent }: Props = $props();
+  const isReadonly = $derived(mode === 'show');
 
   // ─── Resource metadata ────────────────────────────────────────────
   const resource = $derived(getResource(resourceName));
@@ -34,6 +36,7 @@
     if (f.showInForm === false) return false;
     if (mode === 'create' && f.showInCreate === false) return false;
     if (mode === 'edit' && f.showInEdit === false) return false;
+    if (mode === 'show' && f.showInShow === false) return false;
     return true;
   }));
 
@@ -72,8 +75,7 @@
   const validator = $derived(deriveValidator(formFields));
 
   $effect(() => {
-    // If id changes or defaults magically change, we might want to update form values
-    // But to respect user input, only update if not tainted, or if changing record
+    if (mode !== 'create') return;
     if (!form.isTainted()) {
       for (const key in defaults) {
         if (form.values[key] !== defaults[key]) {
@@ -110,6 +112,8 @@
   const pageTitle = $derived(
     mode === 'create'
       ? `${t('common.create')}${resource.label}`
+      : mode === 'show'
+      ? `${t('common.detail')}${resource.label}`
       : `${t('common.edit')}${resource.label}`
   );
 
@@ -166,10 +170,12 @@
   {:else}
     <form onsubmit={(e: Event) => { e.preventDefault(); handleSubmit(); }} class="max-w-3xl space-y-6">
       {#if submitError}
-        <Alert.Root variant="destructive">
-          <AlertCircle class="h-4 w-4" />
-          <Alert.Description>{submitError}</Alert.Description>
-        </Alert.Root>
+        <div transition:slide={{ duration: 300, axis: 'y' }} class="svadmin-shake">
+          <Alert.Root variant="destructive">
+            <AlertCircle class="h-4 w-4" />
+            <Alert.Description>{submitError}</Alert.Description>
+          </Alert.Root>
+        </div>
       {/if}
 
       {#if hasGroups}
@@ -190,10 +196,11 @@
                       {field}
                       value={form.values[field.key]}
                       onchange={(val: unknown) => form.setFieldValue(field.key, val)}
+                      disabled={isReadonly}
                     />
                   {/if}
                   {#if form.errors[field.key]}
-                    <p class="text-destructive text-[0.8125rem] mt-1">{form.errors[field.key]}</p>
+                    <p class="text-destructive text-[0.8125rem] mt-1" role="alert" aria-live="polite">{form.errors[field.key]}</p>
                   {/if}
                 </div>
               {/each}
@@ -212,10 +219,11 @@
                     {field}
                     value={form.values[field.key]}
                     onchange={(val: unknown) => form.setFieldValue(field.key, val)}
+                    disabled={isReadonly}
                   />
                 {/if}
                 {#if form.errors[field.key]}
-                  <p class="text-destructive text-[0.8125rem] mt-1">{form.errors[field.key]}</p>
+                  <p class="text-destructive text-[0.8125rem] mt-1" role="alert" aria-live="polite">{form.errors[field.key]}</p>
                 {/if}
               </div>
             {/each}
@@ -226,7 +234,7 @@
       <div class="flex items-center gap-3">
         {#if formActions}
           {@render formActions({ isLoading: form.submitting, onSubmit: handleSubmit })}
-        {:else}
+        {:else if !isReadonly}
           <Button type="submit" disabled={form.submitting}>
             {#if form.submitting}
               <Loader2 class="h-4 w-4 animate-spin" data-icon="inline-start" />

@@ -45,6 +45,11 @@ export function getAuditLogProvider(): AuditLogProvider | null {
   return auditLogProvider;
 }
 
+export function resetAuditLogProvider(): void {
+  auditLogProvider = null;
+  handler = (entry) => { console.info('[audit]', entry.action, entry.resource, entry.recordId); };
+}
+
 export function audit(entry: Omit<AuditEntry, 'timestamp'>): void {
   const fullEntry: AuditEntry = { ...entry, timestamp: new Date().toISOString() };
   try {

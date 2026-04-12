@@ -2,7 +2,7 @@
 
 
 
-const locales: Record<string, Record<string, string>> = {
+let locales = $state<Record<string, Record<string, string>>>({
   'zh-CN': {
     'common.list': '列表',
     'common.prev': '上一页',
@@ -19,6 +19,8 @@ const locales: Record<string, Record<string, string>> = {
     'common.create': '新建',
     'common.edit': '编辑',
     'common.delete': '删除',
+    'common.batchDeletePartialFail': '批量删除部分失败：{failed}/{total} 条未成功',
+    'common.batchDeleteSuccess': '成功删除 {count} 条记录',
     'common.search': '搜索...',
     'common.confirm': '确定',
     'common.loading': '加载中...',
@@ -151,6 +153,8 @@ const locales: Record<string, Record<string, string>> = {
     'validation.minLength': '最少 {min} 个字符',
     'validation.maxLength': '最多 {max} 个字符',
     'validation.invalidEmail': '请输入有效的邮箱地址',
+    'validation.invalidUrl': '请输入有效的 URL 地址',
+    'validation.invalidNumber': '请输入有效的数字',
     'validation.invalidFormat': '格式不正确',
     // Settings
     'settings.title': '设置',
@@ -266,6 +270,8 @@ const locales: Record<string, Record<string, string>> = {
     'common.create': 'Create',
     'common.edit': 'Edit',
     'common.delete': 'Delete',
+    'common.batchDeletePartialFail': 'Batch delete partially failed: {failed}/{total} unsuccessful',
+    'common.batchDeleteSuccess': 'Successfully deleted {count} records',
     'common.search': 'Search...',
     'common.confirm': 'Confirm',
     'common.loading': 'Loading...',
@@ -398,6 +404,8 @@ const locales: Record<string, Record<string, string>> = {
     'validation.minLength': 'Minimum {min} characters',
     'validation.maxLength': 'Maximum {max} characters',
     'validation.invalidEmail': 'Please enter a valid email address',
+    'validation.invalidUrl': 'Please enter a valid URL',
+    'validation.invalidNumber': 'Please enter a valid number',
     'validation.invalidFormat': 'Invalid format',
     // Settings
     'settings.title': 'Settings',
@@ -497,7 +505,7 @@ const locales: Record<string, Record<string, string>> = {
     'profile.passwordChanged': 'Password updated successfully',
     'profile.updatePassword': 'Update Password',
   },
-};
+});
 
 /** Detect best locale from browser language */
 function detectLocale(): string {
@@ -540,7 +548,11 @@ export function t(key: string, params?: Record<string, string | number>): string
 }
 
 export function addTranslations(locale: string, translations: Record<string, string>): void {
-  locales[locale] = { ...locales[locale], ...translations };
+  locales = { ...locales, [locale]: { ...locales[locale], ...translations } };
+}
+
+export function resetI18n(): void {
+  currentLocale = detectLocale();
 }
 
 /**
@@ -548,14 +560,10 @@ export function addTranslations(locale: string, translations: Record<string, str
  * Tracks locale changes natively.
  */
 export function useTranslation() {
-  const translate = $derived.by(() => {
-    // Read currentLocale so this $derived depends on it
-    const loc = currentLocale;
-    return (key: string, params?: Record<string, string | number>): string => {
-      // Intentionally passing the key to the main t() function which uses currentLocale
-      return t(key, params);
-    };
-  });
+  const _ = $derived(currentLocale);
+  const translate = (key: string, params?: Record<string, string | number>): string => {
+    return t(key, params);
+  };
   
   return { 
     get t() { return translate; },

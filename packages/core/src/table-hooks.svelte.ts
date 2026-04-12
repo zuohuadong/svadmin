@@ -166,7 +166,7 @@ export function useTable<
       const start = ((pagination.current ?? 1) - 1) * (pagination.pageSize ?? 10);
       const end = start + (pagination.pageSize ?? 10);
       let sorted = [...allData];
-      const activeSorters = sortersMode === 'off' ? effectiveSorters : currentSorters;
+      const activeSorters = sortersMode === 'off' ? effectiveSorters : [];
       if (activeSorters.length > 0) {
         sorted.sort((a, b) => {
           for (const { field, order } of activeSorters) {

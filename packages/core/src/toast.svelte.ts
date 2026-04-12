@@ -41,6 +41,12 @@ export function addToast(
   }
   const id = nextId++;
   toasts = [...toasts, { id, type, message, duration, ...options }];
+  if (type === 'undoable') {
+    setTimeout(() => {
+      options?.onTimeout?.();
+      removeToast(id);
+    }, duration);
+  }
 }
 
 export function removeToast(id: number): void {

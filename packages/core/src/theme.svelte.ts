@@ -194,11 +194,6 @@ export const builtinPresets: Record<string, ColorPreset> = $state({
 /** Register a custom color preset. Overwrites any built-in preset with the same name. */
 export function registerColorPreset(preset: ColorPreset): void {
   builtinPresets[preset.name] = preset;
-  // Update colorThemes display list
-  const idx = colorThemes.findIndex(ct => ct.id === preset.name);
-  const entry = { id: preset.name as ColorTheme, label: preset.label, color: preset.color };
-  if (idx >= 0) colorThemes[idx] = entry;
-  else colorThemes.push(entry);
 }
 
 /** Resolve a preset by name or return the preset object directly. */
@@ -292,7 +287,7 @@ export function clearCssOverrides(keys?: string[]): void {
 }
 
 // ── Color themes (display metadata, derived from presets) ──
-export const colorThemes: { id: ColorTheme | string; label: string; color: string }[] = $state(Object.values(builtinPresets).map(p => ({
+export const colorThemes: { id: ColorTheme | string; label: string; color: string }[] = $derived(Object.values(builtinPresets).map(p => ({
   id: p.name as ColorTheme,
   label: p.label,
   color: p.color,
