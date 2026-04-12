@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.23.2](https://github.com/zuohuadong/svadmin/compare/core-v0.23.1...core-v0.23.2) (2026-04-12)
+
+
+### 🐛 Bug Fixes
+
+* **core:** improve query invalidation scopes, add bulk live events, and fix sidebar collapse state ([92bc1f7](https://github.com/zuohuadong/svadmin/commit/92bc1f7c58c8e80023ac958b7988a0e8ba913cf1))
+* **core:** improve useForm autoSave queuing and dataProvider scope passing ([a115db4](https://github.com/zuohuadong/svadmin/commit/a115db4a59e9d5c575a97a44d6773d40308ad96a))
+
+
+### 💅 Elegance & Refactoring
+
+* **core:** migrate permissions and core utilities to Svelte 5 runes ([8e3ed99](https://github.com/zuohuadong/svadmin/commit/8e3ed9950b56ffcbe4877f46987bd8eb69ef21f1))
+
 ## [0.23.1](https://github.com/zuohuadong/svadmin/compare/core-v0.23.0...core-v0.23.1) (2026-04-12)
 
 

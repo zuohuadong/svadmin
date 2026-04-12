@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.1...ui-v0.32.2) (2026-04-12)
+
+
+### 💅 Elegance & Refactoring
+
+* **core:** migrate permissions and core utilities to Svelte 5 runes ([8e3ed99](https://github.com/zuohuadong/svadmin/commit/8e3ed9950b56ffcbe4877f46987bd8eb69ef21f1))
+
 ## [0.32.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.0...ui-v0.32.1) (2026-04-12)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/zuohuadong/svadmin/compare/sveltekit-v0.9.0...sveltekit-v0.9.1) (2026-04-12)
+
+
+### 💅 Elegance & Refactoring
+
+* **core:** migrate permissions and core utilities to Svelte 5 runes ([8e3ed99](https://github.com/zuohuadong/svadmin/commit/8e3ed9950b56ffcbe4877f46987bd8eb69ef21f1))
+
 ## [0.9.0](https://github.com/zuohuadong/svadmin/compare/sveltekit-v0.8.7...sveltekit-v0.9.0) (2026-04-12)
 
 
