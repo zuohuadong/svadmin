@@ -735,7 +735,7 @@
               <!-- Card header: ID + select + actions -->
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
-                  {#if selectable && canDelete}
+                  {#if selectable && (canDelete || batchActions)}
                     <Checkbox
                       checked={row.getIsSelected()}
                       onCheckedChange={() => row.toggleSelected()}

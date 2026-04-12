@@ -7,9 +7,11 @@ import { notify } from './notification.svelte';
 import { t } from './i18n.svelte';
 import { audit } from './audit';
 import { navigate, currentPath } from './router';
-import { HttpError } from './types';
+import { HttpError, UndoError } from './types';
 import type { BaseRecord, MutationMode, KnownResources } from './types';
 import { checkError } from './hook-utils.svelte';
+import { toast } from './toast.svelte';
+import { deepMerge, invalidateByScopes } from './mutation-hooks.svelte';
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -244,6 +246,7 @@ export function useForm<
     values = { ...initialValues } as TVariables;
     tainted = {};
     clearErrors();
+    queryInitializedId = undefined;
   }
 
   // ─── Server error handling ──────────────────────────────────────
@@ -279,11 +282,13 @@ export function useForm<
   {
     $effect.pre(() => {
       // Discard previous fetch lock and default when switched strictly back to create
-      if (action === 'create' && currentId === undefined && queryInitializedId !== undefined) {
+      if (action === 'create' && queryInitializedId !== undefined) {
         queryInitializedId = undefined;
         const def = (options.defaultValues ?? {}) as TVariables;
         values = { ...def };
         initialValues = { ...def };
+        tainted = {};
+        clearErrors();
         return;
       }
       if (queryInitializedId === currentId) return;
@@ -334,19 +339,39 @@ export function useForm<
     onError: (error: Error) => { handleHttpError(error); onMutationError?.(error); },
   }));
 
-  const updateMut = createMutation(() => ({
+  const updateMut = createMutation<{ data: TData }, unknown, TVariables>(() => ({
     ...options.updateMutationOptions,
-    mutationFn: (variables: TVariables) => provider.update<TData, TVariables>({ resource, id: currentId!, variables, meta: mutationMeta }),
-    onSuccess: (data: { data: TData }) => {
-      // Targeted invalidation: list + many + specific detail (like refine)
-      if (invalidateScopes !== false) {
-        queryClient.invalidateQueries({ queryKey: [resource, 'list'] });
-        queryClient.invalidateQueries({ queryKey: [resource, 'many'] });
-        if (currentId != null) queryClient.invalidateQueries({ queryKey: [resource, 'one', currentId] });
+    mutationFn: async (variables: TVariables) => {
+      if (mutationMode === 'undoable') {
+        await new Promise<void>((resolve, reject) => {
+          toast.undoable(t('common.actionCanBeUndone'), undoableTimeout, () => {
+            reject(new UndoError());
+          }, resolve);
+        });
       }
+      return provider.update<TData, TVariables>({ resource, id: currentId!, variables, meta: mutationMeta });
+    },
+    onMutate: async (variables: TVariables) => {
+      if (mutationMode === 'pessimistic') return;
+      await queryClient.cancelQueries({ queryKey: [resource] });
+      const previousQueries = queryClient.getQueriesData({ queryKey: [resource] });
+      if (optimisticUpdateMap?.list !== false) {
+        queryClient.setQueriesData({ queryKey: [resource, 'list'] }, (old: unknown) => {
+          if (!old || typeof old !== 'object' || !('data' in old)) return old;
+          const o = old as { data: Record<string, unknown>[] };
+          const pk = getResource(resource).primaryKey ?? 'id';
+          return { ...o, data: o.data.map((item) => String(item[pk]) === String(currentId) ? deepMerge(item, variables) : item) };
+        });
+      }
+      if (optimisticUpdateMap?.detail !== false && currentId != null) {
+        queryClient.setQueryData([resource, 'one', currentId], (old: Record<string, unknown> | undefined) => old ? { ...old, data: deepMerge((old as Record<string, unknown>).data || {}, variables) } : old);
+      }
+      return { previousQueries };
+    },
+    onSuccess: (data: unknown) => {
+      invalidateByScopes(queryClient, resource, invalidateScopes, ['list', 'many', 'detail'], currentId ?? undefined);
       if (successNotification !== false) notify({ type: 'success', message: typeof successNotification === 'string' ? successNotification : t('common.updateSuccess') });
       audit({ action: 'update', resource, recordId: String(currentId) });
-      // Publish live event
       try {
         const lp = getLiveProvider();
         if (lp?.publish) lp.publish({ type: 'UPDATE', resource, payload: { ids: currentId != null ? [currentId] : [] } });
@@ -354,7 +379,21 @@ export function useForm<
       onMutationSuccess?.(data);
       if (redirectOverride !== false) doRedirect(redirectOverride ?? redirectDefault);
     },
-    onError: (error: Error) => { handleHttpError(error); onMutationError?.(error); },
+    onSettled: (_data: unknown, error: unknown) => {
+      if (error instanceof UndoError) return;
+      invalidateByScopes(queryClient, resource, invalidateScopes, ['list', 'many', 'detail'], currentId ?? undefined);
+    },
+    onError: (error: unknown, _vars: unknown, context: unknown) => {
+      const ctx = context as { previousQueries?: [unknown, unknown][] } | undefined;
+      if (ctx?.previousQueries) {
+        for (const [queryKey, data] of ctx.previousQueries) {
+          queryClient.setQueryData(queryKey as string[], data);
+        }
+      }
+      if (error instanceof UndoError) return;
+      handleHttpError(error as Error);
+      onMutationError?.(error as Error);
+    },
   }));
 
   function doRedirect(to: 'list' | 'edit' | 'show' | false) {

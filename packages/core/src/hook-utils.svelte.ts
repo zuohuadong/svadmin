@@ -130,6 +130,7 @@ export function fireErrorNotification(
   error?: unknown,
 ): void {
   if (config === false) return;
+  if (!config && !defaultMessage) return;
   if (typeof config === 'function') {
     const result = config(error);
     toast.error(result.message);

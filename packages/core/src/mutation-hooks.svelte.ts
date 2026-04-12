@@ -31,7 +31,7 @@ function publishLiveEvent(resource: string, type: 'created' | 'updated' | 'delet
  *   - update: ['list', 'many', 'detail']
  *   - delete: ['list', 'many']
  */
-function invalidateByScopes(
+export function invalidateByScopes(
   queryClient: ReturnType<typeof useQueryClient>,
   resource: string,
   scopes: string[] | false | undefined,
@@ -48,7 +48,7 @@ function invalidateByScopes(
   }
 }
 
-function deepMerge(target: any, source: any): any {
+export function deepMerge(target: any, source: any): any {
   if (!target || typeof target !== 'object') return source;
   if (!source || typeof source !== 'object') return source;
   if (Array.isArray(source) || source instanceof Date) return source;

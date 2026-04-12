@@ -73,5 +73,14 @@
         {/each}
       </Card.Content>
     </Card.Root>
+  {:else}
+    <Card.Root class="overflow-hidden border-border/40 shadow-sm">
+      <Card.Content class="p-8 text-center">
+        <p class="text-muted-foreground">{t('common.noData')}</p>
+        {#if query.isError}
+          <p class="text-sm text-destructive mt-2">{(query.error as Error)?.message ?? t('common.operationFailed')}</p>
+        {/if}
+      </Card.Content>
+    </Card.Root>
   {/if}
 </div>

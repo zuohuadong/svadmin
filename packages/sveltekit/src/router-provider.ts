@@ -20,6 +20,9 @@ export function createSvelteKitRouterProvider(): RouterProvider {
       } else {
         goto(url);
       }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
     },
     back() {
       if (typeof window !== 'undefined') {

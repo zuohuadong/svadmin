@@ -73,7 +73,7 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
     const queryOptions = opts.queryOptions;
     
     return {
-      queryKey: [resource, 'list', opts.pagination, opts.sorters, opts.filters, opts.meta],
+      queryKey: [opts.dataProviderName, resource, 'list', opts.pagination, opts.sorters, opts.filters, opts.meta],
       queryFn: async () => provider.getList<TData>({
         resource,
         pagination: opts.pagination,
@@ -155,7 +155,7 @@ export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError
     const queryOptions = opts.queryOptions;
 
     return {
-      queryKey: [resource, 'one', id, opts.meta],
+      queryKey: [opts.dataProviderName, resource, 'one', id, opts.meta],
       queryFn: async () => {
         if (id == null) throw new Error('useOne requires an id');
         const result = await provider.getOne<TData>({
@@ -256,7 +256,7 @@ export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpErro
     const provider = getDataProviderForResource(resource, dataProviderName);
 
     return {
-      queryKey: [resource, 'many', ids, meta],
+      queryKey: [dataProviderName, resource, 'many', ids, meta],
       queryFn: async () => {
         if (!ids.length) return { data: [] };
         if (provider.getMany) {

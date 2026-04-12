@@ -186,36 +186,23 @@ export function getAgentProvider(): AgentProvider | null {
 interface ApprovalCallback {
   (approved: boolean): void;
 }
-const pendingApprovals = new Map<string, ApprovalCallback>();
+interface ApprovalEntry { id: string; callback: ApprovalCallback }
+let pendingApprovals = $state<ApprovalEntry[]>([]);
 
-/**
- * Register a pending approval request. Called internally by the framework
- * when an `approval_request` event is received from the agent.
- */
 export function registerApproval(id: string, callback: ApprovalCallback): void {
-  pendingApprovals.set(id, callback);
+  pendingApprovals = [...pendingApprovals, { id, callback }];
 }
 
-/**
- * Approve or reject a pending tool call.
- *
- * @example
- * ```svelte
- * <button onclick={() => resolveApproval('req-1', true)}>Approve</button>
- * <button onclick={() => resolveApproval('req-1', false)}>Reject</button>
- * ```
- */
 export function resolveApproval(id: string, approved: boolean): boolean {
-  const cb = pendingApprovals.get(id);
-  if (!cb) return false;
-  cb(approved);
-  pendingApprovals.delete(id);
+  const entry = pendingApprovals.find(e => e.id === id);
+  if (!entry) return false;
+  entry.callback(approved);
+  pendingApprovals = pendingApprovals.filter(e => e.id !== id);
   return true;
 }
 
-/** Check if there are any pending approval requests. */
 export function hasPendingApprovals(): boolean {
-  return pendingApprovals.size > 0;
+  return pendingApprovals.length > 0;
 }
 
 // ─── Chat Context singleton ────────────────────────────────────
