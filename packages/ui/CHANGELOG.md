@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.0...ui-v0.32.1) (2026-04-12)
+
+
+### 🐛 Bug Fixes
+
+* **core:** convert colorThemes derived export to function ([cb12bf6](https://github.com/zuohuadong/svadmin/commit/cb12bf65f2eb9456f0a9ff8413b738cbf616ba90))
+
 ## [0.32.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.31.1...ui-v0.32.0) (2026-04-12)
 
 
