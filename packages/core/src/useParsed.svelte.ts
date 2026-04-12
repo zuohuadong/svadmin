@@ -12,11 +12,10 @@ interface ParsedRoute {
 }
 
 let globalPath = $state('/');
-let _listenersInitialized = false;
 if (typeof window !== 'undefined') {
   globalPath = currentPath();
-  if (!_listenersInitialized) {
-    _listenersInitialized = true;
+  if (!(window as any).__svadminParsedInit) {
+    (window as any).__svadminParsedInit = true;
     window.addEventListener('hashchange', () => { globalPath = currentPath(); });
     window.addEventListener('popstate', () => { globalPath = currentPath(); });
   }

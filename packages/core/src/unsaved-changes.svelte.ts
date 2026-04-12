@@ -68,12 +68,14 @@ export function registerNavigationGuard(guard: NavigationGuard): void {
  * initUnsavedChangesNotifier();
  * ```
  */
+let _unsavedChangesCleanup: (() => void) | null = null;
+
 export function initUnsavedChangesNotifier(options?: {
   beforeNavigate?: (callback: (nav: { cancel: () => void }) => void) => void;
 }) {
   if (typeof window === 'undefined') return;
+  _unsavedChangesCleanup?.();
 
-  // 1. Browser tab close / refresh
   const onBeforeUnload = (e: BeforeUnloadEvent) => {
     if (!dirty) return;
     e.preventDefault();
@@ -81,7 +83,6 @@ export function initUnsavedChangesNotifier(options?: {
   };
   window.addEventListener('beforeunload', onBeforeUnload);
 
-  // 2. Framework router (SvelteKit, etc.)
   if (options?.beforeNavigate) {
     options.beforeNavigate(({ cancel }) => {
       if (dirty) {
@@ -94,7 +95,6 @@ export function initUnsavedChangesNotifier(options?: {
     });
   }
 
-  // 3. Hash-based fallback for SPAs without a framework router
   const onHashChange = (e: HashChangeEvent) => {
     if (!dirty) return;
     if (!confirm(t('common.unsavedChanges'))) {
@@ -107,9 +107,9 @@ export function initUnsavedChangesNotifier(options?: {
   };
   window.addEventListener('hashchange', onHashChange);
 
-  // Cleanup
-  return () => {
+  _unsavedChangesCleanup = () => {
     window.removeEventListener('beforeunload', onBeforeUnload);
     window.removeEventListener('hashchange', onHashChange);
   };
+  return _unsavedChangesCleanup;
 }

@@ -59,7 +59,7 @@ export function useExport<TData extends BaseRecord = BaseRecord>(options: UseExp
         const fields = Object.keys(mapped[0]);
         const escapeCsvField = (s: string) => {
           let val = s;
-          if (/^[=+\-@\t\r]/.test(val)) val = "'" + val;
+          if (/^[=+@\t\r]/.test(val)) val = "'" + val;
           return val.includes(',') || val.includes('"') || val.includes('\n') || val.includes('\r') ? `"${val.replace(/"/g, '""')}"` : val;
         };
         const header = fields.map(escapeCsvField).join(',');

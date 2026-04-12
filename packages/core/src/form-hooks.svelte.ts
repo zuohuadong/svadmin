@@ -375,7 +375,7 @@ export function useForm<
     },
     onSettled: (_data: unknown, error: unknown) => {
       if (error instanceof UndoError) return;
-      invalidateByScopes(queryClient, resource, invalidateScopes, ['list', 'many', 'detail'], currentId ?? undefined);
+      invalidateByScopes(queryClient, resource, invalidateScopes, ['list', 'many', 'detail'], currentId ?? undefined, options.dataProviderName);
     },
     onError: (error: unknown, _vars: unknown, context: unknown) => {
       const ctx = context as { previousQueries?: [unknown, unknown][] } | undefined;
