@@ -11,7 +11,7 @@ import { toast } from './toast.svelte';
 
 // ─── Helper: publish live events after mutations ────────────────
 
-function publishLiveEvent(resource: string, type: 'created' | 'updated' | 'deleted', ids?: (string | number)[]) {
+export function publishLiveEvent(resource: string, type: 'created' | 'updated' | 'deleted', ids?: (string | number)[]) {
   try {
     const liveProvider = getLiveProvider();
     if (liveProvider?.publish) {
