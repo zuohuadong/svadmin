@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.5](https://github.com/zuohuadong/svadmin/compare/pocketbase-v0.9.4...pocketbase-v0.9.5) (2026-04-12)
+
+
+### 🐛 Bug Fixes
+
+* **core:** complete refine dev logic parity and ui memory leak resolutions ([3b5c29a](https://github.com/zuohuadong/svadmin/commit/3b5c29ac171affb17e96dc749482d25f06c7cad7))
+
 ## [0.9.4](https://github.com/zuohuadong/svadmin/compare/pocketbase-v0.9.3...pocketbase-v0.9.4) (2026-04-11)
 
 

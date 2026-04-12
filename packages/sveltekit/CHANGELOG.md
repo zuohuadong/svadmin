@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/zuohuadong/svadmin/compare/sveltekit-v0.8.7...sveltekit-v0.9.0) (2026-04-12)
+
+
+### 🚀 Features
+
+* **ui:** refine AutoTable to fluid borderless design and Sidebar to pill-style elevated states ([de92adc](https://github.com/zuohuadong/svadmin/commit/de92adc3fbf0077fb68c5a49009b546397916786))
+
+
+### 🐛 Bug Fixes
+
+* **core:** improve query caching and optimistic update recovery ([a18356e](https://github.com/zuohuadong/svadmin/commit/a18356e0f777b8d21e5f58bee8d9d2250a64f1ef))
+
 ## [0.8.7](https://github.com/zuohuadong/svadmin/compare/sveltekit-v0.8.6...sveltekit-v0.8.7) (2026-04-11)
 
 
