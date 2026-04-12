@@ -1,6 +1,6 @@
 <script lang="ts">
   import { t } from '@svadmin/core/i18n';
-  import { getTheme, setTheme, getResolvedTheme, colorThemes, getColorTheme, setColorTheme, getColorPresets } from '@svadmin/core';
+  import { getTheme, setTheme, getResolvedTheme, getColorThemes, getColorTheme, setColorTheme, getColorPresets } from '@svadmin/core';
   import { getLocale, setLocale, getAvailableLocales } from '@svadmin/core/i18n';
   import * as Card from './ui/card/index.js';
   import { Button } from './ui/button/index.js';

@@ -294,11 +294,15 @@ export function clearCssOverrides(keys?: string[]): void {
 }
 
 // ── Color themes (display metadata, derived from presets) ──
-export const colorThemes: { id: ColorTheme | string; label: string; color: string }[] = $derived(Object.values(builtinPresets).map(p => ({
+const _colorThemesCache: { id: ColorTheme | string; label: string; color: string }[] = $derived(Object.values(builtinPresets).map(p => ({
   id: p.name as ColorTheme,
   label: p.label,
   color: p.color,
 })));
+
+export function getColorThemes() {
+  return _colorThemesCache;
+}
 
 // ── Dark/Light mode ──────────────────────────────────────
 

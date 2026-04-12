@@ -4,7 +4,7 @@
   import { navigate } from '@svadmin/core/router';
   import { getPath } from '../router-state.svelte.js';
   import { t, getLocale, setLocale, getAvailableLocales } from '@svadmin/core/i18n';
-  import { toggleTheme, getResolvedTheme, colorThemes, getColorTheme, setColorTheme } from '@svadmin/core';
+  import { toggleTheme, getResolvedTheme, getColorThemes, getColorTheme, setColorTheme } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
   import * as Tooltip from './ui/tooltip/index.js';
@@ -331,12 +331,12 @@
             <span class="flex-1 text-left text-xs">{t('common.toggleTheme')}</span>
             <span
               class="h-3.5 w-3.5 rounded-full ring-1 ring-offset-1 ring-offset-sidebar"
-              style="background-color: {colorThemes.find(c => c.id === getColorTheme())?.color ?? '#6366f1'}; --tw-ring-color: {colorThemes.find(c => c.id === getColorTheme())?.color ?? '#6366f1'}"
+              style="background-color: {getColorThemes().find(c => c.id === getColorTheme())?.color ?? '#6366f1'}; --tw-ring-color: {getColorThemes().find(c => c.id === getColorTheme())?.color ?? '#6366f1'}"
             ></span>
           </Button>
           {#if colorPickerOpen}
             <div class="absolute bottom-full left-0 mb-1 z-50 w-40 rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg animate-in fade-in-0 zoom-in-95">
-              {#each colorThemes as ct}
+              {#each getColorThemes() as ct}
                 <button
                   class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                   onclick={() => { setColorTheme(ct.id as typeof ct.id & import('@svadmin/core').ColorTheme); colorPickerOpen = false; }}
