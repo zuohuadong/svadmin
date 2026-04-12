@@ -33,3 +33,11 @@ test-results/
 servers.local.md
 .agents/
 .zed/CONVENTIONS.md
+
+.agents/state/
+AGENTS.md
+.cursorrules
+CLAUDE.md
+.goosehints
+AGENTS.md
+AGENTS.md

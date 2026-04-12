@@ -26,7 +26,7 @@ import { getAdminOptions } from './options.svelte';
 import { getDataProviderForResource, getDataProvider, getLiveProvider } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 import { createOvertimeTracker, createLiveSubscription, fireSuccessNotification, fireErrorNotification, checkError } from './hook-utils.svelte';
-import { invalidateByScopes } from './mutation-hooks.svelte';
+import { invalidateByScopes, publishLiveEvent } from './mutation-hooks.svelte';
 import type { NotificationConfig, OvertimeOptions, LiveSubscriptionParams } from './hook-utils.svelte';
 import type { BaseRecord, HttpError, Pagination, Sort, Filter, DataProvider, KnownResources } from './types';
 import type { LiveMode, LiveEvent } from './live.svelte';
@@ -334,6 +334,7 @@ export function useCreateMany<TData extends BaseRecord = BaseRecord, TError = Ht
       const resName = params.resource ?? resource;
       fireSuccessNotification(undefined, 'Created successfully', data.data, params.variables, resName);
       audit({ action: 'create', resource: resName });
+      publishLiveEvent(resName, 'created');
     },
     onError: (error, params) => {
       checkError(error);
@@ -341,7 +342,7 @@ export function useCreateMany<TData extends BaseRecord = BaseRecord, TError = Ht
     },
     onSettled: (_d, _e, params) => {
       const resName = params.resource ?? resource;
-      invalidateByScopes(queryClient, resName, undefined, ['list', 'many']);
+      invalidateByScopes(queryClient, resName, undefined, ['list', 'many'], undefined, params.dataProviderName);
     },
   }));
 
@@ -371,6 +372,7 @@ export function useUpdateMany<TData extends BaseRecord = BaseRecord, TError = Ht
       const resName = params.resource ?? resource;
       fireSuccessNotification(undefined, 'Updated successfully', data.data, params.variables, resName);
       audit({ action: 'update', resource: resName });
+      publishLiveEvent(resName, 'updated', params.ids);
     },
     onError: (error, params) => {
       checkError(error);
@@ -378,9 +380,9 @@ export function useUpdateMany<TData extends BaseRecord = BaseRecord, TError = Ht
     },
     onSettled: (_d, _e, params) => {
       const resName = params.resource ?? resource;
-      invalidateByScopes(queryClient, resName, undefined, ['list', 'many', 'detail'], undefined);
+      invalidateByScopes(queryClient, resName, undefined, ['list', 'many', 'detail'], undefined, params.dataProviderName);
       for (const id of params.ids) {
-        queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === id });
+        queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] === (params.dataProviderName ?? 'default') && q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === id });
       }
     },
   }));
@@ -411,6 +413,7 @@ export function useDeleteMany<TData extends BaseRecord = BaseRecord, TError = Ht
       const resName = params.resource ?? resource;
       fireSuccessNotification(undefined, 'Deleted successfully', data.data, undefined, resName);
       audit({ action: 'delete', resource: resName });
+      publishLiveEvent(resName, 'deleted', params.ids);
     },
     onError: (error, params) => {
       checkError(error);
@@ -418,9 +421,9 @@ export function useDeleteMany<TData extends BaseRecord = BaseRecord, TError = Ht
     },
     onSettled: (_d, _e, params) => {
       const resName = params.resource ?? resource;
-      invalidateByScopes(queryClient, resName, undefined, ['list', 'many']);
+      invalidateByScopes(queryClient, resName, undefined, ['list', 'many'], undefined, params.dataProviderName);
       for (const id of params.ids) {
-        queryClient.removeQueries({ predicate: (q) => q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === id });
+        queryClient.removeQueries({ predicate: (q) => q.queryKey[0] === (params.dataProviderName ?? 'default') && q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === id });
       }
     },
   }));
@@ -440,12 +443,13 @@ export function useInvalidate() {
     }
     const scopes = params.invalidates || ['resourceAll'];
     const res = params.resource;
+    const dpMatch = params.dataProviderName ? (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === params.dataProviderName : () => true;
     for (const scope of scopes) {
-      if (scope === 'resourceAll') queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === res });
-      else if ((scope === 'detail' || scope === 'one') && params.id) queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === res && q.queryKey[2] === 'one' && q.queryKey[3] === params.id });
-      else if (scope === 'detail' || scope === 'one') queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === res && q.queryKey[2] === 'one' });
-      else if (scope === 'list') queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === res && (q.queryKey[2] === 'list' || q.queryKey[2] === 'infiniteList' || q.queryKey[2] === 'select') });
-      else if (scope === 'many') queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === res && q.queryKey[2] === 'many' });
+      if (scope === 'resourceAll') queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === res });
+      else if ((scope === 'detail' || scope === 'one') && params.id) queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === res && q.queryKey[2] === 'one' && q.queryKey[3] === params.id });
+      else if (scope === 'detail' || scope === 'one') queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === res && q.queryKey[2] === 'one' });
+      else if (scope === 'list') queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === res && (q.queryKey[2] === 'list' || q.queryKey[2] === 'infiniteList' || q.queryKey[2] === 'select') });
+      else if (scope === 'many') queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === res && q.queryKey[2] === 'many' });
     }
   };
 }
@@ -470,12 +474,13 @@ export function useDataProvider(): (dataProviderName?: string) => DataProvider {
 
 // ─── useThemedLayoutContext ─────────────────────────────────────────
 
+let _sidebarCollapsed = $state(false);
+
 export function useThemedLayoutContext() {
-  let sidebarCollapsed = $state(false);
   return {
-    get sidebarCollapsed() { return sidebarCollapsed; },
-    setSidebarCollapsed(v: boolean) { sidebarCollapsed = v; },
-    toggleSidebar() { sidebarCollapsed = !sidebarCollapsed; },
+    get sidebarCollapsed() { return _sidebarCollapsed; },
+    setSidebarCollapsed(v: boolean) { _sidebarCollapsed = v; },
+    toggleSidebar() { _sidebarCollapsed = !_sidebarCollapsed; },
   };
 }
 

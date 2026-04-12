@@ -58,6 +58,7 @@ export function useModalForm<
     if (options.autoSave?.invalidateOnClose) {
       queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === formState.resource && (q.queryKey[2] === 'list' || q.queryKey[2] === 'infiniteList' || q.queryKey[2] === 'select') });
       queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === formState.resource && q.queryKey[2] === 'many' });
+      queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === formState.resource && q.queryKey[2] === 'one' });
     }
   }
 
