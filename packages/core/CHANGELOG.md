@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.23.0](https://github.com/zuohuadong/svadmin/compare/core-v0.22.1...core-v0.23.0) (2026-04-12)
+
+
+### 🚀 Features
+
+* **ui:** refine AutoTable to fluid borderless design and Sidebar to pill-style elevated states ([de92adc](https://github.com/zuohuadong/svadmin/commit/de92adc3fbf0077fb68c5a49009b546397916786))
+
+
+### 🐛 Bug Fixes
+
+* **core:** add authentication error delegation (401/403) to all data hooks matching refine parity ([8b28cf9](https://github.com/zuohuadong/svadmin/commit/8b28cf99d0bb67509851b8c6813c83383dad4914))
+* **core:** align mutation/query hooks with refine patterns — onSettled invalidation, many-query optimistic updates, live event publishing, reactive useResource, notification dedup guards ([1123472](https://github.com/zuohuadong/svadmin/commit/112347253f22607988c105e80ba7c7050db8eb0b))
+* **core:** complete refine dev logic parity and ui memory leak resolutions ([3b5c29a](https://github.com/zuohuadong/svadmin/commit/3b5c29ac171affb17e96dc749482d25f06c7cad7))
+* **core:** improve query caching and optimistic update recovery ([a18356e](https://github.com/zuohuadong/svadmin/commit/a18356e0f777b8d21e5f58bee8d9d2250a64f1ef))
+* **core:** plug autoSaveTimer memory leaks and solidify mutation reactivity ([f2ec660](https://github.com/zuohuadong/svadmin/commit/f2ec6609389f0ce9aa3914bbaf5af90dd3ef4545))
+* **core:** upgrade cache invalidation to use query predicates and refine hook utilities ([b1c2749](https://github.com/zuohuadong/svadmin/commit/b1c2749159bed2dafc79393108f9306d99012001))
+
+
+### 💅 Elegance & Refactoring
+
+* **core:** extract pure utilities to helpers-pure.ts and add 21 unit tests ([9519061](https://github.com/zuohuadong/svadmin/commit/9519061e432204c673b0ce98da0c5d164b5d7661))
+
 ## [0.22.1](https://github.com/zuohuadong/svadmin/compare/core-v0.22.0...core-v0.22.1) (2026-04-11)
 
 

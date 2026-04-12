@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.4](https://github.com/zuohuadong/svadmin/compare/elysia-v0.10.3...elysia-v0.10.4) (2026-04-12)
+
+
+### 🐛 Bug Fixes
+
+* **core:** complete refine dev logic parity and ui memory leak resolutions ([3b5c29a](https://github.com/zuohuadong/svadmin/commit/3b5c29ac171affb17e96dc749482d25f06c7cad7))
+
 ## [0.10.3](https://github.com/zuohuadong/svadmin/compare/elysia-v0.10.2...elysia-v0.10.3) (2026-04-03)
 
 
