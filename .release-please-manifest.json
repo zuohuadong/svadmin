@@ -1,6 +1,6 @@
 {
-  "packages/core": "0.23.0",
-  "packages/ui": "0.32.0",
+  "packages/core": "0.23.1",
+  "packages/ui": "0.32.1",
   "packages/sveltekit": "0.9.0",
   "packages/drizzle": "0.10.4",
   "packages/simple-rest": "0.9.4",
