@@ -315,7 +315,7 @@ export function useForm<
     ...options.createMutationOptions,
     mutationFn: (variables: TVariables) => provider.create<TData, TVariables>({ resource, variables, meta: mutationMeta }),
     onSuccess: (data: { data: TData }) => {
-      invalidateByScopes(queryClient, resource, invalidateScopes, ['list', 'many']);
+      invalidateByScopes(queryClient, resource, invalidateScopes, ['list', 'many'], undefined, options.dataProviderName);
       if (successNotification !== false) notify({ type: 'success', message: typeof successNotification === 'string' ? successNotification : t('common.createSuccess') });
       const pk = getResource(resource).primaryKey ?? 'id';
       const newId = (data.data as Record<string, unknown>)[pk];
@@ -425,6 +425,7 @@ export function useForm<
   let autoSaveStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
   let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
   let autoSaveInProgress = $state(false);
+  let autoSaveDirty = false;
   let lastAutoSaveData = $state<unknown>(null);
   let lastAutoSaveError = $state<unknown>(null);
 
@@ -442,17 +443,23 @@ export function useForm<
 
     const safeId = currentId;
     autoSaveTimer = setTimeout(async () => {
-      if (autoSaveInProgress || createMut.isPending || updateMut.isPending) return;
+      if (autoSaveInProgress || createMut.isPending || updateMut.isPending) {
+        autoSaveDirty = true;
+        return;
+      }
       const finalValues = autoSaveOpts.onFinish ? autoSaveOpts.onFinish(values) : values;
       autoSaveStatus = 'saving';
       autoSaveInProgress = true;
+      autoSaveDirty = false;
       try {
         await provider.update<TData, TVariables>({ resource, id: safeId as string | number, variables: finalValues, meta: mutationMeta });
         const scopes = autoSaveOpts.invalidates ?? ['resourceAll'];
-        invalidateByScopes(queryClient, resource, scopes, ['resourceAll'], safeId ?? undefined);
+        invalidateByScopes(queryClient, resource, scopes, ['resourceAll'], safeId ?? undefined, options.dataProviderName);
         autoSaveStatus = 'saved';
         lastAutoSaveData = finalValues;
         lastAutoSaveError = null;
+        initialValues = { ...finalValues } as TVariables;
+        tainted = {};
         setTimeout(() => { autoSaveStatus = 'idle'; }, 2000);
       } catch (e) {
         autoSaveStatus = 'error';
@@ -460,6 +467,7 @@ export function useForm<
         checkError(e);
       } finally {
         autoSaveInProgress = false;
+        if (autoSaveDirty) triggerAutoSave();
       }
     }, autoSaveOpts.debounce ?? 1000);
   }
