@@ -15,12 +15,12 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js",
-      "svelte": "./dist/index.js"
+      "svelte": "./src/index.ts"
     },
     "./app.css": {
       "style": "./dist/app.css",
       "default": "./dist/app.css",
-      "svelte": "./dist/app.css"
+      "svelte": "./src/app.css"
     },
     "./components/*": "./dist/components/*"
   },
