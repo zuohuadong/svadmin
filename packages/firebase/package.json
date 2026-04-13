@@ -16,8 +16,7 @@
     }
   },
   "peerDependencies": {
-    "@svadmin/core": "workspace:*",
-    "@svadmin/refine-adapter": "workspace:*"
+    "@svadmin/core": "workspace:*"
   },
   "license": "MIT",
   "repository": {
@@ -28,9 +27,9 @@
   "peerDependenciesMeta": {
     "@svadmin/core": {
       "optional": true
-    },
-    "@svadmin/refine-adapter": {
-      "optional": true
     }
+  },
+  "dependencies": {
+    "@svadmin/refine-adapter": "workspace:*"
   }
 }

@@ -17,8 +17,7 @@
   },
   "peerDependencies": {
     "@svadmin/core": "workspace:*",
-    "@refinedev/medusa": "^5.0.0",
-    "@svadmin/refine-adapter": "workspace:*"
+    "@refinedev/medusa": "^5.0.0"
   },
   "license": "MIT",
   "repository": {
@@ -32,9 +31,9 @@
     },
     "@refinedev/medusa": {
       "optional": true
-    },
-    "@svadmin/refine-adapter": {
-      "optional": true
     }
+  },
+  "dependencies": {
+    "@svadmin/refine-adapter": "workspace:*"
   }
 }

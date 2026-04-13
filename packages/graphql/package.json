@@ -17,11 +17,11 @@
   },
   "peerDependencies": {
     "@svadmin/core": "workspace:*",
-    "@refinedev/graphql": "^5.0.0",
-    "@svadmin/refine-adapter": "workspace:*"
+    "@refinedev/graphql": "^5.0.0"
   },
   "dependencies": {
-    "graphql-request": "^7.4.0"
+    "graphql-request": "^7.4.0",
+    "@svadmin/refine-adapter": "workspace:*"
   },
   "license": "MIT",
   "repository": {
@@ -34,9 +34,6 @@
       "optional": true
     },
     "@refinedev/graphql": {
-      "optional": true
-    },
-    "@svadmin/refine-adapter": {
       "optional": true
     }
   }

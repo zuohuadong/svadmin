@@ -17,7 +17,6 @@
   },
   "peerDependencies": {
     "@svadmin/core": "workspace:*",
-    "@svadmin/refine-adapter": "workspace:*",
     "@refinedev/hasura": "^5.0.0",
     "graphql-request": "^6.1.0"
   },
@@ -31,14 +30,14 @@
     "@svadmin/core": {
       "optional": true
     },
-    "@svadmin/refine-adapter": {
-      "optional": true
-    },
     "@refinedev/hasura": {
       "optional": true
     },
     "graphql-request": {
       "optional": true
     }
+  },
+  "dependencies": {
+    "@svadmin/refine-adapter": "workspace:*"
   }
 }
