@@ -20,8 +20,9 @@
     },
     "./app.css": {
       "svelte": "./src/app.css",
+      "import": "./src/app.css",
       "style": "./src/app.css",
-      "default": "./dist/app.css"
+      "default": "./src/app.css"
     },
     "./components/*": "./dist/components/*"
   },
