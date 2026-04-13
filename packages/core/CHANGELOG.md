@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.4](https://github.com/zuohuadong/svadmin/compare/core-v0.23.3...core-v0.23.4) (2026-04-13)
+
+
+### 🐛 Bug Fixes
+
+* **core:** break circular import TDZ causing router crashes ([dea90af](https://github.com/zuohuadong/svadmin/commit/dea90af81365c3b4d6e5348ba0fc42eec0c045e1))
+
 ## [0.23.3](https://github.com/zuohuadong/svadmin/compare/core-v0.23.2...core-v0.23.3) (2026-04-13)
 
 

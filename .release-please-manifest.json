@@ -1,5 +1,5 @@
 {
-  "packages/core": "0.23.3",
+  "packages/core": "0.23.4",
   "packages/ui": "0.32.3",
   "packages/sveltekit": "0.9.2",
   "packages/drizzle": "0.10.5",
