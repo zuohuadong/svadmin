@@ -1,5 +1,5 @@
 import type { DataProvider } from '@svadmin/core';
-import { createRefineAdapter } from '@svadmin/refine-adapter';
+// Dynamic import used for createRefineAdapter to avoid Vite plugin errors
 
 
 /**
@@ -14,5 +14,6 @@ export async function createNestjsxCrudDataProvider(...args: any[]): Promise<Dat
   const pkg = await import('@refinedev/nestjsx-crud');
   const init = (pkg as any).default || (pkg as any).dataProvider || (pkg as any).DataProvider;
   const refineProvider = init(...args);
+  const { createRefineAdapter } = await import('@svadmin/refine-adapter');
   return createRefineAdapter(refineProvider);
 }

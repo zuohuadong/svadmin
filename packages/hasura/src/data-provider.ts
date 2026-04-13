@@ -1,5 +1,5 @@
 import type { DataProvider } from '@svadmin/core';
-import { createRefineAdapter } from '@svadmin/refine-adapter';
+// Dynamic import used for createRefineAdapter to avoid Vite plugin errors
 
 /**
  * Creates a Hasura data provider using the official @refinedev/hasura package.
