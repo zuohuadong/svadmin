@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.3](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.11.2...create-svadmin-v0.11.3) (2026-04-13)
+
+
+### 📝 Documentation
+
+* **refine:** add svadmin adapters to Vite optimizeDeps.exclude ([dece22c](https://github.com/zuohuadong/svadmin/commit/dece22ca7b0196351e41baaf8d299d256e42e367))
+
 ## [0.11.2](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.11.1...create-svadmin-v0.11.2) (2026-04-11)
 
 

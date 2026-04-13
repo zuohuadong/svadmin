@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.5](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.4...ui-v0.32.5) (2026-04-13)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** resolve app.css import for tailwindcss/vite and enhanced-resolve ([f7dfa1c](https://github.com/zuohuadong/svadmin/commit/f7dfa1c0ff3b1c257c23b38078fbde3979f84a7c))
+
 ## [0.32.4](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.3...ui-v0.32.4) (2026-04-13)
 
 
