@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.5](https://github.com/zuohuadong/svadmin/compare/core-v0.23.4...core-v0.23.5) (2026-04-13)
+
+
+### 🐛 Bug Fixes
+
+* **providers:** resolve relative import path in firebase adapter and mock router test environment ([235091f](https://github.com/zuohuadong/svadmin/commit/235091fc9fccc77f9a8217d75d1094190fbc29fc))
+
 ## [0.23.4](https://github.com/zuohuadong/svadmin/compare/core-v0.23.3...core-v0.23.4) (2026-04-13)
 
 

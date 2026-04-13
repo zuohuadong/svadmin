@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.6](https://github.com/zuohuadong/svadmin/compare/airtable-v0.9.5...airtable-v0.9.6) (2026-04-13)
+
+
+### 🐛 Bug Fixes
+
+* **providers:** make refine-adapter a hard dependency ([f8ca988](https://github.com/zuohuadong/svadmin/commit/f8ca9883471bcee8da53ea7634441db31e3cd521))
+* **providers:** use dynamic import for refine-adapter ([bd922de](https://github.com/zuohuadong/svadmin/commit/bd922de8b96ee6334515dcdca3c81cdf4a4163f4))
+
 ## [0.9.5](https://github.com/zuohuadong/svadmin/compare/airtable-v0.9.4...airtable-v0.9.5) (2026-04-13)
 
 
