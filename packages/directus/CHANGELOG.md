@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.5](https://github.com/zuohuadong/svadmin/compare/directus-v0.9.4...directus-v0.9.5) (2026-04-13)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** mark peer dependencies as optional to fix bun workspace resolution lock ([e928690](https://github.com/zuohuadong/svadmin/commit/e928690734161b133eb5227fb0454b92d1887149))
+
 ## [0.9.4](https://github.com/zuohuadong/svadmin/compare/directus-v0.9.3...directus-v0.9.4) (2026-04-11)
 
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.32.3](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.2...ui-v0.32.3) (2026-04-13)
+
+
+### 🐛 Bug Fixes
+
+* **core:** resolve TS typing and Svelte 5 rune strictness issues across hooks and components ([b8021e4](https://github.com/zuohuadong/svadmin/commit/b8021e4dbe765838c1cf0e3cc0287d4fa5cadb1d))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** mark peer dependencies as optional to fix bun workspace resolution lock ([e928690](https://github.com/zuohuadong/svadmin/commit/e928690734161b133eb5227fb0454b92d1887149))
+* **workspace:** formatting and lockfile sync ([4939f3e](https://github.com/zuohuadong/svadmin/commit/4939f3ec24f599a66dc40c5680c3485dbb34605d))
+
 ## [0.32.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.1...ui-v0.32.2) (2026-04-12)
 
 

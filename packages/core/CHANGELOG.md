@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.23.3](https://github.com/zuohuadong/svadmin/compare/core-v0.23.2...core-v0.23.3) (2026-04-13)
+
+
+### 🐛 Bug Fixes
+
+* **core:** apply minor utility patches and listener deduplication ([300da96](https://github.com/zuohuadong/svadmin/commit/300da96ca280f75a7c63f6b238c7c72c469756de))
+* **core:** export publishLiveEvent out of mutation hooks to resolve TS error ([b477c26](https://github.com/zuohuadong/svadmin/commit/b477c265204935715cd9a40cc792751f310306b5))
+* **core:** resolve TS typing and Svelte 5 rune strictness issues across hooks and components ([b8021e4](https://github.com/zuohuadong/svadmin/commit/b8021e4dbe765838c1cf0e3cc0287d4fa5cadb1d))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** mark peer dependencies as optional to fix bun workspace resolution lock ([e928690](https://github.com/zuohuadong/svadmin/commit/e928690734161b133eb5227fb0454b92d1887149))
+
 ## [0.23.2](https://github.com/zuohuadong/svadmin/compare/core-v0.23.1...core-v0.23.2) (2026-04-12)
 
 

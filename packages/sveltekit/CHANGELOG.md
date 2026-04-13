@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.2](https://github.com/zuohuadong/svadmin/compare/sveltekit-v0.9.1...sveltekit-v0.9.2) (2026-04-13)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** mark peer dependencies as optional to fix bun workspace resolution lock ([e928690](https://github.com/zuohuadong/svadmin/commit/e928690734161b133eb5227fb0454b92d1887149))
+* **workspace:** formatting and lockfile sync ([4939f3e](https://github.com/zuohuadong/svadmin/commit/4939f3ec24f599a66dc40c5680c3485dbb34605d))
+
 ## [0.9.1](https://github.com/zuohuadong/svadmin/compare/sveltekit-v0.9.0...sveltekit-v0.9.1) (2026-04-12)
 
 

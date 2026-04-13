@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.7](https://github.com/zuohuadong/svadmin/compare/sso-v0.8.6...sso-v0.8.7) (2026-04-13)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** mark peer dependencies as optional to fix bun workspace resolution lock ([e928690](https://github.com/zuohuadong/svadmin/commit/e928690734161b133eb5227fb0454b92d1887149))
+
 ## [0.8.6](https://github.com/zuohuadong/svadmin/compare/sso-v0.8.5...sso-v0.8.6) (2026-04-11)
 
 

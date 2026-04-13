@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.5](https://github.com/zuohuadong/svadmin/compare/drizzle-v0.10.4...drizzle-v0.10.5) (2026-04-13)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** mark peer dependencies as optional to fix bun workspace resolution lock ([e928690](https://github.com/zuohuadong/svadmin/commit/e928690734161b133eb5227fb0454b92d1887149))
+
 ## [0.10.4](https://github.com/zuohuadong/svadmin/compare/drizzle-v0.10.3...drizzle-v0.10.4) (2026-04-04)
 
 

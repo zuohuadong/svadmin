@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.4](https://github.com/zuohuadong/svadmin/compare/sanity-v0.9.3...sanity-v0.9.4) (2026-04-13)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** mark peer dependencies as optional to fix bun workspace resolution lock ([e928690](https://github.com/zuohuadong/svadmin/commit/e928690734161b133eb5227fb0454b92d1887149))
+
 ## [0.9.3](https://github.com/zuohuadong/svadmin/compare/sanity-v0.9.2...sanity-v0.9.3) (2026-04-03)
 
 

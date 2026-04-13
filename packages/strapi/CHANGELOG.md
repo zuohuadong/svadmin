@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.5](https://github.com/zuohuadong/svadmin/compare/strapi-v0.9.4...strapi-v0.9.5) (2026-04-13)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** mark peer dependencies as optional to fix bun workspace resolution lock ([e928690](https://github.com/zuohuadong/svadmin/commit/e928690734161b133eb5227fb0454b92d1887149))
+* **workspace:** formatting and lockfile sync ([4939f3e](https://github.com/zuohuadong/svadmin/commit/4939f3ec24f599a66dc40c5680c3485dbb34605d))
+
 ## [0.9.4](https://github.com/zuohuadong/svadmin/compare/strapi-v0.9.3...strapi-v0.9.4) (2026-04-10)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.6](https://github.com/zuohuadong/svadmin/compare/hasura-v0.9.5...hasura-v0.9.6) (2026-04-13)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** mark peer dependencies as optional to fix bun workspace resolution lock ([e928690](https://github.com/zuohuadong/svadmin/commit/e928690734161b133eb5227fb0454b92d1887149))
+
 ## [0.9.5](https://github.com/zuohuadong/svadmin/compare/hasura-v0.9.4...hasura-v0.9.5) (2026-04-11)
 
 

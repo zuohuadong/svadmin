@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.7](https://github.com/zuohuadong/svadmin/compare/appwrite-v0.8.6...appwrite-v0.8.7) (2026-04-13)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** mark peer dependencies as optional to fix bun workspace resolution lock ([e928690](https://github.com/zuohuadong/svadmin/commit/e928690734161b133eb5227fb0454b92d1887149))
+* **workspace:** formatting and lockfile sync ([4939f3e](https://github.com/zuohuadong/svadmin/commit/4939f3ec24f599a66dc40c5680c3485dbb34605d))
+
 ## [0.8.6](https://github.com/zuohuadong/svadmin/compare/appwrite-v0.8.5...appwrite-v0.8.6) (2026-04-10)
 
 

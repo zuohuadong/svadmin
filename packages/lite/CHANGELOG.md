@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.4](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.3...lite-v0.3.4) (2026-04-13)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** mark peer dependencies as optional to fix bun workspace resolution lock ([e928690](https://github.com/zuohuadong/svadmin/commit/e928690734161b133eb5227fb0454b92d1887149))
+
 ## [0.3.3](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.2...lite-v0.3.3) (2026-04-11)
 
 
