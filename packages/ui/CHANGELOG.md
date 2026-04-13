@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.32.4](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.3...ui-v0.32.4) (2026-04-13)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** correct exports object order to prioritize svelte condition over default ([69d1700](https://github.com/zuohuadong/svadmin/commit/69d17008875937ac2502f3d9b1939d78c3792798))
+* **ui:** use src exports for svelte ecosystem tools ([29f1274](https://github.com/zuohuadong/svadmin/commit/29f12745d7065cb2a564aeb03578f32385465c90))
+
 ## [0.32.3](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.2...ui-v0.32.3) (2026-04-13)
 
 
