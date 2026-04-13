@@ -36,8 +36,10 @@
   const multiVal = $derived((value as (string | number)[]) ?? []);
   const imagesVal = $derived((value as string[]) ?? []);
   let jsonEditText = $state('');
+  let jsonEditing = false;
 
   $effect(() => {
+    if (jsonEditing) return;
     jsonEditText = typeof value === 'string' ? String(value) : JSON.stringify(value, null, 2);
   });
 
@@ -365,6 +367,11 @@
     <Textarea
       id={field.key}
       value={jsonEditText}
+      onfocus={() => { jsonEditing = true; }}
+      onblur={() => {
+        jsonEditing = false;
+        jsonEditText = typeof value === 'string' ? String(value) : JSON.stringify(value, null, 2);
+      }}
       oninput={(e) => {
         const raw = (e.target as HTMLTextAreaElement).value;
         jsonEditText = raw;

@@ -5,7 +5,7 @@
   import { t } from '@svadmin/core/i18n';
   import * as Breadcrumb from './ui/breadcrumb/index.js';
 
-  const resources = getResources();
+  const resources = $derived((() => { try { return getResources(); } catch { return []; } })());
 
   interface Crumb { label: string; href: string; }
 

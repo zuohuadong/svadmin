@@ -13,6 +13,7 @@ export async function createStrapiDataProvider(...args: any[]): Promise<DataProv
   // @ts-ignore
   const pkg = await import('@refinedev/strapi-v4');
   const init = (pkg as any).default || (pkg as any).dataProvider || (pkg as any).DataProvider;
+  if (typeof init !== 'function') throw new Error('[svadmin] Failed to resolve @refinedev/strapi-v4 data provider. Ensure the package is installed correctly.');
   const refineProvider = init(...args);
   return createRefineAdapter(refineProvider);
 }

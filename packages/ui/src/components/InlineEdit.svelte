@@ -33,7 +33,7 @@
 
   async function save() {
     if (!editing || saving || savePending) return;
-    const newValue = field.type === 'number' ? (editValue.trim() === '' ? null : Number(editValue)) : editValue;
+    const newValue = field.type === 'number' ? (editValue.trim() === '' ? null : (() => { const n = Number(editValue); return isNaN(n) ? value : n; })()) : editValue;
     if (newValue === value) {
       editing = false;
       return;

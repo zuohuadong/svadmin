@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ExternalLink } from '@lucide/svelte';
+  import { getRouterProvider } from '@svadmin/core';
 
   let { value, resourceName, displayValue } = $props<{
     value: string | number | null | undefined;
@@ -8,7 +9,12 @@
   }>();
 
   const display = $derived(displayValue ?? (value != null ? `#${value}` : '—'));
-  const href = $derived(resourceName && value != null ? `#/${resourceName}/show/${value}` : undefined);
+  const href = $derived.by(() => {
+    if (!resourceName || value == null) return undefined;
+    const router = getRouterProvider();
+    const path = `/${resourceName}/show/${value}`;
+    return router?.formatLink?.(path) ?? path;
+  });
 </script>
 
 {#if href}

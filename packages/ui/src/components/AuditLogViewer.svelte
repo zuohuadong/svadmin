@@ -23,7 +23,7 @@
   let drawerOpen = $state(false);
   let drawerLog = $state<AuditLog | null>(null);
 
-  let cancelled = false;
+  let requestId = 0;
 
   async function loadLogs() {
     if (!authProvider?.getAuditLogs) {
@@ -31,27 +31,25 @@
       loading = false;
       return;
     }
+    const currentId = ++requestId;
     loading = true;
     error = null;
     try {
       const result = await authProvider.getAuditLogs({ page, pageSize });
-      if (cancelled) return;
+      if (currentId !== requestId) return;
       logs = result.data;
       total = result.total;
     } catch (e) {
-      if (cancelled) return;
+      if (currentId !== requestId) return;
       toast.error((e as Error).message);
     } finally {
-      if (!cancelled) loading = false;
+      if (currentId === requestId) loading = false;
     }
   }
 
   $effect(() => {
     void page;
-    cancelled = true;
-    cancelled = false;
     loadLogs();
-    return () => { cancelled = true; };
   });
 
   let totalPages = $derived(Math.ceil(total / pageSize) || 1);

@@ -9,6 +9,14 @@
   import { Skeleton } from './ui/skeleton/index.js';
   import { ChevronsUpDown, Check, X, Search } from '@lucide/svelte';
 
+  function clickOutside(node: HTMLElement) {
+    const handler = (e: MouseEvent) => {
+      if (!node.contains(e.target as Node)) open = false;
+    };
+    document.addEventListener('click', handler, true);
+    return { destroy() { document.removeEventListener('click', handler, true); } };
+  }
+
   interface Props {
     resource: string;
     value?: string | number | null;
@@ -60,6 +68,8 @@
   function handleClear(e: Event) {
     e.stopPropagation();
     onchange?.(null);
+    open = false;
+    searchInputValue = '';
   }
 
   function handleSearchInput(e: Event) {
@@ -69,7 +79,7 @@
   }
 </script>
 
-<div class="relative">
+<div class="relative" use:clickOutside>
   <Button
     variant="outline"
     type="button"

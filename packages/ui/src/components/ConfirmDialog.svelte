@@ -50,7 +50,7 @@
     <AlertDialog.Footer>
       <AlertDialog.Cancel>
         {#snippet child({ props })}
-          <Button variant="outline" {...props} onclick={oncancel}>
+          <Button variant="outline" {...props}>
             {resolvedCancelText}
           </Button>
         {/snippet}

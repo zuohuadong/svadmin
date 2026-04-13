@@ -11,7 +11,7 @@
   } from '@tanstack/svelte-table';
   import { getCoreRowModel } from '@tanstack/table-core';
 
-  import { useList, useDelete, getResource, notify } from '@svadmin/core';
+  import { useList, useDelete, useDeleteMany, getResource, notify } from '@svadmin/core';
   import type { Pagination as PaginationState, Sort, Filter, FieldDefinition } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
   import { useCan, getAccessControlProvider } from '@svadmin/core';
@@ -170,6 +170,8 @@
   const query = listResult;
   const deleteResult = useDelete({ get resource() { return resourceName; } });
   const deleteMutation = deleteResult.mutation;
+  const deleteManyResult = useDeleteMany({ get resource() { return resourceName; } });
+  const deleteManyMutation = deleteManyResult.mutation;
 
   // ─── Permissions ──────────────────────────────────────────────
   const acEnabled = $derived(!!getAccessControlProvider());
@@ -347,13 +349,11 @@
     const ids = Object.keys(rowSelection);
     confirmMessage = t('common.batchDeleteConfirm', { count: ids.length });
     confirmAction = async () => {
-      const results = await Promise.allSettled(ids.map(id => deleteMutation.mutateAsync({ id, resource: resourceName, successNotification: false })));
-      const succeeded = results.filter(r => r.status === 'fulfilled').length;
-      const failed = results.filter(r => r.status === 'rejected');
-      if (failed.length > 0) {
-        notify({ type: 'error', message: t('common.batchDeletePartialFail', { failed: failed.length, total: ids.length }) });
-      } else {
-        notify({ type: 'success', message: t('common.batchDeleteSuccess', { count: succeeded }) });
+      try {
+        await deleteManyMutation.mutateAsync({ ids, resource: resourceName, successNotification: false });
+        notify({ type: 'success', message: t('common.batchDeleteSuccess', { count: ids.length }) });
+      } catch {
+        notify({ type: 'error', message: t('common.batchDeletePartialFail', { failed: 1, total: ids.length }) });
       }
       rowSelection = {};
       confirmOpen = false;
@@ -374,7 +374,7 @@
         return String(val);
       })
     );
-    const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${v.replace(new RegExp('"', 'g'), '""')}"`).join(','))].join('\n');
+    const csv = [headers.map(h => `"${h.replace(/"/g, '""')}"`).join(','), ...rows.map(r => r.map(v => `"${v.replace(/"/g, '""')}"`).join(','))].join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);

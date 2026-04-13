@@ -6,6 +6,9 @@ import type { DataProvider as SvadminDataProvider } from '@svadmin/core';
  * definition of @svadmin/core.
  */
 export function createRefineAdapter(refineProvider: any): SvadminDataProvider {
+  if (!refineProvider || typeof refineProvider !== 'object') {
+    throw new Error('[svadmin] createRefineAdapter: expected a valid Refine DataProvider object, got ' + String(refineProvider));
+  }
   const adapter: SvadminDataProvider = {
     getApiUrl: () => refineProvider.getApiUrl(),
     getList: refineProvider.getList.bind(refineProvider),

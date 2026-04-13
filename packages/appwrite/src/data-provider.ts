@@ -14,6 +14,7 @@ export async function createAppwriteDataProvider(...args: any[]): Promise<DataPr
   // @ts-ignore
   const pkg = await import('@refinedev/appwrite');
   const init = (pkg as any).default || (pkg as any).dataProvider || (pkg as any).DataProvider;
+  if (typeof init !== 'function') throw new Error('[svadmin] Failed to resolve @refinedev/appwrite data provider. Ensure the package is installed correctly.');
   const refineProvider = init(...args);
   return createRefineAdapter(refineProvider);
 }

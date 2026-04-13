@@ -71,6 +71,11 @@ export function createSimpleRestAuthProvider(opts: SimpleRestAuthOptions): AuthP
         return { authenticated: false, redirectTo: '/login', logout: true };
       }
 
+      if (!tokenKey) {
+        console.warn('[svadmin] Cookie-based auth without identityUrl: cannot verify session. Provide identityUrl for secure auth checking.');
+        return { authenticated: false, redirectTo: '/login', logout: true };
+      }
+
       return { authenticated: true };
     },
 

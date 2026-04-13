@@ -44,6 +44,9 @@ export function createSvelteKitRouterProvider(): RouterProvider {
       try {
         if (page.url) {
           pathname = page.url.pathname;
+          if (base && pathname.startsWith(base)) {
+            pathname = pathname.slice(base.length) || '/';
+          }
         }
         if (page.url?.searchParams) {
           page.url.searchParams.forEach((v: string, k: string) => {

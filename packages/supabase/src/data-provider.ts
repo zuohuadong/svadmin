@@ -11,6 +11,7 @@ export async function createSupabaseDataProvider(...args: any[]): Promise<DataPr
   // @ts-ignore Peer dependency
   const pkg = (await import('@refinedev/supabase')) as any;
   const init: any = pkg.dataProvider || pkg.default || pkg.DataProvider;
+  if (typeof init !== 'function') throw new Error('[svadmin] Failed to resolve @refinedev/supabase data provider. Ensure the package is installed correctly.');
   const refineProvider = init(...args);
   return createRefineAdapter(refineProvider);
 }

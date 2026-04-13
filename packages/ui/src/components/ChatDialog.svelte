@@ -89,36 +89,43 @@
 
   // ─── Persist on change (debounced) ──────────────────────────
   let persistTimer: ReturnType<typeof setTimeout> | null = null;
+  let lastPersistSnapshot: ChatMessage[] | null = null;
+
+  function flushPersist(snapshot: ChatMessage[]) {
+    if (onPersist) {
+      onPersist(snapshot);
+    } else if (persistKey) {
+      try {
+        localStorage.setItem(persistKey, JSON.stringify(snapshot));
+      } catch {
+        // storage full or unavailable
+      }
+    }
+  }
 
   $effect(() => {
     const snapshot = messages;
     if (!initialized) return;
 
     if (persistTimer) clearTimeout(persistTimer);
+    lastPersistSnapshot = snapshot;
     persistTimer = setTimeout(() => {
-      if (onPersist) {
-        onPersist(snapshot);
-      } else if (persistKey) {
-        try {
-          localStorage.setItem(persistKey, JSON.stringify(snapshot));
-        } catch {
-          // storage full or unavailable
-        }
-      }
+      persistTimer = null;
+      flushPersist(snapshot);
     }, 300);
 
     return () => {
       if (persistTimer) {
         clearTimeout(persistTimer);
-        if (onPersist) {
-          onPersist(snapshot);
-        } else if (persistKey) {
-          try {
-            localStorage.setItem(persistKey, JSON.stringify(snapshot));
-          } catch {
-            // storage full or unavailable
-          }
-        }
+        persistTimer = null;
+      }
+    };
+  });
+
+  $effect(() => {
+    return () => {
+      if (lastPersistSnapshot != null) {
+        flushPersist(lastPersistSnapshot);
       }
     };
   });
@@ -204,6 +211,7 @@
         const collectedActions: ChatAction[] = [];
 
         for await (const event of stream) {
+          if (!isStreaming) break;
           switch (event.type) {
             case 'text':
               assistantMsg.content += event.content;
@@ -282,6 +290,7 @@
 
         if (result && typeof result === 'object' && Symbol.asyncIterator in result) {
           for await (const chunk of result as AsyncGenerator<string>) {
+            if (!isStreaming) break;
             assistantMsg.content += chunk;
             messages = [...messages.slice(0, -1), { ...assistantMsg }];
             scrollToBottom();
