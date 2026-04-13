@@ -45,7 +45,7 @@ export function useCan(options: () => UseCanOptions): UseCanResult {
     get allowed() { 
       const p = getAccessControlProvider();
       if (!p) return true;
-      return (query.data as CanResult | undefined)?.can ?? true; 
+      return (query.data as CanResult | undefined)?.can ?? false; 
     },
     get reason() { return (query.data as CanResult | undefined)?.reason; },
     get isLoading() { return query.isLoading; },

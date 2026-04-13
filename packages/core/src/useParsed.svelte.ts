@@ -12,6 +12,13 @@ interface ParsedRoute {
 }
 
 let globalPath = $state('/');
+
+export function resetGlobalPath(): void {
+  globalPath = typeof window !== 'undefined' ? currentPath() : '/';
+}
+export function syncGlobalPath(): void {
+  if (typeof window !== 'undefined') globalPath = currentPath();
+}
 if (typeof window !== 'undefined') {
   globalPath = currentPath();
   if (!(window as any).__svadminParsedInit) {

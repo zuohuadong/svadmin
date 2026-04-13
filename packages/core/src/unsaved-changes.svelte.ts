@@ -2,12 +2,18 @@
 // Supports: browser tab close, hash-based SPA routing, and framework router interception
 
 import { t } from './i18n.svelte';
+import { syncGlobalPath } from './useParsed.svelte';
 
 let dirty = $state(false);
 
-/** Mark whether the current form has unsaved changes */
 export function setUnsavedChanges(value: boolean) {
   dirty = value;
+}
+
+export function resetUnsavedChanges(): void {
+  dirty = false;
+  _unsavedChangesCleanup?.();
+  _unsavedChangesCleanup = null;
 }
 
 export function getUnsavedChanges(): boolean {
@@ -100,6 +106,7 @@ export function initUnsavedChangesNotifier(options?: {
     if (!confirm(t('common.unsavedChanges'))) {
       if (e.oldURL) {
         history.replaceState(null, '', new URL(e.oldURL).hash || '#');
+        syncGlobalPath();
       }
     } else {
       dirty = false;

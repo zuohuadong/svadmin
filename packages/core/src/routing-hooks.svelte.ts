@@ -48,7 +48,7 @@ export function useGo() {
     if (!targetUrl) targetUrl = '/';
 
     if (options.query && Object.keys(options.query).length > 0) {
-      const qs = new URLSearchParams(options.query as Record<string, string>).toString();
+      const qs = new URLSearchParams(Object.entries(options.query).map(([k, v]) => [k, String(v)])).toString();
       if (qs) {
         targetUrl += targetUrl.includes('?') ? `&${qs}` : `?${qs}`;
       }
@@ -105,8 +105,12 @@ export function useResource(resourceName?: string) {
     get identifier() { return resolvedResource?.identifier ?? resolvedResource?.name; },
     /** Resolve a resource by name — useful for dynamic lookups inside callbacks */
     select: (name: string) => {
-      const res = getResource(name);
-      return { resource: res, identifier: res.identifier ?? res.name };
+      try {
+        const res = getResource(name);
+        return { resource: res, identifier: res.identifier ?? res.name };
+      } catch {
+        return { resource: undefined, identifier: undefined };
+      }
     },
   };
 }

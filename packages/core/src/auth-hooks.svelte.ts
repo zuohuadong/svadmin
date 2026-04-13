@@ -7,6 +7,11 @@ import { navigate } from './router';
 import { notify } from './notification.svelte';
 import { t } from './i18n.svelte';
 import type { AuthActionResult, CheckResult, Identity, AuthProvider } from './types';
+import { useQueryClient } from '@tanstack/svelte-query';
+
+let _logoutVersion = $state(0);
+export function getLogoutVersion() { return _logoutVersion; }
+export function resetLogoutVersion() { _logoutVersion = 0; }
 
 // ─── Mutate Factory ─────────────────────────────────────────────
 
@@ -59,7 +64,7 @@ export function useLogin(opts?: { errorMessage?: string | false }) {
     method: 'login',
     successMessage: t('common.operationSuccess'),
     errorMessage: opts?.errorMessage ?? t('common.loginFailed'),
-    onSuccess: (result) => { if (result.redirectTo) navigate(result.redirectTo); }
+    onSuccess: (result) => { navigate(result.redirectTo ?? '/'); }
   });
 }
 
@@ -69,7 +74,14 @@ export function useLogout() {
   return createAuthMutation({
     method: 'logout',
     successMessage: null,
-    onSuccess: (result) => { navigate(result.redirectTo ?? '/login'); }
+    onSuccess: (result) => {
+      _logoutVersion++;
+      try {
+        const queryClient = useQueryClient();
+        queryClient.clear();
+      } catch {}
+      navigate(result.redirectTo ?? '/login');
+    }
   });
 }
 
@@ -125,6 +137,10 @@ export function useGetIdentity() {
 
   if (typeof window !== 'undefined') {
     fetch();
+    $effect(() => {
+      void _logoutVersion;
+      data = null;
+    });
   }
 
   return {
@@ -169,6 +185,13 @@ export function useIsAuthenticated() {
 
   // Initial check
   check();
+
+  if (typeof window !== 'undefined') {
+    $effect(() => {
+      void _logoutVersion;
+      isAuthenticated = false;
+    });
+  }
 
   return {
     get isAuthenticated() { return isAuthenticated; },

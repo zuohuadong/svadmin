@@ -31,7 +31,7 @@ export interface LiveProviderReconnectOptions {
 export function useLive(
   liveProvider: LiveProvider | (() => LiveProvider),
   resource: string | (() => string),
-  options?: { liveMode?: LiveMode | (() => LiveMode); onLiveEvent?: (event: LiveEvent) => void; liveParams?: Record<string, unknown> | (() => Record<string, unknown>) }
+  options?: { liveMode?: LiveMode | (() => LiveMode); onLiveEvent?: (event: LiveEvent) => void; liveParams?: Record<string, unknown> | (() => Record<string, unknown>); dataProviderName?: string }
 ): void {
   const queryClient = useQueryClient();
 
@@ -48,7 +48,9 @@ export function useLive(
       callback: (event) => {
         options?.onLiveEvent?.(event);
         if (liveMode === 'auto') {
-          queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === res });
+          const dpName = options?.dataProviderName;
+          const dpMatch = (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === dpName;
+          queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === res });
         }
       },
     });

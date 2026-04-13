@@ -56,9 +56,11 @@ export function useModalForm<
     visible = false;
     formState.reset();
     if (options.autoSave?.invalidateOnClose) {
-      queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === formState.resource && (q.queryKey[2] === 'list' || q.queryKey[2] === 'infiniteList' || q.queryKey[2] === 'select') });
-      queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === formState.resource && q.queryKey[2] === 'many' });
-      queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === formState.resource && q.queryKey[2] === 'one' });
+      const dpN = options.dataProviderName;
+      const dp = (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === dpN;
+      queryClient.invalidateQueries({ predicate: (q) => dp(q) && q.queryKey[1] === formState.resource && (q.queryKey[2] === 'list' || q.queryKey[2] === 'infiniteList' || q.queryKey[2] === 'select') });
+      queryClient.invalidateQueries({ predicate: (q) => dp(q) && q.queryKey[1] === formState.resource && q.queryKey[2] === 'many' });
+      queryClient.invalidateQueries({ predicate: (q) => dp(q) && q.queryKey[1] === formState.resource && q.queryKey[2] === 'one' });
     }
   }
 

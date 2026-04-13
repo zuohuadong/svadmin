@@ -26,6 +26,7 @@ export {
   useOvertime, useRelation,
   useNotification, useDataProvider,
   useMenu, useBreadcrumb, useThemedLayoutContext,
+  publishLiveEvent, resetSidebarCollapsed,
 } from './hooks.svelte';
 export { matchRoute, navigate, currentPath, setActiveRouterProvider, beforeEach, afterEach, resetRouter } from './router';
 export type { RouteGuard } from './router';
@@ -41,7 +42,7 @@ export { setChatProvider, getChatProvider, setChatContext, getChatContext, setAg
 export type { ChatProvider, ChatMessage, ChatContext, ChatAction, AgentProvider, AgentEvent, AgentOptions, AdminTool, AdminToolParameter, ToolResult } from './chatProvider.svelte';
 export { getTheme, setTheme, toggleTheme, getResolvedTheme, getColorTheme, setColorTheme, getColorThemes, configureTheme, getThemeConfig, clearCssOverrides, builtinPresets, registerColorPreset, getColorPresets, resetTheme } from './theme.svelte';
 export type { ThemeMode, ColorTheme, ThemeStrategy, ThemeConfig, ColorPreset } from './theme.svelte';
-export { setUnsavedChanges, getUnsavedChanges, initUnsavedChangesNotifier } from './unsaved-changes.svelte';
+export { setUnsavedChanges, getUnsavedChanges, initUnsavedChangesNotifier, resetUnsavedChanges } from './unsaved-changes.svelte';
 export { setAdminOptions, getAdminOptions, getTextTransformers } from './options.svelte';
 export type { AdminOptions, TextTransformers, OvertimeConfig } from './options.svelte';
 export { checkError } from './hook-utils.svelte';
@@ -84,8 +85,9 @@ export {
   useRegister, useForgotPassword, useUpdatePassword,
   useGetIdentity, useIsAuthenticated,
   useOnError, usePermissions,
+  getLogoutVersion, resetLogoutVersion,
 } from './auth-hooks.svelte';
-export { useParsed } from './useParsed.svelte';
+export { useParsed, resetGlobalPath, syncGlobalPath } from './useParsed.svelte';
 export * from './useStepsForm.svelte';
 export { createHashRouterProvider, createHistoryRouterProvider } from './router-provider';
 export type { RouterProvider } from './router-provider';

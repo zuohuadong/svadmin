@@ -12,6 +12,10 @@ import { resetChatProvider } from './chatProvider.svelte';
 import { resetToast } from './toast.svelte';
 import { resetTheme } from './theme.svelte';
 import { resetRouter } from './router';
+import { resetUnsavedChanges } from './unsaved-changes.svelte';
+import { resetGlobalPath } from './useParsed.svelte';
+import { resetLogoutVersion } from './auth-hooks.svelte';
+import { resetSidebarCollapsed } from './hooks.svelte';
 
 // ─── DataProvider (supports single or multiple) ─────────────────
 
@@ -149,4 +153,8 @@ export function resetContext(): void {
   resetToast();
   resetTheme();
   resetRouter();
+  resetUnsavedChanges();
+  resetGlobalPath();
+  resetLogoutVersion();
+  resetSidebarCollapsed();
 }

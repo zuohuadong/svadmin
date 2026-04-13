@@ -102,6 +102,7 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
       },
       liveParams: opts.liveParams,
       enabled: opts.queryOptions?.enabled ?? true,
+      dataProviderName: opts.dataProviderName,
     };
   });
 
@@ -110,9 +111,11 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
   let lastErrorAt = 0;
   $effect(() => {
     const opts = getOptions();
-    if (query.isSuccess && query.dataUpdatedAt > lastSuccessAt && opts.successNotification) {
+    if (query.isSuccess && query.dataUpdatedAt > lastSuccessAt) {
       lastSuccessAt = query.dataUpdatedAt;
-      fireSuccessNotification(opts.successNotification, '', query.data, undefined, getResource());
+      if (opts.successNotification) {
+        fireSuccessNotification(opts.successNotification, '', query.data, undefined, getResource());
+      }
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
       checkError(query.error);
@@ -187,6 +190,7 @@ export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError
       },
       liveParams: opts.liveParams,
       enabled: (opts.queryOptions?.enabled ?? true) && getId() != null,
+      dataProviderName: opts.dataProviderName,
     };
   });
 
@@ -194,9 +198,11 @@ export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError
   let lastErrorAt = 0;
   $effect(() => {
     const opts = getOptions();
-    if (query.isSuccess && query.dataUpdatedAt > lastSuccessAt && opts.successNotification) {
+    if (query.isSuccess && query.dataUpdatedAt > lastSuccessAt) {
       lastSuccessAt = query.dataUpdatedAt;
-      fireSuccessNotification(opts.successNotification, '', query.data, undefined, getResource());
+      if (opts.successNotification) {
+        fireSuccessNotification(opts.successNotification, '', query.data, undefined, getResource());
+      }
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
       checkError(query.error);
@@ -286,6 +292,7 @@ export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpErro
       },
       liveParams: opts.liveParams,
       enabled: (opts.queryOptions?.enabled ?? true) && opts.ids.length > 0,
+      dataProviderName: opts.dataProviderName,
     };
   });
 
@@ -293,9 +300,11 @@ export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpErro
   let lastErrorAt = 0;
   $effect(() => {
     const opts = getOptions();
-    if (query.isSuccess && query.dataUpdatedAt > lastSuccessAt && opts.successNotification) {
+    if (query.isSuccess && query.dataUpdatedAt > lastSuccessAt) {
       lastSuccessAt = query.dataUpdatedAt;
-      fireSuccessNotification(opts.successNotification, '', query.data, undefined, opts.resource);
+      if (opts.successNotification) {
+        fireSuccessNotification(opts.successNotification, '', query.data, undefined, opts.resource);
+      }
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
       checkError(query.error);

@@ -102,6 +102,7 @@ export function createWebSocketLiveProvider(options: WebSocketLiveProviderOption
 
   function disconnect() {
     intentionalClose = true;
+    reconnectAttempts = 0;
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
       reconnectTimer = null;

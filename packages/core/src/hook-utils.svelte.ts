@@ -12,16 +12,25 @@ import { notify } from './notification.svelte';
 export async function checkError(error: unknown): Promise<void> {
   try {
     const authProvider = getAuthProvider({ optional: true });
-    if (!authProvider?.onError) return;
-    const result = await authProvider.onError(error);
-    if (!result) return;
-    if (result.logout) {
-      try { await authProvider.logout?.(); } catch { /* logout failure should not block redirect */ }
-      const { navigate } = await import('./router');
-      navigate(result.redirectTo ?? '/login');
-    } else if (result.redirectTo) {
-      const { navigate } = await import('./router');
-      navigate(result.redirectTo);
+    if (authProvider?.onError) {
+      const result = await authProvider.onError(error);
+      if (!result) return;
+      if (result.logout) {
+        try { await authProvider.logout?.(); } catch { /* logout failure should not block redirect */ }
+        const { navigate } = await import('./router');
+        navigate(result.redirectTo ?? '/login');
+      } else if (result.redirectTo) {
+        const { navigate } = await import('./router');
+        navigate(result.redirectTo);
+      }
+      return;
+    }
+    if (error && typeof error === 'object' && 'statusCode' in error) {
+      const status = (error as { statusCode: number }).statusCode;
+      if (status === 401 || status === 403) {
+        const { navigate } = await import('./router');
+        navigate('/login');
+      }
     }
   } catch { /* auth check failed silently */ }
 }
@@ -73,6 +82,7 @@ export interface LiveSubscriptionParams {
   onLiveEvent?: (event: LiveEvent) => void;
   liveParams?: Record<string, unknown>;
   enabled?: boolean;
+  dataProviderName?: string;
 }
 
 export function createLiveSubscription(paramsFn: () => LiveSubscriptionParams): void {
@@ -92,7 +102,9 @@ export function createLiveSubscription(paramsFn: () => LiveSubscriptionParams): 
       callback: (event: LiveEvent) => {
         params.onLiveEvent?.(event);
         if (liveMode === 'auto') {
-          queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === params.resource });
+          const dpN = params.dataProviderName;
+          const dpMatch = (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === dpN;
+          queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === params.resource });
         }
       },
     });

@@ -246,7 +246,7 @@ export function useForm<
     values = { ...initialValues } as TVariables;
     tainted = {};
     clearErrors();
-    queryInitializedId = undefined;
+    queryInitializedId = currentId;
   }
 
   // ─── Server error handling ──────────────────────────────────────
@@ -348,10 +348,12 @@ export function useForm<
     },
     onMutate: async (variables: TVariables) => {
       if (mutationMode === 'pessimistic') return;
-      await queryClient.cancelQueries({ predicate: (q) => q.queryKey[1] === resource });
-      const previousQueries = queryClient.getQueriesData({ predicate: (q) => q.queryKey[1] === resource });
+      const dpN = options.dataProviderName;
+      const dp = (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === dpN;
+      await queryClient.cancelQueries({ predicate: (q) => dp(q) && q.queryKey[1] === resource });
+      const previousQueries = queryClient.getQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resource });
       if (optimisticUpdateMap?.list !== false) {
-        queryClient.setQueriesData({ predicate: (q) => q.queryKey[1] === resource && q.queryKey[2] === 'list' }, (old: unknown) => {
+        queryClient.setQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resource && q.queryKey[2] === 'list' }, (old: unknown) => {
           if (!old || typeof old !== 'object' || !('data' in old)) return old;
           const o = old as { data: Record<string, unknown>[] };
           const pk = getResource(resource).primaryKey ?? 'id';
@@ -359,7 +361,7 @@ export function useForm<
         });
       }
       if (optimisticUpdateMap?.detail !== false && currentId != null) {
-        queryClient.setQueriesData({ predicate: (q) => q.queryKey[1] === resource && q.queryKey[2] === 'one' && q.queryKey[3] === currentId }, (old: Record<string, unknown> | undefined) => old ? { ...old, data: deepMerge((old as Record<string, unknown>).data || {}, variables) } : old);
+        queryClient.setQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resource && q.queryKey[2] === 'one' && q.queryKey[3] === currentId }, (old: Record<string, unknown> | undefined) => old ? { ...old, data: deepMerge((old as Record<string, unknown>).data || {}, variables) } : old);
       }
       return { previousQueries };
     },
@@ -404,9 +406,14 @@ export function useForm<
   // ─── Submit ─────────────────────────────────────────────────────
   async function submit(overrides?: { redirect?: 'list' | 'edit' | 'show' | false }) {
     if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+    while (autoSaveInProgress) {
+      await new Promise(r => setTimeout(r, 50));
+    }
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+    autoSaveDirty = false;
     if (onSubmitFn) {
       let cancelled = false;
-      const result = onSubmitFn({ values, action, cancel: () => { cancelled = true; } });
+      const result = await onSubmitFn({ values, action, cancel: () => { cancelled = true; } });
       if (result === false || cancelled) return;
     }
 
@@ -474,7 +481,7 @@ export function useForm<
 
   if (autoSaveOpts?.invalidateOnUnmount) {
     $effect(() => {
-      return () => queryClient.invalidateQueries({ predicate: (q) => q.queryKey[1] === resource });
+      return () => queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] === options.dataProviderName && q.queryKey[1] === resource });
     });
   }
 

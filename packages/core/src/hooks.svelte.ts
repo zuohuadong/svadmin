@@ -92,6 +92,7 @@ export function useInfiniteList<TData extends BaseRecord = BaseRecord, TError = 
       adminOptions.onLiveEvent?.(e);
     },
     enabled: options.queryOptions?.enabled ?? true,
+    dataProviderName: options.dataProviderName,
   }));
 
   let lastSuccessAt = 0;
@@ -298,7 +299,7 @@ export function useCustomMutation<TData = unknown, TError = HttpError, TVariable
     },
     onSuccess: (data, params) => {
       if (params.resource && params.invalidates !== false) {
-        invalidateByScopes(queryClient, params.resource, params.invalidates, ['list', 'many']);
+        invalidateByScopes(queryClient, params.resource, params.invalidates, ['list', 'many'], undefined, dataProviderName);
       }
     },
     onError: (error) => {
@@ -382,7 +383,7 @@ export function useUpdateMany<TData extends BaseRecord = BaseRecord, TError = Ht
       const resName = params.resource ?? resource;
       invalidateByScopes(queryClient, resName, undefined, ['list', 'many', 'detail'], undefined, params.dataProviderName);
       for (const id of params.ids) {
-        queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] === (params.dataProviderName ?? 'default') && q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === id });
+        queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] === params.dataProviderName && q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === id });
       }
     },
   }));
@@ -423,7 +424,7 @@ export function useDeleteMany<TData extends BaseRecord = BaseRecord, TError = Ht
       const resName = params.resource ?? resource;
       invalidateByScopes(queryClient, resName, undefined, ['list', 'many'], undefined, params.dataProviderName);
       for (const id of params.ids) {
-        queryClient.removeQueries({ predicate: (q) => q.queryKey[0] === (params.dataProviderName ?? 'default') && q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === id });
+        queryClient.removeQueries({ predicate: (q) => q.queryKey[0] === params.dataProviderName && q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === id });
       }
     },
   }));
@@ -438,12 +439,12 @@ export function useInvalidate() {
   return (params: { resource?: string; invalidates?: string[] | 'all' | false; id?: string | number; dataProviderName?: string }) => {
     if (params.invalidates === false) return;
     if (params.invalidates === 'all' || !params.resource) {
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] === params.dataProviderName });
       return;
     }
     const scopes = params.invalidates || ['resourceAll'];
     const res = params.resource;
-    const dpMatch = params.dataProviderName ? (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === params.dataProviderName : () => true;
+    const dpMatch = (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === params.dataProviderName;
     for (const scope of scopes) {
       if (scope === 'resourceAll') queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === res });
       else if ((scope === 'detail' || scope === 'one') && params.id) queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === res && q.queryKey[2] === 'one' && q.queryKey[3] === params.id });
@@ -475,6 +476,8 @@ export function useDataProvider(): (dataProviderName?: string) => DataProvider {
 // ─── useThemedLayoutContext ─────────────────────────────────────────
 
 let _sidebarCollapsed = $state(false);
+
+export function resetSidebarCollapsed() { _sidebarCollapsed = false; }
 
 export function useThemedLayoutContext() {
   return {

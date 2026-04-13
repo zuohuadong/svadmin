@@ -138,7 +138,7 @@ export function useTable<
         if (newPage !== pagination.current) {
           pagination = { ...pagination, current: newPage };
         }
-        const newPageSize = urlState.pageSize ?? initialOpts.pagination?.pageSize ?? getAdminOptions().defaultPageSize ?? 10;
+        const newPageSize = urlState.pageSize ?? getOptions().pagination?.pageSize ?? getAdminOptions().defaultPageSize ?? 10;
         if (newPageSize !== pagination.pageSize) {
           pagination = { ...pagination, pageSize: newPageSize };
         }
@@ -218,6 +218,51 @@ export function useTable<
             if (cmp !== 0) return order === 'desc' ? -cmp : cmp;
           }
           return 0;
+        });
+      }
+      const activeFilters = filtersMode === 'off' ? effectiveFilters : [];
+      if (activeFilters.length > 0) {
+        function matchesFilter(item: Record<string, unknown>, f: Filter): boolean {
+          if (!('field' in f)) {
+            if (f.operator === 'and') return f.value.every(sub => matchesFilter(item, sub));
+            if (f.operator === 'or') return f.value.length === 0 || f.value.some(sub => matchesFilter(item, sub));
+            return true;
+          }
+          const val = item[f.field];
+          const fv = f.value;
+          switch (f.operator) {
+            case 'null': return val == null;
+            case 'nnull': return val != null;
+            default: break;
+          }
+          if (fv == null || fv === '') return true;
+          switch (f.operator) {
+            case 'eq': return val == fv;
+            case 'ne': return val != fv;
+            case 'lt': return typeof val === 'number' && typeof fv === 'number' && val < fv;
+            case 'gt': return typeof val === 'number' && typeof fv === 'number' && val > fv;
+            case 'lte': return typeof val === 'number' && typeof fv === 'number' && val <= fv;
+            case 'gte': return typeof val === 'number' && typeof fv === 'number' && val >= fv;
+            case 'in': return !Array.isArray(fv) || fv.length === 0 || fv.includes(val);
+            case 'nin': return !Array.isArray(fv) || fv.length === 0 || !fv.includes(val);
+            case 'contains': return typeof val === 'string' && typeof fv === 'string' && val.includes(fv);
+            case 'ncontains': return typeof val === 'string' && typeof fv === 'string' && !val.includes(fv);
+            case 'startswith': return typeof val === 'string' && typeof fv === 'string' && val.startsWith(fv);
+            case 'endswith': return typeof val === 'string' && typeof fv === 'string' && val.endsWith(fv);
+            case 'between': {
+              if (!Array.isArray(fv) || fv.length !== 2) return true;
+              return typeof val === 'number' && val >= (fv[0] as number) && val <= (fv[1] as number);
+            }
+            case 'nbetween': {
+              if (!Array.isArray(fv) || fv.length !== 2) return true;
+              return typeof val === 'number' && (val < (fv[0] as number) || val > (fv[1] as number));
+            }
+            default: return true;
+          }
+        }
+        sorted = sorted.filter((item) => {
+          const rec = item as Record<string, unknown>;
+          return activeFilters.every(f => matchesFilter(rec, f));
         });
       }
       if (paginationMode === 'off') return sorted;

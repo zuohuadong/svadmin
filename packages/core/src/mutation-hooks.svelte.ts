@@ -41,7 +41,7 @@ export function invalidateByScopes(
 ): void {
   if (scopes === false) return;
   const effectiveScopes = (scopes && scopes.length > 0) ? scopes : defaults;
-  const dpMatch = dataProviderName ? (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === dataProviderName : () => true;
+  const dpMatch = (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === dataProviderName;
   for (const scope of effectiveScopes) {
     if (scope === 'list') queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === resource && (q.queryKey[2] === 'list' || q.queryKey[2] === 'infiniteList' || q.queryKey[2] === 'select') });
     else if (scope === 'many') queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === resource && q.queryKey[2] === 'many' });
@@ -53,7 +53,7 @@ export function invalidateByScopes(
 
 export function deepMerge(target: any, source: any): any {
   if (!target || typeof target !== 'object') return source;
-  if (!source || typeof source !== 'object') return source;
+  if (!source || typeof source !== 'object') return target;
   if (Array.isArray(source) || source instanceof Date) return source;
   const result = { ...target };
   for (const key in source) {
@@ -221,10 +221,12 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       if (mutationMode === 'pessimistic') return { _svadmin_ctx: true, userContext };
       const resName = params.resource ?? defaultResource;
       const targetId = params.id ?? defaultId;
+      const dpN = params.dataProviderName;
+      const dp = (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === dpN;
       
-      await queryClient.cancelQueries({ predicate: (q) => q.queryKey[1] === resName });
+      await queryClient.cancelQueries({ predicate: (q) => dp(q) && q.queryKey[1] === resName });
 
-      const previousQueries = queryClient.getQueriesData({ predicate: (q) => q.queryKey[1] === resName });
+      const previousQueries = queryClient.getQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resName });
       
       const pk = getResource(resName).primaryKey ?? 'id';
       const updater = params.optimisticUpdateMap ?? { list: true, many: true, detail: true };
@@ -232,14 +234,14 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       if (updater.detail !== false) {
         const detailFn = updater.detail;
         if (typeof detailFn === 'function') {
-          queryClient.setQueriesData({ predicate: (q) => q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === targetId }, (old: unknown) => detailFn(old, params.variables, targetId));
+          queryClient.setQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === targetId }, (old: unknown) => detailFn(old, params.variables, targetId));
         } else {
-          queryClient.setQueriesData({ predicate: (q) => q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === targetId }, (old: Record<string, unknown> | undefined) => old ? { ...old, data: deepMerge((old as Record<string, unknown>).data || {}, params.variables) } : old);
+          queryClient.setQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === targetId }, (old: Record<string, unknown> | undefined) => old ? { ...old, data: deepMerge((old as Record<string, unknown>).data || {}, params.variables) } : old);
         }
       }
       
       if (updater.list !== false) {
-        queryClient.setQueriesData({ predicate: (q) => q.queryKey[1] === resName && q.queryKey[2] === 'list' }, (old: unknown) => {
+        queryClient.setQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resName && q.queryKey[2] === 'list' }, (old: unknown) => {
           if (typeof updater.list === 'function') return updater.list!(old, params.variables, targetId);
           if (!old || typeof old !== 'object' || !('data' in old)) return old;
           const o = old as { data: Record<string, unknown>[] };
@@ -248,7 +250,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       }
 
       if (updater.many !== false) {
-        queryClient.setQueriesData({ predicate: (q) => q.queryKey[1] === resName && q.queryKey[2] === 'many' }, (old: unknown) => {
+        queryClient.setQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resName && q.queryKey[2] === 'many' }, (old: unknown) => {
           if (typeof updater.many === 'function') return updater.many!(old, params.variables, targetId);
           if (!old || typeof old !== 'object' || !('data' in old)) return old;
           const o = old as { data: Record<string, unknown>[] };
@@ -367,23 +369,25 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
       if (mutationMode === 'pessimistic') return { _svadmin_ctx: true, userContext };
       const resName = params.resource ?? defaultResource;
       const targetId = params.id ?? defaultId;
+      const dpN = params.dataProviderName;
+      const dp = (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === dpN;
       
-      await queryClient.cancelQueries({ predicate: (q) => q.queryKey[1] === resName });
+      await queryClient.cancelQueries({ predicate: (q) => dp(q) && q.queryKey[1] === resName });
 
-      const previousQueries = queryClient.getQueriesData({ predicate: (q) => q.queryKey[1] === resName });
+      const previousQueries = queryClient.getQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resName });
       
       const pk = getResource(resName).primaryKey ?? 'id';
       
-      if (targetId != null) queryClient.removeQueries({ predicate: (q) => q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === targetId });
+      if (targetId != null) queryClient.removeQueries({ predicate: (q) => dp(q) && q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === targetId });
 
-      queryClient.setQueriesData({ predicate: (q) => q.queryKey[1] === resName && q.queryKey[2] === 'list' }, (old: unknown) => {
+      queryClient.setQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resName && q.queryKey[2] === 'list' }, (old: unknown) => {
         if (!old || typeof old !== 'object' || !('data' in old)) return old;
         const o = old as { data: Record<string, unknown>[]; total?: number };
         const filtered = o.data.filter((item) => String(item[pk]) !== String(targetId));
         return { ...o, data: filtered, total: (o.total ?? o.data.length) - (o.data.length - filtered.length) };
       });
 
-      queryClient.setQueriesData({ predicate: (q) => q.queryKey[1] === resName && q.queryKey[2] === 'many' }, (old: unknown) => {
+      queryClient.setQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resName && q.queryKey[2] === 'many' }, (old: unknown) => {
         if (!old || typeof old !== 'object' || !('data' in old)) return old;
         const o = old as { data: Record<string, unknown>[] };
         return { ...o, data: o.data.filter((item) => String(item[pk]) !== String(targetId)) };
@@ -398,7 +402,7 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
 
       // Remove detail cache entry (refine pattern — no stale show page)
       if (targetId != null) {
-        queryClient.removeQueries({ predicate: (q) => q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === targetId });
+        queryClient.removeQueries({ predicate: (q) => q.queryKey[0] === params.dataProviderName && q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === targetId });
       }
 
       fireSuccessNotification(params.successNotification, 'Deleted successfully', data.data, params.variables, resName);
@@ -411,7 +415,8 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
     onSettled: (_data, error, params) => {
       if (error instanceof UndoError) return;
       const resName = params.resource ?? defaultResource;
-      invalidateByScopes(queryClient, resName, params.invalidates, ['list', 'many'], undefined, params.dataProviderName);
+      const targetId = params.id ?? defaultId;
+      invalidateByScopes(queryClient, resName, params.invalidates, ['list', 'many'], targetId != null ? targetId : undefined, params.dataProviderName);
       if (typeof options.mutationOptions?.onSettled === 'function') {
         (options.mutationOptions.onSettled as Function)(_data, error, params, undefined);
       }

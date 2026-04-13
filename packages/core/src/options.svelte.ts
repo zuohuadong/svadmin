@@ -62,7 +62,7 @@ function createDefaultOptions(): AdminOptions {
     liveMode: 'auto',
     disableServerSideValidation: false,
     undoableTimeout: 5000,
-    textTransformers: defaultTextTransformers,
+    textTransformers: { ...defaultTextTransformers },
     redirect: { afterCreate: 'list', afterEdit: 'list', afterClone: 'list' },
     breadcrumb: 'default',
     disableRouteChangeHandler: false,
