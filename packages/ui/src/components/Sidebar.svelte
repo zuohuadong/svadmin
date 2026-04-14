@@ -99,7 +99,7 @@
           items.push({
             path: `/${r.name}`,
             label: r.label,
-            Icon: iconMap[r.icon ?? r.name] ?? Settings,
+            Icon: (typeof r.icon === 'string' ? iconMap[r.icon] : r.icon) ?? iconMap[r.name] ?? Settings,
             group: r.group,
           });
         }

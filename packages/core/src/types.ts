@@ -298,7 +298,7 @@ export interface MenuItem {
   /** Display label. Falls back to `t('menu.${name}')` if omitted */
   label?: string;
   /** Icon name string (maps to lucide icon set) or Svelte component */
-  icon?: string;
+  icon?: string | any;
   /** Navigation path — omit for parent-only menu nodes */
   href?: string;
   /** Open in new tab (useful for external links) */

@@ -9,7 +9,13 @@
     type ColumnVisibilityState,
     type ExpandedState,
   } from '@tanstack/svelte-table';
-  import { createCoreRowModel } from '@tanstack/table-core';
+  import { 
+    createCoreRowModel, 
+    column_getCanSort, 
+    column_getIsSorted, 
+    column_toggleSorting, 
+    header_getSize 
+  } from '@tanstack/table-core';
 
   import { useList, useDelete, useDeleteMany, getResource, notify } from '@svadmin/core';
   import type { Pagination as PaginationState, Sort, Filter, FieldDefinition } from '@svadmin/core';
@@ -557,7 +563,7 @@
                   <Table.Head
                     {...dragProps}
                     class={cn("bg-transparent hover:bg-muted/10 border-b border-border/20 uppercase tracking-[0.12em] text-[10px] text-muted-foreground/70 font-semibold py-4", dragProps.class)}
-                    style={header.getSize?.() != null && header.getSize() !== 150 ? `width:${header.getSize()}px` : undefined}
+                    style={header_getSize(header) != null && header_getSize(header) !== 150 ? `width:${header_getSize(header)}px` : undefined}
                   >
                     {#if header.id === '_select'}
                       <Checkbox
@@ -568,17 +574,17 @@
                       <!-- empty -->
                     {:else if header.id === '_actions'}
                       <span class="text-right block">{t('common.actions')}</span>
-                    {:else if header.column.getCanSort()}
+                    {:else if column_getCanSort(header.column)}
                       <Button
                         variant="ghost"
                         size="sm"
                         class="flex items-center gap-1 hover:text-foreground -ml-2 h-auto py-1 px-2 uppercase tracking-wide text-[0.7rem] font-semibold"
-                        onclick={() => header.column.toggleSorting()}
+                        onclick={() => column_toggleSorting(header.column)}
                       >
                         {visibleFields.find(f => f.key === header.id)?.label ?? header.id}
                         <span class="text-xs opacity-50">
-                          {#if header.column.getIsSorted() === 'asc'}↑
-                          {:else if header.column.getIsSorted() === 'desc'}↓
+                          {#if column_getIsSorted(header.column) === 'asc'}↑
+                          {:else if column_getIsSorted(header.column) === 'desc'}↓
                           {:else}⇅
                           {/if}
                         </span>

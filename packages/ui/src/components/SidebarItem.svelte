@@ -27,8 +27,9 @@
     folder: Folder,
   };
 
-  function getIcon(name?: string): typeof LayoutDashboard {
+  function getIcon(name?: string | any): typeof LayoutDashboard {
     if (!name) return depth === 0 ? Settings : Folder;
+    if (typeof name !== 'string') return name; // if it's already a component
     return iconMap[name] ?? Settings;
   }
 
