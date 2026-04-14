@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.7](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.6...ui-v0.32.7) (2026-04-14)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** migrate tanstack table getCoreRowModel to createCoreRowModel for v9 compat ([e18b977](https://github.com/zuohuadong/svadmin/commit/e18b977cc0f5c8bd291bf2bd65d185ec1422cc9c))
+
 ## [0.32.6](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.5...ui-v0.32.6) (2026-04-14)
 
 
