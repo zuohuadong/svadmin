@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.8](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.7...supabase-v0.9.8) (2026-04-14)
+
+
+### 🐛 Bug Fixes
+
+* **ui,supabase:** use local component ref instead of getContext self-lookup; replace dynamic import with static import for Vite compatibility ([e18569a](https://github.com/zuohuadong/svadmin/commit/e18569a159cea7eb2a3710e42cce6bc96f5116ee))
+
 ## [0.9.7](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.6...supabase-v0.9.7) (2026-04-14)
 
 
