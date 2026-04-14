@@ -11,7 +11,7 @@ import { dataProvider as refineDataProvider } from '@refinedev/supabase';
  * @param args Arguments required by @refinedev/supabase
  * @returns A fully compatible svadmin DataProvider
  */
-export async function createSupabaseDataProvider(...args: any[]): Promise<DataProvider> {
+export function createSupabaseDataProvider(...args: any[]): DataProvider {
   const init: any = refineDataProvider;
   if (typeof init !== 'function') {
     throw new Error(
