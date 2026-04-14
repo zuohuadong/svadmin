@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.7](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.6...supabase-v0.9.7) (2026-04-14)
+
+
+### 🐛 Bug Fixes
+
+* **supabase:** throw clear error when @refinedev/supabase is missing ([3ff0925](https://github.com/zuohuadong/svadmin/commit/3ff092597e4f58d6210c29a9aa84cbbf98a6d7d8))
+
 ## [0.9.6](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.5...supabase-v0.9.6) (2026-04-13)
 
 

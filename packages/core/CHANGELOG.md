@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.23.6](https://github.com/zuohuadong/svadmin/compare/core-v0.23.5...core-v0.23.6) (2026-04-14)
+
+
+### 🐛 Bug Fixes
+
+* **core:** restore MaybeGetter and getter params compatibility with Svelte 5 proxy fix ([4347ffd](https://github.com/zuohuadong/svadmin/commit/4347ffd197e6c59f0e4710598a420f5957a679c9))
+* **supabase:** throw clear error when @refinedev/supabase is missing ([3ff0925](https://github.com/zuohuadong/svadmin/commit/3ff092597e4f58d6210c29a9aa84cbbf98a6d7d8))
+
 ## [0.23.5](https://github.com/zuohuadong/svadmin/compare/core-v0.23.4...core-v0.23.5) (2026-04-13)
 
 
