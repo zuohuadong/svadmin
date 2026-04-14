@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.33.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.10...ui-v0.33.0) (2026-04-14)
+
+
+### 🚀 Features
+
+* **ui:** support component icons in menu & migrate tanstack v9 standalone functions ([#134](https://github.com/zuohuadong/svadmin/issues/134)) ([e47ca73](https://github.com/zuohuadong/svadmin/commit/e47ca7389c631eb7772b0583697c1b083e015a2f))
+* **ui:** support passing Svelte components directly as menu/sidebar icons ([af54e3e](https://github.com/zuohuadong/svadmin/commit/af54e3e7d0bc0fee06f0d25d1a42ad1cf7624177))
+
+
+### 🐛 Bug Fixes
+
+* **ui:** migrate tanstack table v9 remaining instance method usages to standalone functions ([78d36cc](https://github.com/zuohuadong/svadmin/commit/78d36ccdf1172229fcd4ab039535091d9d667b70))
+
 ## [0.32.10](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.9...ui-v0.32.10) (2026-04-14)
 
 
