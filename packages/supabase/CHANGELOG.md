@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.10](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.9...supabase-v0.9.10) (2026-04-14)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** guard header.getSize() for Tanstack v9 modular features ([#132](https://github.com/zuohuadong/svadmin/issues/132)) ([3ddb03e](https://github.com/zuohuadong/svadmin/commit/3ddb03e68bf7390991fc14ca5c1dee55c9e697c1))
+
 ## [0.9.9](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.8...supabase-v0.9.9) (2026-04-14)
 
 
