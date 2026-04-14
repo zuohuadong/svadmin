@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.8](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.7...ui-v0.32.8) (2026-04-14)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** initialize component registry synchronously ([#126](https://github.com/zuohuadong/svadmin/issues/126)) ([1c487f6](https://github.com/zuohuadong/svadmin/commit/1c487f6e4a4dcc8c3c8ada14e85f112f29697ce0))
+
 ## [0.32.7](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.6...ui-v0.32.7) (2026-04-14)
 
 
