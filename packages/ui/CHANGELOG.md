@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.10](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.9...ui-v0.32.10) (2026-04-14)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** guard header.getSize() for Tanstack v9 modular features ([#132](https://github.com/zuohuadong/svadmin/issues/132)) ([3ddb03e](https://github.com/zuohuadong/svadmin/commit/3ddb03e68bf7390991fc14ca5c1dee55c9e697c1))
+
 ## [0.32.9](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.8...ui-v0.32.9) (2026-04-14)
 
 
