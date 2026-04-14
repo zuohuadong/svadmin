@@ -78,10 +78,8 @@
     Skeleton: Skeleton as unknown as ComponentRegistry['Skeleton'],
   };
 
-  // Merge user overrides and set context
-  $effect(() => {
-    setComponentRegistry({ ...defaultComponents, ...userComponents });
-  });
+  // Set up context synchronously to avoid context undefined crash in children
+  setComponentRegistry({ ...defaultComponents, ...userComponents });
 
   // Resolve router provider (default to hash)
   const resolvedRouter = $derived(routerProvider ?? createHashRouterProvider());
