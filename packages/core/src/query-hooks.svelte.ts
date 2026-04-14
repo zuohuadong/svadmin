@@ -3,7 +3,6 @@ import { getAdminOptions } from './options.svelte';
 import { getDataProviderForResource, getDataProvider, getLiveProvider } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 import {
-  checkError,
   createOvertimeTracker,
   createLiveSubscription,
   fireSuccessNotification,
@@ -23,25 +22,24 @@ import type { LiveMode, LiveEvent } from './live.svelte';
  */
 function extendQuery<Q extends object, E extends Record<string, unknown>>(
   query: Q,
-  extensions: E,
+  extensions: () => E,
 ): Q & E {
   return new Proxy(query, {
     get(target, prop) {
-      if (typeof prop === 'string' && prop in extensions) {
-        return extensions[prop as keyof E];
+      if (typeof prop === 'string') {
+        const ext = extensions();
+        if (prop in ext) return ext[prop as keyof E];
       }
-      return Reflect.get(target, prop);
+      return target[prop as keyof Q];
     },
     has(target, prop) {
-      if (typeof prop === 'string' && prop in extensions) return true;
-      return Reflect.has(target, prop);
+      if (typeof prop === 'string' && prop in extensions()) return true;
+      return prop in target;
     },
   }) as Q & E;
 }
 
 // ─── useList ───────────────────────────────────────────────────
-
-export type MaybeGetter<T> = T | (() => T);
 
 export interface UseListOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
   resource?: KnownResources;
@@ -59,71 +57,55 @@ export interface UseListOptions<TData extends BaseRecord = BaseRecord, TError = 
   overtimeOptions?: OvertimeOptions;
 }
 
-export function useList<TData extends BaseRecord = BaseRecord, TError = HttpError>(optionsOrGetter: MaybeGetter<UseListOptions<TData, TError>> = {}) {
+export function useList<TData extends BaseRecord = BaseRecord, TError = HttpError>(options: UseListOptions<TData, TError> = {}) {
   const parsed = useParsed();
+  const resource = options.resource ?? parsed.resource ?? '';
   const adminOptions = getAdminOptions();
-  
-  const getOptions = () => typeof optionsOrGetter === 'function' ? optionsOrGetter() : optionsOrGetter;
-  const getResource = () => getOptions().resource ?? parsed.resource ?? '';
+  const provider = getDataProviderForResource(resource, options.dataProviderName);
 
-  const query = createQuery<GetListResult<TData>, TError>(() => {
-    const opts = getOptions();
-    const resource = getResource();
-    const provider = getDataProviderForResource(resource, opts.dataProviderName);
-    const queryOptions = opts.queryOptions;
-    
-    return {
-      queryKey: [opts.dataProviderName, resource, 'list', opts.pagination, opts.sorters, opts.filters, opts.meta],
-      queryFn: async () => provider.getList<TData>({
+  const queryOptions = options.queryOptions;
+
+  const query = createQuery<GetListResult<TData>, TError>(() => ({
+    queryKey: [resource, 'list', options.pagination, options.sorters, options.filters, options.meta],
+    queryFn: async () => {
+      const result = await provider.getList<TData>({
         resource,
-        pagination: opts.pagination,
-        sorters: opts.sorters,
-        filters: opts.filters,
-        meta: opts.meta,
-      }),
-      enabled: queryOptions?.enabled ?? true,
-      staleTime: queryOptions?.staleTime ?? adminOptions.reactQuery?.staleTime,
-      gcTime: queryOptions?.gcTime ?? adminOptions.reactQuery?.gcTime,
-      refetchOnWindowFocus: queryOptions?.refetchOnWindowFocus ?? adminOptions.reactQuery?.refetchOnWindowFocus,
-    };
+        pagination: options.pagination,
+        sorters: options.sorters,
+        filters: options.filters,
+        meta: options.meta,
+      });
+      return result;
+    },
+    enabled: queryOptions?.enabled ?? true,
+    staleTime: queryOptions?.staleTime ?? adminOptions.reactQuery?.staleTime,
+    gcTime: queryOptions?.gcTime ?? adminOptions.reactQuery?.gcTime,
+    refetchOnWindowFocus: queryOptions?.refetchOnWindowFocus ?? adminOptions.reactQuery?.refetchOnWindowFocus,
+  }));
+
+  const overtime = createOvertimeTracker(() => query.isLoading, options.overtimeOptions ?? adminOptions.overtime);
+
+  createLiveSubscription({
+    resource,
+    liveProvider: getLiveProvider(),
+    liveMode: options.liveMode ?? adminOptions.liveMode,
+    onLiveEvent: (e) => {
+      options.onLiveEvent?.(e);
+      adminOptions.onLiveEvent?.(e);
+    },
+    liveParams: options.liveParams,
+    enabled: queryOptions?.enabled ?? true,
   });
 
-  const overtime = createOvertimeTracker(() => query.isLoading, typeof optionsOrGetter === 'function' ? optionsOrGetter().overtimeOptions : optionsOrGetter.overtimeOptions ?? adminOptions.overtime);
-
-  createLiveSubscription((): LiveSubscriptionParams => {
-    const opts = getOptions();
-    return {
-      resource: getResource(),
-      liveProvider: getLiveProvider(),
-      liveMode: opts.liveMode ?? adminOptions.liveMode,
-      onLiveEvent: (e: LiveEvent) => {
-        opts.onLiveEvent?.(e);
-        adminOptions.onLiveEvent?.(e);
-      },
-      liveParams: opts.liveParams,
-      enabled: opts.queryOptions?.enabled ?? true,
-      dataProviderName: opts.dataProviderName,
-    };
-  });
-
-  // Track last notification timestamps to prevent duplicate firings on re-render
-  let lastSuccessAt = 0;
-  let lastErrorAt = 0;
   $effect(() => {
-    const opts = getOptions();
-    if (query.isSuccess && query.dataUpdatedAt > lastSuccessAt) {
-      lastSuccessAt = query.dataUpdatedAt;
-      if (opts.successNotification) {
-        fireSuccessNotification(opts.successNotification, '', query.data, undefined, getResource());
-      }
-    } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
-      lastErrorAt = query.errorUpdatedAt;
-      checkError(query.error);
-      fireErrorNotification(opts.errorNotification, 'Fetch failed', query.error, getResource());
+    if (query.isSuccess && options.successNotification) {
+      fireSuccessNotification(options.successNotification, '', query.data, undefined, resource);
+    } else if (query.isError) {
+      fireErrorNotification(options.errorNotification, 'Fetch failed', query.error);
     }
   });
 
-  return extendQuery(query, { overtime });
+  return extendQuery(query, () => ({ overtime }));
 }
 
 // ─── useOne ────────────────────────────────────────────────────
@@ -142,98 +124,59 @@ export interface UseOneOptions<TData extends BaseRecord = BaseRecord, TError = H
   overtimeOptions?: OvertimeOptions;
 }
 
-export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError>(optionsOrGetter: MaybeGetter<UseOneOptions<TData, TError>> = {}) {
+export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError>(options: UseOneOptions<TData, TError> = {}) {
   const parsed = useParsed();
+  const resource = options.resource ?? parsed.resource ?? '';
+  const id = options.id ?? parsed.id;
   const adminOptions = getAdminOptions();
-  
-  const getOptions = () => typeof optionsOrGetter === 'function' ? optionsOrGetter() : optionsOrGetter;
-  const getResource = () => getOptions().resource ?? parsed.resource ?? '';
-  const getId = () => getOptions().id ?? parsed.id;
+  const provider = getDataProviderForResource(resource, options.dataProviderName);
 
-  const query = createQuery<GetOneResult<TData>, TError>(() => {
-    const opts = getOptions();
-    const resource = getResource();
-    const id = getId();
-    const provider = getDataProviderForResource(resource, opts.dataProviderName);
-    const queryOptions = opts.queryOptions;
+  const queryOptions = options.queryOptions;
 
-    return {
-      queryKey: [opts.dataProviderName, resource, 'one', id, opts.meta],
-      queryFn: async () => {
-        if (id == null) throw new Error('useOne requires an id');
-        const result = await provider.getOne<TData>({
-          resource,
-          id,
-          meta: opts.meta,
-        });
-        return result;
-      },
-      enabled: (queryOptions?.enabled ?? true) && id != null,
-      staleTime: queryOptions?.staleTime ?? adminOptions.reactQuery?.staleTime,
-      gcTime: queryOptions?.gcTime ?? adminOptions.reactQuery?.gcTime,
-      refetchOnWindowFocus: queryOptions?.refetchOnWindowFocus ?? adminOptions.reactQuery?.refetchOnWindowFocus,
-    };
-  });
+  const query = createQuery<GetOneResult<TData>, TError>(() => ({
+    queryKey: [resource, 'one', id, options.meta],
+    queryFn: async () => {
+      if (id == null) throw new Error('useOne requires an id');
+      const result = await provider.getOne<TData>({
+        resource,
+        id,
+        meta: options.meta,
+      });
+      return result;
+    },
+    enabled: (queryOptions?.enabled ?? true) && id != null,
+    staleTime: queryOptions?.staleTime ?? adminOptions.reactQuery?.staleTime,
+    gcTime: queryOptions?.gcTime ?? adminOptions.reactQuery?.gcTime,
+  }));
 
-  const overtime = createOvertimeTracker(() => query.isLoading, typeof optionsOrGetter === 'function' ? optionsOrGetter().overtimeOptions : optionsOrGetter.overtimeOptions ?? adminOptions.overtime);
+  const overtime = createOvertimeTracker(() => query.isLoading, options.overtimeOptions ?? adminOptions.overtime);
 
-  createLiveSubscription((): LiveSubscriptionParams => {
-    const opts = getOptions();
-    const resource = getResource();
-    return {
-      resource,
-      liveProvider: getLiveProvider(),
-      liveMode: opts.liveMode ?? adminOptions.liveMode,
-      onLiveEvent: (e: LiveEvent) => {
-        opts.onLiveEvent?.(e);
-        adminOptions.onLiveEvent?.(e);
-      },
-      liveParams: opts.liveParams,
-      enabled: (opts.queryOptions?.enabled ?? true) && getId() != null,
-      dataProviderName: opts.dataProviderName,
-    };
-  });
-
-  let lastSuccessAt = 0;
-  let lastErrorAt = 0;
   $effect(() => {
-    const opts = getOptions();
-    if (query.isSuccess && query.dataUpdatedAt > lastSuccessAt) {
-      lastSuccessAt = query.dataUpdatedAt;
-      if (opts.successNotification) {
-        fireSuccessNotification(opts.successNotification, '', query.data, undefined, getResource());
-      }
-    } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
-      lastErrorAt = query.errorUpdatedAt;
-      checkError(query.error);
-      fireErrorNotification(opts.errorNotification, 'Fetch failed', query.error, getResource());
+    if (query.isSuccess && options.successNotification) {
+      fireSuccessNotification(options.successNotification, '', query.data, undefined, resource);
+    } else if (query.isError) {
+      fireErrorNotification(options.errorNotification, 'Fetch failed', query.error);
     }
   });
 
-  return extendQuery(query, { overtime });
+  return extendQuery(query, () => ({ overtime }));
 }
 
 // ─── useShow ──────────────────────────────────────────────────
 export function useShow<TData extends BaseRecord = BaseRecord, TError = HttpError>(
-  optionsOrGetter: MaybeGetter<UseOneOptions<TData, TError>> = {}
+  options: UseOneOptions<TData, TError> = {}
 ) {
   const parsed = useParsed();
-  const getOptions = () => typeof optionsOrGetter === 'function' ? optionsOrGetter() : optionsOrGetter;
-  
-  let _showId = $state<string | number | undefined>(undefined);
-  
-  // showId prioritizes explicit setShowId, then options.id, then URL id.
-  const showId = $derived(_showId ?? getOptions().id ?? parsed.id);
+  let showId = $state<string | number | undefined>(options.id ?? parsed.id);
 
-  function setShowId(id: string | number) { _showId = id; }
+  function setShowId(id: string | number) { showId = id; }
 
-  // We wrap it in a getter so useOne evaluates it dynamically.
-  const result = useOne<TData, TError>(() => ({
-    ...getOptions(),
-    id: showId,
-  }));
+  const result = useOne<TData, TError>({
+    ...options,
+    get id() { return showId; },
+  });
 
-  return extendQuery(result, { get showId() { return showId; }, setShowId });
+  return extendQuery(result, () => ({ showId, setShowId }));
 }
 
 // ─── useMany ───────────────────────────────────────────────────
@@ -252,69 +195,63 @@ export interface UseManyOptions<TData extends BaseRecord = BaseRecord, TError = 
   overtimeOptions?: OvertimeOptions;
 }
 
-export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpError>(optionsOrGetter: MaybeGetter<UseManyOptions<TData, TError>>) {
+export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpError>(options: UseManyOptions<TData, TError>) {
+  const { resource, ids, meta, dataProviderName, queryOptions } = options;
   const adminOptions = getAdminOptions();
-  const getOptions = () => typeof optionsOrGetter === 'function' ? optionsOrGetter() : optionsOrGetter;
+  const provider = getDataProviderForResource(resource, dataProviderName);
 
-  const query = createQuery<GetManyResult<TData>, TError>(() => {
-    const opts = getOptions();
-    const { resource, ids, meta, dataProviderName, queryOptions } = opts;
-    const provider = getDataProviderForResource(resource, dataProviderName);
-
-    return {
-      queryKey: [dataProviderName, resource, 'many', ids, meta],
-      queryFn: async () => {
-        if (!ids.length) return { data: [] };
-        if (provider.getMany) {
-          return provider.getMany<TData>({ resource, ids, meta });
-        }
-        const results = await Promise.all(ids.map(id => provider.getOne<TData>({ resource, id, meta })));
-        return { data: results.map(r => r.data) };
-      },
-      enabled: (queryOptions?.enabled ?? true) && ids.length > 0,
-      staleTime: queryOptions?.staleTime ?? adminOptions.reactQuery?.staleTime,
-      gcTime: queryOptions?.gcTime ?? adminOptions.reactQuery?.gcTime,
-      refetchOnWindowFocus: queryOptions?.refetchOnWindowFocus ?? adminOptions.reactQuery?.refetchOnWindowFocus,
-    };
-  });
-
-  const overtime = createOvertimeTracker(() => query.isLoading, typeof optionsOrGetter === 'function' ? optionsOrGetter().overtimeOptions : optionsOrGetter.overtimeOptions ?? adminOptions.overtime);
-
-  createLiveSubscription((): LiveSubscriptionParams => {
-    const opts = getOptions();
-    return {
-      resource: opts.resource,
-      liveProvider: getLiveProvider(),
-      liveMode: opts.liveMode ?? adminOptions.liveMode,
-      onLiveEvent: (e: LiveEvent) => {
-        opts.onLiveEvent?.(e);
-        adminOptions.onLiveEvent?.(e);
-      },
-      liveParams: opts.liveParams,
-      enabled: (opts.queryOptions?.enabled ?? true) && opts.ids.length > 0,
-      dataProviderName: opts.dataProviderName,
-    };
-  });
-
-  let lastSuccessAt = 0;
-  let lastErrorAt = 0;
-  $effect(() => {
-    const opts = getOptions();
-    if (query.isSuccess && query.dataUpdatedAt > lastSuccessAt) {
-      lastSuccessAt = query.dataUpdatedAt;
-      if (opts.successNotification) {
-        fireSuccessNotification(opts.successNotification, '', query.data, undefined, opts.resource);
+  const query = createQuery<GetManyResult<TData>, TError>(() => ({
+    queryKey: [resource, 'many', ids, meta],
+    queryFn: async () => {
+      if (!ids.length) return { data: [] };
+      if (provider.getMany) {
+        return provider.getMany<TData>({ resource, ids, meta });
       }
-    } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
-      lastErrorAt = query.errorUpdatedAt;
-      checkError(query.error);
-      fireErrorNotification(opts.errorNotification, 'Fetch failed', query.error, opts.resource);
-    }
+      const results = await Promise.all(ids.map(id => provider.getOne<TData>({ resource, id, meta })));
+      return { data: results.map(r => r.data) };
+    },
+    enabled: (queryOptions?.enabled ?? true) && ids.length > 0,
+    staleTime: queryOptions?.staleTime ?? adminOptions.reactQuery?.staleTime,
+  }));
+
+  const overtime = createOvertimeTracker(() => query.isLoading, options.overtimeOptions ?? adminOptions.overtime);
+
+  $effect(() => {
+    if (query.isSuccess && options.successNotification) fireSuccessNotification(options.successNotification, '', query.data, undefined, resource);
+    else if (query.isError) fireErrorNotification(options.errorNotification, 'Fetch failed', query.error);
   });
 
-  return extendQuery(query, { overtime });
+  return extendQuery(query, () => ({ overtime }));
 }
 
 export function useApiUrl(dataProviderName?: string): string {
   return getDataProvider(dataProviderName).getApiUrl();
+}
+
+/**
+ * Invalidate all Tanstack Query caches for a given resource.
+ * This is the recommended way to force a refetch after mutations
+ * that bypass the standard svadmin mutation hooks.
+ *
+ * @example
+ * ```ts
+ * import { invalidateResource } from '@svadmin/core';
+ * import { useQueryClient } from '@tanstack/svelte-query';
+ * const queryClient = useQueryClient();
+ * // After a manual insert:
+ * invalidateResource(queryClient, 'gallery_assets');
+ * ```
+ */
+export function invalidateResource(
+  queryClient: import('@tanstack/svelte-query').QueryClient,
+  resource: string,
+) {
+  return queryClient.invalidateQueries({
+    predicate: (query) => {
+      const key = query.queryKey as unknown[];
+      // Match both [resource, 'list'|'one'|'many', ...]
+      // and [dataProviderName, resource, 'list'|'one'|'many', ...] formats
+      return key[0] === resource || key[1] === resource;
+    },
+  });
 }

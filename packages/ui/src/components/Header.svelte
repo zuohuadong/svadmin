@@ -26,11 +26,12 @@
     siteUrl?: string;
   }>();
 
-  const registry = $derived(getComponentRegistry() || {} as any);
-  const CustomBreadcrumbs = $derived(registry.Breadcrumbs);
-  const CustomThemeToggle = $derived(registry.ThemeToggle);
-  const CustomUserMenu = $derived(registry.UserMenu);
-  const CustomNotificationPanel = $derived(registry.NotificationPanel);
+  // Retrieve optional component overrides from registry
+  const registry = getComponentRegistry() || {} as any;
+  const CustomBreadcrumbs = registry.Breadcrumbs;
+  const CustomThemeToggle = registry.ThemeToggle;
+  const CustomUserMenu = registry.UserMenu;
+  const CustomNotificationPanel = registry.NotificationPanel;
 </script>
 
 <header class="sticky top-0 z-30 flex h-14 w-full shrink-0 items-center justify-between bg-card/60 backdrop-blur-md px-4 md:px-6">

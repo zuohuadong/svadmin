@@ -13,17 +13,6 @@
   import AutoTable from './AutoTable.svelte';
   import AutoForm from './AutoForm.svelte';
   import ShowPage from './ShowPage.svelte';
-
-  // Module-level QueryClient — survives component remounts (SPA only)
-  let _queryClient: QueryClient | null = null;
-  function getOrCreateQueryClient(): QueryClient {
-    if (!_queryClient) {
-      _queryClient = new QueryClient({
-        defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
-      });
-    }
-    return _queryClient;
-  }
   import Toast from './Toast.svelte';
   import LoginPage from './LoginPage.svelte';
   import RegisterPage from './RegisterPage.svelte';
@@ -51,7 +40,7 @@
     /** Theme configuration for dark-first mode, CSS overrides, etc. */
     themeConfig?: ThemeConfig;
     dashboard?: Snippet;
-    loginPage?: Snippet<[{ onSuccess: () => void }]>;
+    loginPage?: Snippet;
     /** Override default components via DI */
     components?: Partial<ComponentRegistry>;
     /** Custom multi-level menu configuration */
@@ -89,16 +78,28 @@
     Skeleton: Skeleton as unknown as ComponentRegistry['Skeleton'],
   };
 
-  setComponentRegistry({ ...defaultComponents, ...userComponents });
+  // Merge user overrides and set context
+  $effect(() => {
+    setComponentRegistry({ ...defaultComponents, ...userComponents });
+  });
 
-  const defaultRouter = createHashRouterProvider();
-  const resolvedRouter = $derived(routerProvider ?? defaultRouter);
+  // Resolve router provider (default to hash)
+  const resolvedRouter = $derived(routerProvider ?? createHashRouterProvider());
   const resolvedRouteMode = $derived(routeMode ?? (routerProvider ? 'auto' : 'hash'));
 
-  // Set up context — use $effect.pre so prop changes are tracked and children can access during first render
+  // Set up initial context synchronously so children can access resources immediately during first render
+  setDataProvider(dataProvider);
+  if (authProvider) setAuthProvider(authProvider);
+  setResources(resources);
+  setRouterProvider(resolvedRouter);
+  if (locale) setLocale(locale);
+  if (userThemeConfig) configureTheme(userThemeConfig);
+  if (defaultTheme) setTheme(defaultTheme);
+
+  // Set up context — use $effect so prop changes are tracked
   $effect.pre(() => {
     setDataProvider(dataProvider);
-    setAuthProvider(authProvider);
+    if (authProvider) setAuthProvider(authProvider);
     setResources(resources);
     setRouterProvider(resolvedRouter);
     if (locale) setLocale(locale);
@@ -106,10 +107,14 @@
     if (defaultTheme) setTheme(defaultTheme);
   });
 
-  // QueryClient — created once and reused across remounts
-  const queryClient = getOrCreateQueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { staleTime: 30_000, retry: 1 },
+    },
+  });
 
-  // Initialize router with provider
+  // Initialize router with provider synchronously
+  initRouter(resolvedRouter);
   $effect.pre(() => {
     initRouter(resolvedRouter);
   });
@@ -164,7 +169,7 @@
       </div>
     </div>
   {:else if route === '/login' && loginPage}
-    {@render loginPage({ onSuccess: () => { isAuthenticated = true; navigate('/'); } })}
+    {@render loginPage()}
   {:else if route === '/login' && authProvider}
     <LoginPage {title} onSuccess={() => { isAuthenticated = true; navigate('/'); }} />
   {:else if route === '/register' && authProvider?.register}
