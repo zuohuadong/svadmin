@@ -227,3 +227,31 @@ export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpErro
 export function useApiUrl(dataProviderName?: string): string {
   return getDataProvider(dataProviderName).getApiUrl();
 }
+
+/**
+ * Invalidate all Tanstack Query caches for a given resource.
+ * This is the recommended way to force a refetch after mutations
+ * that bypass the standard svadmin mutation hooks.
+ *
+ * @example
+ * ```ts
+ * import { invalidateResource } from '@svadmin/core';
+ * import { useQueryClient } from '@tanstack/svelte-query';
+ * const queryClient = useQueryClient();
+ * // After a manual insert:
+ * invalidateResource(queryClient, 'gallery_assets');
+ * ```
+ */
+export function invalidateResource(
+  queryClient: import('@tanstack/svelte-query').QueryClient,
+  resource: string,
+) {
+  return queryClient.invalidateQueries({
+    predicate: (query) => {
+      const key = query.queryKey as unknown[];
+      // Match both [resource, 'list'|'one'|'many', ...]
+      // and [dataProviderName, resource, 'list'|'one'|'many', ...] formats
+      return key[0] === resource || key[1] === resource;
+    },
+  });
+}
