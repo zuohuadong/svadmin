@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.6](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.5...ui-v0.32.6) (2026-04-14)
+
+
+### 🔧 Miscellaneous Chores
+
+* **ui:** bump @svadmin/ui version to 0.32.6 to release Svelte 5 context bounds fix ([#122](https://github.com/zuohuadong/svadmin/issues/122)) ([6d7c678](https://github.com/zuohuadong/svadmin/commit/6d7c678b4b71acd057534d204ff49dacd183d0b4))
+
 ## [0.32.5](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.4...ui-v0.32.5) (2026-04-13)
 
 
