@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.9](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.8...supabase-v0.9.9) (2026-04-14)
+
+
+### 🐛 Bug Fixes
+
+* **supabase:** remove unnecessary async from createSupabaseDataProvider ([#130](https://github.com/zuohuadong/svadmin/issues/130)) ([07505de](https://github.com/zuohuadong/svadmin/commit/07505de2173dee9ffce952b54131559379510e0e))
+
 ## [0.9.8](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.7...supabase-v0.9.8) (2026-04-14)
 
 

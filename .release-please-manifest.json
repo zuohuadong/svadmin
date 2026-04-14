@@ -6,7 +6,7 @@
   "packages/simple-rest": "0.9.6",
   "packages/sso": "0.8.7",
   "packages/pocketbase": "0.9.6",
-  "packages/supabase": "0.9.8",
+  "packages/supabase": "0.9.9",
   "packages/elysia": "0.10.5",
   "packages/create-svadmin": "0.11.3",
   "packages/airtable": "0.9.6",
