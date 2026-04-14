@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.9](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.8...ui-v0.32.9) (2026-04-14)
+
+
+### 🐛 Bug Fixes
+
+* **ui,supabase:** use local component ref instead of getContext self-lookup; replace dynamic import with static import for Vite compatibility ([e18569a](https://github.com/zuohuadong/svadmin/commit/e18569a159cea7eb2a3710e42cce6bc96f5116ee))
+
 ## [0.32.8](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.7...ui-v0.32.8) (2026-04-14)
 
 
