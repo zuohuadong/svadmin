@@ -557,7 +557,7 @@
                   <Table.Head
                     {...dragProps}
                     class={cn("bg-transparent hover:bg-muted/10 border-b border-border/20 uppercase tracking-[0.12em] text-[10px] text-muted-foreground/70 font-semibold py-4", dragProps.class)}
-                    style={header.getSize() !== 150 ? `width:${header.getSize()}px` : undefined}
+                    style={header.getSize?.() != null && header.getSize() !== 150 ? `width:${header.getSize()}px` : undefined}
                   >
                     {#if header.id === '_select'}
                       <Checkbox
