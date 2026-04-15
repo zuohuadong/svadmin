@@ -71,7 +71,7 @@
     },
     "packages/airtable": {
       "name": "@svadmin/airtable",
-      "version": "0.9.5",
+      "version": "0.9.6",
       "dependencies": {
         "@svadmin/refine-adapter": "workspace:*",
       },
@@ -86,7 +86,7 @@
     },
     "packages/appwrite": {
       "name": "@svadmin/appwrite",
-      "version": "0.8.7",
+      "version": "0.8.8",
       "dependencies": {
         "@svadmin/refine-adapter": "workspace:*",
       },
@@ -110,7 +110,7 @@
     },
     "packages/core": {
       "name": "@svadmin/core",
-      "version": "0.23.4",
+      "version": "0.24.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.9",
         "@sveltejs/vite-plugin-svelte": "^7.0.0",
@@ -134,7 +134,7 @@
     },
     "packages/create-svadmin": {
       "name": "@svadmin/create",
-      "version": "0.11.2",
+      "version": "0.11.3",
       "bin": {
         "create-svadmin": "./dist/index.js",
       },
@@ -234,7 +234,7 @@
     },
     "packages/firebase": {
       "name": "@svadmin/firebase",
-      "version": "0.9.5",
+      "version": "0.9.6",
       "dependencies": {
         "@svadmin/refine-adapter": "workspace:*",
       },
@@ -247,7 +247,7 @@
     },
     "packages/graphql": {
       "name": "@svadmin/graphql",
-      "version": "0.9.6",
+      "version": "0.9.7",
       "dependencies": {
         "@svadmin/refine-adapter": "workspace:*",
         "graphql-request": "^7.4.0",
@@ -263,7 +263,7 @@
     },
     "packages/hasura": {
       "name": "@svadmin/hasura",
-      "version": "0.9.6",
+      "version": "0.9.7",
       "dependencies": {
         "@svadmin/refine-adapter": "workspace:*",
       },
@@ -309,7 +309,7 @@
     },
     "packages/medusa": {
       "name": "@svadmin/medusa",
-      "version": "0.9.5",
+      "version": "0.9.6",
       "dependencies": {
         "@svadmin/refine-adapter": "workspace:*",
       },
@@ -324,7 +324,7 @@
     },
     "packages/nestjs-query": {
       "name": "@svadmin/nestjs-query",
-      "version": "0.9.5",
+      "version": "0.9.6",
       "dependencies": {
         "@svadmin/refine-adapter": "workspace:*",
       },
@@ -339,7 +339,7 @@
     },
     "packages/nestjsx-crud": {
       "name": "@svadmin/nestjsx-crud",
-      "version": "0.9.6",
+      "version": "0.9.7",
       "dependencies": {
         "@svadmin/refine-adapter": "workspace:*",
       },
@@ -366,7 +366,7 @@
     },
     "packages/refine-adapter": {
       "name": "@svadmin/refine-adapter",
-      "version": "0.9.3",
+      "version": "0.9.4",
       "peerDependencies": {
         "@svadmin/core": "workspace:*",
       },
@@ -386,7 +386,7 @@
     },
     "packages/simple-rest": {
       "name": "@svadmin/simple-rest",
-      "version": "0.9.5",
+      "version": "0.9.6",
       "dependencies": {
         "@svadmin/refine-adapter": "workspace:*",
       },
@@ -414,7 +414,7 @@
     },
     "packages/strapi": {
       "name": "@svadmin/strapi",
-      "version": "0.9.5",
+      "version": "0.9.6",
       "dependencies": {
         "@svadmin/refine-adapter": "workspace:*",
       },
@@ -429,7 +429,7 @@
     },
     "packages/supabase": {
       "name": "@svadmin/supabase",
-      "version": "0.9.5",
+      "version": "0.9.10",
       "dependencies": {
         "@svadmin/refine-adapter": "workspace:*",
       },
@@ -460,19 +460,16 @@
     },
     "packages/ui": {
       "name": "@svadmin/ui",
-      "version": "0.32.3",
+      "version": "0.33.0",
       "dependencies": {
         "@lucide/svelte": "^1.7.0",
-        "@tanstack/svelte-table": "^9.0.0-alpha.10",
+        "@tanstack/svelte-table": "^9.0.0-alpha.32",
         "bits-ui": "^2.17.1",
         "clsx": "^2.1.1",
         "cmdk-sv": "^0.0.19",
         "sonner-svelte": "^0.3.3",
         "tailwind-merge": "^3.5.0",
         "tailwind-variants": "^3.2.2",
-      },
-      "devDependencies": {
-        "@tanstack/table-core": "8.21.3",
       },
       "peerDependencies": {
         "@svadmin/core": "workspace:*",
@@ -1039,7 +1036,7 @@
 
     "@tanstack/svelte-table": ["@tanstack/svelte-table@9.0.0-alpha.32", "", { "dependencies": { "@tanstack/svelte-store": "^0.10.3", "@tanstack/table-core": "9.0.0-alpha.32" }, "peerDependencies": { "svelte": "^5.0.0" } }, "sha512-4PI05eNCS/wmaIFJpJvbJ1MAPnpi5RD1ClRcVDsEdpKtQ1zBocdrlFHt/97/mCBmhdHubu9yhFg9V6lv2OlrqQ=="],
 
-    "@tanstack/table-core": ["@tanstack/table-core@8.21.3", "", {}, "sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg=="],
+    "@tanstack/table-core": ["@tanstack/table-core@9.0.0-alpha.32", "", { "dependencies": { "@tanstack/store": "^0.9.3" } }, "sha512-Ah2PomRoRjrV7f3zQDUJ5Cp6oy5yxTpLGJkpS3dSOyFN7ldAQUeY0BUTCo8mY2OOrkHIjKmlIoDRH12LFv99vw=="],
 
     "@testing-library/dom": ["@testing-library/dom@10.4.1", "", { "dependencies": { "@babel/code-frame": "^7.10.4", "@babel/runtime": "^7.12.5", "@types/aria-query": "^5.0.1", "aria-query": "5.3.0", "dom-accessibility-api": "^0.5.9", "lz-string": "^1.5.0", "picocolors": "1.1.1", "pretty-format": "^27.0.2" } }, "sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg=="],
 
@@ -2482,8 +2479,6 @@
     "@tailwindcss/oxide-wasm32-wasi/@tybys/wasm-util": ["@tybys/wasm-util@0.10.1", "", { "dependencies": { "tslib": "^2.4.0" }, "bundled": true }, "sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg=="],
 
     "@tailwindcss/oxide-wasm32-wasi/tslib": ["tslib@2.8.1", "", { "bundled": true }, "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="],
-
-    "@tanstack/svelte-table/@tanstack/table-core": ["@tanstack/table-core@9.0.0-alpha.32", "", { "dependencies": { "@tanstack/store": "^0.9.3" } }, "sha512-Ah2PomRoRjrV7f3zQDUJ5Cp6oy5yxTpLGJkpS3dSOyFN7ldAQUeY0BUTCo8mY2OOrkHIjKmlIoDRH12LFv99vw=="],
 
     "@types/node/undici-types": ["undici-types@7.19.2", "", {}, "sha512-qYVnV5OEm2AW8cJMCpdV20CDyaN3g0AjDlOGf1OW4iaDEx8MwdtChUp4zu4H0VP3nDRF/8RKWH+IPp9uW0YGZg=="],
 

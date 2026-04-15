@@ -82,9 +82,7 @@
   "bugs": {
     "url": "https://github.com/zuohuadong/svadmin/issues"
   },
-  "devDependencies": {
-    "@tanstack/table-core": "^9.0.0-alpha.32"
-  },
+  "devDependencies": {},
   "scripts": {
     "build": "svelte-package -i src -o dist"
   }

@@ -3,19 +3,30 @@
   import { cn } from '../utils.js';
   import {
     createTable,
+    createCoreRowModel,
+    column_getCanSort,
+    column_getIsSorted,
+    column_toggleSorting,
+    column_getIsVisible,
+    column_toggleVisibility,
+    header_getSize,
+    table_getRowModel,
+    table_getHeaderGroups,
+    table_getAllLeafColumns,
+    table_getIsAllRowsSelected,
+    table_toggleAllRowsSelected,
+    row_getIsSelected,
+    row_toggleSelected,
+    row_getAllVisibleCells,
+    row_getIsExpanded,
+    row_toggleExpanded,
+    cell_getValue,
     type ColumnDef,
     type SortingState,
     type RowSelectionState,
     type ColumnVisibilityState,
     type ExpandedState,
   } from '@tanstack/svelte-table';
-  import { 
-    createCoreRowModel, 
-    column_getCanSort, 
-    column_getIsSorted, 
-    column_toggleSorting, 
-    header_getSize 
-  } from '@tanstack/table-core';
 
   import { useList, useDelete, useDeleteMany, getResource, notify } from '@svadmin/core';
   import type { Pagination as PaginationState, Sort, Filter, FieldDefinition } from '@svadmin/core';
@@ -356,7 +367,7 @@
     confirmMessage = t('common.batchDeleteConfirm', { count: ids.length });
     confirmAction = async () => {
       try {
-        await deleteManyMutation.mutateAsync({ ids, resource: resourceName, successNotification: false });
+        await deleteManyMutation.mutateAsync({ ids, resource: resourceName });
         notify({ type: 'success', message: t('common.batchDeleteSuccess', { count: ids.length }) });
       } catch {
         notify({ type: 'error', message: t('common.batchDeletePartialFail', { failed: 1, total: ids.length }) });
@@ -429,10 +440,10 @@
           {/snippet}
         </DropdownMenu.Trigger>
         <DropdownMenu.Content align="end" class="w-48">
-          {#each tbl.getAllLeafColumns().filter((c: any) => !c.id.startsWith('_')) as column}
+          {#each table_getAllLeafColumns(tbl).filter((c: any) => !c.id.startsWith('_')) as column}
             <DropdownMenu.CheckboxItem
-              checked={column.getIsVisible()}
-              onCheckedChange={(v) => column.toggleVisibility(!!v)}
+              checked={column_getIsVisible(column)}
+              onCheckedChange={(v) => column_toggleVisibility(column, !!v)}
             >
               {visibleFields.find(f => f.key === column.id)?.label ?? column.id}
             </DropdownMenu.CheckboxItem>
@@ -552,7 +563,7 @@
         <div class="hidden md:block">
         <Table.Root>
           <Table.Header>
-            {#each tbl.getHeaderGroups() as headerGroup}
+            {#each table_getHeaderGroups(tbl) as headerGroup}
               <DraggableHeader
                 columns={headerGroup.headers.map((h: any) => ({ id: h.column.id, header: h }))}
                 resourceName={resourceName}
@@ -567,8 +578,8 @@
                   >
                     {#if header.id === '_select'}
                       <Checkbox
-                        checked={tbl.getIsAllRowsSelected()}
-                        onCheckedChange={() => tbl.toggleAllRowsSelected()}
+                        checked={table_getIsAllRowsSelected(tbl)}
+                        onCheckedChange={() => table_toggleAllRowsSelected(tbl)}
                       />
                     {:else if header.id === '_expand'}
                       <!-- empty -->
@@ -598,23 +609,23 @@
             {/each}
           </Table.Header>
           <Table.Body>
-            {#each tbl.getRowModel().rows as row}
+            {#each table_getRowModel(tbl).rows as row}
               {@const record = row.original}
               {@const id = record[primaryKey] as string | number}
               <ContextMenu.Root>
                 <ContextMenu.Trigger>
                   {#snippet child({ props })}
-                    <Table.Row {...props} class="transition-all duration-300 border-b border-border/10 {row.getIsSelected() ? 'bg-primary/5' : 'hover:bg-muted/20'}">
-                      {#each row.getVisibleCells() as cell}
+                    <Table.Row {...props} class="transition-all duration-300 border-b border-border/10 {row_getIsSelected(row) ? 'bg-primary/5' : 'hover:bg-muted/20'}">
+                      {#each row_getAllVisibleCells(row) as cell}
                         <Table.Cell>
                           {#if cell.column.id === '_select'}
                             <Checkbox
-                              checked={row.getIsSelected()}
-                              onCheckedChange={() => row.toggleSelected()}
+                              checked={row_getIsSelected(row)}
+                              onCheckedChange={() => row_toggleSelected(row)}
                             />
                           {:else if cell.column.id === '_expand'}
-                            <TooltipButton tooltip={row.getIsExpanded() ? t('common.collapse') : t('common.expand')} variant="ghost" size="icon" class="h-7 w-7" onclick={() => row.toggleExpanded()}>
-                              {#if row.getIsExpanded()}
+                            <TooltipButton tooltip={row_getIsExpanded(row) ? t('common.collapse') : t('common.expand')} variant="ghost" size="icon" class="h-7 w-7" onclick={() => row_toggleExpanded(row)}>
+                              {#if row_getIsExpanded(row)}
                                 <ChevronUp class="h-4 w-4" />
                               {:else}
                                 <ChevronDown class="h-4 w-4" />
@@ -640,34 +651,34 @@
                           {:else}
                             {@const field = visibleFields.find(f => f.key === cell.column.id)}
                             {#if customColumns && field && customColumns[field.key]}
-                              {@render customColumns[field.key]({ value: cell.getValue(), record })}
+                              {@render customColumns[field.key]({ value: cell_getValue(cell), record })}
                             {:else if defaultCellRenderer && field}
-                              {@render defaultCellRenderer({ field, value: cell.getValue(), record })}
+                              {@render defaultCellRenderer({ field, value: cell_getValue(cell), record })}
                             {:else if field?.type === 'boolean'}
-                              <span class="inline-block h-2 w-2 rounded-full {cell.getValue() ? 'bg-success' : 'bg-muted-foreground/30'}"></span>
-                            {:else if field?.type === 'date' && cell.getValue()}
-                              {new Date(cell.getValue() as string).toLocaleDateString()}
-                            {:else if field?.type === 'tags' && Array.isArray(cell.getValue())}
+                              <span class="inline-block h-2 w-2 rounded-full {cell_getValue(cell) ? 'bg-success' : 'bg-muted-foreground/30'}"></span>
+                            {:else if field?.type === 'date' && cell_getValue(cell)}
+                              {new Date(cell_getValue(cell) as string).toLocaleDateString()}
+                            {:else if field?.type === 'tags' && Array.isArray(cell_getValue(cell))}
                               <div class="flex flex-wrap gap-1">
-                                {#each (cell.getValue() as string[]).slice(0, 3) as tag}
+                                {#each (cell_getValue(cell) as string[]).slice(0, 3) as tag}
                                   <Badge variant="secondary">{tag}</Badge>
                                 {/each}
                               </div>
                             {:else if field?.type === 'select' && field.options}
-                              {@const opt = field.options.find(o => o.value === cell.getValue())}
-                              <Badge variant="outline">{opt?.label ?? cell.getValue() ?? '—'}</Badge>
+                              {@const opt = field.options.find(o => o.value === cell_getValue(cell))}
+                              <Badge variant="outline">{opt?.label ?? cell_getValue(cell) ?? '—'}</Badge>
                             {:else if canEdit && field && ['text', 'number', 'email', 'url'].includes(field.type)}
                               <InlineEdit
                                 {resourceName}
                                 recordId={id}
                                 {field}
-                                value={cell.getValue()}
+                                value={cell_getValue(cell)}
                                 onSave={() => listResult.refetch()}
                               />
                             {:else if field?.key === primaryKey}
-                              <span class="font-mono text-xs">{cell.getValue() ?? '—'}</span>
+                              <span class="font-mono text-xs">{cell_getValue(cell) ?? '—'}</span>
                             {:else}
-                              {cell.getValue() ?? '—'}
+                              {cell_getValue(cell) ?? '—'}
                             {/if}
                           {/if}
                         </Table.Cell>
@@ -695,9 +706,9 @@
                   {/if}
                 </ContextMenu.Content>
               </ContextMenu.Root>
-              {#if expandedRowRender && row.getIsExpanded()}
+              {#if expandedRowRender && row_getIsExpanded(row)}
                 <Table.Row class="bg-muted/10 border-b border-border/10 transition-all">
-                  <Table.Cell colspan={row.getVisibleCells().length}>
+                  <Table.Cell colspan={row_getAllVisibleCells(row).length}>
                     {@render expandedRowRender({ record })}
                   </Table.Cell>
                 </Table.Row>
@@ -731,19 +742,19 @@
 
         <!-- Mobile Card View (visible only on small screens) -->
         <div class="md:hidden space-y-3 p-2">
-          {#each tbl.getRowModel().rows as row}
+          {#each table_getRowModel(tbl).rows as row}
             {@const record = row.original}
             {@const id = record[primaryKey] as string | number}
             <div
-              class="rounded-[20px] shadow-[0_4px_20px_rgb(0,0,0,0.03)] ring-1 ring-border/20 bg-card p-5 transition-all {row.getIsSelected() ? 'ring-2 ring-primary/50 bg-primary/5' : ''}"
+              class="rounded-[20px] shadow-[0_4px_20px_rgb(0,0,0,0.03)] ring-1 ring-border/20 bg-card p-5 transition-all {row_getIsSelected(row) ? 'ring-2 ring-primary/50 bg-primary/5' : ''}"
             >
               <!-- Card header: ID + select + actions -->
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                   {#if selectable && (canDelete || batchActions)}
                     <Checkbox
-                      checked={row.getIsSelected()}
-                      onCheckedChange={() => row.toggleSelected()}
+                      checked={row_getIsSelected(row)}
+                      onCheckedChange={() => row_toggleSelected(row)}
                     />
                   {/if}
                   <span class="text-xs font-mono text-muted-foreground">#{id}</span>
