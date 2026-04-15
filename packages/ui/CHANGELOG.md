@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.33.0...ui-v0.33.1) (2026-04-15)
+
+
+### 💅 Elegance & Refactoring
+
+* **ui:** complete tanstack table v9 standalone function migration ([eac10e7](https://github.com/zuohuadong/svadmin/commit/eac10e77936912aed3f1c4cd321049202e36f576))
+
 ## [0.33.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.32.10...ui-v0.33.0) (2026-04-14)
 
 
