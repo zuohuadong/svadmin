@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.10...supabase-v0.10.0) (2026-04-19)
+
+
+### 🚀 Features
+
+* **supabase:** add supacloud task integration docs ([0aed4a1](https://github.com/zuohuadong/svadmin/commit/0aed4a1bf32b17fd6cb287fa5b2c45424d2c6ff1))
+
 ## [0.9.10](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.9...supabase-v0.9.10) (2026-04-14)
 
 
