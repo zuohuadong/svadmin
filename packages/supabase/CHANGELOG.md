@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/zuohuadong/svadmin/compare/supabase-v0.10.0...supabase-v0.11.0) (2026-04-19)
+
+
+### 🚀 Features
+
+* **task:** add provider-first task center ([08ef269](https://github.com/zuohuadong/svadmin/commit/08ef269db4d000736f3bf92d90b2f620a4b6276c))
+
 ## [0.10.0](https://github.com/zuohuadong/svadmin/compare/supabase-v0.9.10...supabase-v0.10.0) (2026-04-19)
 
 

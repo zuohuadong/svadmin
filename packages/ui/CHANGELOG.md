@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.34.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.33.1...ui-v0.34.0) (2026-04-19)
+
+
+### 🚀 Features
+
+* **task:** add provider-first task center ([08ef269](https://github.com/zuohuadong/svadmin/commit/08ef269db4d000736f3bf92d90b2f620a4b6276c))
+
+
+### 💅 Elegance & Refactoring
+
+* **ui:** clean reactive task center bindings ([31118dd](https://github.com/zuohuadong/svadmin/commit/31118dd29bdb2b8a5d7ae8283d0f4e7ae1c4dc8a))
+
 ## [0.33.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.33.0...ui-v0.33.1) (2026-04-15)
 
 
