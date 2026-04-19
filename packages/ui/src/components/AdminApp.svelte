@@ -2,8 +2,8 @@
   // Auto-inject design tokens so consumers don't need to manually import
   import '../app.css';
   import type { Snippet } from 'svelte';
-  import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode, RouterProvider, ThemeConfig, MenuItem } from '@svadmin/core';
-  import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme, setRouterProvider, getAuthProvider, createHashRouterProvider, configureTheme } from '@svadmin/core';
+  import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode, RouterProvider, ThemeConfig, MenuItem, TaskProvider } from '@svadmin/core';
+  import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme, setRouterProvider, setTaskProvider, getAuthProvider, createHashRouterProvider, configureTheme } from '@svadmin/core';
   import { t } from '@svadmin/core/i18n';
   import { navigate } from '@svadmin/core/router';
   import { currentPath } from '@svadmin/core/router';
@@ -22,6 +22,7 @@
   import DevTools from './DevTools.svelte';
   import Sidebar from './Sidebar.svelte';
   import Header from './Header.svelte';
+  import TaskQueueDrawer from './TaskQueueDrawer.svelte';
   import SettingsPage from './SettingsPage.svelte';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
@@ -32,6 +33,7 @@
   interface Props {
     dataProvider: DataProvider;
     authProvider?: AuthProvider;
+    taskProvider?: TaskProvider;
     routerProvider?: RouterProvider;
     resources: ResourceDefinition[];
     locale?: string;
@@ -54,6 +56,7 @@
   let {
     dataProvider,
     authProvider,
+    taskProvider,
     routerProvider,
     resources,
     locale,
@@ -72,6 +75,7 @@
   const defaultComponents: ComponentRegistry = {
     Layout, Sidebar, Header,
     LoginPage, AutoTable, AutoForm, ShowPage,
+    TaskQueueDrawer,
     Button: Button as unknown as ComponentRegistry['Button'],
     Input: Input as unknown as ComponentRegistry['Input'],
     Badge: Badge as unknown as ComponentRegistry['Badge'],
@@ -90,6 +94,7 @@
   // Set up initial context synchronously so children can access resources immediately during first render
   setDataProvider(dataProvider);
   if (authProvider) setAuthProvider(authProvider);
+  if (taskProvider) setTaskProvider(taskProvider);
   setResources(resources);
   setRouterProvider(resolvedRouter);
   if (locale) setLocale(locale);
@@ -100,6 +105,7 @@
   $effect.pre(() => {
     setDataProvider(dataProvider);
     if (authProvider) setAuthProvider(authProvider);
+    if (taskProvider) setTaskProvider(taskProvider);
     setResources(resources);
     setRouterProvider(resolvedRouter);
     if (locale) setLocale(locale);

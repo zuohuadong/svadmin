@@ -38,6 +38,8 @@ export interface ComponentRegistry {
   UserMenu?: Component<any>;
   /** Custom notification panel / bell icon in the header */
   NotificationPanel?: Component<any>;
+  /** Custom task queue drawer / task center trigger in the header */
+  TaskQueueDrawer?: Component<any>;
 }
 
 const REGISTRY_KEY = 'svadmin:components';

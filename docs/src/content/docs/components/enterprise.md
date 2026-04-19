@@ -150,24 +150,29 @@ A background task center showing real-time progress, status indicators, and down
 
 ```svelte
 <script>
-  import { TaskQueueDrawer, type BackgroundTask } from '@svadmin/ui';
+  import { TaskQueueDrawer } from '@svadmin/ui';
+  import { createClient } from '@supabase/supabase-js';
+  import { createSupaCloudClient } from '@supacloud/js';
+  import { createSupaCloudTaskProvider } from '@svadmin/supabase/supacloud';
 
-  let tasks = $state<BackgroundTask[]>([
-    { id: '1', title: 'Exporting users.csv', status: 'running',
-      progress: 65, createdAt: new Date() },
-    { id: '2', title: 'Report generation', status: 'completed',
-      createdAt: new Date(), downloadUrl: '/api/reports/123.pdf' },
-  ]);
+  const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+  const supacloud = createSupaCloudClient({
+    supabase,
+    managementApiUrl: import.meta.env.VITE_SUPACLOUD_API_URL,
+    projectRef: import.meta.env.VITE_SUPACLOUD_PROJECT_REF,
+  });
+  const taskProvider = createSupaCloudTaskProvider({ supacloud });
 
   let drawerOpen = $state(false);
 </script>
 
-<!-- Place trigger button in your header bar -->
-<TaskQueueDrawer bind:open={drawerOpen} bind:tasks
-  onDownload={(id, url) => window.open(url)}
-  onRetry={(id) => restartTask(id)}
+<TaskQueueDrawer
+  bind:open={drawerOpen}
+  {taskProvider}
 />
 ```
+
+`TaskQueueDrawer` is now a first-class task center powered directly by `TaskProvider`. It includes task and DLQ tabs, filtering, auto-refresh, inline task submission, and a synced detail panel out of the box.
 
 ---
 

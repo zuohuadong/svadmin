@@ -10,11 +10,7 @@ export {
 } from './supacloud';
 export type {
   SupaCloudTaskClient,
-  SupaCloudTaskHandle,
-  SupaCloudTaskProvider,
   SupaCloudTaskRecord,
-  SupaCloudTaskSubmitOptions,
-  SupaCloudTaskSubscription,
   CreateSupaCloudTaskProviderOptions,
   CreateSupaCloudTaskLiveProviderOptions,
 } from './supacloud';

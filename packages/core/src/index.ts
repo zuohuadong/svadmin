@@ -6,6 +6,7 @@ export {
   setResources, getResources, getResource,
   setRouterProvider, getRouterProvider,
   setLiveProvider, getLiveProvider,
+  setTaskProvider, getTaskProvider,
   resetContext,
 } from './context.svelte';
 export type { DataProviderInput } from './context.svelte';
@@ -87,6 +88,12 @@ export {
   useOnError, usePermissions,
   getLogoutVersion, resetLogoutVersion,
 } from './auth-hooks.svelte';
+export {
+  useSubmitTask,
+  useTask,
+  useTaskList,
+  useTaskSubscription,
+} from './task-hooks.svelte';
 export { useParsed, resetGlobalPath, syncGlobalPath } from './useParsed.svelte';
 export * from './useStepsForm.svelte';
 export { createHashRouterProvider, createHistoryRouterProvider } from './router-provider';
@@ -110,3 +117,11 @@ export type { TableStateOptions } from './table-state.svelte';
 export type { UseInfiniteListOptions } from './hooks.svelte';
 export type { UseSelectOptions } from './hooks.svelte';
 export type { UseFormReturn } from './form-hooks.svelte';
+export type {
+  TaskProvider,
+  TaskRecord,
+  SubmitTaskOptions,
+  TaskHandle,
+  TaskListResult,
+  TaskSubscription,
+} from './types';

@@ -8,14 +8,15 @@
   import ChatDialog from './ChatDialog.svelte';
   import TooltipButton from './TooltipButton.svelte';
   import { t } from '@svadmin/core/i18n';
-  import { getAuthProvider } from '@svadmin/core';
-  import type { Identity, MenuItem } from '@svadmin/core';
+  import { getAuthProvider, getTaskProvider } from '@svadmin/core';
+  import type { Identity, MenuItem, TaskProvider, TaskRecord } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
   import { getPath } from '../router-state.svelte.js';
   import { Skeleton } from './ui/skeleton/index.js';
   import { Button } from './ui/button/index.js';
   import * as Sheet from './ui/sheet/index.js';
   import { Menu } from '@lucide/svelte';
+  import { getComponentRegistry } from '../component-registry.svelte.js';
 
   let commandOpen = $state(false);
   let shortcutsOpen = $state(false);
@@ -32,6 +33,9 @@
   }
   let loading = $state(true);
   let identity = $state<Identity | null>(null);
+  const taskProvider = getTaskProvider({ optional: true }) as TaskProvider<TaskRecord> | undefined;
+  const registry = getComponentRegistry() || {} as any;
+  const TaskQueueComponent = registry.TaskQueueDrawer;
 
   $effect(() => {
     let cancelled = false;
@@ -148,6 +152,13 @@
           <TooltipButton tooltip={t('common.menu')} class="md:hidden" onclick={() => { mobileMenuOpen = true; }}>
             <Menu class="h-5 w-5" />
           </TooltipButton>
+        {/snippet}
+        {#snippet rightActions()}
+          {#if taskProvider}
+            {#if TaskQueueComponent}
+              <TaskQueueComponent {taskProvider} />
+            {/if}
+          {/if}
         {/snippet}
       </Header>
 

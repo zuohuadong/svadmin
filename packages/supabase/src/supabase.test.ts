@@ -242,26 +242,31 @@ describe('SupaCloud Task Provider', () => {
 
   test('list normalizes object payload with data field', async () => {
     const { createSupaCloudTaskProvider } = await import('./supacloud');
-    const supacloud = {
-      submit: mock(async () => ({ wait: async () => ({ id: 'task-1' }) })),
-      get: mock(async () => ({ id: 'task-1' })),
+    const supacloud: import('@svadmin/core').TaskProvider<{ id: string; status: string }> = {
+      submit: mock(async () => ({ wait: async () => ({ id: 'task-1', status: 'queued' }) })),
+      get: mock(async () => ({ id: 'task-1', status: 'queued' })),
       list: mock(async () => ({ data: [{ id: 'task-1', status: 'queued' }] })),
     };
 
     const provider = createSupaCloudTaskProvider({ supacloud });
+    if (!provider.list) throw new Error('provider.list should exist');
     const tasks = await provider.list();
 
-    expect(tasks).toEqual([{ id: 'task-1', status: 'queued' }]);
+    expect(tasks).toEqual({
+      data: [{ id: 'task-1', status: 'queued' }],
+      total: 1,
+    });
   });
 
   test('listDlq throws clear error when capability is missing', async () => {
     const { createSupaCloudTaskProvider } = await import('./supacloud');
-    const supacloud = {
+    const supacloud: import('@svadmin/core').TaskProvider<{ id: string }> = {
       submit: mock(async () => ({ wait: async () => ({ id: 'task-1' }) })),
       get: mock(async () => ({ id: 'task-1' })),
     };
 
     const provider = createSupaCloudTaskProvider({ supacloud });
+    if (!provider.listDlq) throw new Error('provider.listDlq should exist');
 
     await expect(provider.listDlq()).rejects.toThrow('tasks.listDlq');
   });

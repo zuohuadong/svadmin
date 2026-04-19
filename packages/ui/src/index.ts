@@ -75,7 +75,12 @@ export { default as AuditLogViewer } from "./components/AuditLogViewer.svelte";
 export { default as TenantSwitcher } from "./components/TenantSwitcher.svelte";
 export type { Tenant } from "./types.js";
 export { default as TaskQueueDrawer } from "./components/TaskQueueDrawer.svelte";
-export type { BackgroundTask, TaskStatus } from "./types.js";
+export { default as TaskStatusBadge } from "./components/TaskStatusBadge.svelte";
+export { default as TaskProgressBar } from "./components/TaskProgressBar.svelte";
+export { default as TaskList } from "./components/TaskList.svelte";
+export { default as TaskDetails } from "./components/TaskDetails.svelte";
+export { default as RetryTaskButton } from "./components/RetryTaskButton.svelte";
+export { default as CancelTaskButton } from "./components/CancelTaskButton.svelte";
 export { default as DraggableGrid } from "./components/DraggableGrid.svelte";
 export type { GridModule } from "./types.js";
 

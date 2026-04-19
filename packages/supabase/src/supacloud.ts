@@ -1,31 +1,20 @@
-import type { LiveEvent, LiveProvider } from '@svadmin/core';
+import type {
+  LiveEvent,
+  LiveProvider,
+  SubmitTaskOptions,
+  TaskHandle,
+  TaskListResult,
+  TaskProvider,
+  TaskRecord,
+  TaskSubscription,
+} from '@svadmin/core';
 
-export interface SupaCloudTaskSubmitOptions {
-  body?: Record<string, unknown>;
-  idempotencyKey?: string;
-  headers?: Record<string, string>;
-}
-
-export interface SupaCloudTaskRecord {
-  id: string;
-  status?: string;
+export interface SupaCloudTaskRecord extends TaskRecord {
   [key: string]: unknown;
 }
 
-export interface SupaCloudTaskSubscription {
-  unsubscribe(): void;
-}
-
-export interface SupaCloudTaskHandle<TTask extends SupaCloudTaskRecord = SupaCloudTaskRecord> {
-  id?: string;
-  wait(): Promise<TTask>;
-  subscribe?(callback: (task: TTask) => void): SupaCloudTaskSubscription | (() => void) | void;
-  cancel?(): Promise<unknown>;
-  retry?(): Promise<unknown>;
-}
-
 export interface SupaCloudTaskClient<TTask extends SupaCloudTaskRecord = SupaCloudTaskRecord> {
-  submit(taskName: string, options?: SupaCloudTaskSubmitOptions): Promise<SupaCloudTaskHandle<TTask>>;
+  submit(taskName: string, options?: SubmitTaskOptions): Promise<TaskHandle<TTask>>;
   get(taskId: string): Promise<TTask>;
   list?(params?: Record<string, unknown>): Promise<TTask[] | { data?: TTask[] }>;
   listDlq?(params?: Record<string, unknown>): Promise<TTask[] | { data?: TTask[] }>;
@@ -34,20 +23,7 @@ export interface SupaCloudTaskClient<TTask extends SupaCloudTaskRecord = SupaClo
   subscribe?(
     taskId: string,
     callback: (task: TTask) => void
-  ): SupaCloudTaskSubscription | (() => void) | void;
-}
-
-export interface SupaCloudTaskProvider<TTask extends SupaCloudTaskRecord = SupaCloudTaskRecord> {
-  submit(taskName: string, options?: SupaCloudTaskSubmitOptions): Promise<SupaCloudTaskHandle<TTask>>;
-  get(taskId: string): Promise<TTask>;
-  list(params?: Record<string, unknown>): Promise<TTask[] | { data?: TTask[] }>;
-  listDlq(params?: Record<string, unknown>): Promise<TTask[] | { data?: TTask[] }>;
-  cancel(taskId: string): Promise<unknown>;
-  retry(taskId: string): Promise<unknown>;
-  subscribe(
-    taskId: string,
-    callback: (task: TTask) => void
-  ): SupaCloudTaskSubscription | (() => void) | void;
+  ): TaskSubscription | (() => void) | void;
 }
 
 export interface CreateSupaCloudTaskProviderOptions<
@@ -65,7 +41,7 @@ export interface CreateSupaCloudTaskLiveProviderOptions<
 }
 
 function normalizeTaskSubscription(
-  subscription: SupaCloudTaskSubscription | (() => void) | void,
+  subscription: TaskSubscription | (() => void) | void,
 ): (() => void) | undefined {
   if (!subscription) return undefined;
   if (typeof subscription === 'function') return subscription;
@@ -77,8 +53,12 @@ function normalizeTaskSubscription(
 
 function normalizeTaskList<TTask extends SupaCloudTaskRecord>(
   value: TTask[] | { data?: TTask[] },
-): TTask[] {
-  return Array.isArray(value) ? value : (value.data ?? []);
+): TaskListResult<TTask> {
+  const data = Array.isArray(value) ? value : (value.data ?? []);
+  return {
+    data,
+    total: data.length,
+  };
 }
 
 function defaultMapTaskToEvent<TTask extends SupaCloudTaskRecord>(
@@ -94,7 +74,7 @@ function defaultMapTaskToEvent<TTask extends SupaCloudTaskRecord>(
 
 export function createSupaCloudTaskProvider<
   TTask extends SupaCloudTaskRecord = SupaCloudTaskRecord,
->(options: CreateSupaCloudTaskProviderOptions<TTask>): SupaCloudTaskProvider<TTask> {
+>(options: CreateSupaCloudTaskProviderOptions<TTask>): TaskProvider<TTask> {
   const { supacloud } = options;
 
   return {

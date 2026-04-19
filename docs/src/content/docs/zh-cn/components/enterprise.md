@@ -134,16 +134,26 @@ const authProvider: AuthProvider = {
 
 ```svelte
 <script>
-  import { TaskQueueDrawer, type BackgroundTask } from '@svadmin/ui';
+  import { TaskQueueDrawer } from '@svadmin/ui';
+  import { createClient } from '@supabase/supabase-js';
+  import { createSupaCloudClient } from '@supacloud/js';
+  import { createSupaCloudTaskProvider } from '@svadmin/supabase/supacloud';
 
-  let tasks = $state<BackgroundTask[]>([
-    { id: '1', title: '导出用户数据', status: 'running', progress: 65, createdAt: new Date() },
-    { id: '2', title: '报表生成', status: 'completed', createdAt: new Date(), downloadUrl: '/report.pdf' },
-  ]);
+  const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+  const supacloud = createSupaCloudClient({
+    supabase,
+    managementApiUrl: import.meta.env.VITE_SUPACLOUD_API_URL,
+    projectRef: import.meta.env.VITE_SUPACLOUD_PROJECT_REF,
+  });
+  const taskProvider = createSupaCloudTaskProvider({ supacloud });
 </script>
 
-<TaskQueueDrawer bind:tasks onDownload={(id, url) => window.open(url)} />
+<TaskQueueDrawer
+  {taskProvider}
+/>
 ```
+
+`TaskQueueDrawer` 现在直接以 `TaskProvider` 作为一等输入，内置任务 / 死信 Tab、筛选、自动刷新、内联任务提交表单，以及与详情面板联动的正式任务中心体验。
 
 ---
 

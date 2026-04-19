@@ -1,7 +1,7 @@
 // Svelte 5 Context — module-level $state singletons (no setContext/getContext required)
 // This removes the constraint that hooks must be called at component init time.
 
-import type { DataProvider, AuthProvider, ResourceDefinition } from './types';
+import type { DataProvider, AuthProvider, ResourceDefinition, TaskProvider } from './types';
 import type { RouterProvider } from './router-provider';
 import { resetNotificationProvider } from './notification.svelte';
 import { resetAuditLogProvider } from './audit';
@@ -136,6 +136,23 @@ export function getLiveProvider(): import('./live.svelte').LiveProvider | undefi
   return liveProviderState;
 }
 
+// ─── Task Provider ──────────────────────────────────────────────
+
+let taskProviderState = $state<TaskProvider | undefined>(undefined);
+
+export function setTaskProvider(provider: TaskProvider | undefined): void {
+  taskProviderState = provider;
+}
+
+export function getTaskProvider(): TaskProvider;
+export function getTaskProvider(options: { optional: true }): TaskProvider | undefined;
+export function getTaskProvider(options?: { optional?: boolean }): TaskProvider | undefined {
+  if (!taskProviderState && !options?.optional) {
+    throw new Error('TaskProvider not found. Did you call setTaskProvider in App.svelte?');
+  }
+  return taskProviderState;
+}
+
 // ─── Reset — for testing / HMR ─────────────────────────────────
 
 export function resetContext(): void {
@@ -144,6 +161,7 @@ export function resetContext(): void {
   resources = [];
   routerProvider = undefined;
   liveProviderState = undefined;
+  taskProviderState = undefined;
   resetNotificationProvider();
   resetAuditLogProvider();
   resetAccessControlProvider();

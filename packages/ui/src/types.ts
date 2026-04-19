@@ -9,19 +9,6 @@ export interface Tenant {
   [key: string]: unknown;
 }
 
-export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed';
-
-export interface BackgroundTask {
-  id: string;
-  title: string;
-  status: TaskStatus;
-  progress?: number; // 0-100
-  message?: string;
-  createdAt: string | Date;
-  downloadUrl?: string;
-  [key: string]: unknown;
-}
-
 export interface GridModule {
   id: string;
   w: number;

@@ -192,6 +192,50 @@ export interface DataProvider {
   custom?: <TData = unknown, TVariables = unknown>(params: CustomParams<TVariables>) => Promise<CustomResult<TData>>;
 }
 
+// ─── TaskProvider ─────────────────────────────────────────────
+
+export interface TaskRecord extends BaseRecord {
+  id: string;
+  status?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+  error?: unknown;
+}
+
+export interface SubmitTaskOptions {
+  body?: Record<string, unknown>;
+  idempotencyKey?: string;
+  headers?: Record<string, string>;
+  meta?: Record<string, unknown>;
+}
+
+export interface TaskSubscription {
+  unsubscribe(): void;
+}
+
+export interface TaskHandle<TTask extends TaskRecord = TaskRecord> {
+  id?: string;
+  wait(): Promise<TTask>;
+  subscribe?(callback: (task: TTask) => void): TaskSubscription | (() => void) | void;
+  cancel?(): Promise<unknown>;
+  retry?(): Promise<unknown>;
+}
+
+export interface TaskListResult<TTask extends TaskRecord = TaskRecord> {
+  data: TTask[];
+  total?: number;
+}
+
+export interface TaskProvider<TTask extends TaskRecord = TaskRecord> {
+  submit(taskName: string, options?: SubmitTaskOptions): Promise<TaskHandle<TTask>>;
+  get(taskId: string): Promise<TTask>;
+  list?(params?: Record<string, unknown>): Promise<TaskListResult<TTask>>;
+  listDlq?(params?: Record<string, unknown>): Promise<TaskListResult<TTask>>;
+  cancel?(taskId: string): Promise<unknown>;
+  retry?(taskId: string): Promise<unknown>;
+  subscribe?(taskId: string, callback: (task: TTask) => void): TaskSubscription | (() => void) | void;
+}
+
 // ─── AuthProvider ─────────────────────────────────────────────
 
 export interface Identity {
