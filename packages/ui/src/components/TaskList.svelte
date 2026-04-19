@@ -45,10 +45,18 @@
   }>();
 
   const query = useTaskList({
-    params,
-    dlq,
-    taskProvider,
-    queryOptions: { enabled: useProviderData && !!taskProvider, ...queryOptions },
+    get params() {
+      return params;
+    },
+    get dlq() {
+      return dlq;
+    },
+    get taskProvider() {
+      return taskProvider;
+    },
+    get queryOptions() {
+      return { enabled: useProviderData && !!taskProvider, ...queryOptions };
+    },
   });
 
   const resolvedTasks = $derived(tasks ?? query.data?.data ?? []);

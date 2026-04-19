@@ -2,7 +2,7 @@
 
 
 
-let locales = $state<Record<string, Record<string, string>>>({
+const baseLocales: Record<string, Record<string, string>> = {
   'zh-CN': {
     'common.list': '列表',
     'common.prev': '上一页',
@@ -617,9 +617,10 @@ let locales = $state<Record<string, Record<string, string>>>({
     'task.status.failed': 'Failed',
     'task.status.error': 'Error',
   },
-});
+};
 
-const initialLocales = locales;
+let locales = $state(structuredClone(baseLocales));
+const initialLocales = structuredClone(baseLocales);
 
 /** Detect best locale from browser language */
 function detectLocale(): string {

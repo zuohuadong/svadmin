@@ -30,7 +30,7 @@
     initialTab?: TaskTab;
   } = $props();
 
-  let activeTab = $state<TaskTab>(initialTab);
+  let activeTab = $state<TaskTab>('tasks');
   let selectedTaskId = $state<string | null>(null);
   let searchQuery = $state('');
   let statusFilter = $state('all');
@@ -45,21 +45,31 @@
   const resolvedTitle = $derived(title ?? t('task.drawerTitle'));
 
   const taskQuery = useTaskList({
-    taskProvider,
-    queryOptions: {
-      enabled: !!taskProvider,
-      refetchInterval: refreshInterval,
-      refetchIntervalInBackground: true,
+    get taskProvider() {
+      return taskProvider;
+    },
+    get queryOptions() {
+      return {
+        enabled: !!taskProvider,
+        refetchInterval: refreshInterval,
+        refetchIntervalInBackground: true,
+      };
     },
   });
 
   const dlqQuery = useTaskList({
-    dlq: true,
-    taskProvider,
-    queryOptions: {
-      enabled: !!taskProvider && !!taskProvider?.listDlq,
-      refetchInterval: refreshInterval,
-      refetchIntervalInBackground: true,
+    get dlq() {
+      return true;
+    },
+    get taskProvider() {
+      return taskProvider;
+    },
+    get queryOptions() {
+      return {
+        enabled: !!taskProvider && !!taskProvider?.listDlq,
+        refetchInterval: refreshInterval,
+        refetchIntervalInBackground: true,
+      };
     },
   });
 
@@ -102,6 +112,10 @@
   const runningCount = $derived(
     allTasks.filter((task) => ['pending', 'queued', 'running', 'processing'].includes(String(task.status ?? '').toLowerCase())).length,
   );
+
+  $effect(() => {
+    activeTab = initialTab;
+  });
 
   $effect(() => {
     if (statusFilter !== 'all' && !availableStatuses.includes(statusFilter)) {

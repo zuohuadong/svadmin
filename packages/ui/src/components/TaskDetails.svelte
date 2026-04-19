@@ -34,9 +34,15 @@
   }>();
 
   const query = useTask({
-    taskId,
-    taskProvider,
-    queryOptions: { enabled: useProviderData && !!taskId && !!taskProvider, ...queryOptions },
+    get taskId() {
+      return taskId;
+    },
+    get taskProvider() {
+      return taskProvider;
+    },
+    get queryOptions() {
+      return { enabled: useProviderData && !!taskId && !!taskProvider, ...queryOptions };
+    },
   });
 
   const resolvedTask = $derived(task ?? query.data);
