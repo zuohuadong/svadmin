@@ -7,7 +7,7 @@
   import { t } from '@svadmin/core/i18n';
   import { navigate } from '@svadmin/core/router';
   import { currentPath } from '@svadmin/core/router';
-  import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
+  import { QueryClient, QueryClientProvider, type DefaultOptions } from '@tanstack/svelte-query';
   import { setComponentRegistry, getComponentRegistry, type ComponentRegistry } from '../component-registry.svelte.js';
   import Layout from './Layout.svelte';
   import AutoTable from './AutoTable.svelte';
@@ -49,6 +49,10 @@
     siteUrl?: string;
     /** Routing strategy for Sidebar links ('hash' | 'path' | 'auto') */
     routeMode?: 'hash' | 'path' | 'auto';
+    /** Optional TanStack Query client override. */
+    queryClient?: QueryClient;
+    /** Optional TanStack Query default options override when QueryClient is not supplied. */
+    queryClientDefaultOptions?: DefaultOptions;
   }
 
   let {
@@ -66,6 +70,8 @@
     menu,
     siteUrl,
     routeMode,
+    queryClient: providedQueryClient,
+    queryClientDefaultOptions,
   }: Props = $props();
 
   // Default component registry
@@ -107,11 +113,12 @@
     if (defaultTheme) setTheme(defaultTheme);
   });
 
-  const queryClient = new QueryClient({
+  const queryClient = $derived(providedQueryClient ?? new QueryClient({
     defaultOptions: {
       queries: { staleTime: 30_000, retry: 1 },
+      ...queryClientDefaultOptions,
     },
-  });
+  }));
 
   // Initialize router with provider synchronously
   initRouter(resolvedRouter);

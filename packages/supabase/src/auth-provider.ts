@@ -3,6 +3,26 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthProvider, Identity, AuthActionResult, CheckResult } from '@svadmin/core';
 import { audit } from '@svadmin/core';
 
+const INVALID_REFRESH_TOKEN_MESSAGES = [
+  'refresh token is not valid',
+  'invalid refresh token',
+  'refresh_token_not_found',
+  'jwt expired',
+];
+
+function isInvalidRefreshTokenError(error: unknown): error is Error {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  return INVALID_REFRESH_TOKEN_MESSAGES.some((fragment) => message.includes(fragment));
+}
+
+async function clearInvalidSession(client: SupabaseClient): Promise<void> {
+  await client.auth.signOut({ scope: 'local' });
+}
+
 export function createSupabaseAuthProvider(client: SupabaseClient): AuthProvider {
   return {
     async login({ email, password }: Record<string, unknown>): Promise<AuthActionResult> {
@@ -23,16 +43,42 @@ export function createSupabaseAuthProvider(client: SupabaseClient): AuthProvider
     },
 
     async check(): Promise<CheckResult> {
-      const { data: { session } } = await client.auth.getSession();
+      const { data: { session }, error } = await client.auth.getSession();
+      if (error) {
+        if (isInvalidRefreshTokenError(error)) {
+          await clearInvalidSession(client);
+          return {
+            authenticated: false,
+            redirectTo: '/login',
+            logout: true,
+            error: { message: 'Session expired, please sign in again.' },
+          };
+        }
+
+        return {
+          authenticated: false,
+          redirectTo: '/login',
+          logout: true,
+          error: { message: 'Session validation failed.' },
+        };
+      }
       if (session) return { authenticated: true };
       return { authenticated: false, redirectTo: '/login', logout: true };
     },
 
     async getIdentity(): Promise<Identity | null> {
-      const { data: { user } } = await client.auth.getUser();
+      const { data: { user }, error } = await client.auth.getUser();
+      if (error && isInvalidRefreshTokenError(error)) {
+        await clearInvalidSession(client);
+        return null;
+      }
       if (!user) return null;
       
-      const { data: { session } } = await client.auth.getSession();
+      const { data: { session }, error: sessionError } = await client.auth.getSession();
+      if (sessionError && isInvalidRefreshTokenError(sessionError)) {
+        await clearInvalidSession(client);
+        return null;
+      }
       
       return {
         id: user.id,
@@ -44,7 +90,11 @@ export function createSupabaseAuthProvider(client: SupabaseClient): AuthProvider
     },
 
     async getPermissions(): Promise<unknown> {
-      const { data: { user } } = await client.auth.getUser();
+      const { data: { user }, error } = await client.auth.getUser();
+      if (error && isInvalidRefreshTokenError(error)) {
+        await clearInvalidSession(client);
+        return null;
+      }
       return user?.user_metadata?.role ?? 'user';
     },
 
@@ -71,6 +121,11 @@ export function createSupabaseAuthProvider(client: SupabaseClient): AuthProvider
     },
 
     async onError(error: unknown): Promise<{ redirectTo?: string; logout?: boolean }> {
+      if (isInvalidRefreshTokenError(error)) {
+        await clearInvalidSession(client);
+        return { redirectTo: '/login', logout: true };
+      }
+
       if (error instanceof Error && error.message.includes('401')) {
         // Pre-flight check: race-condition guard
         // Supabase might have just refreshed the token in the background right after our fetch failed

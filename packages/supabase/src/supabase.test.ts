@@ -135,6 +135,24 @@ describe('Supabase AuthProvider', () => {
     expect(result.logout).toBe(true);
   });
 
+  test('check clears invalid refresh token sessions', async () => {
+    const { createSupabaseAuthProvider } = await import('./auth-provider');
+    const client = createMockSupabaseClient({
+      auth: {
+        getSession: mock(async () => ({
+          data: { session: null },
+          error: new Error('Refresh token is not valid'),
+        })),
+      }
+    });
+    const auth = createSupabaseAuthProvider(client);
+    const result = await auth.check();
+    expect(result.authenticated).toBe(false);
+    expect(result.logout).toBe(true);
+    expect(result.redirectTo).toBe('/login');
+    expect(client.auth.signOut).toHaveBeenCalled();
+  });
+
   test('getIdentity surfaces user metadata', async () => {
     const { createSupabaseAuthProvider } = await import('./auth-provider');
     const auth = createSupabaseAuthProvider(createMockSupabaseClient());
@@ -150,6 +168,22 @@ describe('Supabase AuthProvider', () => {
     const auth = createSupabaseAuthProvider(createMockSupabaseClient());
     const role = await auth.getPermissions?.();
     expect(role).toBe('admin');
+  });
+
+  test('getIdentity clears invalid refresh token sessions', async () => {
+    const { createSupabaseAuthProvider } = await import('./auth-provider');
+    const client = createMockSupabaseClient({
+      auth: {
+        getUser: mock(async () => ({
+          data: { user: null },
+          error: new Error('Invalid refresh token'),
+        })),
+      }
+    });
+    const auth = createSupabaseAuthProvider(client);
+    const identity = await auth.getIdentity();
+    expect(identity).toBeNull();
+    expect(client.auth.signOut).toHaveBeenCalled();
   });
 
   test('onError returns logout true on 401 with no session', async () => {
@@ -171,6 +205,16 @@ describe('Supabase AuthProvider', () => {
     const result = await auth.onError!(new Error('401 Unauthorized'));
     expect(result.logout).toBeUndefined();
     expect(client.auth.signOut).not.toHaveBeenCalled();
+  });
+
+  test('onError logs out on invalid refresh token', async () => {
+    const { createSupabaseAuthProvider } = await import('./auth-provider');
+    const client = createMockSupabaseClient();
+    const auth = createSupabaseAuthProvider(client);
+    const result = await auth.onError!(new Error('Refresh token is not valid'));
+    expect(result.logout).toBe(true);
+    expect(result.redirectTo).toBe('/login');
+    expect(client.auth.signOut).toHaveBeenCalled();
   });
 });
 
