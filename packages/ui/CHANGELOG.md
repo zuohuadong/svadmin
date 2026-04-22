@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.0...ui-v0.34.1) (2026-04-22)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** pin tanstack svelte-table alpha dependency ([#140](https://github.com/zuohuadong/svadmin/issues/140)) ([f911669](https://github.com/zuohuadong/svadmin/commit/f911669f026c06143a9634c4d164e4e1f9c08122))
+
 ## [0.34.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.33.1...ui-v0.34.0) (2026-04-19)
 
 
