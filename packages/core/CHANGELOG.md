@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.1](https://github.com/zuohuadong/svadmin/compare/core-v0.25.0...core-v0.25.1) (2026-04-25)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** normalize task queue records ([#142](https://github.com/zuohuadong/svadmin/issues/142)) ([1619fd4](https://github.com/zuohuadong/svadmin/commit/1619fd418f623533ea774ae5dbd4102a8d93ce23))
+
 ## [0.25.0](https://github.com/zuohuadong/svadmin/compare/core-v0.24.0...core-v0.25.0) (2026-04-19)
 
 

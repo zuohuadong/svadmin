@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.1...ui-v0.34.2) (2026-04-25)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** normalize task queue records ([#142](https://github.com/zuohuadong/svadmin/issues/142)) ([1619fd4](https://github.com/zuohuadong/svadmin/commit/1619fd418f623533ea774ae5dbd4102a8d93ce23))
+
 ## [0.34.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.0...ui-v0.34.1) (2026-04-22)
 
 
