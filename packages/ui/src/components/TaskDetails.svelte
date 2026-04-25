@@ -9,6 +9,17 @@
   import TaskProgressBar from './TaskProgressBar.svelte';
   import RetryTaskButton from './RetryTaskButton.svelte';
   import CancelTaskButton from './CancelTaskButton.svelte';
+  import {
+    canCancelTask,
+    canRetryTask,
+    resolveTaskCreatedAt,
+    resolveTaskError,
+    resolveTaskMessage,
+    resolveTaskProgress,
+    resolveTaskResult,
+    resolveTaskTitle,
+    resolveTaskUpdatedAt,
+  } from './task-utils.js';
 
   let {
     task,
@@ -50,7 +61,9 @@
 
   function formatDate(value: unknown) {
     if (!value) return '—';
-    return new Date(value as string | Date).toLocaleString();
+    const date = new Date(value as string | Date);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return date.toLocaleString();
   }
 
   function toPrettyJson(value: unknown) {
@@ -67,7 +80,7 @@
     <Card.Title class="text-base">{resolvedTitle}</Card.Title>
     <Card.Description>
       {#if resolvedTask}
-        {String(resolvedTask.title ?? resolvedTask.name ?? resolvedTask.id)}
+        {resolveTaskTitle(resolvedTask)}
       {:else}
         {t('task.detailsSummary')}
       {/if}
@@ -85,46 +98,53 @@
         <Badge variant="outline" class="font-mono text-xs">{resolvedTask.id}</Badge>
       </div>
 
-      {#if typeof resolvedTask.progress === 'number'}
-        <TaskProgressBar value={Number(resolvedTask.progress)} />
+      {#if typeof resolveTaskProgress(resolvedTask) === 'number'}
+        <TaskProgressBar value={resolveTaskProgress(resolvedTask)} />
       {/if}
 
       <div class="grid gap-4 md:grid-cols-2">
         <div class="space-y-1">
           <div class="text-xs uppercase tracking-wide text-muted-foreground">{t('task.createdLabel')}</div>
-          <div class="text-sm">{formatDate(resolvedTask.createdAt)}</div>
+          <div class="text-sm">{formatDate(resolveTaskCreatedAt(resolvedTask))}</div>
         </div>
         <div class="space-y-1">
           <div class="text-xs uppercase tracking-wide text-muted-foreground">{t('task.updatedLabel')}</div>
-          <div class="text-sm">{formatDate(resolvedTask.updatedAt)}</div>
+          <div class="text-sm">{formatDate(resolveTaskUpdatedAt(resolvedTask))}</div>
         </div>
       </div>
 
-      {#if resolvedTask.message}
+      {#if resolveTaskMessage(resolvedTask)}
         <div class="space-y-1">
           <div class="text-xs uppercase tracking-wide text-muted-foreground">{t('task.messageLabel')}</div>
-          <div class="rounded-md border border-border/60 bg-muted/30 p-3 text-sm">{String(resolvedTask.message)}</div>
+          <div class="rounded-md border border-border/60 bg-muted/30 p-3 text-sm">{resolveTaskMessage(resolvedTask)}</div>
         </div>
       {/if}
 
-      {#if resolvedTask.error}
+      {#if resolveTaskError(resolvedTask)}
         <div class="space-y-1">
           <div class="text-xs uppercase tracking-wide text-destructive">{t('task.errorLabel')}</div>
-          <pre class="overflow-auto rounded-md border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">{toPrettyJson(resolvedTask.error)}</pre>
+          <pre class="overflow-auto rounded-md border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">{toPrettyJson(resolveTaskError(resolvedTask))}</pre>
+        </div>
+      {/if}
+
+      {#if resolveTaskResult(resolvedTask) !== undefined}
+        <div class="space-y-1">
+          <div class="text-xs uppercase tracking-wide text-muted-foreground">{t('task.resultLabel')}</div>
+          <pre class="overflow-auto rounded-md border border-border/60 bg-muted/20 p-3 text-xs">{toPrettyJson(resolveTaskResult(resolvedTask))}</pre>
         </div>
       {/if}
 
       <div class="space-y-1">
         <div class="text-xs uppercase tracking-wide text-muted-foreground">{t('task.payloadLabel')}</div>
-        <pre class="overflow-auto rounded-md border border-border/60 bg-muted/20 p-3 text-xs">{toPrettyJson(resolvedTask)}</pre>
+        <pre class="overflow-auto rounded-md border border-border/60 bg-muted/20 p-3 text-xs">{toPrettyJson(resolvedTask.payload ?? resolvedTask)}</pre>
       </div>
 
       {#if taskProvider?.retry || taskProvider?.cancel}
         <div class="flex flex-wrap gap-2 pt-2">
-          {#if taskProvider?.retry && ['failed', 'error'].includes(String(resolvedTask.status).toLowerCase())}
+          {#if taskProvider?.retry && canRetryTask(resolvedTask)}
             <RetryTaskButton taskId={resolvedTask.id} {taskProvider} />
           {/if}
-          {#if taskProvider?.cancel && ['pending', 'queued', 'running', 'processing'].includes(String(resolvedTask.status).toLowerCase())}
+          {#if taskProvider?.cancel && canCancelTask(resolvedTask)}
             <CancelTaskButton taskId={resolvedTask.id} {taskProvider} />
           {/if}
         </div>

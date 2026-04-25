@@ -10,6 +10,14 @@
   import TaskProgressBar from './TaskProgressBar.svelte';
   import RetryTaskButton from './RetryTaskButton.svelte';
   import CancelTaskButton from './CancelTaskButton.svelte';
+  import {
+    canCancelTask,
+    canRetryTask,
+    resolveTaskMessage,
+    resolveTaskProgress,
+    resolveTaskTitle,
+    resolveTaskUpdatedAt,
+  } from './task-utils.js';
 
   let {
     tasks,
@@ -65,7 +73,9 @@
 
   function formatDate(value: unknown) {
     if (!value) return '—';
-    return new Date(value as string | Date).toLocaleString();
+    const date = new Date(value as string | Date);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return date.toLocaleString();
   }
 </script>
 
@@ -104,12 +114,12 @@
               <Table.Row class="cursor-pointer hover:bg-muted/40" onclick={() => onSelect?.(task)}>
                 <Table.Cell class="min-w-[240px]">
                   <div class="space-y-1">
-                    <div class="font-medium text-foreground">{String(task.title ?? task.name ?? task.id)}</div>
-                    {#if task.message}
-                      <div class="text-xs text-muted-foreground">{String(task.message)}</div>
+                    <div class="font-medium text-foreground">{resolveTaskTitle(task)}</div>
+                    {#if resolveTaskMessage(task)}
+                      <div class="text-xs text-muted-foreground">{resolveTaskMessage(task)}</div>
                     {/if}
-                    {#if showProgress && typeof task.progress === 'number' && String(task.status).toLowerCase() === 'running'}
-                      <TaskProgressBar value={Number(task.progress)} />
+                    {#if showProgress && typeof resolveTaskProgress(task) === 'number'}
+                      <TaskProgressBar value={resolveTaskProgress(task)} />
                     {/if}
                   </div>
                 </Table.Cell>
@@ -117,15 +127,15 @@
                   <TaskStatusBadge status={String(task.status ?? 'pending')} />
                 </Table.Cell>
                 <Table.Cell class="text-xs text-muted-foreground">
-                  {formatDate(task.updatedAt ?? task.createdAt)}
+                  {formatDate(resolveTaskUpdatedAt(task))}
                 </Table.Cell>
                 {#if showActions}
                   <Table.Cell class="text-right">
                     <div class="flex justify-end gap-2">
-                      {#if taskProvider?.retry && ['failed', 'error'].includes(String(task.status).toLowerCase())}
+                      {#if taskProvider?.retry && canRetryTask(task)}
                         <RetryTaskButton taskId={task.id} {taskProvider} />
                       {/if}
-                      {#if taskProvider?.cancel && ['pending', 'queued', 'running', 'processing'].includes(String(task.status).toLowerCase())}
+                      {#if taskProvider?.cancel && canCancelTask(task)}
                         <CancelTaskButton taskId={task.id} {taskProvider} />
                       {/if}
                       <Button variant="ghost" size="sm" onclick={(e) => { e.stopPropagation(); onSelect?.(task); }}>

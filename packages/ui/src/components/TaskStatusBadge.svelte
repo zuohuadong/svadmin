@@ -1,7 +1,8 @@
 <script lang="ts">
   import { t } from '@svadmin/core/i18n';
-  import { Clock3, Loader2, CheckCircle2, AlertTriangle, CircleDashed } from '@lucide/svelte';
+  import { Ban, Clock3, Loader2, CheckCircle2, AlertTriangle, CircleDashed } from '@lucide/svelte';
   import { Badge } from './ui/badge/index.js';
+  import { normalizeTaskStatus } from './task-utils.js';
 
   let {
     status = 'pending',
@@ -14,6 +15,7 @@
   }>();
 
   const normalizedStatus = $derived(String(status || 'pending').toLowerCase());
+  const lifecycle = $derived(normalizeTaskStatus(normalizedStatus));
 
   function translateStatus(value: string) {
     const key = `task.status.${value}`;
@@ -23,8 +25,7 @@
   }
 
   const config = $derived.by(() => {
-    switch (normalizedStatus) {
-      case 'running':
+    switch (lifecycle) {
       case 'processing':
         return {
           label: translateStatus(normalizedStatus),
@@ -33,8 +34,6 @@
           iconClass: 'animate-spin',
         };
       case 'completed':
-      case 'success':
-      case 'done':
         return {
           label: translateStatus(normalizedStatus),
           variant: 'secondary' as const,
@@ -42,21 +41,26 @@
           iconClass: 'text-green-600 dark:text-green-400',
         };
       case 'failed':
-      case 'error':
         return {
           label: translateStatus(normalizedStatus),
           variant: 'destructive' as const,
           icon: AlertTriangle,
           iconClass: '',
         };
+      case 'cancelled':
+        return {
+          label: translateStatus(normalizedStatus),
+          variant: 'outline' as const,
+          icon: Ban,
+          iconClass: 'text-muted-foreground',
+        };
       case 'queued':
         return {
-          label: t('task.status.queued'),
+          label: translateStatus(normalizedStatus),
           variant: 'outline' as const,
           icon: CircleDashed,
           iconClass: '',
         };
-      case 'pending':
       default:
         return {
           label: translateStatus(normalizedStatus),

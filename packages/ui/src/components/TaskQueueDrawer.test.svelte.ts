@@ -5,32 +5,32 @@ import TaskQueueDrawer from './TaskQueueDrawer.svelte';
 const taskFixtures = [
   {
     id: 'task-1',
-    title: 'Generate poster',
-    status: 'running',
+    name: 'Generate poster',
+    status: 'processing',
     message: 'Rendering hero artwork',
-    createdAt: '2026-04-19T10:00:00.000Z',
-    updatedAt: '2026-04-19T10:05:00.000Z',
+    created_at: '2026-04-19T10:00:00.000Z',
+    updated_at: '2026-04-19T10:05:00.000Z',
     progress: 42,
   },
   {
     id: 'task-2',
-    title: 'Send email batch',
+    name: 'Send email batch',
     status: 'queued',
     message: 'Waiting for worker',
-    createdAt: '2026-04-19T10:10:00.000Z',
-    updatedAt: '2026-04-19T10:12:00.000Z',
+    created_at: '2026-04-19T10:10:00.000Z',
+    updated_at: '2026-04-19T10:12:00.000Z',
   },
 ];
 
 const dlqFixtures = [
   {
     id: 'task-dlq-1',
-    title: 'Nightly sync',
-    status: 'failed',
-    message: 'Remote API timeout',
-    createdAt: '2026-04-18T23:00:00.000Z',
-    updatedAt: '2026-04-18T23:05:00.000Z',
-    error: { message: 'Remote API timeout' },
+    name: 'Nightly sync',
+    status: 'dead_lettered',
+    error_message: 'Remote API timeout',
+    created_at: '2026-04-18T23:00:00.000Z',
+    updated_at: '2026-04-18T23:05:00.000Z',
+    result_data: { reason: 'Remote API timeout' },
   },
 ];
 
@@ -39,10 +39,10 @@ const mockTaskProvider = {
     id: 'submitted-image.generate',
     wait: async () => ({
       id: 'submitted-image.generate',
-      title: 'image.generate',
+      name: 'image.generate',
       status: 'queued',
-      createdAt: '2026-04-19T11:00:00.000Z',
-      updatedAt: '2026-04-19T11:00:00.000Z',
+      created_at: '2026-04-19T11:00:00.000Z',
+      updated_at: '2026-04-19T11:00:00.000Z',
     }),
   })),
   get: vi.fn(async (taskId: string) => {
@@ -60,7 +60,7 @@ const mutateAsync = vi.fn(async (params: any) => ({
   id: `submitted-${params.taskName}`,
   wait: async () => ({
     id: `submitted-${params.taskName}`,
-    title: params.taskName,
+    name: params.taskName,
     status: 'queued',
   }),
 }));

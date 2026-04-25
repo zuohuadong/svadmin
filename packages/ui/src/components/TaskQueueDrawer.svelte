@@ -14,6 +14,12 @@
   import * as Card from './ui/card/index.js';
   import TaskList from './TaskList.svelte';
   import TaskDetails from './TaskDetails.svelte';
+  import {
+    isTaskActive,
+    resolveTaskCreatedAt,
+    resolveTaskMessage,
+    resolveTaskTitle,
+  } from './task-utils.js';
 
   type AutoRefreshValue = '0' | '5000' | '15000' | '30000';
   type TaskTab = 'tasks' | 'dlq';
@@ -41,7 +47,9 @@
   let submitError = $state<string | null>(null);
   let submitOpen = $state(false);
 
-  const refreshInterval = $derived(autoRefresh === '0' ? false : Number(autoRefresh));
+  const refreshInterval = $derived.by<number | false>(() =>
+    autoRefresh === '0' ? false : Number(autoRefresh),
+  );
   const resolvedTitle = $derived(title ?? t('task.drawerTitle'));
 
   const taskQuery = useTaskList({
@@ -88,10 +96,9 @@
     if (!query) return true;
     const haystack = [
       task.id,
-      task.title,
-      task.name,
+      resolveTaskTitle(task),
       task.status,
-      task.message,
+      resolveTaskMessage(task),
     ]
       .filter(Boolean)
       .join(' ')
@@ -110,7 +117,7 @@
   });
 
   const runningCount = $derived(
-    allTasks.filter((task) => ['pending', 'queued', 'running', 'processing'].includes(String(task.status ?? '').toLowerCase())).length,
+    allTasks.filter(isTaskActive).length,
   );
 
   $effect(() => {
@@ -142,7 +149,9 @@
 
   function formatTime(value: unknown) {
     if (!value) return '—';
-    return new Date(value as string | Date).toLocaleString();
+    const date = new Date(value as string | Date);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return date.toLocaleString();
   }
 
   function resetSubmitForm() {
@@ -223,8 +232,8 @@
           <ListTodo class="h-5 w-5 text-muted-foreground" />
           <h2 class="text-sm font-semibold">{resolvedTitle}</h2>
           <Badge variant="secondary" class="text-xs">{t('task.activeCount', { count: runningCount })}</Badge>
-          {#if allTasks[0]?.createdAt}
-            <span class="text-xs text-muted-foreground">{t('task.lastQueuedAt', { time: formatTime(allTasks[0].createdAt) })}</span>
+          {#if allTasks[0] && resolveTaskCreatedAt(allTasks[0])}
+            <span class="text-xs text-muted-foreground">{t('task.lastQueuedAt', { time: formatTime(resolveTaskCreatedAt(allTasks[0])) })}</span>
           {/if}
         </div>
       </div>
