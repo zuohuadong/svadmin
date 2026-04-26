@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.2](https://github.com/zuohuadong/svadmin/compare/core-v0.25.1...core-v0.25.2) (2026-04-26)
+
+
+### 🐛 Bug Fixes
+
+* **core:** allow nullable task record fields ([#144](https://github.com/zuohuadong/svadmin/issues/144)) ([7260fb4](https://github.com/zuohuadong/svadmin/commit/7260fb4cc528a738c362429bc16311c21b3739a3))
+
 ## [0.25.1](https://github.com/zuohuadong/svadmin/compare/core-v0.25.0...core-v0.25.1) (2026-04-25)
 
 

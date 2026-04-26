@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.3](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.2...ui-v0.34.3) (2026-04-26)
+
+
+### 🐛 Bug Fixes
+
+* **core:** allow nullable task record fields ([#144](https://github.com/zuohuadong/svadmin/issues/144)) ([7260fb4](https://github.com/zuohuadong/svadmin/commit/7260fb4cc528a738c362429bc16311c21b3739a3))
+
 ## [0.34.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.1...ui-v0.34.2) (2026-04-25)
 
 
