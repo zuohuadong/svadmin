@@ -119,6 +119,8 @@ export type { UseSelectOptions } from './hooks.svelte';
 export type { UseFormReturn } from './form-hooks.svelte';
 export type {
   TaskProvider,
+  TaskDateValue,
+  TaskMessageValue,
   TaskRecord,
   SubmitTaskOptions,
   TaskHandle,

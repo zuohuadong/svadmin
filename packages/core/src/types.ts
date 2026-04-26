@@ -194,6 +194,9 @@ export interface DataProvider {
 
 // ─── TaskProvider ─────────────────────────────────────────────
 
+export type TaskDateValue = string | Date | null;
+export type TaskMessageValue = string | null;
+
 export interface TaskRecord extends BaseRecord {
   id: string;
   name?: string;
@@ -203,7 +206,7 @@ export interface TaskRecord extends BaseRecord {
   priority?: number;
   queueName?: string;
   queue_name?: string;
-  message?: string;
+  message?: TaskMessageValue;
   payload?: unknown;
   /**
    * Task output payload. `result` is the canonical camelCase field used by
@@ -213,16 +216,21 @@ export interface TaskRecord extends BaseRecord {
    */
   result?: unknown;
   result_data?: unknown;
-  createdAt?: string | Date;
-  created_at?: string | Date;
-  updatedAt?: string | Date;
-  updated_at?: string | Date;
-  startedAt?: string | Date;
-  started_at?: string | Date;
-  finishedAt?: string | Date;
-  finished_at?: string | Date;
-  cancelledAt?: string | Date;
-  cancelled_at?: string | Date;
+  /**
+   * Task lifecycle timestamps. Supabase/Postgres mirrors often expose nullable
+   * columns for lifecycle phases that have not happened yet, and svadmin UI
+   * helpers intentionally skip nullish values with `??` fallback ordering.
+   */
+  createdAt?: TaskDateValue;
+  created_at?: TaskDateValue;
+  updatedAt?: TaskDateValue;
+  updated_at?: TaskDateValue;
+  startedAt?: TaskDateValue;
+  started_at?: TaskDateValue;
+  finishedAt?: TaskDateValue;
+  finished_at?: TaskDateValue;
+  cancelledAt?: TaskDateValue;
+  cancelled_at?: TaskDateValue;
   /**
    * Task failure payload/message. `error` carries structured error details
    * when available; `errorMessage` and `error_message` are string fallbacks for
@@ -230,8 +238,8 @@ export interface TaskRecord extends BaseRecord {
    * `errorMessage`, then `error_message`, matching `resolveTaskError`.
    */
   error?: unknown;
-  errorMessage?: string;
-  error_message?: string;
+  errorMessage?: TaskMessageValue;
+  error_message?: TaskMessageValue;
 }
 
 export interface SubmitTaskOptions {
