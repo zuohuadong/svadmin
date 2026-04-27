@@ -23,6 +23,11 @@
       "style": "./dist/app.css",
       "default": "./dist/app.css"
     },
+    "./components/*.svelte": {
+      "types": "./dist/components/*.svelte.d.ts",
+      "svelte": "./dist/components/*.svelte",
+      "default": "./dist/components/*.svelte"
+    },
     "./components/*": "./dist/components/*"
   },
   "peerDependencies": {
