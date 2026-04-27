@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.1](https://github.com/zuohuadong/svadmin/compare/supabase-v0.11.0...supabase-v0.11.1) (2026-04-27)
+
+
+### 🐛 Bug Fixes
+
+* **supabase:** allow supacloud js 0.12 ([aaaa330](https://github.com/zuohuadong/svadmin/commit/aaaa330f01937b5ff91a40e0f08cb63d59e3c595))
+* **supabase:** allow supacloud js 0.12 ([#149](https://github.com/zuohuadong/svadmin/issues/149)) ([f3b57d9](https://github.com/zuohuadong/svadmin/commit/f3b57d9e72ecf75a45a06219027027b74159b743))
+
 ## [0.11.0](https://github.com/zuohuadong/svadmin/compare/supabase-v0.10.0...supabase-v0.11.0) (2026-04-19)
 
 
