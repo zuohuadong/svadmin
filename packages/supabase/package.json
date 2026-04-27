@@ -23,7 +23,7 @@
     "@svadmin/core": "workspace:*",
     "@supabase/supabase-js": "^2.0.0",
     "@refinedev/supabase": "^5.0.0",
-    "@supacloud/js": "^0.10.0"
+    "@supacloud/js": "^0.12.0"
   },
   "license": "MIT",
   "author": "zuohuadong",
