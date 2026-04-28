@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.5](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.4...ui-v0.34.5) (2026-04-28)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** add types for component deep imports ([#150](https://github.com/zuohuadong/svadmin/issues/150)) ([5bd587a](https://github.com/zuohuadong/svadmin/commit/5bd587a04601a1638cf6007dd9d26a368566efb6))
+
 ## [0.34.4](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.3...ui-v0.34.4) (2026-04-27)
 
 
