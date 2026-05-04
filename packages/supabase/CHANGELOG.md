@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/zuohuadong/svadmin/compare/supabase-v0.11.1...supabase-v0.11.2) (2026-05-04)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** e2e selectors, publish hygiene, MarkdownField XSS, eslint ignores ([d922639](https://github.com/zuohuadong/svadmin/commit/d9226399d120b326c7161055f93d3594ce299b57))
+
 ## [0.11.1](https://github.com/zuohuadong/svadmin/compare/supabase-v0.11.0...supabase-v0.11.1) (2026-04-27)
 
 
