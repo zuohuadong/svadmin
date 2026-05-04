@@ -4,7 +4,11 @@
   "description": "Modern Tiptap-based rich text editor for Svelte 5 — headless, modular, production-ready",
   "type": "module",
   "files": [
-    "src/**/*"
+    "src/**/*.ts",
+    "!src/**/*.test.*",
+    "!src/**/*.spec.*",
+    "!src/**/vitest.config.*",
+    "!src/**/setupTest.*"
   ],
   "main": "src/index.ts",
   "types": "src/index.ts",

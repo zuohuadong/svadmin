@@ -52,8 +52,9 @@ export function resolveTaskTitle(task: TaskRecord): string {
   return String(task.title ?? task.name ?? task.id);
 }
 
-export function resolveTaskMessage(task: TaskRecord): string {
-  return String(task.message ?? task.errorMessage ?? task.error_message ?? '');
+export function resolveTaskMessage(task: TaskRecord): string | undefined {
+  const message = task.message ?? task.errorMessage ?? task.error_message;
+  return message === undefined || message === null ? undefined : String(message);
 }
 
 export function resolveTaskUpdatedAt(task: TaskRecord): unknown {

@@ -65,7 +65,7 @@ jobs:
 
       - name: Run E2E tests
         run: bun run playwright test
-        continue-on-error: true
+        # continue-on-error: true  -- removed: E2E must gate PRs
 
   publish:
     name: Publish to npm

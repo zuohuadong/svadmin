@@ -63,7 +63,11 @@
   },
   "description": "Core SDK — hooks, types, context, i18n, permissions, router",
   "files": [
-    "src/**/*"
+    "src/**/*.ts",
+    "!src/**/*.test.*",
+    "!src/**/*.spec.*",
+    "!src/**/vitest.config.*",
+    "!src/**/setupTest.*"
   ],
   "homepage": "https://github.com/zuohuadong/svadmin#readme",
   "license": "MIT",

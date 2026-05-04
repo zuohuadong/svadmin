@@ -38,7 +38,11 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "files": [
-    "src"
+    "src/**/*.ts",
+    "!src/**/*.test.*",
+    "!src/**/*.spec.*",
+    "!src/**/vitest.config.*",
+    "!src/**/setupTest.*"
   ],
   "devDependencies": {
     "typescript": "^5.7.0"

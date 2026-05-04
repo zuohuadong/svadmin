@@ -5,7 +5,11 @@
   "type": "module",
   "sideEffects": false,
   "files": [
-    "src/**/*"
+    "src/**/*.ts",
+    "!src/**/*.test.*",
+    "!src/**/*.spec.*",
+    "!src/**/vitest.config.*",
+    "!src/**/setupTest.*"
   ],
   "main": "src/index.ts",
   "types": "src/index.ts",

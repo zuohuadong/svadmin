@@ -29,6 +29,15 @@ export default ts.config(
     },
   },
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '**/.svelte-kit/**'],
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.svelte-kit/**',
+      '**/.astro/**',
+      'test-results/**',
+      'playwright-report/**',
+      'docs/.astro/**',
+      'tsconfig.tsbuildinfo',
+    ],
   },
 );

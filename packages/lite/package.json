@@ -4,8 +4,11 @@
   "description": "SSR-compatible lightweight admin UI for @svadmin — zero client-side JS, works in IE11",
   "type": "module",
   "files": [
-    "src/**/*",
-    "static/**/*"
+    "src/**/*.ts",
+    "!src/**/*.test.*",
+    "!src/**/*.spec.*",
+    "!src/**/vitest.config.*",
+    "!src/**/setupTest.*"
   ],
   "main": "src/index.ts",
   "types": "src/index.ts",

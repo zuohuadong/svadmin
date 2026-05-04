@@ -7,7 +7,9 @@
     "./dist/app.css"
   ],
   "files": [
-    "dist"
+    "dist",
+    "!dist/**/*.test.*",
+    "!dist/**/*.spec.*"
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

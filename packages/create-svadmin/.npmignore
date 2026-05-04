@@ -1,0 +1,4 @@
+*.test.*
+*.spec.*
+vitest.config.*
+setupTest.*
