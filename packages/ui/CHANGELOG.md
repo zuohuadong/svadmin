@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.6](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.5...ui-v0.34.6) (2026-05-04)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** e2e selectors, publish hygiene, MarkdownField XSS, eslint ignores ([d922639](https://github.com/zuohuadong/svadmin/commit/d9226399d120b326c7161055f93d3594ce299b57))
+
 ## [0.34.5](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.4...ui-v0.34.5) (2026-04-28)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.5](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.4...lite-v0.3.5) (2026-05-04)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** e2e selectors, publish hygiene, MarkdownField XSS, eslint ignores ([d922639](https://github.com/zuohuadong/svadmin/commit/d9226399d120b326c7161055f93d3594ce299b57))
+
 ## [0.3.4](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.3...lite-v0.3.4) (2026-04-13)
 
 

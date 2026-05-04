@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.6](https://github.com/zuohuadong/svadmin/compare/drizzle-v0.10.5...drizzle-v0.10.6) (2026-05-04)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** e2e selectors, publish hygiene, MarkdownField XSS, eslint ignores ([d922639](https://github.com/zuohuadong/svadmin/commit/d9226399d120b326c7161055f93d3594ce299b57))
+
 ## [0.10.5](https://github.com/zuohuadong/svadmin/compare/drizzle-v0.10.4...drizzle-v0.10.5) (2026-04-13)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@svadmin/lite",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "SSR-compatible lightweight admin UI for @svadmin — zero client-side JS, works in IE11",
   "type": "module",
   "files": [
