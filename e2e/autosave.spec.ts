@@ -3,10 +3,12 @@ import { test, expect } from '@playwright/test';
 test.describe('AutoSave Race Conditions', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/#/login');
-    await page.getByRole('textbox', { name: /username/i }).fill('admin@example.com');
-    await page.locator('input[type="password"]').fill('demo');
-    await page.getByRole('button', { name: /sign in/i }).click();
-    await expect(page).toHaveURL(/#\/$/, { timeout: 5000 });
+    const identifierInput = page.locator('#login-identifier');
+    await identifierInput.waitFor({ state: 'visible', timeout: 15000 });
+    await identifierInput.fill('admin@example.com');
+    await page.locator('#login-password').fill('demo');
+    await page.locator('form button[type="submit"]').click();
+    await expect(page).toHaveURL(/#\/$/, { timeout: 10000 });
   });
 
   test('queued autoSave modifications are preserved during pending API requests', async ({ page }) => {
@@ -16,7 +18,6 @@ test.describe('AutoSave Race Conditions', () => {
 
     const firstRowEditBtn = page.locator('a[href*="edit"]').first();
     if (!(await firstRowEditBtn.isVisible({ timeout: 5000 }).catch(() => false))) {
-      // No edit links available, skip test gracefully
       test.skip();
       return;
     }
