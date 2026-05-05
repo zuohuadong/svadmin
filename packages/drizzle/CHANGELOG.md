@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.11.0](https://github.com/zuohuadong/svadmin/compare/drizzle-v0.10.6...drizzle-v0.11.0) (2026-05-05)
+
+
+### 🚀 Features
+
+* **drizzle:** upgrade drizzle-orm to 1.0.0-rc ([b97a13a](https://github.com/zuohuadong/svadmin/commit/b97a13a71f8f04f86be2a1de026951f7e737f2ea))
+
+
+### 🐛 Bug Fixes
+
+* **drizzle:** tighten refine-sqlx constraint to ^0.10.3 ([73f7f57](https://github.com/zuohuadong/svadmin/commit/73f7f577bf23189fc59d0559eb45c9df339137bd))
+
 ## [0.10.6](https://github.com/zuohuadong/svadmin/compare/drizzle-v0.10.5...drizzle-v0.10.6) (2026-05-04)
 
 
