@@ -1,12 +1,36 @@
 {
   "bump-minor-pre-major": true,
   "changelog-sections": [
-    {"type": "feat", "section": "🚀 Features", "hidden": false},
-    {"type": "fix", "section": "🐛 Bug Fixes", "hidden": false},
-    {"type": "refactor", "section": "💅 Elegance & Refactoring", "hidden": false},
-    {"type": "perf", "section": "⚡ Performance Improvements", "hidden": false},
-    {"type": "docs", "section": "📝 Documentation", "hidden": false},
-    {"type": "chore", "section": "🔧 Miscellaneous Chores", "hidden": false}
+    {
+      "type": "feat",
+      "section": "🚀 Features",
+      "hidden": false
+    },
+    {
+      "type": "fix",
+      "section": "🐛 Bug Fixes",
+      "hidden": false
+    },
+    {
+      "type": "refactor",
+      "section": "💅 Elegance & Refactoring",
+      "hidden": false
+    },
+    {
+      "type": "perf",
+      "section": "⚡ Performance Improvements",
+      "hidden": false
+    },
+    {
+      "type": "docs",
+      "section": "📝 Documentation",
+      "hidden": false
+    },
+    {
+      "type": "chore",
+      "section": "🔧 Miscellaneous Chores",
+      "hidden": false
+    }
   ],
   "packages": {
     "packages/core": {
@@ -130,5 +154,6 @@
       "changelog-path": "CHANGELOG.md"
     }
   },
-  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "pull-request-title-pattern": "chore${scope}: release${component} v${version}"
 }
