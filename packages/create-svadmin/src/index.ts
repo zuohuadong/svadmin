@@ -131,29 +131,29 @@ async function init(): Promise<void> {
       check: 'svelte-check --tsconfig ./tsconfig.json'
     },
     dependencies: {
-      '@svadmin/core': '^0.19.3',
-      '@svadmin/ui': '^0.25.0',
-      '@tanstack/svelte-query': '^6.0.0',
+      '@svadmin/core': '^0.25.3',
+      '@svadmin/ui': '^0.34.6',
+      '@tanstack/svelte-query': '^6.1.13',
       'highlight.js': '^11.11.1',
-      '@lucide/svelte': '^0.475.0',
+      '@lucide/svelte': '^1.7.0',
     },
     devDependencies: {
-      '@sveltejs/vite-plugin-svelte': '^5.0.0',
-      '@tailwindcss/vite': '^4.0.0',
-      'svelte': '^5.20.0',
-      'svelte-check': '^4.0.0',
-      'tailwindcss': '^4.0.0',
-      'tw-animate-css': '^1.0.0',
-      'typescript': '^5.8.0',
-      'vite': '^8.0.0',
+      '@sveltejs/vite-plugin-svelte': '^7.0.0',
+      '@tailwindcss/vite': '^4.2.2',
+      'svelte': '^5.55.1',
+      'svelte-check': '^4.4.8',
+      'tailwindcss': '^4.2.2',
+      'tw-animate-css': '^1.4.0',
+      'typescript': '^6.0.0',
+      'vite': '^8.0.3',
     }
   };
 
   // Add data provider dependency
   const dpMap: Record<string, Record<string, string>> = {
-    'simple-rest': { '@svadmin/simple-rest': '^0.9.0' },
-    'supabase': { '@svadmin/supabase': '^0.9.0', '@supabase/supabase-js': '^2.0.0' },
-    'graphql': { '@svadmin/graphql': '^0.9.0', 'graphql-request': '^7.1.0', 'graphql': '^16.8.0' },
+    'simple-rest': { '@svadmin/simple-rest': '^0.9.7', '@refinedev/simple-rest': '^5.0.0' },
+    'supabase': { '@svadmin/supabase': '^0.11.2', '@supabase/supabase-js': '^2.101.1' },
+    'graphql': { '@svadmin/graphql': '^0.9.8', 'graphql-request': '^7.1.0', 'graphql': '^16.8.0' },
   };
   if (dpMap[response.dataProvider]) {
     Object.assign(packageJson.dependencies, dpMap[response.dataProvider]);
@@ -161,11 +161,12 @@ async function init(): Promise<void> {
 
   // Add auth provider dependency
   if (response.authProvider === 'supabase' && response.dataProvider !== 'supabase') {
-    packageJson.dependencies['@svadmin/supabase'] = '^0.9.0';
-    packageJson.dependencies['@supabase/supabase-js'] = '^2.0.0';
+    packageJson.dependencies['@svadmin/supabase'] = '^0.11.2';
+    packageJson.dependencies['@supabase/supabase-js'] = '^2.101.1';
   }
   if (response.authProvider === 'jwt' && response.dataProvider !== 'simple-rest') {
-    packageJson.dependencies['@svadmin/simple-rest'] = '^0.9.0';
+    packageJson.dependencies['@svadmin/simple-rest'] = '^0.9.7';
+    packageJson.dependencies['@refinedev/simple-rest'] = '^5.0.0';
   }
 
   fs.writeFileSync(path.join(projectDir, 'package.json'), JSON.stringify(packageJson, null, 2));

@@ -20,7 +20,7 @@ Follow the interactive prompts to:
 ## What's Included
 
 The generated project is pre-configured with:
-- **SvelteKit** + **Vite** (Svelte 5 Runes)
+- **Svelte 5** + **Vite**
 - **Tailwind CSS** + **Shadcn Svelte** UI components
 - **@svadmin/core**: The headless business logic and hooks (useTable, useForm, useAuth, etc.)
 - **@svadmin/ui**: Beautiful default dashboard UI, standalone CRUD buttons, and data tables.

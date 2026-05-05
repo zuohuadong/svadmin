@@ -14,4 +14,8 @@ export default defineConfig({
     exclude: ['@svadmin/core', '@svadmin/ui', '@svadmin/supabase'],
     include: ['highlight.js'],
   },
+  build: {
+    cssMinify: 'esbuild',
+    chunkSizeWarningLimit: 1500,
+  },
 });
