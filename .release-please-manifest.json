@@ -2,7 +2,7 @@
   "packages/core": "0.25.3",
   "packages/ui": "0.34.6",
   "packages/sveltekit": "0.9.3",
-  "packages/drizzle": "0.10.6",
+  "packages/drizzle": "0.11.0",
   "packages/simple-rest": "0.9.7",
   "packages/sso": "0.8.8",
   "packages/pocketbase": "0.9.7",
