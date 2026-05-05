@@ -8,7 +8,7 @@
   "packages/pocketbase": "0.9.7",
   "packages/supabase": "0.11.2",
   "packages/elysia": "0.10.6",
-  "packages/create-svadmin": "0.11.4",
+  "packages/create-svadmin": "0.11.5",
   "packages/airtable": "0.9.7",
   "packages/appwrite": "0.8.9",
   "packages/auth-utils": "0.7.4",

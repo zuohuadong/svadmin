@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.5](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.11.4...create-svadmin-v0.11.5) (2026-05-05)
+
+
+### 🐛 Bug Fixes
+
+* **create:** align scaffold dependency versions ([fe31d14](https://github.com/zuohuadong/svadmin/commit/fe31d147a9342cb6a5275bb2ad90165008868322))
+
 ## [0.11.4](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.11.3...create-svadmin-v0.11.4) (2026-05-04)
 
 
