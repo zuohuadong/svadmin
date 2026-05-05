@@ -39,7 +39,7 @@ describe('@svadmin/drizzle DataProvider', () => {
         role TEXT DEFAULT 'user'
       )
     `);
-    db = drizzle(sqlite, { schema });
+    db = drizzle({ client: sqlite, schema });
     dataProvider = await createDrizzleDataProvider({ connection: db as any, schema });
   });
 

@@ -10,7 +10,7 @@
  * import { drizzle } from 'drizzle-orm/bun-sqlite';
  * import * as schema from './schema';
  *
- * const db = drizzle(new Database(':memory:'), { schema });
+ * const db = drizzle({ client: new Database(':memory:'), schema });
  * const dataProvider = await createDrizzleDataProvider({ connection: db, schema });
  * ```
  */
@@ -38,7 +38,7 @@ export type { RefineSQLConfig } from 'refine-sqlx';
  * import { Database } from 'bun:sqlite';
  * import * as schema from './schema';
  *
- * const db = drizzle(new Database('./app.db'), { schema });
+ * const db = drizzle({ client: new Database('./app.db'), schema });
  *
  * const dataProvider = await createDrizzleDataProvider({
  *   connection: db,
