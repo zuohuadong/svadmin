@@ -21,7 +21,7 @@
   },
   "peerDependencies": {
     "@svadmin/core": "workspace:*",
-    "refine-sqlx": "^0.9.0"
+    "refine-sqlx": "^0.10.3"
   },
   "license": "MIT",
   "author": "zuohuadong",
@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "drizzle-orm": "^1.0.0-rc.1",
-    "refine-sqlx": "^0.9.0"
+    "refine-sqlx": "^0.10.3"
   },
   "peerDependenciesMeta": {
     "@svadmin/core": {
