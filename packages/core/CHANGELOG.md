@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.4](https://github.com/zuohuadong/svadmin/compare/core-v0.25.3...core-v0.25.4) (2026-05-12)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump TanStack packages ([6468031](https://github.com/zuohuadong/svadmin/commit/646803168e6f55685febb312cd05ce171387554a))
+
 ## [0.25.3](https://github.com/zuohuadong/svadmin/compare/core-v0.25.2...core-v0.25.3) (2026-05-04)
 
 

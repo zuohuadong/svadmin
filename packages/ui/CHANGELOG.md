@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.7](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.6...ui-v0.34.7) (2026-05-12)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump TanStack packages ([6468031](https://github.com/zuohuadong/svadmin/commit/646803168e6f55685febb312cd05ce171387554a))
+
 ## [0.34.6](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.5...ui-v0.34.6) (2026-05-04)
 
 
