@@ -4,6 +4,13 @@
   import {
     createTable,
     createCoreRowModel,
+    type ColumnDef,
+    type SortingState,
+    type RowSelectionState,
+    type ColumnVisibilityState,
+    type ExpandedState,
+  } from '@tanstack/svelte-table';
+  import {
     column_getCanSort,
     column_getIsSorted,
     column_toggleSorting,
@@ -21,12 +28,7 @@
     row_getIsExpanded,
     row_toggleExpanded,
     cell_getValue,
-    type ColumnDef,
-    type SortingState,
-    type RowSelectionState,
-    type ColumnVisibilityState,
-    type ExpandedState,
-  } from '@tanstack/svelte-table';
+  } from '@tanstack/svelte-table/static-functions';
 
   import { useList, useDelete, useDeleteMany, getResource, notify } from '@svadmin/core';
   import type { Pagination as PaginationState, Sort, Filter, FieldDefinition } from '@svadmin/core';

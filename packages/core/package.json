@@ -22,7 +22,7 @@
   },
   "peerDependencies": {
     "svelte": "^5.0.0",
-    "@tanstack/svelte-query": "^6.0.0"
+    "@tanstack/svelte-query": "^6.1.29"
   },
   "exports": {
     ".": {
