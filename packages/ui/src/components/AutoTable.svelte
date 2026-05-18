@@ -237,24 +237,18 @@
     }
   });
 
-  // Sync TanStack sorting → server sorters
+  // Sync external sorters ? local sorting state (controlled mode only)
   $effect(() => {
-    const newSorters: Sort[] = sorting.map(s => ({
-      field: s.id,
-      order: s.desc ? 'desc' as const : 'asc' as const,
-    }));
-    if (JSON.stringify(newSorters) !== JSON.stringify(sorters)) {
-      sorters = newSorters;
+    if (!externalSorters) return;
+    if (JSON.stringify(externalSorters) !== JSON.stringify(sorters)) {
+      sorters = externalSorters;
+    }
+    const nextSorting = externalSorters.map(s => ({ id: s.field, desc: s.order === 'desc' }));
+    if (JSON.stringify(nextSorting) !== JSON.stringify(sorting)) {
+      sorting = nextSorting;
     }
   });
 
-  // Sync external sorters → TanStack sorting state
-  $effect(() => {
-    const newSorting = sorters.map(s => ({ id: s.field, desc: s.order === 'desc' }));
-    if (JSON.stringify(newSorting) !== JSON.stringify(sorting)) {
-      sorting = newSorting;
-    }
-  });
 
   // ─── Auto-generate columns from resource fields ──────────────
   const visibleFields = $derived(
@@ -311,7 +305,21 @@
       get columnOrder() { return columnOrder; },
     },
     onSortingChange: (updater: any) => {
-      sorting = typeof updater === 'function' ? updater(sorting) : updater;
+      const nextSorting = typeof updater === 'function' ? updater(sorting) : updater;
+      sorting = nextSorting;
+
+      const nextSorters: Sort[] = nextSorting.map((s: any) => ({
+        field: s.id,
+        order: s.desc ? 'desc' as const : 'asc' as const,
+      }));
+
+      if (JSON.stringify(nextSorters) !== JSON.stringify(sorters)) {
+        sorters = nextSorters;
+      }
+
+      if ((pagination.current ?? 1) !== 1) {
+        pagination = { ...pagination, current: 1 };
+      }
     },
     onColumnVisibilityChange: (updater: any) => {
       columnVisibility = typeof updater === 'function' ? updater(columnVisibility) : updater;
