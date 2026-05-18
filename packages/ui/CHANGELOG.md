@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.8](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.7...ui-v0.34.8) (2026-05-18)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** prevent AutoTable sorting sync effect loop in Svelte 5 ([#157](https://github.com/zuohuadong/svadmin/issues/157)) ([5a94a88](https://github.com/zuohuadong/svadmin/commit/5a94a880bc5cb80b4e19fa571d9f3902846cd68a))
+
 ## [0.34.7](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.6...ui-v0.34.7) (2026-05-12)
 
 
