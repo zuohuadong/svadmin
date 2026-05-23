@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/zuohuadong/svadmin/compare/sso-v0.8.8...sso-v0.9.0) (2026-05-23)
+
+
+### 🚀 Features
+
+* **sso:** harden oidc auth provider ([dd7613b](https://github.com/zuohuadong/svadmin/commit/dd7613b26dd705bd1034af7ef0ff61e48d1c9da6))
+
 ## [0.8.8](https://github.com/zuohuadong/svadmin/compare/sso-v0.8.7...sso-v0.8.8) (2026-05-04)
 
 
