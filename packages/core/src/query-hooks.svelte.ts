@@ -43,6 +43,20 @@ function extendQuery<Q extends object, E extends Record<string, unknown>>(
 
 export type MaybeGetter<T> = T | (() => T);
 
+function cloneQueryKeyPart<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map(item => cloneQueryKeyPart(item)) as T;
+  }
+  if (value && typeof value === 'object') {
+    const proto = Object.getPrototypeOf(value);
+    if (proto !== Object.prototype && proto !== null) return value;
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, entry]) => [key, cloneQueryKeyPart(entry)])
+    ) as T;
+  }
+  return value;
+}
+
 export interface UseListOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
   resource?: KnownResources;
   pagination?: Pagination;
@@ -71,15 +85,19 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
     const resource = getResource();
     const provider = getDataProviderForResource(resource, opts.dataProviderName);
     const queryOptions = opts.queryOptions;
+    const pagination = cloneQueryKeyPart(opts.pagination);
+    const sorters = cloneQueryKeyPart(opts.sorters);
+    const filters = cloneQueryKeyPart(opts.filters);
+    const meta = cloneQueryKeyPart(opts.meta);
     
     return {
-      queryKey: [opts.dataProviderName, resource, 'list', opts.pagination, opts.sorters, opts.filters, opts.meta],
+      queryKey: [opts.dataProviderName, resource, 'list', pagination, sorters, filters, meta],
       queryFn: async () => provider.getList<TData>({
         resource,
-        pagination: opts.pagination,
-        sorters: opts.sorters,
-        filters: opts.filters,
-        meta: opts.meta,
+        pagination,
+        sorters,
+        filters,
+        meta,
       }),
       enabled: queryOptions?.enabled ?? true,
       staleTime: queryOptions?.staleTime ?? adminOptions.reactQuery?.staleTime,

@@ -10,6 +10,7 @@
     type ColumnVisibilityState,
     type ExpandedState,
   } from '@tanstack/svelte-table';
+  import type { Updater } from '@tanstack/table-core';
   import {
     column_getCanSort,
     column_getIsSorted,
@@ -28,7 +29,7 @@
     row_getIsExpanded,
     row_toggleExpanded,
     cell_getValue,
-  } from '@tanstack/svelte-table/static-functions';
+  } from '@tanstack/table-core/static-functions';
 
   import { useList, useDelete, useDeleteMany, getResource, notify } from '@svadmin/core';
   import type { Pagination as PaginationState, Sort, Filter, FieldDefinition } from '@svadmin/core';
@@ -107,7 +108,7 @@
   const initPageSize = untrack(() => resource.pageSize ?? (isNaN(storedPageSize) ? 10 : storedPageSize));
   const initDefaultSort = untrack(() => resource.defaultSort);
 
-  let pagination = $state<{ current: number; pageSize: number }>(untrack(() => externalPagination ?? {
+  let pagination = $state<PaginationState>(untrack(() => externalPagination ?? {
     current: urlState.page ?? 1,
     pageSize: urlState.pageSize ?? initPageSize,
   }));
@@ -173,6 +174,41 @@
     return result;
   });
 
+  function clonePlainValue(value: unknown): unknown {
+    if (Array.isArray(value)) return value.map(clonePlainValue);
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>).map(([key, entry]) => [key, clonePlainValue(entry)])
+      );
+    }
+    return value;
+  }
+
+  function cloneFilter(filter: Filter): Filter {
+    if ('field' in filter) {
+      return {
+        field: filter.field,
+        operator: filter.operator,
+        value: clonePlainValue(filter.value),
+      };
+    }
+    return {
+      operator: filter.operator,
+      value: filter.value.map(cloneFilter),
+    };
+  }
+
+  const queryPagination = $derived<PaginationState>({
+    current: pagination.current,
+    pageSize: pagination.pageSize,
+    mode: pagination.mode,
+  });
+  const querySorters = $derived<Sort[]>(sorters.map(sorter => ({
+    field: sorter.field,
+    order: sorter.order,
+  })));
+  const queryFilters = $derived<Filter[]>(activeFilters.map(cloneFilter));
+
   $effect(() => {
     if (Object.values(filterValues).some(v => v.trim())) {
       pagination = { ...pagination, current: 1 };
@@ -182,9 +218,9 @@
   // ─── Data fetching ────────────────────────────────────────────
   const listResult = useList({
     get resource() { return resourceName; },
-    get pagination() { return pagination; },
-    get sorters() { return sorters; },
-    get filters() { return activeFilters; },
+    get pagination() { return queryPagination; },
+    get sorters() { return querySorters; },
+    get filters() { return queryFilters; },
   });
   const query = listResult;
   const deleteResult = useDelete({ get resource() { return resourceName; } });
@@ -226,6 +262,68 @@
   let rowSelection = $state<RowSelectionState>({});
   let expanded = $state.raw<ExpandedState>({});
   let columnOrder = $state<string[]>([]);
+
+  function applyTableUpdater<T>(current: T, updater: Updater<T>): T {
+    return typeof updater === 'function' ? (updater as (old: T) => T)(current) : updater;
+  }
+
+  const tableSorting = $derived<SortingState>(sorting.map(sorter => ({
+    id: sorter.id,
+    desc: sorter.desc,
+  })));
+  const tableColumnVisibility = $derived<ColumnVisibilityState>({ ...columnVisibility });
+  const tableRowSelection = $derived<RowSelectionState>({ ...rowSelection });
+  const tableExpanded = $derived<ExpandedState>(expanded === true ? true : { ...expanded });
+  const tableColumnOrder = $derived<string[]>([...columnOrder]);
+
+  const sortingAtom = {
+    get: () => tableSorting,
+    set: (updater: Updater<SortingState>) => {
+      const nextSorting = applyTableUpdater(tableSorting, updater);
+      sorting = nextSorting;
+
+      const nextSorters: Sort[] = nextSorting.map((s) => ({
+        field: s.id,
+        order: s.desc ? 'desc' as const : 'asc' as const,
+      }));
+
+      if (JSON.stringify(nextSorters) !== JSON.stringify(sorters)) {
+        sorters = nextSorters;
+      }
+
+      if ((pagination.current ?? 1) !== 1) {
+        pagination = { ...pagination, current: 1 };
+      }
+    },
+  };
+
+  const columnVisibilityAtom = {
+    get: () => tableColumnVisibility,
+    set: (updater: Updater<ColumnVisibilityState>) => {
+      columnVisibility = applyTableUpdater(tableColumnVisibility, updater);
+    },
+  };
+
+  const rowSelectionAtom = {
+    get: () => tableRowSelection,
+    set: (updater: Updater<RowSelectionState>) => {
+      rowSelection = applyTableUpdater(tableRowSelection, updater);
+    },
+  };
+
+  const expandedAtom = {
+    get: () => tableExpanded,
+    set: (updater: Updater<ExpandedState>) => {
+      expanded = applyTableUpdater(tableExpanded, updater);
+    },
+  };
+
+  const columnOrderAtom = {
+    get: () => tableColumnOrder,
+    set: (updater: Updater<string[]>) => {
+      columnOrder = applyTableUpdater(tableColumnOrder, updater);
+    },
+  };
 
   // Persist column visibility to localStorage
   $effect(() => {
@@ -297,41 +395,12 @@
     manualPagination: true,
     manualSorting: true,
     getRowId: (row: any) => String(row[primaryKey]),
-    state: {
-      get sorting() { return sorting; },
-      get columnVisibility() { return columnVisibility; },
-      get rowSelection() { return rowSelection; },
-      get expanded() { return expanded; },
-      get columnOrder() { return columnOrder; },
-    },
-    onSortingChange: (updater: any) => {
-      const nextSorting = typeof updater === 'function' ? updater(sorting) : updater;
-      sorting = nextSorting;
-
-      const nextSorters: Sort[] = nextSorting.map((s: any) => ({
-        field: s.id,
-        order: s.desc ? 'desc' as const : 'asc' as const,
-      }));
-
-      if (JSON.stringify(nextSorters) !== JSON.stringify(sorters)) {
-        sorters = nextSorters;
-      }
-
-      if ((pagination.current ?? 1) !== 1) {
-        pagination = { ...pagination, current: 1 };
-      }
-    },
-    onColumnVisibilityChange: (updater: any) => {
-      columnVisibility = typeof updater === 'function' ? updater(columnVisibility) : updater;
-    },
-    onRowSelectionChange: (updater: any) => {
-      rowSelection = typeof updater === 'function' ? updater(rowSelection) : updater;
-    },
-    onExpandedChange: (updater: any) => {
-      expanded = typeof updater === 'function' ? updater(expanded) : updater;
-    },
-    onColumnOrderChange: (updater: any) => {
-      columnOrder = typeof updater === 'function' ? updater(columnOrder) : updater;
+    atoms: {
+      sorting: sortingAtom,
+      columnVisibility: columnVisibilityAtom,
+      rowSelection: rowSelectionAtom,
+      expanded: expandedAtom,
+      columnOrder: columnOrderAtom,
     },
     get enableRowSelection() { return selectable && (canDelete || batchActions); },
     get enableExpanding() { return !!expandedRowRender; },
