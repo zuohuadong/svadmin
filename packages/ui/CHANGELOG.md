@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.9](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.8...ui-v0.34.9) (2026-05-23)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** stabilize AutoTable E2E rendering ([9795318](https://github.com/zuohuadong/svadmin/commit/9795318e3f9163152fef500e55aeeb4135335a3d))
+
 ## [0.34.8](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.7...ui-v0.34.8) (2026-05-18)
 
 
