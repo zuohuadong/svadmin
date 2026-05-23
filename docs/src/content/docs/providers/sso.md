@@ -61,6 +61,8 @@ interface SSOConfig {
   autoRefresh?: boolean;
   /** Seconds before expiry to refresh. Default: 60 */
   refreshBuffer?: number;
+  /** Extra authorization request params, e.g. audience or prompt */
+  authorizationParams?: Record<string, string>;
 }
 ```
 
@@ -101,6 +103,21 @@ The provider automatically extracts `roles`, `groups`, or `permissions` claims f
 ```typescript
 const permissions = await authProvider.getPermissions();
 // → ['admin', 'editor'] (from ID token claims)
+```
+
+### Calling Protected APIs
+
+Use `getAccessToken()` when your admin console needs to call a backend API with the current SSO session:
+
+```typescript
+const authProvider = createSSOAuthProvider({
+  issuer: 'https://your-tenant.okta.com',
+  clientId: 'abc',
+  redirectUri: '/callback',
+  authorizationParams: { audience: 'admin-api' },
+});
+
+const token = await authProvider.getAccessToken();
 ```
 
 ## Callback Page

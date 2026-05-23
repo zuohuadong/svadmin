@@ -61,6 +61,8 @@ interface SSOConfig {
   autoRefresh?: boolean;
   /** 过期前多少秒刷新，默认: 60 */
   refreshBuffer?: number;
+  /** 额外授权请求参数，例如 audience 或 prompt */
+  authorizationParams?: Record<string, string>;
 }
 ```
 
@@ -101,4 +103,19 @@ const authProvider = createSSOAuthProvider({
 ```typescript
 const permissions = await authProvider.getPermissions();
 // → ['admin', 'editor']（来自 ID Token claims）
+```
+
+### 调用受保护 API
+
+当 Admin Console 需要使用当前 SSO 会话调用后端 API 时，可通过 `getAccessToken()` 获取 access token：
+
+```typescript
+const authProvider = createSSOAuthProvider({
+  issuer: 'https://your-tenant.okta.com',
+  clientId: 'abc',
+  redirectUri: '/callback',
+  authorizationParams: { audience: 'admin-api' },
+});
+
+const token = await authProvider.getAccessToken();
 ```

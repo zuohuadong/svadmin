@@ -32,14 +32,14 @@
 import type { AuthProvider, Identity } from '@svadmin/core';
 
 // Safe base64url decode for JWT payloads
-function decodeJwtPayload(token: string): any {
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
   if (!token) return null;
   const parts = token.split('.');
   if (parts.length < 2) return null;
   const payloadStr = parts[1];
   const padded = payloadStr + '='.repeat((4 - (payloadStr.length % 4)) % 4);
   const binString = atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
-  const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0)!);
+  const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0) ?? 0);
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 
@@ -65,6 +65,8 @@ export interface SSOConfig {
   autoRefresh?: boolean;
   /** Seconds before expiry to trigger refresh. Default: 60 */
   refreshBuffer?: number;
+  /** Additional authorization request parameters, e.g. audience or prompt. */
+  authorizationParams?: Record<string, string>;
   /**
    * Manual OAuth2 endpoints for providers that don't support OIDC discovery
    * (e.g., GitHub). When provided, OIDC auto-discovery is skipped.
@@ -81,6 +83,10 @@ export interface TokenStorage {
   getItem: (key: string) => string | null;
   setItem: (key: string, value: string) => void;
   removeItem: (key: string) => void;
+}
+
+export interface SSOAuthProvider extends AuthProvider {
+  getAccessToken: () => Promise<string | null>;
 }
 
 interface OIDCConfig {
@@ -143,7 +149,7 @@ function getStorage(config: SSOConfig): TokenStorage {
 /**
  * Create an OIDC/OAuth2 SSO AuthProvider.
  */
-export function createSSOAuthProvider(config: SSOConfig): AuthProvider {
+export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
   const scopes = config.scopes ?? ['openid', 'profile', 'email'];
   const autoRefresh = config.autoRefresh ?? true;
   const refreshBuffer = config.refreshBuffer ?? 60;
@@ -198,7 +204,8 @@ export function createSSOAuthProvider(config: SSOConfig): AuthProvider {
     if (!tokens.expires_at || !tokens.refresh_token) return;
     const now = Math.floor(Date.now() / 1000);
     const delay = Math.max(0, (tokens.expires_at - now - refreshBuffer)) * 1000;
-    refreshTimer = setTimeout(() => refreshAccessToken(tokens.refresh_token!), delay);
+    const refreshToken = tokens.refresh_token;
+    refreshTimer = setTimeout(() => refreshAccessToken(refreshToken), delay);
   }
 
   async function refreshAccessToken(refreshToken: string): Promise<void> {
@@ -216,6 +223,10 @@ export function createSSOAuthProvider(config: SSOConfig): AuthProvider {
       });
       if (!res.ok) { clearTokens(); return; }
       const data = await res.json();
+      if (!data.access_token) {
+        clearTokens();
+        return;
+      }
       const newTokens: TokenSet = {
         access_token: data.access_token,
         id_token: data.id_token,
@@ -248,6 +259,7 @@ export function createSSOAuthProvider(config: SSOConfig): AuthProvider {
     });
     if (!res.ok) throw new Error(`Token exchange failed: ${res.status}`);
     const data = await res.json();
+    if (!data.access_token) throw new Error('Token exchange failed: missing access_token');
     const tokens: TokenSet = {
       access_token: data.access_token,
       id_token: data.id_token,
@@ -281,28 +293,33 @@ export function createSSOAuthProvider(config: SSOConfig): AuthProvider {
       if (typeof window === 'undefined') {
         return { success: false, error: { message: 'SSO login requires a browser environment' } };
       }
-      const cfg = await discover();
-      const { verifier, challenge } = await createPKCEChallenge();
-      const state = generateRandomString(32);
+      try {
+        const cfg = await discover();
+        const { verifier, challenge } = await createPKCEChallenge();
+        const state = generateRandomString(32);
 
-      storage.setItem(`${STORAGE_PREFIX}pkce_verifier`, verifier);
-      storage.setItem(`${STORAGE_PREFIX}state`, state);
+        storage.setItem(`${STORAGE_PREFIX}pkce_verifier`, verifier);
+        storage.setItem(`${STORAGE_PREFIX}state`, state);
 
-      const params = new URLSearchParams({
-        response_type: 'code',
-        client_id: config.clientId,
-        redirect_uri: config.redirectUri,
-        scope: scopes.join(' '),
-        state,
-        code_challenge: challenge,
-        code_challenge_method: 'S256',
-      });
+        const params = new URLSearchParams({
+          response_type: 'code',
+          client_id: config.clientId,
+          redirect_uri: config.redirectUri,
+          scope: scopes.join(' '),
+          state,
+          code_challenge: challenge,
+          code_challenge_method: 'S256',
+          ...config.authorizationParams,
+        });
 
-      // Redirect to authorization endpoint
-      window.location.href = `${cfg.authorization_endpoint}?${params}`;
+        // Redirect to authorization endpoint
+        window.location.href = `${cfg.authorization_endpoint}?${params}`;
 
-      // Won't actually reach here due to redirect
-      return { success: true };
+        // Won't actually reach here due to redirect
+        return { success: true };
+      } catch (err) {
+        return { success: false, error: { message: err instanceof Error ? err.message : 'SSO login failed' } };
+      }
     },
 
     async logout() {
@@ -339,12 +356,26 @@ export function createSSOAuthProvider(config: SSOConfig): AuthProvider {
 
       // Handle callback — exchange authorization code for tokens
       const url = new URL(window.location.href);
+      const callbackError = url.searchParams.get('error');
+      if (callbackError) {
+        clearTokens();
+        return {
+          authenticated: false,
+          error: {
+            message: url.searchParams.get('error_description') ?? callbackError,
+            name: callbackError,
+          },
+          logout: true,
+        };
+      }
+
       const code = url.searchParams.get('code');
       const state = url.searchParams.get('state');
 
       if (code) {
         const savedState = storage.getItem(`${STORAGE_PREFIX}state`);
-        if (state && savedState && state !== savedState) {
+        if (!state || !savedState || state !== savedState) {
+          clearTokens();
           return { authenticated: false, error: { message: 'State mismatch' } };
         }
         try {
@@ -352,7 +383,7 @@ export function createSSOAuthProvider(config: SSOConfig): AuthProvider {
           // Clean URL
           url.searchParams.delete('code');
           url.searchParams.delete('state');
-          window.history.replaceState({}, '', url.pathname);
+          window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
           return { authenticated: true };
         } catch (err) {
           return { authenticated: false, error: { message: String(err) } };
@@ -409,6 +440,7 @@ export function createSSOAuthProvider(config: SSOConfig): AuthProvider {
       if (tokens.id_token) {
         try {
           const payload = decodeJwtPayload(tokens.id_token);
+          if (!payload) return null;
           return payload.roles ?? payload.groups ?? payload.permissions ?? null;
         } catch {
           return null;
@@ -418,10 +450,32 @@ export function createSSOAuthProvider(config: SSOConfig): AuthProvider {
       return null;
     },
 
+    async getAccessToken() {
+      const tokens = getTokens();
+      if (!tokens) return null;
+
+      if (tokens.expires_at && tokens.expires_at < Math.floor(Date.now() / 1000)) {
+        if (!tokens.refresh_token) {
+          clearTokens();
+          return null;
+        }
+        await refreshAccessToken(tokens.refresh_token);
+        return getTokens()?.access_token ?? null;
+      }
+
+      return tokens.access_token;
+    },
+
     async onError(error) {
       if (typeof error === 'object' && error !== null && 'statusCode' in error) {
         const statusCode = (error as { statusCode: number }).statusCode;
         if (statusCode === 401 || statusCode === 403) {
+          return { logout: true, redirectTo: '/login' };
+        }
+      }
+      if (typeof error === 'object' && error !== null && 'status' in error) {
+        const status = (error as { status: number }).status;
+        if (status === 401 || status === 403) {
           return { logout: true, redirectTo: '/login' };
         }
       }

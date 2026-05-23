@@ -8,7 +8,7 @@
  */
 
 export { createSSOAuthProvider } from './auth-provider';
-export type { SSOConfig, TokenStorage } from './auth-provider';
+export type { SSOAuthProvider, SSOConfig, TokenStorage } from './auth-provider';
 
 // Social login presets
 export {
