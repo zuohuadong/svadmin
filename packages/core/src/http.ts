@@ -9,12 +9,34 @@ export interface FetchWithInterceptorOptions {
   forbiddenMessage?: string;
   /** 是否自动添加 X-Requested-With header (CSRF 防护) */
   csrfProtection?: boolean;
+  /** 自定义 fetch 实现，便于测试或 SSR 环境注入 */
+  fetchImpl?: FetchWithInterceptor;
+  /** 自定义 401 重定向处理，便于测试或 SSR 环境注入 */
+  onUnauthorized?: (loginPath: string, returnTo: string) => void;
 }
 
-const DEFAULT_OPTIONS: Required<FetchWithInterceptorOptions> = {
+export type FetchWithInterceptor = (url: string, init?: RequestInit) => Promise<Response>;
+
+const DEFAULT_OPTIONS: Required<Omit<FetchWithInterceptorOptions, 'fetchImpl' | 'onUnauthorized'>> & {
+  fetchImpl: FetchWithInterceptor;
+  onUnauthorized: (loginPath: string, returnTo: string) => void;
+} = {
   loginPath: "/auth/login",
   forbiddenMessage: "Forbidden: 该操作已被安全策略拒绝",
   csrfProtection: true,
+  get fetchImpl() {
+    if (typeof globalThis !== "undefined" && typeof globalThis.fetch === "function") {
+      return (url: string, init?: RequestInit) => globalThis.fetch(url, init);
+    }
+    return async () => {
+      throw new Error("No fetch implementation found. Pass fetchImpl in options.");
+    };
+  },
+  onUnauthorized: (loginPath, returnTo) => {
+    if (typeof window !== "undefined") {
+      window.location.href = `${loginPath}?returnTo=${returnTo}`;
+    }
+  },
 };
 
 /**
@@ -28,7 +50,7 @@ const DEFAULT_OPTIONS: Required<FetchWithInterceptorOptions> = {
  */
 export function createFetchWithInterceptor(
   options: FetchWithInterceptorOptions = {},
-): (url: string, init?: RequestInit) => Promise<Response> {
+): FetchWithInterceptor {
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
   return async (url: string, init: RequestInit = {}): Promise<Response> => {
@@ -42,14 +64,14 @@ export function createFetchWithInterceptor(
       headers.set("X-Requested-With", "XMLHttpRequest");
     }
 
-    const res = await fetch(url, { ...init, headers });
+    const res = await opts.fetchImpl(url, { ...init, headers });
 
     if (!res.ok) {
       if (res.status === 401) {
         const returnTo = typeof window !== "undefined"
           ? encodeURIComponent(window.location.pathname)
           : "";
-        window.location.href = `${opts.loginPath}?returnTo=${returnTo}`;
+        opts.onUnauthorized(opts.loginPath, returnTo);
         throw new Error("Unauthorized");
       }
       if (res.status === 403) {

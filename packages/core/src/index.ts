@@ -130,4 +130,4 @@ export type {
 
 // HTTP fetch utilities
 export { createFetchWithInterceptor, fetchWithInterceptor } from './http';
-export type { FetchWithInterceptorOptions } from './http';
+export type { FetchWithInterceptor, FetchWithInterceptorOptions } from './http';
