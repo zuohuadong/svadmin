@@ -23,7 +23,7 @@ export interface SupaCloudTaskClient<TTask extends SupaCloudTaskRecord = SupaClo
   subscribe?(
     taskId: string,
     callback: (task: TTask) => void
-  ): TaskSubscription | (() => void) | void;
+  ): TaskSubscription | (() => void) | undefined;
 }
 
 export interface CreateSupaCloudTaskProviderOptions<
@@ -41,7 +41,7 @@ export interface CreateSupaCloudTaskLiveProviderOptions<
 }
 
 function normalizeTaskSubscription(
-  subscription: TaskSubscription | (() => void) | void,
+  subscription: TaskSubscription | (() => void) | undefined,
 ): (() => void) | undefined {
   if (!subscription) return undefined;
   if (typeof subscription === 'function') return subscription;

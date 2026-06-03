@@ -59,7 +59,7 @@ function base64urlEncode(data: string): string {
 function base64urlDecode(str: string): string {
   const padded = str + '='.repeat((4 - (str.length % 4)) % 4);
   const binString = atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
-  const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0)!);
+  const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0) as number);
   return new TextDecoder().decode(bytes);
 }
 

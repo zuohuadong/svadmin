@@ -68,7 +68,7 @@
         </div>
       {:else}
         <div class="relative border-l border-border ml-3 pl-6 space-y-8">
-          {#each logs as log}
+          {#each logs as log, _i (_i)}
             <div class="relative">
               <span class="absolute -left-7 top-1 flex h-2 w-2 items-center justify-center rounded-full ring-4 ring-background {getActionColor(log.action)}"></span>
               <div class="flex flex-col gap-1.5">

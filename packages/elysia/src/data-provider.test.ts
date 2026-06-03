@@ -1,4 +1,5 @@
 // Tests for enhanced Elysia DataProvider
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect, beforeEach, mock, afterEach } from 'bun:test';
 import { createElysiaDataProvider } from './data-provider';
 import type { DataProvider } from '@svadmin/core';
@@ -417,7 +418,7 @@ describe('bulk operations', () => {
     const provider = createElysiaDataProvider({ apiUrl: 'http://localhost:3000' });
     setupMockFetch({ id: 1, name: 'A' });
 
-    const result = await provider.createMany!({
+    const _result = await provider.createMany!({
       resource: 'posts',
       variables: [{ name: 'A' }, { name: 'B' }],
     });

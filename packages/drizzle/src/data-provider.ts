@@ -15,7 +15,7 @@
  * ```
  */
 
-import type { DataProvider , BaseRecord } from '@svadmin/core';
+import type { DataProvider } from '@svadmin/core';
 import type { RefineSQLConfig } from 'refine-sqlx';
 import { createRefineSQL } from 'refine-sqlx';
 

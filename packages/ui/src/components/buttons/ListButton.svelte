@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { useNavigation, t } from '@svadmin/core';
+  import { useNavigation } from '@svadmin/core';
   import { Button } from '../ui/button/index.js';
   import { List } from '@lucide/svelte';
 

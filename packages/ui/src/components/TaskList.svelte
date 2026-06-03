@@ -110,7 +110,7 @@
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {#each resolvedTasks as task}
+            {#each resolvedTasks as task, _i (_i)}
               <Table.Row class="cursor-pointer hover:bg-muted/40" onclick={() => onSelect?.(task)}>
                 <Table.Cell class="min-w-[240px]">
                   <div class="space-y-1">

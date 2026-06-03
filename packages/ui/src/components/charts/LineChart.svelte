@@ -46,7 +46,7 @@
 <div class="w-full overflow-x-auto {className}">
   <svg viewBox="0 0 {chartWidth} {height}" class="w-full" style="min-width: {Math.min(chartWidth, 300)}px;">
     <!-- Grid lines -->
-    {#each [0, 0.25, 0.5, 0.75, 1] as ratio}
+    {#each [0, 0.25, 0.5, 0.75, 1] as ratio, _i (_i)}
       {@const y = padding.top + chartHeight * (1 - ratio)}
       <line
         x1={padding.left}
@@ -88,7 +88,7 @@
 
     <!-- Dots -->
     {#if showDots}
-      {#each data as point, i}
+      {#each data as point, i (i)}
         <circle
           cx={getX(i)}
           cy={getY(point.value)}
@@ -102,7 +102,7 @@
     {/if}
 
     <!-- X-axis labels -->
-    {#each data as point, i}
+    {#each data as point, i (i)}
       <text
         x={getX(i)}
         y={height - 4}

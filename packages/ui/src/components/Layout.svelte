@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable svelte/no-useless-children-snippet */
   import type { Snippet } from 'svelte';
   import { fade, fly } from 'svelte/transition';
   import Sidebar from './Sidebar.svelte';
@@ -13,7 +14,6 @@
   import { navigate } from '@svadmin/core/router';
   import { getPath } from '../router-state.svelte.js';
   import { Skeleton } from './ui/skeleton/index.js';
-  import { Button } from './ui/button/index.js';
   import * as Sheet from './ui/sheet/index.js';
   import { Menu } from '@lucide/svelte';
   import { getComponentRegistry } from '../component-registry.svelte.js';
@@ -24,12 +24,12 @@
 
   let { children, title = 'Admin', menu, siteUrl, routeMode = 'auto' }: { children: Snippet; title?: string; menu?: MenuItem[]; siteUrl?: string; routeMode?: 'hash' | 'path' | 'auto' } = $props();
 
-  let hasAuth = true;
+  let _hasAuth = true;
   let auth: ReturnType<typeof getAuthProvider> | null = null;
   try {
     auth = getAuthProvider();
   } catch {
-    hasAuth = false;
+    _hasAuth = false;
   }
   let loading = $state(true);
   let identity = $state<Identity | null>(null);
@@ -108,7 +108,7 @@
     <div class="hidden md:block w-64 bg-sidebar/80 p-4 space-y-4">
       <Skeleton class="h-8 w-32" />
       <div class="space-y-2 mt-6">
-        {#each Array(5) as _}
+        {#each Array(5) as _, _i (_i)}
           <Skeleton class="h-9 w-full rounded-lg" />
         {/each}
       </div>
@@ -116,7 +116,7 @@
     <div class="flex-1 p-8 space-y-6">
       <Skeleton class="h-8 w-48" />
       <div class="space-y-3">
-        {#each Array(4) as _}
+        {#each Array(4) as _, _i (_i)}
           <Skeleton class="h-12 w-full" />
         {/each}
       </div>

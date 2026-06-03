@@ -5,7 +5,7 @@
   import { toggleTheme } from '@svadmin/core';
   import { Command } from 'cmdk-sv';
   import * as Dialog from './ui/dialog/index.js';
-  import { Search, LayoutDashboard, Plus, Sun, FileText, Bot, Sparkles } from '@lucide/svelte';
+  import { Search, LayoutDashboard, Plus, Sun, FileText, Sparkles } from '@lucide/svelte';
 
   interface Props {
     open?: boolean;
@@ -93,7 +93,7 @@
             <LayoutDashboard class="h-4 w-4 text-muted-foreground" />
             {t('common.home')}
           </Command.Item>
-          {#each resources as r}
+          {#each resources as r, _i (_i)}
             <Command.Item
               value={r.name}
               onSelect={() => act(() => navigate(`/${r.name}`))}
@@ -109,7 +109,7 @@
 
         <!-- Actions -->
         <Command.Group heading={t('common.actions')}>
-          {#each resources as r}
+          {#each resources as r, _i (_i)}
             <Command.Item
               value={"create-" + r.name}
               onSelect={() => act(() => navigate(`/${r.name}/create`))}

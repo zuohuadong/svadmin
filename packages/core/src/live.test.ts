@@ -2,7 +2,8 @@
  * LiveProvider unit tests
  * Tests the subscription management logic without requiring actual WebSocket/SSE connections.
  */
-import { describe, test, expect, mock } from 'bun:test';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { describe, test, expect } from 'bun:test';
 import type { LiveProvider, LiveEvent } from './live.svelte';
 
 // Helper: create a minimal in-memory LiveProvider for testing subscription logic

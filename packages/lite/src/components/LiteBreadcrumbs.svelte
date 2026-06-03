@@ -23,7 +23,7 @@
 
 <nav class="lite-breadcrumbs" aria-label="Breadcrumb">
   <ol>
-    {#each items as item, i}
+    {#each items as item, i (i)}
       <li>
         {#if item.href && i < items.length - 1}
           <a href={item.href}>{item.label}</a>

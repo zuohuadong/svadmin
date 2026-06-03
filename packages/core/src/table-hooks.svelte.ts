@@ -7,7 +7,7 @@ import type { UseListOptions, MaybeGetter } from './query-hooks.svelte';
 
 export type FilterSetMode = 'merge' | 'replace';
 
-export interface UseTableOptions<TQueryFnData extends BaseRecord = BaseRecord, TError = HttpError, TSearchVariables = Record<string, unknown>> extends Omit<UseListOptions<TQueryFnData, TError>, 'pagination' | 'sorters' | 'filters'> {
+export interface UseTableOptions<TQueryFnData extends BaseRecord = BaseRecord, TError = HttpError, _TSearchVariables = Record<string, unknown>> extends Omit<UseListOptions<TQueryFnData, TError>, 'pagination' | 'sorters' | 'filters'> {
   resource?: KnownResources;
   pagination?: Pagination;
   sorters?: {
@@ -80,7 +80,7 @@ export function useTable<
 
   const tableQueryInfo = useList<TQueryFnData, TError>(() => {
     const currentOpts = getOptions();
-    const { meta, syncWithLocation, dataProviderName, pagination: _p, sorters: _s, filters: _f, ...restOptions } = currentOpts;
+    const { meta, syncWithLocation: _swl, dataProviderName, pagination: _p, sorters: _s, filters: _f, ...restOptions } = currentOpts;
     return {
       resource: currentOpts.resource ?? parsed.resource ?? '',
       pagination: queryPagination,
@@ -209,6 +209,7 @@ export function useTable<
             if (vb == null && va != null) return -1;
             if (va == null && vb == null) continue;
             
+            // eslint-disable-next-line no-useless-assignment
             let cmp = 0;
             if (typeof va === 'number' && typeof vb === 'number') cmp = va - vb;
             else if (va instanceof Date && vb instanceof Date) cmp = va.getTime() - vb.getTime();

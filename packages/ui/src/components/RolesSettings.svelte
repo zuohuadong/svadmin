@@ -1,7 +1,6 @@
 <script lang="ts">
   import { t } from '@svadmin/core/i18n';
   import { getAuthProvider, getResources } from '@svadmin/core';
-  import type { Role } from '@svadmin/core';
   import PermissionMatrix from './PermissionMatrix.svelte';
   import type { RoleInfo, ResourceInfo, ActionInfo } from '../types.js';
   import { toast } from '@svadmin/core/toast';
@@ -117,7 +116,7 @@
     } catch (e) {
       toast.error((e as Error).message);
       // Rollback on fail
-      delete permissionsCache[roleCode];
+      delete permissionsCache[roleCode]; // eslint-disable-line @typescript-eslint/no-dynamic-delete
       loadPermissionsForRole(roleCode);
     } finally {
       saving = false;

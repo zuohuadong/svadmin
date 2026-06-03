@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // @svadmin/pocketbase — Unit Tests
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, test, expect, mock } from 'bun:test';
 import { createPocketBaseDataProvider } from './data-provider';
 import { createPocketBaseAuthProvider } from './auth-provider';

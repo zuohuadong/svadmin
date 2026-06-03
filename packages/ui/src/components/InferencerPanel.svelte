@@ -1,4 +1,5 @@
 <script lang="ts">
+ 
   import { getDataProvider, getResources, inferResource } from '@svadmin/core';
   import type { InferResult } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
@@ -99,7 +100,7 @@
         bind:value={selectedResource}
         placeholder="— Select a resource —"
       >
-        {#each resources as res}
+        {#each resources as res, _i (_i)}
           <option value={res.name}>{res.label} ({res.name})</option>
         {/each}
       </Select>
@@ -131,7 +132,7 @@
 
     {#if loading}
       <div class="space-y-2">
-        {#each Array(4) as _}
+        {#each Array(4) as _, _i (_i)}
           <Skeleton class="h-8 w-full" />
         {/each}
       </div>
@@ -150,7 +151,7 @@
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {#each inferResult.fields as field}
+            {#each inferResult.fields as field, _i (_i)}
               <Table.Row>
                 <Table.Cell class="font-mono text-xs">{field.key}</Table.Cell>
                 <Table.Cell>

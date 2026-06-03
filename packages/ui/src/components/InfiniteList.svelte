@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { fade, fly } from 'svelte/transition';
+  import { fade } from 'svelte/transition';
   import { useInfiniteList } from '@svadmin/core';
   import type { BaseRecord, Sort, Filter } from '@svadmin/core';
   import type { Snippet } from 'svelte';
   import { t } from '@svadmin/core/i18n';
   import { Skeleton } from './ui/skeleton/index.js';
-  import { Button } from './ui/button/index.js';
   import { Loader2 } from '@lucide/svelte';
   import { intersect } from '../actions.js';
 
@@ -59,7 +58,7 @@
       {@render loadingSkeleton()}
     {:else}
       <div class="space-y-3">
-        {#each Array(5) as _}
+        {#each Array(5) as _, _i (_i)}
           <Skeleton class="h-16 w-full rounded-lg" />
         {/each}
       </div>
@@ -71,7 +70,7 @@
       <p class="text-center text-sm text-muted-foreground py-8">{t('empty.title')}</p>
     {/if}
   {:else}
-    {#each allItems as item, index}
+    {#each allItems as item, index (index)}
       <div in:fade={{ duration: 200, delay: index < 20 ? index * 30 : 0 }}>
         {@render children({ item, index })}
       </div>

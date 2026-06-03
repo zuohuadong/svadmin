@@ -31,7 +31,7 @@
     >
       <option value="">-- {t('common.select') || 'Select'} --</option>
       {#if field.options}
-        {#each field.options as opt}
+        {#each field.options as opt, _i (_i)}
           <option value={String(opt.value)} selected={String(value) === String(opt.value)}>
             {opt.label}
           </option>
@@ -39,7 +39,7 @@
       {/if}
     </select>
     {#if hasError}
-      {#each error as err}
+      {#each error as err, _i (_i)}
         <div class="lite-error-text">{err}</div>
       {/each}
     {/if}

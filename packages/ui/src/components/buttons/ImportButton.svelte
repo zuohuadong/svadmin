@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { useImport, useCan, t, type UseImportOptions } from '@svadmin/core';
+  import { useImport, useCan, t } from '@svadmin/core';
   import { Button } from '../ui/button/index.js';
   import { Upload } from '@lucide/svelte';
 

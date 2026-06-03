@@ -59,7 +59,7 @@
       </tr>
     </thead>
     <tbody>
-      {#each logs as log}
+      {#each logs as log, _i (_i)}
         <tr>
           <td style="font-family:monospace;font-size:12px;color:#64748b;">{formatDate(log.createdAt)}</td>
           <td>{log.userName ?? '—'}</td>

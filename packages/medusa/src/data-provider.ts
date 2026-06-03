@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { DataProvider } from '@svadmin/core';
 import { createRefineAdapter } from '@svadmin/refine-adapter';
 
@@ -11,7 +12,7 @@ import { createRefineAdapter } from '@svadmin/refine-adapter';
  */
 export async function createMedusaDataProvider(...args: any[]): Promise<DataProvider> {
  
-  // @ts-ignore
+  // @ts-expect-error -- refine type mismatch
   const pkg = await import('@refinedev/medusa');
   const init = (pkg as any).default || (pkg as any).dataProvider || (pkg as any).DataProvider;
   const refineProvider = init(...args);

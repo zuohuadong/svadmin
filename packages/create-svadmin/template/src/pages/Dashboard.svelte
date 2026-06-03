@@ -23,7 +23,7 @@
 
   <!-- Stats -->
   <div class="grid gap-4 sm:grid-cols-3">
-    {#each stats as stat}
+    {#each stats as stat, _i (_i)}
       <div class="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
         <div class="flex h-12 w-12 items-center justify-center rounded-xl {stat.color}">
           <stat.Icon class="h-6 w-6" />
@@ -48,7 +48,7 @@
         <a href="#/posts" class="text-sm text-primary hover:underline">View all</a>
       </div>
       <div class="divide-y divide-gray-50">
-        {#each $recentPosts.data?.data ?? [] as post}
+        {#each $recentPosts.data?.data ?? [] as post, _i (_i)}
           <div class="flex items-center justify-between px-5 py-3">
             <div>
               <p class="text-sm font-medium text-gray-900">{post.title}</p>
@@ -65,7 +65,7 @@
         <a href="#/users" class="text-sm text-primary hover:underline">View all</a>
       </div>
       <div class="divide-y divide-gray-50">
-        {#each $recentUsers.data?.data ?? [] as user}
+        {#each $recentUsers.data?.data ?? [] as user, _i (_i)}
           <div class="flex items-center justify-between px-5 py-3">
             <div>
               <p class="text-sm font-medium text-gray-900">{user.name}</p>

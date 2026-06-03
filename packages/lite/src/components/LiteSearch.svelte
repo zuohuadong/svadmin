@@ -20,7 +20,7 @@
 </script>
 
 <form method="GET" class="lite-search">
-  {#each Object.entries(preserveParams) as [key, val]}
+  {#each Object.entries(preserveParams) as [key, val] (key)}
     <input type="hidden" name={key} value={val} />
   {/each}
   <input

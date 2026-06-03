@@ -1,9 +1,7 @@
 <script lang="ts">
   import { useShow, getResource } from '@svadmin/core';
-  import type { FieldDefinition } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
-  import { t, getLocale } from '@svadmin/core/i18n';
-  import { Button } from './ui/button/index.js';
+  import { t } from '@svadmin/core/i18n';
   import * as Card from './ui/card/index.js';
   import { Skeleton } from './ui/skeleton/index.js';
   import PageHeader from './PageHeader.svelte';
@@ -42,7 +40,7 @@
   {#if query.isLoading}
     <Card.Root class="overflow-hidden border-border/40 shadow-sm">
       <Card.Content class="p-0">
-        {#each showFields.slice(0, 6) as _, i}
+        {#each showFields.slice(0, 6) as _, i (i)}
           <div class="flex flex-col sm:flex-row px-4 sm:px-6 py-3 sm:py-4 {i % 2 === 1 ? 'bg-muted/20' : ''}">
             <Skeleton class="h-4 w-1/2 sm:w-1/4" />
             <Skeleton class="h-4 w-3/4 sm:w-2/5 mt-1 sm:mt-0 sm:ml-auto" />
@@ -53,8 +51,8 @@
   {:else if query.data?.data}
     <Card.Root class="overflow-hidden border-border/40 shadow-sm">
       <Card.Content class="p-0">
-        {#each showFields as field, i}
-          {@const value = (query.data!.data as Record<string, unknown>)[field.key]}
+        {#each showFields as field, i (i)}
+          {@const value = ((query.data as { data: Record<string, unknown> }).data as Record<string, unknown>)[field.key]}
           {@const DisplayComponent = getDisplayComponent(field.type)}
           <div class="flex flex-col sm:flex-row px-4 sm:px-6 py-3 sm:py-4 {i % 2 === 1 ? 'bg-muted/20' : ''}">
             <div class="sm:w-1/3 text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-0">{field.label}</div>

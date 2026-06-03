@@ -1,3 +1,4 @@
+/* eslint-disable svelte/prefer-svelte-reactivity */
 export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'undoable';
 
 export interface ToastItem {

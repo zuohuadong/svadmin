@@ -79,7 +79,7 @@ export function useLogout() {
       try {
         const queryClient = useQueryClient();
         queryClient.clear();
-      } catch {}
+      } catch { /* intentional */}
       navigate(result.redirectTo ?? '/login');
     }
   });

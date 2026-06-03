@@ -37,15 +37,15 @@
 <nav class="lite-sidebar">
   <div class="lite-sidebar-brand">{brandName}</div>
   {#if menu && menu.length > 0}
-    {#each menu as item}
+    {#each menu as item, _i (_i)}
       {#if item.children && item.children.length > 0}
         <details class="lite-menu-group" open={hasActiveChild(item.children)}>
           <summary class="lite-menu-parent">{item.label ?? item.name}</summary>
-          {#each item.children as child}
+          {#each item.children as child, _i (_i)}
             {#if child.children && child.children.length > 0}
               <details class="lite-menu-group" style="margin-left:12px" open={hasActiveChild(child.children)}>
                 <summary class="lite-menu-parent">{child.label ?? child.name}</summary>
-                {#each child.children as grandchild}
+                {#each child.children as grandchild, _i (_i)}
                   <a
                     href={grandchild.href ?? `${basePath}/${grandchild.name}`}
                     class={isActive(grandchild.href ?? `${basePath}/${grandchild.name}`) ? 'active' : ''}
@@ -73,7 +73,7 @@
       {/if}
     {/each}
   {:else}
-    {#each menuResources as res}
+    {#each menuResources as res, _i (_i)}
       <a
         href={`${basePath}/${res.name}`}
         class={res.name === currentResource ? 'active' : ''}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect, vi } from 'vitest';
 import { useGo, useBack } from './routing-hooks.svelte';
 import { useParsed } from './useParsed.svelte';

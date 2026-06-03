@@ -22,7 +22,7 @@
 {#if mode === 'show'}
   {@const urls = getUrls(value)}
   <div style="display:flex; gap: 8px; flex-wrap: wrap;">
-    {#each urls as url}
+    {#each urls as url, _i (_i)}
       <img src={url} alt={field.label} style="max-height: 100px; border-radius: 4px; border: 1px solid #e5e7eb;" />
     {:else}
       <span>—</span>
@@ -33,7 +33,7 @@
   <div>
     {#if urls.length > 0 && mode === 'edit'}
       <div style="margin-bottom: 8px; display:flex; gap: 8px;">
-        {#each urls as url}
+        {#each urls as url, _i (_i)}
           <img src={url} alt="Current" style="height: 60px; border-radius: 4px; border: 1px solid #e5e7eb; opacity: 0.6;" />
         {/each}
       </div>
@@ -49,7 +49,7 @@
       {...field.required && !urls.length ? { required: true } : {}}
     />
     {#if hasError}
-      {#each error as err}
+      {#each error as err, _i (_i)}
         <div class="lite-error-text">{err}</div>
       {/each}
     {/if}

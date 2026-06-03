@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable svelte/prefer-svelte-reactivity */
   /**
    * LiteTable — Pure HTML table with <a> sort links.
    * No JavaScript required — sorting and pagination are URL-driven.
@@ -64,7 +65,7 @@
 <table class="lite-table">
   <thead>
     <tr>
-      {#each listFields as field}
+      {#each listFields as field, _i (_i)}
         <th>
           {#if field.sortable !== false}
             <a href={sortUrl(field)}>
@@ -82,15 +83,15 @@
     </tr>
   </thead>
   <tbody>
-    {#each records as record}
+    {#each records as record, _i (_i)}
       {@const id = record[pk]}
       <tr>
-        {#each listFields as field}
+        {#each listFields as field, _i (_i)}
           <td>
             {#if field.type === 'boolean'}
               <span class="lite-bool {record[field.key] ? 'lite-bool-true' : ''}"></span>
             {:else if field.type === 'tags' && Array.isArray(record[field.key])}
-              {#each (record[field.key] as string[]).slice(0, 3) as tag}
+              {#each (record[field.key] as string[]).slice(0, 3) as tag, _i (_i)}
                 <span class="lite-badge">{tag}</span>
               {/each}
             {:else if field.type === 'select' && field.options}

@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
   import * as Tooltip from './ui/tooltip/index.js';
   import { Button } from './ui/button/index.js';
   import type { Snippet } from 'svelte';

@@ -41,7 +41,7 @@
 {:else if field.type === 'image' && value}
   <img src={String(value)} alt={field.label} style="max-width:300px;max-height:200px;border-radius:6px;border:1px solid #e2e8f0;" />
 {:else if field.type === 'tags' && Array.isArray(value)}
-  {#each value as tag}
+  {#each value as tag, _i (_i)}
     <span class="lite-badge">{tag}</span>
   {/each}
 {:else if field.type === 'json' && value}

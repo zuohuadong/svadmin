@@ -9,7 +9,7 @@ import type {
   ResourceDefinition, FieldDefinition,
   Sort, Filter,
 } from '@svadmin/core';
-import { fail, redirect, isRedirect, type RequestEvent } from '@sveltejs/kit';
+import { redirect, isRedirect, type RequestEvent } from '@sveltejs/kit';
 
 // ─── List Loader ──────────────────────────────────────────────
 

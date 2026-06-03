@@ -1,12 +1,13 @@
 <script lang="ts">
+/* eslint-disable no-undef, svelte/no-at-html-tags */
   import { getChatProvider, getChatContext, setChatContext, getAgentProvider, registerApproval, resolveApproval } from '@svadmin/core';
-  import type { ChatMessage, ChatAction, AgentEvent } from '@svadmin/core';
+  import type { ChatMessage, ChatAction } from '@svadmin/core';
   import { t } from '@svadmin/core/i18n';
   import { useParsed } from '@svadmin/core';
   import { fly, fade, scale } from 'svelte/transition';
   import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
-  import { MessageCircle, X, Minus, Send, Loader2, Bot, Trash2, ShieldCheck, ShieldX, Wrench, LayoutDashboard } from '@lucide/svelte';
+  import { MessageCircle, X, Minus, Send, Loader2, Bot, Trash2 } from '@lucide/svelte';
 
   interface Props {
     /** localStorage key for chat history persistence. Set to '' to disable. */
@@ -508,7 +509,7 @@
                 {t('chat.welcomeDesc') || 'Ask me anything about your admin panel.'}
               </p>
               <div class="flex flex-col gap-2 w-full max-w-[240px]">
-                {#each suggestions as suggestion}
+                {#each suggestions as suggestion, _i (_i)}
                   <button
                     class="text-left text-xs px-3 py-2 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
                     onclick={() => { inputValue = suggestion; }}
@@ -535,7 +536,7 @@
                       <!-- Action Buttons -->
                       {#if msg.actions && msg.actions.length > 0}
                         <div class="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-border/50">
-                          {#each msg.actions as action}
+                          {#each msg.actions as action, _i (_i)}
                             <Button
                               variant={action.variant ?? 'outline'}
                               size="sm"

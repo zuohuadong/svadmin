@@ -53,7 +53,7 @@
 
   // Avatar upload
   let avatarUploading = $state(false);
-  let fileInput = $state<HTMLInputElement>(null!);
+  let fileInput = $state<HTMLInputElement>(null!); // eslint-disable-line @typescript-eslint/no-non-null-assertion
 
   async function handleAvatarChange(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];

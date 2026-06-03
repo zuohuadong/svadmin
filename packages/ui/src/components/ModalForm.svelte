@@ -1,7 +1,5 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
-  import type { FieldDefinition } from '@svadmin/core';
-  import { getResource, useForm } from '@svadmin/core';
+  import { getResource } from '@svadmin/core';
   import { t } from '@svadmin/core/i18n';
   import * as Dialog from './ui/dialog/index.js';
   import AutoForm from './AutoForm.svelte';

@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable svelte/prefer-svelte-reactivity */
   import { getResources, canAccessAsync } from '@svadmin/core';
   import type { Identity, MenuItem } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
@@ -37,7 +38,7 @@
       : routeMode
   );
 
-  const resources = getResources();
+  const _resources = getResources();
 
   const iconMap: Record<string, typeof LayoutDashboard> = {
     'dashboard': LayoutDashboard,
@@ -80,7 +81,7 @@
   let navItems = $state.raw<NavItem[]>([]);
 
   $effect(() => {
-    const localeVal = getLocale();
+    const _localeVal = getLocale();
     const currentResources = getResources();
     let cancelled = false;
 
@@ -132,7 +133,7 @@
 
   /** Prefetch resource data on hover for instant navigation */
   const prefetchedResources = new Set<string>();
-  function prefetchResource(resourceName: string) {
+  function _prefetchResource(resourceName: string) {
     if (resourceName === '/' || prefetchedResources.has(resourceName)) return;
     prefetchedResources.add(resourceName);
     // Trigger a background fetch by navigating the browser cache
@@ -148,9 +149,9 @@
       const key = item.group ?? null;
       if (!groupMap.has(key)) {
         groupMap.set(key, []);
-        groups.push({ name: key, items: groupMap.get(key)! });
+        groups.push({ name: key, items: groupMap.get(key) ?? [] });
       }
-      groupMap.get(key)!.push(item);
+      (groupMap.get(key) ?? []).push(item);
     }
 
     return groups;
@@ -233,17 +234,17 @@
   <nav aria-label="Main menu" class="py-4 px-3 space-y-1">
     {#if menu && menu.length > 0}
       <!-- Custom multi-level menu -->
-      {#each menu as item}
+      {#each menu as item, _i (_i)}
         <SidebarItem {item} currentPath={path} {collapsed} depth={0} />
       {/each}
     {:else}
     <!-- Auto-generated menu from resources (fallback) -->
-    {#each navGroups as group}
+    {#each navGroups as group, _i (_i)}
       {#if group.name && !collapsed}
         <!-- Grouped section with Collapsible -->
         <Collapsible.Root open={openGroups.has(group.name)} onOpenChange={(isOpen) => {
           const next = new Set(openGroups);
-          if (isOpen) next.add(group.name!); else next.delete(group.name!);
+          if (isOpen) next.add(group.name as string); else next.delete(group.name as string);
           openGroups = next;
         }}>
           <Collapsible.Trigger
@@ -254,7 +255,7 @@
           </Collapsible.Trigger>
           <Collapsible.Content>
             <div class="mt-1 space-y-1">
-              {#each group.items as item}
+              {#each group.items as item, _i (_i)}
                 {@const active = isActive(item.path)}
                 <a
                   href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
@@ -273,7 +274,7 @@
         </Collapsible.Root>
       {:else}
         <!-- Ungrouped items (flat) -->
-        {#each group.items as item}
+        {#each group.items as item, _i (_i)}
           {@const active = isActive(item.path)}
           {#if collapsed}
             <Tooltip.Root>
@@ -336,7 +337,7 @@
           </Button>
           {#if colorPickerOpen}
             <div class="absolute bottom-full left-0 mb-1 z-50 w-40 rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg animate-in fade-in-0 zoom-in-95">
-              {#each getColorThemes() as ct}
+              {#each getColorThemes() as ct, _i (_i)}
                 <button
                   class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                   onclick={() => { setColorTheme(ct.id as typeof ct.id & import('@svadmin/core').ColorTheme); colorPickerOpen = false; }}

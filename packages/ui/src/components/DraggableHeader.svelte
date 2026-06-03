@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
   /**
    * DraggableHeader — Wraps table header cells with HTML5 Drag and Drop
    * to enable column reorder. Persists order to localStorage.
@@ -99,7 +100,7 @@
 </script>
 
 <tr class="hover:bg-muted/50 data-[state=selected]:bg-muted transition-colors bg-muted/50">
-  {#each columns as column, index}
+  {#each columns as column, index (index)}
     {@render header(column, index, {
       draggable: true,
       ondragstart: (e: DragEvent) => handleDragStart(e, index),

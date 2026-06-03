@@ -1,4 +1,5 @@
 // HttpError + CrudOperator + LogicalFilter tests
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, test, expect } from 'bun:test';
 import { HttpError } from './types';
 import type { CrudOperator, Filter, LogicalFilter } from './types';

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { getResource } from '@svadmin/core';
-  import { navigate } from '@svadmin/core/router';
   import { t } from '@svadmin/core/i18n';
   import type { Snippet } from 'svelte';
   import PageHeader from './PageHeader.svelte';

@@ -51,7 +51,7 @@
 <div class="lite-permission-matrix">
   <!-- Role Tabs -->
   <div class="lite-role-tabs">
-    {#each roles as role}
+    {#each roles as role, _i (_i)}
       <a
         href="?role={role.code}"
         class="lite-role-tab {selectedRole === role.code ? 'active' : ''}"
@@ -69,13 +69,13 @@
       <thead>
         <tr>
           <th style="width:200px;">Resource</th>
-          {#each actions as action}
+          {#each actions as action, _i (_i)}
             <th style="text-align:center;">{action.name}</th>
           {/each}
         </tr>
       </thead>
       <tbody>
-        {#each resources as resource, i}
+        {#each resources as resource, i (i)}
           {#if resource.section && (i === 0 || resource.section !== resources[i-1].section)}
             <tr>
               <td colspan={actions.length + 1} style="background:#f1f5f9;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;color:#475569;">
@@ -85,7 +85,7 @@
           {/if}
           <tr>
             <td><strong>{resource.name}</strong><br/><small style="color:#94a3b8;">{resource.code}</small></td>
-            {#each actions as action}
+            {#each actions as action, _i (_i)}
               <td style="text-align:center;">
                 <input
                   type="checkbox"

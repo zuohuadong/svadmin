@@ -1,4 +1,5 @@
 <script lang="ts" module>
+/* eslint-disable no-import-assign */
   export type { FieldDefinition } from '@svadmin/core';
 </script>
 
@@ -240,7 +241,7 @@
         disabled={disabled}
       >
         <option value="">{t('field.selectPlaceholder')}</option>
-        {#each field.options ?? [] as opt}
+        {#each field.options ?? [] as opt, _i (_i)}
           <option value={opt.value}>{opt.label}</option>
         {/each}
       </select>
@@ -253,7 +254,7 @@
         {disabled}
         placeholder={t('field.selectPlaceholder')}
       >
-        {#each field.options ?? [] as opt}
+        {#each field.options ?? [] as opt, _i (_i)}
           <option value={opt.value}>{opt.label}</option>
         {/each}
       </Select>
@@ -265,7 +266,7 @@
       role="group" 
       aria-labelledby="label-{field.key}"
     >
-      {#each field.options ?? [] as opt}
+      {#each field.options ?? [] as opt, _i (_i)}
         <label class="flex items-center gap-2 text-sm cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors">
           <Checkbox
             id={`${field.key}-${opt.value}`}
@@ -282,7 +283,7 @@
     </div>
     {#if multiVal.length > 0}
       <div class="flex flex-wrap gap-1 mt-1">
-        {#each multiVal as v}
+        {#each multiVal as v, _i (_i)}
           {@const label = field.options?.find((o: { label: string; value: string | number }) => o.value === v)?.label ?? String(v)}
           <Badge variant="secondary" class="gap-1">
             {label}
@@ -306,7 +307,7 @@
   {:else if field.type === 'tags'}
     <div class="space-y-2">
       <div class="flex flex-wrap gap-1.5">
-        {#each tagsVal as tag, i}
+        {#each tagsVal as tag, i (i)}
           <Badge variant="secondary" class="gap-1">
             {tag}
             <button
@@ -339,7 +340,7 @@
 
   {:else if field.type === 'images'}
     <div class="space-y-2">
-      {#each imagesVal as url, i}
+      {#each imagesVal as url, i (i)}
         <div class="flex items-center gap-2">
           <Input
             id={i === 0 ? field.key : undefined}

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'bun:test';
-import type { CanParams, CanResult, Action, AccessControlProvider } from './permissions.svelte';
+import type { CanParams, CanResult, AccessControlProvider } from './permissions.svelte';
 
 describe('permissions', () => {
   test('canAccessAsync respects deny rule', async () => {

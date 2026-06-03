@@ -27,13 +27,13 @@
     {#if type === 'list'}
       <!-- Table Header -->
       <div class="flex gap-4 border-b pb-4">
-        {#each Array(4) as _}
+        {#each Array(4) as _, _i (_i)}
           <Skeleton class="h-6 flex-1" />
         {/each}
       </div>
       <!-- Table Rows -->
       <div class="space-y-4">
-        {#each Array(rows) as _}
+        {#each Array(rows) as _, _i (_i)}
           <div class="flex gap-4">
             <Skeleton class="h-6 flex-1" />
             <Skeleton class="h-6 flex-1" />
@@ -45,7 +45,7 @@
     {:else if type === 'show'}
       <!-- Key-Value pairs -->
       <div class="space-y-6">
-        {#each Array(rows) as _}
+        {#each Array(rows) as _, _i (_i)}
           <div class="space-y-2">
             <Skeleton class="h-4 w-[100px]" />
             <Skeleton class="h-6 w-[250px]" />
@@ -55,7 +55,7 @@
     {:else if type === 'form'}
       <!-- Form Inputs -->
       <div class="space-y-6">
-        {#each Array(rows) as _}
+        {#each Array(rows) as _, _i (_i)}
           <div class="space-y-2">
             <Skeleton class="h-4 w-[100px]" />
             <Skeleton class="h-10 w-full max-w-md" />

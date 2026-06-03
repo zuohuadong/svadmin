@@ -1,6 +1,7 @@
 /**
  * Tests for OpenAPI → ResourceDefinition inference
  */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, test, expect } from 'bun:test';
 import { inferFromOpenAPI } from './inferencer-openapi';
 

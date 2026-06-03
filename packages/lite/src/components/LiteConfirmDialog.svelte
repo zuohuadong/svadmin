@@ -41,7 +41,7 @@
       <div style="font-size:12px;color:#64748b;margin-bottom:16px;">{description}</div>
     {/if}
     <form method="POST" {action} style="display:flex;margin:0;justify-content:flex-end;">
-      {#each Object.entries(hiddenInputs) as [key, val]}
+      {#each Object.entries(hiddenInputs) as [key, val] (key)}
         <input type="hidden" name={key} value={val} />
       {/each}
       <button

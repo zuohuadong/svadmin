@@ -39,7 +39,7 @@ export function createSvelteKitRouterProvider(): RouterProvider {
     },
     parse() {
       let pathname = '/';
-      let params: Record<string, string> = {};
+      const params: Record<string, string> = {};
       
       try {
         if (page.url) {
@@ -63,7 +63,7 @@ export function createSvelteKitRouterProvider(): RouterProvider {
       }
 
       let p_params: Record<string, string> = {};
-      try { p_params = (page.params ?? {}) as Record<string, string>; } catch {}
+      try { p_params = (page.params ?? {}) as Record<string, string>; } catch { /* intentional */ }
 
       return {
         resource: p_params?.resource,

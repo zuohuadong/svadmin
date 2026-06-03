@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
   import { getResources } from '@svadmin/core';
   import { getPath } from '../router-state.svelte.js';
   import { formatLink } from '@svadmin/core/router';

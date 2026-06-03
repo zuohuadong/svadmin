@@ -1,6 +1,7 @@
 /**
  * @svadmin/auth-utils — Unit Tests
  */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, test, expect } from 'bun:test';
 import { hashPassword, verifyPassword } from './password';
 import { createSessionManager } from './session';
@@ -127,8 +128,8 @@ describe('totp', () => {
   test('different secrets produce different codes', async () => {
     const s1 = generateSecret();
     const s2 = generateSecret();
-    const c1 = await generateTOTP(s1);
-    const c2 = await generateTOTP(s2);
+    const _c1 = await generateTOTP(s1);
+    const _c2 = await generateTOTP(s2);
     // Very unlikely to be the same
     expect(s1).not.toBe(s2);
     // Codes might collide, but secrets shouldn't

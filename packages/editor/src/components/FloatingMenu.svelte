@@ -25,7 +25,7 @@
       pluginKey: floatingMenuKey,
       editor,
       element: menuElement,
-      shouldShow: ({ editor: e, state }) => {
+      shouldShow: ({ editor: _e, state }) => {
         const { selection } = state;
         const { $anchor: anchor, empty } = selection;
         if (!empty) return false;

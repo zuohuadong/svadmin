@@ -123,7 +123,7 @@ export function createSSELiveProvider(options: SSELiveProviderOptions): LiveProv
         subscribers.set(resource, new Set());
         isNewResource = true;
       }
-      subscribers.get(resource)!.add(callback);
+      subscribers.get(resource)?.add(callback);
 
       if (!eventSource && typeof EventSource !== 'undefined') {
         connect();

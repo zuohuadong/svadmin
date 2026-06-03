@@ -15,7 +15,7 @@
 
 {#if mode === 'show'}
   <div style="display:flex; gap: 4px; flex-wrap: wrap;">
-    {#each tags as tag}
+    {#each tags as tag, _i (_i)}
       <span class="lite-badge">{tag}</span>
     {:else}
       <span>—</span>
@@ -36,7 +36,7 @@
       Separate tags with commas.
     </span>
     {#if hasError}
-      {#each error as err}
+      {#each error as err, _i (_i)}
         <div class="lite-error-text">{err}</div>
       {/each}
     {/if}

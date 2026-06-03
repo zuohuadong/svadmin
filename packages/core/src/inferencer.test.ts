@@ -1,4 +1,5 @@
 // Unit tests for Inferencer
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, test, expect } from 'bun:test';
 import { inferFieldType, inferResource } from './inferencer';
 

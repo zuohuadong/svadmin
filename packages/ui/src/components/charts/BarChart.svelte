@@ -24,7 +24,7 @@
 <div class="w-full overflow-x-auto {className}">
   <svg viewBox="0 0 {totalWidth} {height + 30}" class="w-full" style="min-width: {Math.min(totalWidth, 300)}px;">
     <!-- Bars -->
-    {#each data as point, i}
+    {#each data as point, i (i)}
       {@const barHeight = (point.value / maxValue) * (height - 20)}
       {@const x = 20 + i * (barWidth + gap)}
       {@const y = height - barHeight}

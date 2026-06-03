@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 	import { cn, type WithElementRef } from "../../../utils.js";
 	import type { HTMLButtonAttributes } from "svelte/elements";
 	import { getContext } from "svelte";

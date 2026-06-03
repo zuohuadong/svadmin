@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable no-undef */
   import { Mic, MicOff, Loader2 } from '@lucide/svelte';
   import TooltipButton from './TooltipButton.svelte';
 

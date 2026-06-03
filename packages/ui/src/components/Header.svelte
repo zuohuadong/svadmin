@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
   import { Moon, Sun, Search, MonitorUp } from '@lucide/svelte';
   import { Button } from './ui/button';
   import TooltipButton from './TooltipButton.svelte';

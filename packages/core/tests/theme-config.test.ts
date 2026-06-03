@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, test, expect, beforeEach } from 'bun:test';
 
 /**

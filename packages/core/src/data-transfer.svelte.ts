@@ -1,6 +1,6 @@
 import { getDataProviderForResource } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
-import type { GetListResult, Sort, Filter, BaseRecord } from './types';
+import type { Sort, Filter, BaseRecord } from './types';
 
 export interface UseExportOptions<TData extends BaseRecord = BaseRecord> {
   resource?: string;

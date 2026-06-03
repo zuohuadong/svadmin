@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable svelte/no-at-html-tags */
   import type { FieldDefinition } from '@svadmin/core';
 
   interface Props {
@@ -37,7 +38,7 @@
       {...field.required ? { required: true } : {}}
     >{String(value ?? '')}</textarea>
     {#if hasError}
-      {#each error as err}
+      {#each error as err, _i (_i)}
         <div class="lite-error-text">{err}</div>
       {/each}
     {/if}

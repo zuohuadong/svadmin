@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Shared field type → display component mapping
 // Used by both ShowPage and FieldRenderer to avoid duplicate if/else chains.
 // Components are lazily resolved by field type at runtime.
@@ -10,7 +11,7 @@ export interface FieldComponentMap {
 
 // Default display component map (read-only field display)
 // Dynamically imports components only when first used
-const displayCache = new Map<string, Component<any>>();
+const _displayCache = new Map<string, Component<any>>();
 
 // Pre-import all field display components (tree-shaken by bundler)
 import BooleanField from './fields/BooleanField.svelte';

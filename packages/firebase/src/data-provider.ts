@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { DataProvider } from '@svadmin/core';
 import { createRefineAdapter } from '../../refine-adapter/src/index';
 // Note: @refinedev/simple-rest is often used as the base for custom Firebase REST, 

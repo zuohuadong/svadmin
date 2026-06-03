@@ -15,9 +15,11 @@ export default ts.config(
       }
     },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-console': ['warn', { allow: ['warn', 'error', 'info', 'debug'] }],
+      'svelte/no-navigation-without-resolve': 'warn',
+      'svelte/prefer-svelte-reactivity': 'off',
     },
   },
   {

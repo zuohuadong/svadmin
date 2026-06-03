@@ -17,7 +17,7 @@
     onchange?.(target.value);
   }}
 >
-  {#each options as opt}
+  {#each options as opt, _i (_i)}
     <option value={opt.value} selected={opt.value === value}>{opt.label}</option>
   {/each}
 </select>

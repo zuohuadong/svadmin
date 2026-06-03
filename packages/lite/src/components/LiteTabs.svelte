@@ -19,7 +19,7 @@
 </script>
 
 <div class="lite-tabs">
-  {#each items as item}
+  {#each items as item, _i (_i)}
     <a href={item.href} class="lite-tab {activeValue === item.value ? 'active' : ''}">
       {item.label}
     </a>

@@ -46,7 +46,7 @@
 
   <div class="lite-card" style="padding: 24px;">
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px;">
-      {#each showFields as field}
+      {#each showFields as field, _i (_i)}
         <div>
           <div style="display: block; font-size: 13px; font-weight: 500; color: #64748b; margin-bottom: 8px;">
             {field.label}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { DataProvider } from '@svadmin/core';
 import { createRefineAdapter } from '@svadmin/refine-adapter';
 
@@ -11,7 +12,6 @@ import { createRefineAdapter } from '@svadmin/refine-adapter';
  */
 export async function createAppwriteDataProvider(...args: any[]): Promise<DataProvider> {
  
-  // @ts-ignore
   const pkg = await import('@refinedev/appwrite');
   const init = (pkg as any).default || (pkg as any).dataProvider || (pkg as any).DataProvider;
   if (typeof init !== 'function') throw new Error('[svadmin] Failed to resolve @refinedev/appwrite data provider. Ensure the package is installed correctly.');

@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // @svadmin/appwrite — Unit Tests
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, test, expect, mock } from 'bun:test';
 import { createAppwriteDataProvider } from './data-provider';
 import { createAppwriteAuthProvider } from './auth-provider';
@@ -17,7 +19,7 @@ mock.module('@refinedev/appwrite', () => {
           else databases.listDocuments(databaseId, params.resource);
           return { data: [{ $id: '1', name: 'Test' }, { $id: '2', name: 'Test2' }], total: 2 };
         },
-        getOne: async (params: any) => ({ data: { $id: '1', name: 'Test' } }),
+        getOne: async (_params: any) => ({ data: { $id: '1', name: 'Test' } }),
         create: async (params: any) => ({ data: { $id: 'new-1', ...params.variables } }),
         update: async (params: any) => ({ data: { $id: params.id, ...params.variables } }),
         deleteOne: async (params: any) => { await databases.deleteDocument(databaseId, params.resource, params.id); return { data: {} }; },

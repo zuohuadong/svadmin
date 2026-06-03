@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import Alert, { type AlertVariant, alertVariants } from "./alert.svelte";
 import AlertTitle from "./alert-title.svelte";

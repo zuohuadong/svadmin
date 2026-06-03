@@ -3,7 +3,7 @@ import { createStrapiDataProvider } from './data-provider';
 
 mock.module('@refinedev/strapi-v4', () => {
   return {
-    DataProvider: (...args: any[]) => {
+    DataProvider: (..._args: any[]) => {
       return {
         getList: async () => ({ data: [{ id: 1 }], total: 1 }),
         getOne: async () => ({ data: { id: 1 } }),

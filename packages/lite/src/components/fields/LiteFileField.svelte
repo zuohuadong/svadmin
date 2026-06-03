@@ -22,7 +22,7 @@
 {#if mode === 'show'}
   {@const files = getFiles(value)}
   <div style="display:flex; flex-direction: column; gap: 4px;">
-    {#each files as f}
+    {#each files as f, _i (_i)}
       <a href={f} target="_blank" rel="noopener noreferrer">{f.split('/').pop() || 'Download'}</a>
     {:else}
       <span>—</span>
@@ -45,7 +45,7 @@
       {...field.required && !files.length ? { required: true } : {}}
     />
     {#if hasError}
-      {#each error as err}
+      {#each error as err, _i (_i)}
         <div class="lite-error-text">{err}</div>
       {/each}
     {/if}

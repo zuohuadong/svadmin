@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
   import type { FieldDefinition } from '@svadmin/core';
 
   interface Props {
@@ -33,7 +34,7 @@
       {(field as any).placeholder ?? (field.label || 'Yes')}
     </label>
     {#if hasError}
-      {#each error as err}
+      {#each error as err, _i (_i)}
         <div class="lite-error-text">{err}</div>
       {/each}
     {/if}

@@ -111,7 +111,7 @@
   <!-- Step indicators -->
   <div class="space-y-3">
     <div class="flex items-center justify-between text-sm">
-      {#each steps as step, i}
+      {#each steps as step, i (i)}
         <Button
           variant="ghost"
           type="button"

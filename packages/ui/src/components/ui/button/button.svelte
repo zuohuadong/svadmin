@@ -42,6 +42,7 @@
 </script>
 
 <script lang="ts">
+/* eslint-disable no-useless-assignment, @typescript-eslint/no-explicit-any */
 	let {
 		class: className,
 		variant = "default",

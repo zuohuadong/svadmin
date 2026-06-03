@@ -1,10 +1,9 @@
 <script lang="ts">
+/* eslint-disable svelte/no-at-html-tags */
   import * as markedPkg from "marked";
   import * as markedHighlightPkg from "marked-highlight";
   import * as hljsPkg from "highlight.js";
   import * as DOMPurifyPkg from "isomorphic-dompurify";
-  import { Check, Copy } from '@lucide/svelte';
-  import { Button } from "./ui/button/index.js";
 
   const Marked = markedPkg.Marked;
   const markedHighlight = markedHighlightPkg.markedHighlight;
@@ -13,7 +12,6 @@
 
   // Only safely import css if hljs exists
   if (hljsModule && Object.keys(hljsModule).length > 0) {
-    // @ts-ignore
     import("highlight.js/styles/github-dark.css").catch(() => {});
   }
 
@@ -44,7 +42,7 @@
   // Render HTML safely
   const html = $derived(
     hasMarkdownDeps
-      ? DOMPurify.sanitize(markedObj!.parse(content || "") as string)
+      ? DOMPurify.sanitize(markedObj?.parse(content || "") as string)
       : `<div style="white-space: pre-wrap">${String(content || "").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>`
   );
 
@@ -75,7 +73,7 @@
   // We do this via action instead of raw string manipulation for safety
   function enhanceCodeBlocks(node: HTMLElement, _: string) {
     return {
-      update(newHtml: string) {
+      update(_newHtml: string) {
         // Find all pre > code blocks that don't have wrappers yet
         const pres = node.querySelectorAll("pre:not(.enhanced)");
         pres.forEach((pre) => {

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { fly, scale } from 'svelte/transition';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+  import { fly } from 'svelte/transition';
   import { getResources } from '@svadmin/core';
   import { getTheme, getColorTheme } from '@svadmin/core';
   import { getLocale, t } from '@svadmin/core/i18n';
   import { currentPath } from '@svadmin/core/router';
-  import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
   import * as Tabs from './ui/tabs/index.js';
   import { Badge } from './ui/badge/index.js';
@@ -35,6 +35,7 @@
 
   // Auto-trace state changes in dev mode via Svelte 5 $inspect
   if ((import.meta as any).env?.DEV) {
+    // eslint-disable-next-line svelte/no-inspect
     $inspect({ path, theme, colorTheme, locale, resourceCount: resources.length });
   }
 </script>
@@ -119,7 +120,7 @@
                 <!-- Resources -->
                 <div class="py-1">
                   <h4 class="text-[0.6875rem] font-bold uppercase tracking-widest text-muted-foreground mb-1 px-1">Resources ({resources.length})</h4>
-                  {#each resources as r}
+                  {#each resources as r, _i (_i)}
                     <div class="flex items-center justify-between px-1 py-0.5 rounded hover:bg-muted/50">
                       <span class="text-xs text-foreground">{r.name}</span>
                       <Badge variant="outline" class="font-mono text-[0.6875rem]">{r.fields.length} fields</Badge>

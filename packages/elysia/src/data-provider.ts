@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Elysia DataProvider — CRUD convention compatible
 // Expects backend routes following: GET /resource, GET /resource/:id, POST /resource, PATCH /resource/:id, DELETE /resource/:id
 // Response format for lists: { items: T[], total: number } (also supports raw arrays)

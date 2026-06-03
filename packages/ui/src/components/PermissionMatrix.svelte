@@ -80,7 +80,7 @@
     <div class="w-full md:w-64 flex-shrink-0 bg-card rounded-xl shadow-sm border border-border p-4 flex flex-col">
       <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-2">{t('permissions.roles') || 'Roles'}</h2>
       <div class="space-y-1 flex-1 overflow-y-auto">
-        {#each roles as role}
+        {#each roles as role, _i (_i)}
           <button 
             onclick={() => selectedRole = role.code}
             class="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 {selectedRole === role.code ? 'bg-primary/10 text-primary font-medium shadow-sm ring-1 ring-primary/20' : 'text-foreground hover:bg-muted'}"
@@ -133,7 +133,7 @@
           <thead class="bg-muted/50">
             <tr>
               <th scope="col" class="py-3 pr-3 pl-4 text-left text-sm font-semibold text-foreground w-48">{t('permissions.resources') || 'Resources'}</th>
-              {#each actions as action}
+              {#each actions as action, _i (_i)}
                 <th scope="col" class="px-2 py-3 text-center text-sm font-semibold text-foreground">
                   <div class="flex flex-col items-center">
                     <span>{action.name}</span>
@@ -149,7 +149,7 @@
                  <td colspan={actions.length + 1} class="py-10 text-center text-muted-foreground">{t('permissions.noResources') || 'No resources available'}</td>
               </tr>
             {/if}
-            {#each resources as resource, i}
+            {#each resources as resource, i (i)}
               <!-- Section Grouping Header -->
               {#if resource.section && (i === 0 || resource.section !== resources[i-1].section)}
                 <tr class="bg-primary/5">
@@ -164,14 +164,14 @@
                 </td>
                 
                 <!-- Action Checkboxes -->
-                {#each actions as action}
+                {#each actions as action, _i (_i)}
                   {@const granted = selectedRole ? isGranted(selectedRole, resource.code, action.code) : false}
                   <td class="whitespace-nowrap px-3 py-3 text-center">
                     <div class="flex items-center justify-center">
                       <button 
                         disabled={loading || !selectedRole}
                         aria-label="Toggle {action.name}"
-                        onclick={() => onToggle(selectedRole!, resource.code, action.code, !granted)}
+                        onclick={() => onToggle(selectedRole as string, resource.code, action.code, !granted)}
                         class="w-6 h-6 rounded border flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 {granted ? 'bg-primary border-primary text-primary-foreground' : 'border-input bg-background hover:bg-accent'} {loading || !selectedRole ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
                       >
                         <svg class="w-3.5 h-3.5 {granted ? 'block' : 'hidden'}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">

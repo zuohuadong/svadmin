@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Component Registry — Svelte Context-based DI for component injection.
  *

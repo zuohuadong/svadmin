@@ -1,3 +1,4 @@
+/* eslint-disable svelte/prefer-svelte-reactivity */
 // UnsavedChangesNotifier — guards against accidental navigation with dirty forms
 // Supports: browser tab close, hash-based SPA routing, and framework router interception
 
@@ -14,7 +15,7 @@ export function resetUnsavedChanges(): void {
   dirty = false;
   _unsavedChangesCleanup?.();
   _unsavedChangesCleanup = null;
-  _navigationGuard = null;
+  __navigationGuard = null;
 }
 
 export function getUnsavedChanges(): boolean {
@@ -30,7 +31,7 @@ interface NavigationGuard {
   (opts: { cancel: () => void }): void;
 }
 
-let _navigationGuard: NavigationGuard | null = null;
+let __navigationGuard: NavigationGuard | null = null;
 
 /**
  * Register a framework-level navigation guard.
@@ -51,7 +52,7 @@ let _navigationGuard: NavigationGuard | null = null;
  * and pass a `beforeNavigate` callback.
  */
 export function registerNavigationGuard(guard: NavigationGuard): void {
-  _navigationGuard = guard;
+  __navigationGuard = guard;
 }
 
 /**

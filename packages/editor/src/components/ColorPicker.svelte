@@ -38,7 +38,7 @@
 
 <div class="svadmin-color-picker" bind:this={popover}>
   <div class="svadmin-color-grid">
-    {#each colors as color}
+    {#each colors as color, _i (_i)}
       <button
         type="button"
         class="svadmin-color-swatch"

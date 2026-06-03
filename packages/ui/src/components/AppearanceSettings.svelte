@@ -1,9 +1,8 @@
 <script lang="ts">
   import { t } from '@svadmin/core/i18n';
-  import { getTheme, setTheme, getResolvedTheme, getColorThemes, getColorTheme, setColorTheme, getColorPresets } from '@svadmin/core';
+  import { getTheme, setTheme, getColorTheme, setColorTheme, getColorPresets } from '@svadmin/core';
   import { getLocale, setLocale, getAvailableLocales } from '@svadmin/core/i18n';
   import * as Card from './ui/card/index.js';
-  import { Button } from './ui/button/index.js';
   import { Sun, Moon, Monitor, Check } from '@lucide/svelte';
 
   // Theme mode
@@ -67,7 +66,7 @@
     </Card.CardHeader>
     <Card.CardContent>
       <div class="grid grid-cols-3 gap-3">
-        {#each themeOptions as opt}
+        {#each themeOptions as opt, _i (_i)}
           {@const active = currentTheme === opt.value}
           <button
             class="relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all duration-200
@@ -101,7 +100,7 @@
     </Card.CardHeader>
     <Card.CardContent>
       <div class="flex flex-wrap gap-3">
-        {#each presets as preset}
+        {#each presets as preset, _i (_i)}
           {@const active = currentColor === preset.name}
           <button
             class="group relative h-9 w-9 rounded-full transition-all duration-200 hover:scale-110
@@ -137,7 +136,7 @@
           value={currentLocale}
           onchange={(e) => setLocale((e.target as HTMLSelectElement).value)}
         >
-          {#each availableLocales as loc}
+          {#each availableLocales as loc, _i (_i)}
             <option value={loc}>{localeNames[loc] ?? loc}</option>
           {/each}
         </select>
@@ -172,7 +171,7 @@
           <p class="text-sm font-medium text-foreground">{t('settings.defaultPageSize')}</p>
         </div>
         <div class="flex rounded-lg border border-input overflow-hidden">
-          {#each pageSizeOptions as size}
+          {#each pageSizeOptions as size, _i (_i)}
             <button
               class="px-3 py-1.5 text-xs font-mono font-medium transition-colors
                 {pageSize === size ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-accent'}"

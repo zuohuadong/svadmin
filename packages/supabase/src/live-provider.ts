@@ -54,7 +54,7 @@ export function createSupabaseLiveProvider(client: SupabaseClient): LiveProvider
   return {
     subscribe({ resource, callback }) {
       if (!subscribers.has(resource)) subscribers.set(resource, new Set());
-      subscribers.get(resource)!.add(callback);
+      subscribers.get(resource)?.add(callback);
 
       getOrCreateChannel(resource);
 

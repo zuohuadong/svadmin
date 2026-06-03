@@ -1,4 +1,5 @@
-import { currentPath, navigate } from './router';
+/* eslint-disable svelte/prefer-svelte-reactivity */
+import { navigate } from './router';
 import { getResource, getResources, getRouterProvider } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 

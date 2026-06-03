@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable svelte/prefer-svelte-reactivity */
   import { useForm, getResource, deriveValidator } from '@svadmin/core';
   import { slide } from 'svelte/transition';
   import type { FieldDefinition } from '@svadmin/core';
@@ -49,9 +50,9 @@
     for (const f of formFields) {
       const g = f.group ?? '';
       if (!map.has(g)) { order.push(g); map.set(g, []); }
-      map.get(g)!.push(f);
+      (map.get(g) ?? []).push(f);
     }
-    return order.map(g => ({ name: g, fields: map.get(g)! }));
+    return order.map(g => ({ name: g, fields: map.get(g) ?? [] }));
   })());
 
   // ─── Default values from field metadata ───────────────────────────
@@ -161,7 +162,7 @@
   {#if form.loading}
     <div class="max-w-3xl space-y-6">
       <div class="rounded-lg shadow-sm ring-1 ring-border/10 p-6 space-y-5">
-        {#each Array(4) as _}
+        {#each Array(4) as _, _i (_i)}
           <div class="space-y-2">
             <Skeleton class="h-4 w-24" />
             <Skeleton class="h-10 w-full" />
@@ -181,7 +182,7 @@
       {/if}
 
       {#if hasGroups}
-        {#each groups as group}
+        {#each groups as group, _i (_i)}
           <Card.Root class="border-border/40 shadow-sm">
             {#if group.name}
               <Card.Header>

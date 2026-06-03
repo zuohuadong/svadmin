@@ -121,7 +121,7 @@ export function createWebSocketLiveProvider(options: WebSocketLiveProviderOption
       if (!subscribers.has(resource)) {
         subscribers.set(resource, new Set());
       }
-      subscribers.get(resource)!.add(callback);
+      subscribers.get(resource)?.add(callback);
       lastParams.set(resource, liveParams);
 
       // Ensure connection is open

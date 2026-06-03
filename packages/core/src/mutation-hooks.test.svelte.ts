@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi } from 'vitest';
 import { useCreate, useUpdate, invalidateByScopes } from './mutation-hooks.svelte';
 import { flushSync } from 'svelte';

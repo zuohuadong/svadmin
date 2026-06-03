@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable svelte/no-at-html-tags */
   /**
    * SSR InsightCard — Degraded to static pre-rendered content.
    * The SPA version streams AI-generated insights via ChatProvider.

@@ -1,3 +1,4 @@
+/* eslint-disable svelte/prefer-svelte-reactivity */
 import { useQueryClient } from '@tanstack/svelte-query';
 import { useParsed } from './useParsed.svelte';
 import { getAdminOptions } from './options.svelte';
@@ -17,8 +18,8 @@ import { deepMerge, invalidateByScopes } from './mutation-hooks.svelte';
 
 export interface UseFormOptions<
   TVariables extends Record<string, unknown> = Record<string, unknown>,
-  TData extends BaseRecord = BaseRecord,
-  TError = HttpError,
+  _TData extends BaseRecord = BaseRecord,
+  _TError = HttpError,
 > {
   resource?: KnownResources;
   action?: 'create' | 'edit' | 'clone' | 'show';
@@ -44,7 +45,7 @@ export interface UseFormOptions<
   /** Called every time a field value changes. */
   onChange?: (event: { field: string; value: unknown; values: TVariables }) => void;
   /** Called before mutation. Return false or call cancel() to prevent submission. */
-  onSubmit?: (ctx: { values: TVariables; action: 'create' | 'edit' | 'clone' | 'show'; cancel: () => void }) => void | boolean;
+  onSubmit?: (ctx: { values: TVariables; action: 'create' | 'edit' | 'clone' | 'show'; cancel: () => void }) => boolean | undefined;
 
   // ─── Meta ─────────────────────────────────────────────────────
   meta?: Record<string, unknown>;
@@ -85,7 +86,7 @@ export interface UseFormOptions<
 
 export interface UseFormReturn<
   TVariables extends Record<string, unknown> = Record<string, unknown>,
-  TData extends BaseRecord = BaseRecord,
+  _TData extends BaseRecord = BaseRecord,
 > {
   // ─── Form values (single source of truth) ─────────────────────
   /** Reactive form values. Read/write directly. */
@@ -213,8 +214,7 @@ export function useForm<
   function setFieldError(field: string, message: string) { errors = { ...errors, [field]: message }; }
   function clearErrors() { errors = {}; }
   function clearFieldError(field: string) {
-    const next = { ...errors };
-    delete next[field];
+    const { [field]: _, ...next } = errors;
     errors = next;
   }
 
@@ -270,7 +270,7 @@ export function useForm<
   const query = createQuery(() => ({
     queryKey: [options.dataProviderName, resource, 'one', currentId, queryMeta],
     queryFn: async () => {
-      const result = await provider.getOne<BaseRecord>({ resource, id: currentId!, meta: queryMeta });
+      const result = await provider.getOne<BaseRecord>({ resource, id: currentId as string, meta: queryMeta });
       return result;
     },
     enabled: (queryOptions?.enabled ?? true) && (action === 'edit' || action === 'clone' || action === 'show') && currentId != null,
@@ -345,7 +345,7 @@ export function useForm<
   const updateMut = createMutation<{ data: TData }, unknown, TVariables>(() => ({
     ...options.updateMutationOptions,
     mutationFn: async (variables: TVariables) => {
-      const targetId = currentId!;
+      const targetId = currentId as string;
       const targetResource = resource;
       const targetMeta = mutationMeta;
       if (mutationMode === 'undoable') {

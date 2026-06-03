@@ -1,7 +1,6 @@
 import type { DataProvider } from '@svadmin/core';
 import { createRefineAdapter } from '@svadmin/refine-adapter';
 // Static import — dynamic import() gets dropped by Vite/Rollup in static SPA builds
-// @ts-ignore Peer dependency
 import { dataProvider as refineDataProvider } from '@refinedev/supabase';
 
 /**

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Editor } from '@tiptap/core';
-  import { ImageIcon, Upload, Link as LinkIcon, X } from '@lucide/svelte';
+  import { ImageIcon, Upload, Link as LinkIcon } from '@lucide/svelte';
   import { t } from '@svadmin/core';
 
   let { editor, onUpload, onclose } = $props<{
@@ -129,7 +129,6 @@
       </button>
     </div>
   {:else}
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       role="button"
       tabindex="0"

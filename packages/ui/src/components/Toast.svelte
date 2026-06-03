@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
   import { Toaster, toast as sonner } from 'sonner-svelte';
   import { getResolvedTheme, getToastQueue, consumeToastQueue, getPromiseQueue, consumePromiseQueue } from '@svadmin/core';
 

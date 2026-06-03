@@ -1,6 +1,6 @@
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
   import { Editor } from '@tiptap/core';
-  import { onDestroy } from 'svelte';
   import { fullPreset, minimalPreset, prosePreset, type EditorPresetOptions } from '../extensions/index.js';
   import type { AnyExtension } from '@tiptap/core';
   import Toolbar from './Toolbar.svelte';

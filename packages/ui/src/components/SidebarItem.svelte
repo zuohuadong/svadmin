@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { MenuItem } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
   import * as Collapsible from './ui/collapsible/index.js';
   import * as Tooltip from './ui/tooltip/index.js';
   import SidebarItem from './SidebarItem.svelte';
@@ -84,7 +83,7 @@
     </Collapsible.Trigger>
     <Collapsible.Content>
       <div class="mt-0.5 space-y-0.5" style="padding-left: {depth > 0 ? 0 : 0}px">
-        {#each item.children as child}
+        {#each item.children as child, _i (_i)}
           <SidebarItem item={child} {currentPath} {collapsed} depth={depth + 1} />
         {/each}
       </div>

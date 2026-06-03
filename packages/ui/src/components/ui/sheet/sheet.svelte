@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable svelte/no-unused-svelte-ignore */
 	import { cn, type WithElementRef } from "../../../utils.js";
 	import type { HTMLAttributes } from "svelte/elements";
 

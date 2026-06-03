@@ -93,7 +93,7 @@ export async function canAccessAsync(resourceOrBatch: string | CanParams[], acti
     return provider.can(resourceOrBatch);
   }
   
-  return provider.can({ resource: resourceOrBatch, action: action!, params }) as Promise<CanResult>;
+  return provider.can({ resource: resourceOrBatch, action: action as string, params }) as Promise<CanResult>;
 }
 
 // ─── Feature Gate ─────────────────────────────────────────────

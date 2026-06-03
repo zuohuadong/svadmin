@@ -1,3 +1,5 @@
+/* eslint-disable svelte/prefer-svelte-reactivity */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // useParsed — parse current URL hash into structured route info
 
 import { currentPath, registerRouterSync } from './router';

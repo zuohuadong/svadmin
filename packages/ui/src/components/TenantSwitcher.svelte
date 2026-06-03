@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { ChevronsUpDown, Building2, Check } from '@lucide/svelte';
-  import { Button } from './ui/button/index.js';
   import * as DropdownMenu from './ui/dropdown-menu/index.js';
   import type { Tenant } from '../types.js';
 
@@ -61,7 +60,7 @@
         <DropdownMenu.Separator />
       {/if}
       <div class="px-2 py-1.5 text-xs text-muted-foreground">Workspaces</div>
-      {#each tenants as tenant}
+      {#each tenants as tenant, _i (_i)}
         <DropdownMenu.Item
           class="flex items-center gap-3 cursor-pointer"
           onclick={() => selectTenant(tenant.id)}

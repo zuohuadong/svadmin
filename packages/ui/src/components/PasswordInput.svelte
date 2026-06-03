@@ -1,9 +1,8 @@
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
   import { Input } from './ui/input/index.js';
-  import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
   import { Label } from './ui/label/index.js';
-  import { Progress } from './ui/progress/index.js';
   import { Lock, Eye, EyeOff } from '@lucide/svelte';
   import { t } from '@svadmin/core/i18n';
 

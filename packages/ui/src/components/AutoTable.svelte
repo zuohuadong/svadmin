@@ -25,7 +25,7 @@
     table_toggleAllRowsSelected,
     row_getIsSelected,
     row_toggleSelected,
-    row_getAllVisibleCells,
+    row_getVisibleCells,
     row_getIsExpanded,
     row_toggleExpanded,
     cell_getValue,
@@ -519,7 +519,7 @@
           {/snippet}
         </DropdownMenu.Trigger>
         <DropdownMenu.Content align="end" class="w-48">
-          {#each table_getAllLeafColumns(tbl).filter((c: any) => !c.id.startsWith('_')) as column}
+          {#each table_getAllLeafColumns(tbl).filter((c: any) => !c.id.startsWith('_')) as column, _i (_i)}
             <DropdownMenu.CheckboxItem
               checked={column_getIsVisible(column)}
               onCheckedChange={(v) => column_toggleVisibility(column, !!v)}
@@ -571,7 +571,7 @@
         <Popover.Content class="w-80">
           <div class="space-y-3">
             <h4 class="font-medium text-sm">{t('common.filter')}</h4>
-            {#each filterableFields as field}
+            {#each filterableFields as field, _i (_i)}
               <div class="space-y-1">
                 <label class="text-xs text-muted-foreground" for="filter-{field.key}">{field.label}</label>
                 {#if field.type === 'select' && field.options}
@@ -582,7 +582,7 @@
                     onchange={(e) => filterValues[field.key] = (e.currentTarget as HTMLSelectElement).value}
                   >
                     <option value="">{t('common.all')}</option>
-                    {#each field.options as opt}
+                    {#each field.options as opt, _i (_i)}
                       <option value={opt.value}>{opt.label}</option>
                     {/each}
                   </select>
@@ -620,13 +620,13 @@
     {#if query.isLoading}
       <div class="p-4 space-y-3">
         <div class="flex gap-4 mb-2">
-          {#each visibleFields.slice(0, 4) as _}
+          {#each visibleFields.slice(0, 4) as _, _i (_i)}
             <Skeleton class="h-4 flex-1" />
           {/each}
         </div>
-        {#each Array(5) as _}
+        {#each Array(5) as _, _i (_i)}
           <div class="flex gap-4">
-            {#each visibleFields.slice(0, 4) as __}
+            {#each visibleFields.slice(0, 4) as __, _i (_i)}
               <Skeleton class="h-8 flex-1" />
             {/each}
           </div>
@@ -642,13 +642,13 @@
         <div class="hidden md:block">
         <Table.Root>
           <Table.Header>
-            {#each table_getHeaderGroups(tbl) as headerGroup}
+            {#each table_getHeaderGroups(tbl) as headerGroup, _i (_i)}
               <DraggableHeader
                 columns={headerGroup.headers.map((h: any) => ({ id: h.column.id, header: h }))}
                 resourceName={resourceName}
                 onReorder={(newOrder) => { columnOrder = newOrder.map((c: any) => c.id); }}
               >
-                {#snippet header(col, index, dragProps)}
+                {#snippet header(col, _index, dragProps)}
                   {@const header = col.header as typeof headerGroup.headers[0]}
                   <Table.Head
                     {...dragProps}
@@ -688,14 +688,14 @@
             {/each}
           </Table.Header>
           <Table.Body>
-            {#each table_getRowModel(tbl).rows as row}
+            {#each table_getRowModel(tbl).rows as row, _i (_i)}
               {@const record = row.original}
               {@const id = record[primaryKey] as string | number}
               <ContextMenu.Root>
                 <ContextMenu.Trigger>
                   {#snippet child({ props })}
                     <Table.Row {...props} class="transition-all duration-300 border-b border-border/10 {row_getIsSelected(row) ? 'bg-primary/5' : 'hover:bg-muted/20'}">
-                      {#each row_getAllVisibleCells(row) as cell}
+                      {#each row_getVisibleCells(row) as cell, _i (_i)}
                         <Table.Cell>
                           {#if cell.column.id === '_select'}
                             <Checkbox
@@ -739,7 +739,7 @@
                               {new Date(cell_getValue(cell) as string).toLocaleDateString()}
                             {:else if field?.type === 'tags' && Array.isArray(cell_getValue(cell))}
                               <div class="flex flex-wrap gap-1">
-                                {#each (cell_getValue(cell) as string[]).slice(0, 3) as tag}
+                                {#each (cell_getValue(cell) as string[]).slice(0, 3) as tag, _i (_i)}
                                   <Badge variant="secondary">{tag}</Badge>
                                 {/each}
                               </div>
@@ -787,7 +787,7 @@
               </ContextMenu.Root>
               {#if expandedRowRender && row_getIsExpanded(row)}
                 <Table.Row class="bg-muted/10 border-b border-border/10 transition-all">
-                  <Table.Cell colspan={row_getAllVisibleCells(row).length}>
+                  <Table.Cell colspan={row_getVisibleCells(row).length}>
                     {@render expandedRowRender({ record })}
                   </Table.Cell>
                 </Table.Row>
@@ -821,7 +821,7 @@
 
         <!-- Mobile Card View (visible only on small screens) -->
         <div class="md:hidden space-y-3 p-2">
-          {#each table_getRowModel(tbl).rows as row}
+          {#each table_getRowModel(tbl).rows as row, _i (_i)}
             {@const record = row.original}
             {@const id = record[primaryKey] as string | number}
             <div
@@ -860,7 +860,7 @@
               </div>
               <!-- Card fields -->
               <div class="space-y-2">
-                {#each visibleFields.slice(0, 6) as field}
+                {#each visibleFields.slice(0, 6) as field, _i (_i)}
                   {@const value = record[field.key]}
                   <div class="flex items-start justify-between gap-4">
                     <span class="text-xs font-medium text-muted-foreground shrink-0">{field.label}</span>
@@ -875,7 +875,7 @@
                         {new Date(value as string).toLocaleDateString()}
                       {:else if field.type === 'tags' && Array.isArray(value)}
                         <div class="flex flex-wrap gap-1 justify-end">
-                          {#each (value as string[]).slice(0, 2) as tag}
+                          {#each (value as string[]).slice(0, 2) as tag, _i (_i)}
                             <Badge variant="secondary" class="text-[10px]">{tag}</Badge>
                           {/each}
                         </div>
@@ -933,7 +933,7 @@
             disabled={currentPage <= 1}
           />
         </PaginationUI.Item>
-        {#each pages as page}
+        {#each pages as page, _i (_i)}
           <PaginationUI.Item>
             {#if page === '...'}
               <PaginationUI.Ellipsis />

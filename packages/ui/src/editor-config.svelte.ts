@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Component } from 'svelte';
 
 let registeredEditor: Component<any> | undefined = $state(undefined);

@@ -59,7 +59,7 @@
 
 <div class="inline-flex flex-col items-center gap-3 {className}">
   <svg viewBox="0 0 {size} {size}" width={size} height={size}>
-    {#each slices as slice, i}
+    {#each slices as slice, i (i)}
       <path
         d={getArcPath(slice.startAngle, slice.endAngle, radius, innerRadius)}
         fill={slice.color}
@@ -84,7 +84,7 @@
 
   <!-- Legend -->
   <div class="flex flex-wrap justify-center gap-x-4 gap-y-1">
-    {#each slices as slice}
+    {#each slices as slice, _i (_i)}
       <div class="flex items-center gap-1.5 text-xs">
         <span class="h-2.5 w-2.5 rounded-full" style="background-color: {slice.color};"></span>
         <span class="text-muted-foreground">{slice.label}</span>

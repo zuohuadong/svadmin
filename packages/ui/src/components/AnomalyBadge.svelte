@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Badge } from './ui/badge/index.js';
-  import { TrendingUp, TrendingDown, AlertTriangle } from '@lucide/svelte';
+  import { TrendingUp, TrendingDown } from '@lucide/svelte';
   import TooltipButton from './TooltipButton.svelte';
 
   interface Props {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Unit tests for RouterProvider implementations
 // Router provider tests need a DOM environment or a mock.
 import { describe, test, expect, beforeEach } from 'bun:test';

@@ -50,7 +50,7 @@ export function unionFilters(
     return false;
   };
 
-  let result = [...prevFilters];
+  const result = [...prevFilters];
 
   for (const newFilter of newFilters) {
     const idx = result.findIndex((f) => compareFilters(f, newFilter));

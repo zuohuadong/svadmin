@@ -36,6 +36,7 @@
     initialTab?: TaskTab;
   } = $props();
 
+    // eslint-disable-next-line svelte/prefer-writable-derived
   let activeTab = $state<TaskTab>('tasks');
   let selectedTaskId = $state<string | null>(null);
   let searchQuery = $state('');
@@ -283,7 +284,7 @@
                   </div>
                   <Select bind:value={statusFilter} aria-label={t('task.statusFilterLabel')}>
                     <option value="all">{t('task.statusAll')}</option>
-                    {#each availableStatuses as status}
+                    {#each availableStatuses as status, _i (_i)}
                       <option value={status}>{status}</option>
                     {/each}
                   </Select>

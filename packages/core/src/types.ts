@@ -256,7 +256,7 @@ export interface TaskSubscription {
 export interface TaskHandle<TTask extends TaskRecord = TaskRecord> {
   id?: string;
   wait(): Promise<TTask>;
-  subscribe?(callback: (task: TTask) => void): TaskSubscription | (() => void) | void;
+  subscribe?(callback: (task: TTask) => void): TaskSubscription | (() => void) | undefined;
   cancel?(): Promise<unknown>;
   retry?(): Promise<unknown>;
 }
@@ -273,7 +273,7 @@ export interface TaskProvider<TTask extends TaskRecord = TaskRecord> {
   listDlq?(params?: Record<string, unknown>): Promise<TaskListResult<TTask>>;
   cancel?(taskId: string): Promise<unknown>;
   retry?(taskId: string): Promise<unknown>;
-  subscribe?(taskId: string, callback: (task: TTask) => void): TaskSubscription | (() => void) | void;
+  subscribe?(taskId: string, callback: (task: TTask) => void): TaskSubscription | (() => void) | undefined;
 }
 
 // ─── AuthProvider ─────────────────────────────────────────────
@@ -448,6 +448,7 @@ export interface FieldDefinition {
  * // list.data → { id: string; name: string; email: string }[]
  * ```
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ResourceTypeMap {}
 
 /** When ResourceTypeMap is empty → string; otherwise → registered keys */

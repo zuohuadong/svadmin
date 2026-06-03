@@ -30,7 +30,7 @@
     {#if field.required}<span style="color:#dc2626;">*</span>{/if}
   </legend>
 
-  {#each values as item, i}
+  {#each values as item, i (i)}
     <div class="lite-array-item" style="border:1px solid #e2e8f0;border-radius:6px;padding:12px;margin-bottom:8px;background:#f8fafc;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <span style="font-size:12px;font-weight:600;color:#94a3b8;">#{i + 1}</span>
@@ -38,7 +38,7 @@
           Remove
         </button>
       </div>
-      {#each subFields as sub}
+      {#each subFields as sub, _i (_i)}
         <div style="margin-bottom:8px;">
           <label for="{namePrefix}_{i}_{sub.key}" style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:4px;">
             {sub.label}
@@ -66,7 +66,7 @@
               name="{namePrefix}[{i}][{sub.key}]"
               class="lite-input"
             >
-              {#each sub.options as opt}
+              {#each sub.options as opt, _i (_i)}
                 <option value={typeof opt === 'string' ? opt : opt.value} selected={item[sub.key] === (typeof opt === 'string' ? opt : opt.value)}>
                   {typeof opt === 'string' ? opt : opt.label}
                 </option>

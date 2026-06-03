@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs');
-const glob = require('glob'); // Note: we can use native fs.readdir if glob is not present, but let's just use fs
+const _glob = require('glob'); // Note: we can use native fs.readdir if glob is not present, but let's just use fs
 const path = require('path');
 
 const packagesDir = path.join(__dirname, 'packages');

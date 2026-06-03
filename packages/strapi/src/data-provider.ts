@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { DataProvider } from '@svadmin/core';
 import { createRefineAdapter } from '@svadmin/refine-adapter';
 
@@ -10,7 +11,6 @@ import { createRefineAdapter } from '@svadmin/refine-adapter';
  * @returns A fully compatible svadmin DataProvider
  */
 export async function createStrapiDataProvider(...args: any[]): Promise<DataProvider> {
-  // @ts-ignore
   const pkg = await import('@refinedev/strapi-v4');
   const init = (pkg as any).default || (pkg as any).dataProvider || (pkg as any).DataProvider;
   if (typeof init !== 'function') throw new Error('[svadmin] Failed to resolve @refinedev/strapi-v4 data provider. Ensure the package is installed correctly.');

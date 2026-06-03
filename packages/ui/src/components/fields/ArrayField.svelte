@@ -59,7 +59,7 @@
   </div>
   
   <div class="space-y-4 pt-2">
-    {#each arrayVal as item, i}
+    {#each arrayVal as item, i (i)}
       <div class="relative rounded-md border bg-card p-4 pt-6 shadow-sm">
         <div class="absolute right-2 top-2">
           <TooltipButton tooltip={t('common.remove') || 'Remove'} variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleRemove(i)}>

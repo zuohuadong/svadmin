@@ -130,7 +130,7 @@
               </Table.Row>
             </Table.Header>
             <Table.Body>
-              {#each filteredLogs as log}
+              {#each filteredLogs as log, _i (_i)}
                 <Table.Row class="border-0 even:bg-muted/20 hover:bg-muted/40 transition-colors">
                   <Table.Cell class="text-xs text-muted-foreground font-mono">
                     {formatDate(log.createdAt)}

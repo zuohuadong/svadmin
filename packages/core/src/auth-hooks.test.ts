@@ -4,7 +4,8 @@
  * These test the auth hook *logic* by mocking the Svelte context module
  * so `getAuthProvider()` returns a mock provider without needing a real component tree.
  */
-import { describe, test, expect, mock, beforeEach } from 'bun:test';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { describe, test, expect, mock } from 'bun:test';
 import type { AuthProvider, AuthActionResult, CheckResult, Identity } from './types';
 
 // Build a mock AuthProvider factory

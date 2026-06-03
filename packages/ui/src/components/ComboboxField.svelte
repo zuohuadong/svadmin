@@ -1,10 +1,10 @@
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
   import { t } from '@svadmin/core/i18n';
   import { useSelect } from '@svadmin/core';
   import type { Filter } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
-  import { Badge } from './ui/badge/index.js';
   import { Command } from 'cmdk-sv';
   import { Skeleton } from './ui/skeleton/index.js';
   import { ChevronsUpDown, Check, X, Search } from '@lucide/svelte';
@@ -117,11 +117,11 @@
             No results.
           </Command.Empty>
           {#if query.isLoading}
-            {#each Array(3) as _}
+            {#each Array(3) as _, _i (_i)}
               <div class="px-2 py-1.5"><Skeleton class="h-5 w-full" /></div>
             {/each}
           {:else}
-            {#each (options as { label: string; value: string | number }[]) ?? [] as opt}
+            {#each (options as { label: string; value: string | number }[]) ?? [] as opt, _i (_i)}
               <Command.Item
                 value={opt.label}
                 onSelect={() => handleSelect(opt.value)}

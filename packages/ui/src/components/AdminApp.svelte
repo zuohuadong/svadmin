@@ -3,12 +3,11 @@
   import '../app.css';
   import type { Snippet } from 'svelte';
   import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode, RouterProvider, ThemeConfig, MenuItem, TaskProvider } from '@svadmin/core';
-  import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme, setRouterProvider, setTaskProvider, getAuthProvider, createHashRouterProvider, configureTheme } from '@svadmin/core';
+  import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme, setRouterProvider, setTaskProvider, createHashRouterProvider, configureTheme } from '@svadmin/core';
   import { t } from '@svadmin/core/i18n';
   import { navigate } from '@svadmin/core/router';
-  import { currentPath } from '@svadmin/core/router';
   import { QueryClient, QueryClientProvider, type DefaultOptions } from '@tanstack/svelte-query';
-  import { setComponentRegistry, getComponentRegistry, type ComponentRegistry } from '../component-registry.svelte.js';
+  import { setComponentRegistry, type ComponentRegistry } from '../component-registry.svelte.js';
   import Layout from './Layout.svelte';
   import AutoTable from './AutoTable.svelte';
   import AutoForm from './AutoForm.svelte';

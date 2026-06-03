@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createMutation, useQueryClient } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options.svelte';
 import { getDataProviderForResource, getResource, getLiveProvider } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 import { audit } from './audit';
 import { UndoError } from './types';
-import type { BaseRecord, HttpError, CreateParams, UpdateParams, DeleteParams, KnownResources } from './types';
+import type { BaseRecord, HttpError, KnownResources } from './types';
 import { checkError, createOvertimeTracker, fireSuccessNotification, fireErrorNotification } from './hook-utils.svelte';
 import type { NotificationConfig, OvertimeOptions } from './hook-utils.svelte';
 import { toast } from './toast.svelte';
@@ -132,14 +133,14 @@ export function useCreate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       // Invalidation in onSuccess for create (refine pattern — no optimistic data to reconcile on error)
       invalidateByScopes(queryClient, resName, params.invalidates, ['list', 'many'], undefined, params.dataProviderName);
       if (typeof options.mutationOptions?.onSuccess === 'function') {
-        (options.mutationOptions.onSuccess as Function)(data, params, context);
+        (options.mutationOptions.onSuccess as (...a: unknown[]) => unknown)(data, params, context);
       }
     },
     onError: (error, params, context) => {
       checkError(error);
       fireErrorNotification(params.errorNotification, 'Create failed', error, params.resource ?? defaultResource);
       if (typeof options.mutationOptions?.onError === 'function') {
-        (options.mutationOptions.onError as Function)(error, params, context);
+        (options.mutationOptions.onError as (...a: unknown[]) => unknown)(error, params, context);
       }
     },
   }));
@@ -242,7 +243,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       
       if (updater.list !== false) {
         queryClient.setQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resName && q.queryKey[2] === 'list' }, (old: unknown) => {
-          if (typeof updater.list === 'function') return updater.list!(old, params.variables, targetId);
+          if (typeof updater.list === 'function') return updater.list(old, params.variables, targetId);
           if (!old || typeof old !== 'object' || !('data' in old)) return old;
           const o = old as { data: Record<string, unknown>[] };
           return { ...o, data: o.data.map((item) => String(item[pk]) === String(targetId) ? deepMerge(item, params.variables) : item) };
@@ -251,7 +252,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
 
       if (updater.many !== false) {
         queryClient.setQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resName && q.queryKey[2] === 'many' }, (old: unknown) => {
-          if (typeof updater.many === 'function') return updater.many!(old, params.variables, targetId);
+          if (typeof updater.many === 'function') return updater.many(old, params.variables, targetId);
           if (!old || typeof old !== 'object' || !('data' in old)) return old;
           const o = old as { data: Record<string, unknown>[] };
           return { ...o, data: o.data.map((item) => String(item[pk]) === String(targetId) ? deepMerge(item, params.variables) : item) };
@@ -268,7 +269,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       audit({ action: 'update', resource: resName, recordId: String(targetId) });
       publishLiveEvent(resName, 'updated', targetId != null ? [targetId] : undefined);
       if (typeof options.mutationOptions?.onSuccess === 'function') {
-        (options.mutationOptions.onSuccess as Function)(data, params, extractedCtx);
+        (options.mutationOptions.onSuccess as (...a: unknown[]) => unknown)(data, params, extractedCtx);
       }
     },
     onSettled: (_data, error, params) => {
@@ -277,7 +278,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       const targetId = params.id ?? defaultId;
       invalidateByScopes(queryClient, resName, params.invalidates, ['list', 'many', 'detail'], targetId != null ? targetId : undefined, params.dataProviderName);
       if (typeof options.mutationOptions?.onSettled === 'function') {
-        (options.mutationOptions.onSettled as Function)(_data, error, params, undefined);
+        (options.mutationOptions.onSettled as (...a: unknown[]) => unknown)(_data, error, params, undefined);
       }
     },
     onError: (error, params, context: unknown) => {
@@ -292,7 +293,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       const extractedCtx = ctx?._svadmin_ctx ? ctx.userContext : context;
       fireErrorNotification(params.errorNotification, 'Update failed', error, params.resource ?? defaultResource);
       if (typeof options.mutationOptions?.onError === 'function') {
-        (options.mutationOptions.onError as Function)(error, params, extractedCtx);
+        (options.mutationOptions.onError as (...a: unknown[]) => unknown)(error, params, extractedCtx);
       }
     },
   }));
@@ -409,7 +410,7 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
       audit({ action: 'delete', resource: resName, recordId: String(targetId) });
       publishLiveEvent(resName, 'deleted', targetId != null ? [targetId] : undefined);
       if (typeof options.mutationOptions?.onSuccess === 'function') {
-        (options.mutationOptions.onSuccess as Function)(data, params, extractedCtx);
+        (options.mutationOptions.onSuccess as (...a: unknown[]) => unknown)(data, params, extractedCtx);
       }
     },
     onSettled: (_data, error, params) => {
@@ -418,7 +419,7 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
       const targetId = params.id ?? defaultId;
       invalidateByScopes(queryClient, resName, params.invalidates, ['list', 'many'], targetId != null ? targetId : undefined, params.dataProviderName);
       if (typeof options.mutationOptions?.onSettled === 'function') {
-        (options.mutationOptions.onSettled as Function)(_data, error, params, undefined);
+        (options.mutationOptions.onSettled as (...a: unknown[]) => unknown)(_data, error, params, undefined);
       }
     },
     onError: (error, params, context: unknown) => {
@@ -433,7 +434,7 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
       const extractedCtx = ctx?._svadmin_ctx ? ctx.userContext : context;
       fireErrorNotification(params.errorNotification, 'Delete failed', error, params.resource ?? defaultResource);
       if (typeof options.mutationOptions?.onError === 'function') {
-        (options.mutationOptions.onError as Function)(error, params, extractedCtx);
+        (options.mutationOptions.onError as (...a: unknown[]) => unknown)(error, params, extractedCtx);
       }
     },
   }));

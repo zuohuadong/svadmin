@@ -1,4 +1,4 @@
-import { createQuery, createInfiniteQuery } from '@tanstack/svelte-query';
+import { createQuery } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options.svelte';
 import { getDataProviderForResource, getDataProvider, getLiveProvider } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
@@ -57,7 +57,7 @@ function cloneQueryKeyPart<T>(value: T): T {
   return value;
 }
 
-export interface UseListOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
+export interface UseListOptions<_TData extends BaseRecord = BaseRecord, _TError = HttpError> {
   resource?: KnownResources;
   pagination?: Pagination;
   sorters?: Sort[];
@@ -146,7 +146,7 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
 
 // ─── useOne ────────────────────────────────────────────────────
 
-export interface UseOneOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
+export interface UseOneOptions<_TData extends BaseRecord = BaseRecord, _TError = HttpError> {
   resource?: KnownResources;
   id?: string | number;
   meta?: Record<string, unknown>;
@@ -256,7 +256,7 @@ export function useShow<TData extends BaseRecord = BaseRecord, TError = HttpErro
 
 // ─── useMany ───────────────────────────────────────────────────
 
-export interface UseManyOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
+export interface UseManyOptions<_TData extends BaseRecord = BaseRecord, _TError = HttpError> {
   resource: KnownResources;
   ids: (string | number)[];
   meta?: Record<string, unknown>;

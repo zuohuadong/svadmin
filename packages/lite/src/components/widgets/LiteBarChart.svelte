@@ -27,7 +27,7 @@
     </div>
   {/if}
   <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
-    {#each data as point}
+    {#each data as point, _i (_i)}
       <div>
         <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px;">
           <span style="color: #334155;">{point.label}</span>

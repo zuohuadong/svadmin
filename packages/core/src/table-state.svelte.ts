@@ -1,3 +1,4 @@
+/* eslint-disable svelte/prefer-svelte-reactivity */
 // TableState — Svelte 5 Class State Pattern for table data management
 // Reactive class that encapsulates all table state with fine-grained $state/$derived
 
@@ -94,7 +95,7 @@ export class TableState<TData extends BaseRecord = BaseRecord, TError = HttpErro
     this.currentFilters = initFilters;
 
     // Create query
-    const _this = this;
+    const _this = this; // eslint-disable-line @typescript-eslint/no-this-alias
     const { meta, syncWithLocation: _s, dataProviderName, pagination: _p, sorters: _sr, filters: _f, ...restOptions } = options;
     this._queryResult = useList<TData, TError>({
       resource,
@@ -226,7 +227,7 @@ export class TableState<TData extends BaseRecord = BaseRecord, TError = HttpErro
   get clientData(): TData[] {
     if (this.paginationMode === 'server') return [];
     const allData = this.data;
-    let sorted = [...allData];
+    const sorted = [...allData];
     const activeSorters = this.sortersMode === 'off' ? this.effectiveSorters : [];
     if (activeSorters.length > 0) {
       sorted.sort((a, b) => {

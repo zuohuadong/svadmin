@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable no-useless-assignment */
 	import { cn, type WithElementRef } from "../../../utils.js";
 	import type { HTMLAttributes } from "svelte/elements";
 

@@ -5,7 +5,7 @@
   import { toggleTheme } from '@svadmin/core';
   import { Command } from 'cmdk-sv';
   import * as Dialog from './ui/dialog/index.js';
-  import { Search, LayoutDashboard, Plus, Sun, FileText, Sparkles, Loader2, Send } from '@lucide/svelte';
+  import { Search, LayoutDashboard, Plus, Sun, FileText, Sparkles, Loader2 } from '@lucide/svelte';
   import MarkdownRenderer from './MarkdownRenderer.svelte';
 
   let { open = $bindable(false) } = $props<{ open?: boolean }>();
@@ -124,7 +124,7 @@
               <LayoutDashboard class="h-4 w-4 text-muted-foreground" />
               {t('common.home')}
             </Command.Item>
-            {#each resources as r}
+            {#each resources as r, _i (_i)}
               <Command.Item value={r.name} onSelect={() => act(() => navigate(`/${r.name}`))} class={itemClass}>
                 <FileText class="h-4 w-4 text-muted-foreground" />
                 {r.label}
@@ -136,7 +136,7 @@
 
           <!-- Actions -->
           <Command.Group heading={t('common.actions')}>
-            {#each resources as r}
+            {#each resources as r, _i (_i)}
               <Command.Item value={`create-${r.name}`} onSelect={() => act(() => navigate(`/${r.name}/create`))} class={itemClass}>
                 <Plus class="h-4 w-4 text-muted-foreground" />
                 {t('common.create')} {r.label}

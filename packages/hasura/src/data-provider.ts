@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { DataProvider } from '@svadmin/core';
 import { createRefineAdapter } from '@svadmin/refine-adapter';
 
@@ -10,7 +11,6 @@ import { createRefineAdapter } from '@svadmin/refine-adapter';
  * @returns A fully compatible svadmin DataProvider
  */
 export async function createHasuraDataProvider(client: any, options?: any): Promise<DataProvider> {
-  // @ts-ignore Peer dependency
   const pkg = (await import('@refinedev/hasura')) as any;
   const init: any = pkg.default || pkg.dataProvider || pkg.DataProvider;
   const refineHasuraProvider = init(client, options);

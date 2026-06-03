@@ -36,7 +36,7 @@
       {#if errors.length > 0}
         <div style="padding: 12px; background: #fef2f2; border-radius: 6px; color: #ef4444; font-size: 13px;">
           <ul style="margin: 0; padding-left: 20px;">
-            {#each errors as err}
+            {#each errors as err, _i (_i)}
               <li>{err}</li>
             {/each}
           </ul>

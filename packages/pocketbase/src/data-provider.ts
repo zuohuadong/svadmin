@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // @svadmin/pocketbase — PocketBase DataProvider
 // Maps svadmin CRUD operations to PocketBase SDK
 

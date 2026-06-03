@@ -50,7 +50,7 @@
       </div>
     {/if}
 
-    {#each messages as msg, i}
+    {#each messages as msg, i (i)}
       {#if msg.role === 'user' || msg.role === 'assistant'}
         <div 
           id={i === messages.length - 1 ? 'latest-msg' : ''}

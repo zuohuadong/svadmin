@@ -32,7 +32,7 @@
       </tr>
     </thead>
     <tbody>
-      {#each data as point, i}
+      {#each data as point, i (i)}
         <tr style="background: {i % 2 === 0 ? '#ffffff' : '#f8fafc'};">
           <td style="padding: 8px 16px; font-size: 13px; color: #334155;">{point.label}</td>
           <td style="padding: 8px 16px; font-size: 13px; color: #0f172a; text-align: right; font-weight: 500;">{point.value}</td>

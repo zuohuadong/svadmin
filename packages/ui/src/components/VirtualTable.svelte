@@ -37,7 +37,7 @@
   let scrollTop = $state(0);
   let containerRef = $state<HTMLDivElement | null>(null);
 
-  const totalHeight = $derived(items.length * rowHeight);
+  const _totalHeight = $derived(items.length * rowHeight);
 
   const visibleRange = $derived.by(() => {
     const start = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan);

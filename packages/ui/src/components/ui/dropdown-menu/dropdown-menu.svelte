@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn, type WithElementRef } from "../../../utils.js";
-	import type { HTMLAttributes, HTMLButtonAttributes } from "svelte/elements";
+	import type { HTMLAttributes } from "svelte/elements";
 
 	type Props = WithElementRef<HTMLAttributes<HTMLDivElement>> & {
 		open?: boolean;

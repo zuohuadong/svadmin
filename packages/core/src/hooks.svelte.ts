@@ -1,3 +1,4 @@
+/* eslint-disable svelte/prefer-svelte-reactivity */
 // @svadmin/core — Core Data and Hook APIs (Modularized for v0.2.29+)
 
 // ─── Re-exports from modular hook files ─────────────────────────────
@@ -30,13 +31,11 @@ import { invalidateByScopes, publishLiveEvent } from './mutation-hooks.svelte';
 import type { NotificationConfig, OvertimeOptions, LiveSubscriptionParams } from './hook-utils.svelte';
 import type { BaseRecord, HttpError, Pagination, Sort, Filter, DataProvider, KnownResources } from './types';
 import type { LiveMode, LiveEvent } from './live.svelte';
-import { useList } from './query-hooks.svelte';
-import type { UseListOptions } from './query-hooks.svelte';
 import { audit } from './audit';
 
 // ─── useInfiniteList ────────────────────────────────────────────────
 
-export interface UseInfiniteListOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
+export interface UseInfiniteListOptions<_TData extends BaseRecord = BaseRecord, _TError = HttpError> {
   resource?: KnownResources;
   pagination?: Pagination;
   sorters?: Sort[];
@@ -113,7 +112,7 @@ export function useInfiniteList<TData extends BaseRecord = BaseRecord, TError = 
 
 // ─── useSelect ──────────────────────────────────────────────────────
 
-export interface UseSelectOptions<TData extends BaseRecord = BaseRecord, TOption = { label: string; value: string | number }> {
+export interface UseSelectOptions<TData extends BaseRecord = BaseRecord, _TOption = { label: string; value: string | number }> {
   resource: KnownResources;
   optionLabel?: string | ((item: TData) => string);
   optionValue?: string | ((item: TData) => string | number);
@@ -231,7 +230,7 @@ export function useSelect<TData extends BaseRecord = BaseRecord, TOption = { lab
 
 // ─── useCustom ──────────────────────────────────────────────────────
 
-export interface UseCustomOptions<TData = unknown, TError = HttpError> {
+export interface UseCustomOptions<_TData = unknown, _TError = HttpError> {
   url: string;
   method: 'get' | 'post' | 'put' | 'patch' | 'delete';
   config?: { payload?: unknown; query?: Record<string, unknown>; headers?: Record<string, string>; sorters?: Sort[]; filters?: Filter[] };

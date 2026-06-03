@@ -11,7 +11,7 @@
 
 {#if items.length > 0}
   <div class="flex flex-wrap gap-1">
-    {#each items as v}
+    {#each items as v, _i (_i)}
       {@const label = options?.find((o: { label: string; value: string | number }) => o.value === v)?.label ?? String(v)}
       <Badge variant="secondary" class="font-normal">{label}</Badge>
     {/each}

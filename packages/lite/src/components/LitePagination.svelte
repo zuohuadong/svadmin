@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable svelte/prefer-svelte-reactivity */
   /**
    * LitePagination — Pure <a> tag pagination for SSR.
    * No JavaScript. All page transitions are full page navigations.
@@ -50,7 +51,7 @@
       <span class="disabled">← {t('common.prev') || 'Prev'}</span>
     {/if}
 
-    {#each visiblePages as p}
+    {#each visiblePages as p, _i (_i)}
       {#if p === '...'}
         <span class="disabled">…</span>
       {:else if p === page}

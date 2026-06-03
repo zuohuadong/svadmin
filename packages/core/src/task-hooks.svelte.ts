@@ -74,7 +74,7 @@ export function useSubmitTask<
   return { mutation, get overtime() { return overtime; } };
 }
 
-export interface UseTaskOptions<TTask extends TaskRecord = TaskRecord, TError = HttpError> {
+export interface UseTaskOptions<TTask extends TaskRecord = TaskRecord, _TError = HttpError> {
   taskId?: string;
   taskProvider?: TaskProvider<TTask>;
   queryOptions?: {
@@ -138,7 +138,7 @@ export function useTask<TTask extends TaskRecord = TaskRecord, TError = HttpErro
   }) as typeof query & { overtime: typeof overtime };
 }
 
-export interface UseTaskListOptions<TTask extends TaskRecord = TaskRecord, TError = HttpError> {
+export interface UseTaskListOptions<TTask extends TaskRecord = TaskRecord, _TError = HttpError> {
   params?: Record<string, unknown>;
   dlq?: boolean;
   taskProvider?: TaskProvider<TTask>;

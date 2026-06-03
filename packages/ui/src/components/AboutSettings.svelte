@@ -46,7 +46,7 @@
     </Card.CardHeader>
     <Card.CardContent>
       <div class="flex flex-wrap gap-2">
-        {#each resources as resource}
+        {#each resources as resource, _i (_i)}
           <Badge variant="outline" class="font-mono text-xs">{resource.name}</Badge>
         {/each}
         {#if resources.length === 0}
@@ -66,7 +66,7 @@
     </Card.CardHeader>
     <Card.CardContent>
       <div class="flex flex-wrap gap-2">
-        {#each providerNames as name}
+        {#each providerNames as name, _i (_i)}
           <Badge variant="outline" class="font-mono text-xs">{name}</Badge>
         {/each}
       </div>

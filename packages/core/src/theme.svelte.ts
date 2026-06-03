@@ -255,7 +255,7 @@ export function configureTheme(config: ThemeConfig): void {
     if (preset) {
       colorTheme = preset.name as ColorTheme;
       if (typeof window !== 'undefined') {
-        try { localStorage.setItem(COLOR_STORAGE_KEY, preset.name); } catch {}
+        try { localStorage.setItem(COLOR_STORAGE_KEY, preset.name); } catch { /* intentional */}
       }
       applyColorTheme(preset.name as ColorTheme);
       applyColorPreset(preset);
@@ -369,7 +369,7 @@ export function getTheme(): ThemeMode {
 export function setTheme(newMode: ThemeMode): void {
   mode = newMode;
   if (typeof window !== 'undefined') {
-    try { localStorage.setItem(STORAGE_KEY, newMode); } catch {}
+    try { localStorage.setItem(STORAGE_KEY, newMode); } catch { /* intentional */}
   }
   applyTheme(newMode);
   // Re-apply color preset — light/dark CSS variable overrides differ
@@ -416,7 +416,7 @@ export function getColorTheme(): ColorTheme {
 export function setColorTheme(ct: ColorTheme): void {
   colorTheme = ct;
   if (typeof window !== 'undefined') {
-    try { localStorage.setItem(COLOR_STORAGE_KEY, ct); } catch {}
+    try { localStorage.setItem(COLOR_STORAGE_KEY, ct); } catch { /* intentional */}
   }
   applyColorTheme(ct);
   const preset = builtinPresets[ct];

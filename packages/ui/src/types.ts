@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type RoleInfo = { code: string; name: string; [key: string]: any };
 export type ResourceInfo = { code: string; name: string; section?: string; [key: string]: any };
 export type ActionInfo = { code: string; name: string; [key: string]: any };

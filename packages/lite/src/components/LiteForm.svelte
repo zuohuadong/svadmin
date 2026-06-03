@@ -55,7 +55,7 @@
     {/if}
   {/if}
 
-  {#each formFields as field}
+  {#each formFields as field, _i (_i)}
     {@const inputType = fieldToInputType(field)}
     {@const placeholder = fieldToPlaceholder(field)}
     {@const value = values[field.key]}
@@ -97,7 +97,7 @@
               <option value="">-- {t('common.select') || 'Select'} --</option>
             {/if}
             {#if field.options}
-              {#each field.options as opt}
+              {#each field.options as opt, _i (_i)}
                 <option 
                   value={String(opt.value)} 
                   selected={field.type === 'multiselect' ? (Array.isArray(value) && value.includes(opt.value)) : value === opt.value}
@@ -121,7 +121,7 @@
         {/if}
 
         {#if hasError}
-          {#each fieldErrors as err}
+          {#each fieldErrors as err, _i (_i)}
             <div class="lite-error-text">{err}</div>
           {/each}
         {/if}

@@ -3,6 +3,7 @@
 // we test the pure type shapes and serialization here — matching the project's
 // pattern in i18n.test.ts of testing extracted logic.
 
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, test, expect } from 'bun:test';
 
 /** Mirror of ChatAction from chatProvider.svelte.ts */

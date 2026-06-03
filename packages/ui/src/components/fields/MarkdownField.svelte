@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable svelte/no-at-html-tags */
   import * as DOMPurifyPkg from "isomorphic-dompurify";
   interface Props { value: string | null | undefined }
   let { value }: Props = $props();

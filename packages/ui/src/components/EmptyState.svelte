@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fade, scale } from 'svelte/transition';
+  import { scale } from 'svelte/transition';
   import { PackageOpen } from '@lucide/svelte';
   import { t } from '@svadmin/core';
 

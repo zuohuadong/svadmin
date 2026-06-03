@@ -1,9 +1,9 @@
+/* eslint-disable svelte/prefer-svelte-reactivity */
 import { useForm, type UseFormOptions, type UseFormReturn } from './form-hooks.svelte';
 import { useQueryClient } from '@tanstack/svelte-query';
 import { useParsed } from './useParsed.svelte';
 import { getResource, getResources } from './context.svelte';
 import { getAdminOptions } from './options.svelte';
-import { navigate } from './router';
 import { t } from './i18n.svelte';
 import type { BaseRecord, HttpError, Filter, KnownResources, ResourceDefinition } from './types';
 import { useList, type UseListOptions } from './query-hooks.svelte';
@@ -162,7 +162,7 @@ export function useBreadcrumb() {
 
 // ─── useRelation ───────────────────────────────────────────
 
-export interface UseRelationOptions<TData extends BaseRecord = BaseRecord, TError = HttpError> {
+export interface UseRelationOptions<_TData extends BaseRecord = BaseRecord, _TError = HttpError> {
   resource: KnownResources;
   id?: string | number;
   pagination?: { current?: number; pageSize?: number };

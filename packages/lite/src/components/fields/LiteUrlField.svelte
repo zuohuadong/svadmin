@@ -32,7 +32,7 @@
       {...field.required ? { required: true } : {}}
     />
     {#if hasError}
-      {#each error as err}
+      {#each error as err, _i (_i)}
         <div class="lite-error-text">{err}</div>
       {/each}
     {/if}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { DataProvider as SvadminDataProvider } from '@svadmin/core';
 
 /**

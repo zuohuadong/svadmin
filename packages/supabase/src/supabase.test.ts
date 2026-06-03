@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // @svadmin/supabase — Unit Tests
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, test, expect, mock } from 'bun:test';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -29,7 +31,7 @@ mock.module('@refinedev/supabase', () => {
 function createMockSupabaseClient(overrides: Record<string, any> = {}) {
   const client = {
     auth: {
-      signInWithPassword: mock(async ({ email, password }) => {
+      signInWithPassword: mock(async ({ _email, password }) => {
         if (password === 'bad') return { error: { message: 'Invalid credentials' } };
         return { data: { user: { id: 'user-1' } }, error: null };
       }),
@@ -226,10 +228,10 @@ describe('Supabase LiveProvider', () => {
     const client = createMockSupabaseClient();
     const live = createSupabaseLiveProvider(client);
     
-    let callbackTriggered = false;
+    let _callbackTriggered = false;
     const unsub = live.subscribe({
       resource: 'posts',
-      callback: (event) => { callbackTriggered = true; }
+      callback: (_event) => { _callbackTriggered = true; }
     });
     
     expect(client.channel).toHaveBeenCalledWith('live-posts');
