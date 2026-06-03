@@ -1,0 +1,44 @@
+{
+  "name": "@svadmin/supauth-middleware",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Supauth/OIDC identity, RBAC and audit context middleware for svadmin server-side apps",
+  "license": "MIT",
+  "keywords": [
+    "svadmin",
+    "supauth",
+    "oidc",
+    "jwt",
+    "rbac",
+    "middleware",
+    "gotrue"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zuohuadong/svadmin",
+    "directory": "packages/supauth-middleware"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "jose": "^6.2.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.7.0"
+  },
+  "peerDependenciesMeta": {
+    "jose": {
+      "optional": false
+    }
+  }
+}
