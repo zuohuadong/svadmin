@@ -98,16 +98,19 @@ export async function canAccessAsync(resourceOrBatch: string | CanParams[], acti
 
 // ─── Feature Gate ─────────────────────────────────────────────
 
-/**
- * 角色层级定义 (高权 → 低权)
- */
-const ROLE_HIERARCHY = ["superadmin", "admin", "manager", "user", "viewer", "guest"];
-
 export interface FeatureGateConfig {
   /** 允许访问的角色列表 */
   roles?: string[];
-  /** 需要的最低角色 (含以上所有角色) */
+  /**
+   * 需要的最低角色 (含以上所有角色)。
+   * 使用 minRole 时必须同时提供 roleHierarchy。
+   */
   minRole?: string;
+  /**
+   * 角色层级定义 (高权 → 低权)，用于 minRole 比较。
+   * 由调用方按自身业务定义，框架不预设任何角色。
+   */
+  roleHierarchy?: string[];
   /** 需要的权限列表 (全部匹配) */
   permissions?: string[];
 }
@@ -119,34 +122,39 @@ export interface FeatureGateUser {
 
 /**
  * 创建功能门控函数 — 基于角色和权限判断用户是否可访问某功能。
+ * 不预设任何角色层级，由调用方完全定义。
  *
  * @example
  * ```ts
- * const canUseCode = createFeatureGate({
- *   minRole: 'manager',
- *   permissions: ['code:execute'],
+ * const HIERARCHY = ['admin', 'editor', 'viewer'];
+ * const canEdit = createFeatureGate({
+ *   minRole: 'editor',
+ *   roleHierarchy: HIERARCHY,
+ *   permissions: ['content:write'],
  * });
  *
- * if (canUseCode(user)) { ... }
+ * if (canEdit(user)) { ... }
  * ```
  */
 export function createFeatureGate(config: FeatureGateConfig): (user: FeatureGateUser) => boolean {
   return (user: FeatureGateUser): boolean => {
-    // 角色白名单
     if (config.roles && !config.roles.includes(user.role)) {
       return false;
     }
 
-    // 最低角色层级检查
     if (config.minRole) {
-      const userIndex = ROLE_HIERARCHY.indexOf(user.role);
-      const minIndex = ROLE_HIERARCHY.indexOf(config.minRole);
-      if (userIndex === -1 || minIndex === -1 || userIndex > minIndex) {
-        return false;
+      const hierarchy = config.roleHierarchy;
+      if (!hierarchy || hierarchy.length === 0) {
+        if (user.role !== config.minRole) return false;
+      } else {
+        const userIndex = hierarchy.indexOf(user.role);
+        const minIndex = hierarchy.indexOf(config.minRole);
+        if (userIndex === -1 || minIndex === -1 || userIndex > minIndex) {
+          return false;
+        }
       }
     }
 
-    // 权限检查 (全部匹配)
     if (config.permissions && config.permissions.length > 0) {
       const hasAll = config.permissions.every((permission) => {
         if (user.permissions.includes("*")) return true;
