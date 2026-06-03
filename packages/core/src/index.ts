@@ -32,7 +32,7 @@ export {
 export { matchRoute, navigate, currentPath, setActiveRouterProvider, beforeEach, afterEach, resetRouter } from './router';
 export type { RouteGuard } from './router';
 export { readURLState, writeURLState } from './url-sync';
-export { setAccessControlProvider, getAccessControlProvider, getAccessControlOptions, canAccessAsync } from './permissions.svelte';
+export { setAccessControlProvider, getAccessControlProvider, getAccessControlOptions, canAccessAsync, createFeatureGate } from './permissions.svelte';
 export { useLive, useSubscription, usePublish } from './live.svelte';
 export { toast, getToastQueue, consumeToastQueue, getPromiseQueue, consumePromiseQueue, resetToast } from './toast.svelte';
 export { notify, closeNotification, setNotificationProvider, getNotificationProvider } from './notification.svelte';
@@ -72,7 +72,7 @@ export type {
 } from './types';
 export type { InvalidateScope } from './options.svelte';
 export type { LiveProvider, LiveEvent, LiveMode } from './live.svelte';
-export type { Action, CanParams, CanResult, AccessControlProvider } from './permissions.svelte';
+export type { Action, CanParams, CanResult, AccessControlProvider, FeatureGateConfig, FeatureGateUser } from './permissions.svelte';
 export type { AuditEntry, AuditHandler } from './audit';
 export { useCan } from './useCan';
 export type { UseCanOptions, UseCanResult } from './useCan';
@@ -127,3 +127,7 @@ export type {
   TaskListResult,
   TaskSubscription,
 } from './types';
+
+// HTTP fetch utilities
+export { createFetchWithInterceptor, fetchWithInterceptor } from './http';
+export type { FetchWithInterceptor, FetchWithInterceptorOptions } from './http';
