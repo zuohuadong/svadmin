@@ -18,5 +18,17 @@ export {
   createGitLabAuth,
   createKeycloakAuth,
   createAuth0Auth,
+  createSupauthAuth,
 } from './presets';
 export type { PresetOptions } from './presets';
+
+// Auth helpers (PKCE, OIDC discovery, redirect validation)
+export {
+  generateState,
+  generateVerifier,
+  generateChallenge,
+  isValidReturnTo,
+  getForwardedOrigin,
+  resolveAuthorizeUrl,
+  resolveTokenUrl,
+} from './auth-helpers';
