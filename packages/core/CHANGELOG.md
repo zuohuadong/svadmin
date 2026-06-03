@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.27.0](https://github.com/zuohuadong/svadmin/compare/core-v0.26.0...core-v0.27.0) (2026-06-03)
+
+
+### 🚀 Features
+
+* svelte 5 runes migration, AI review workflow, eslint baseline, and dependabot config ([3b7a0b0](https://github.com/zuohuadong/svadmin/commit/3b7a0b0f89470f43f7ca3685ee25f1ad86353fc6))
+
+
+### 🐛 Bug Fixes
+
+* **core:** remove hardcoded role hierarchy from createFeatureGate ([4cbdaa2](https://github.com/zuohuadong/svadmin/commit/4cbdaa22b72b1820402d48cc9eed2ae8a3ee197c))
+
 ## [0.26.0](https://github.com/zuohuadong/svadmin/compare/core-v0.25.5...core-v0.26.0) (2026-06-03)
 
 
