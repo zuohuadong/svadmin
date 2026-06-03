@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.26.0](https://github.com/zuohuadong/svadmin/compare/core-v0.25.5...core-v0.26.0) (2026-06-03)
+
+
+### 🚀 Features
+
+* **core:** add fetchWithInterceptor and createFeatureGate ([6d2c7d7](https://github.com/zuohuadong/svadmin/commit/6d2c7d79c19252761796850998b2f2eb88ef930d))
+* **core:** add fetchWithInterceptor and createFeatureGate ([c48c4b7](https://github.com/zuohuadong/svadmin/commit/c48c4b7d2e6ea1eab854894ee2d5d7ee76078c2b))
+
+
+### 🐛 Bug Fixes
+
+* **core:** make fetch interceptor SSR-safe ([4cd386e](https://github.com/zuohuadong/svadmin/commit/4cd386efa88fa1083fc23f76b91b10096d884f8a))
+
 ## [0.25.5](https://github.com/zuohuadong/svadmin/compare/core-v0.25.4...core-v0.25.5) (2026-05-23)
 
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/zuohuadong/svadmin/compare/sso-v0.9.0...sso-v0.10.0) (2026-06-03)
+
+
+### 🚀 Features
+
+* **sso:** add Supauth preset, PKCE helpers and OIDC discovery utilities ([f3c1c02](https://github.com/zuohuadong/svadmin/commit/f3c1c027943262e049793c86e33452de40e2817f))
+* **sso:** add Supauth preset, PKCE helpers and OIDC discovery utilities ([f58f304](https://github.com/zuohuadong/svadmin/commit/f58f304b54f695669cf735d2eb2463b1e986e780))
+
 ## [0.9.0](https://github.com/zuohuadong/svadmin/compare/sso-v0.8.8...sso-v0.9.0) (2026-05-23)
 
 
