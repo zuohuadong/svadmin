@@ -177,3 +177,28 @@ export function createAuth0Auth(
 // ─── Type exports ────────────────────────────────────────────
 
 export type { PresetOptions };
+
+// ─── Supauth / GoTrue ────────────────────────────────────────
+
+/**
+ * Supauth OIDC Sign-In (GoTrue-compatible identity provider).
+ *
+ * Compatible with SupaCloud, SupaOAuth, and any GoTrue-based auth backend.
+ * Uses standard OIDC Authorization Code Flow with PKCE.
+ *
+ * @param issuer - Supauth issuer URL (e.g., 'https://auth.example.com')
+ * @param clientId - OAuth2 Client ID
+ */
+export function createSupauthAuth(
+  clientId: string,
+  opts?: PresetOptions & { issuer?: string },
+) {
+  const issuer = opts?.issuer ?? '';
+  return createSSOAuthProvider({
+    issuer,
+    clientId,
+    scopes: ['openid', 'profile', 'email'],
+    redirectUri: resolveRedirectUri(opts),
+    ...opts,
+  });
+}
