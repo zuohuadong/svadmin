@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7](https://github.com/zuohuadong/svadmin/compare/mcp-v0.2.6...mcp-v0.2.7) (2026-06-04)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** upgrade all dependencies and fix lint errors ([509f285](https://github.com/zuohuadong/svadmin/commit/509f28531f9f61d019f15aeb555160c24f64b48b))
+
 ## [0.2.6](https://github.com/zuohuadong/svadmin/compare/mcp-v0.2.5...mcp-v0.2.6) (2026-05-04)
 
 

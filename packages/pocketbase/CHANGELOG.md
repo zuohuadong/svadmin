@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.8](https://github.com/zuohuadong/svadmin/compare/pocketbase-v0.9.7...pocketbase-v0.9.8) (2026-06-04)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** upgrade all dependencies and fix lint errors ([509f285](https://github.com/zuohuadong/svadmin/commit/509f28531f9f61d019f15aeb555160c24f64b48b))
+
 ## [0.9.7](https://github.com/zuohuadong/svadmin/compare/pocketbase-v0.9.6...pocketbase-v0.9.7) (2026-05-04)
 
 

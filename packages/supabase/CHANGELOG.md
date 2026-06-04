@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.3](https://github.com/zuohuadong/svadmin/compare/supabase-v0.11.2...supabase-v0.11.3) (2026-06-04)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** upgrade all dependencies and fix lint errors ([509f285](https://github.com/zuohuadong/svadmin/commit/509f28531f9f61d019f15aeb555160c24f64b48b))
+
 ## [0.11.2](https://github.com/zuohuadong/svadmin/compare/supabase-v0.11.1...supabase-v0.11.2) (2026-05-04)
 
 
