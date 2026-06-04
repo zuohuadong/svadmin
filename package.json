@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "dev": "cd example && bun run dev",
-    "build": "cd example && bun run build",
+    "build": "bun run build:packages && cd example && bun run build",
     "check": "bun run typecheck",
     "lint": "eslint .",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json",
@@ -19,7 +19,8 @@
     "test:e2e": "bun run playwright test",
     "docs:dev": "cd docs && bun run dev",
     "docs:build": "cd docs && bun run build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "build:packages": "cd packages/ui && bun run build"
   },
   "keywords": [
     "svelte",
