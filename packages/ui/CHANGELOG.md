@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.10](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.9...ui-v0.34.10) (2026-06-04)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** upgrade all dependencies and fix lint errors ([509f285](https://github.com/zuohuadong/svadmin/commit/509f28531f9f61d019f15aeb555160c24f64b48b))
+
 ## [0.34.9](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.8...ui-v0.34.9) (2026-05-23)
 
 
