@@ -72,18 +72,18 @@ interface FieldDefinition {
 
 ## 国际化 (I18n)
 
-`@svadmin/core` 原生集成了基于 Svelte 5 Runes `$derived` 驱动的轻量级多语言系统 `useTranslation`。获取返回的 `t` 和属性后天然具备 Svelte 的响应式能力：
+`@svadmin/core` 内置了基于 `useTranslation` 的轻量级多语言系统。在组件中建议保留返回对象，并在模板中通过属性访问，让 Svelte 在渲染时读取最新值：
 
 ```svelte
 <script>
   import { useTranslation, addTranslations } from '@svadmin/core';
 
-  const { t, locale, setLocale, getAvailableLocales } = useTranslation();
+  const i18n = useTranslation();
 
   addTranslations('ja-JP', { 'common.test': 'テスト' });
 </script>
 
-<h1>{t('common.save')}</h1>
-<p>当前语言: {locale}</p>
-<button onclick={() => setLocale('ja-JP')}>切到日语</button>
+<h1>{i18n.t('common.save')}</h1>
+<p>当前语言: {i18n.locale}</p>
+<button onclick={() => i18n.setLocale('ja-JP')}>切到日语</button>
 ```
