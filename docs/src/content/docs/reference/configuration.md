@@ -72,18 +72,18 @@ Available: `blue`, `green`, `purple`, `orange`, `rose`, `teal`, `slate`
 
 ## Internationalization (I18n)
 
-`@svadmin/core` includes a lightweight, native Svelte 5 `$derived` powered internationalization system via the `useTranslation` hook. The returned `t` and properties are fully reactive:
+`@svadmin/core` includes a lightweight internationalization system via the `useTranslation` hook. In components, keep the returned object intact and access its properties in markup so Svelte reads the latest values during render:
 
 ```svelte
 <script>
   import { useTranslation, addTranslations } from '@svadmin/core';
 
-  const { t, locale, setLocale, getAvailableLocales } = useTranslation();
+  const i18n = useTranslation();
 
   addTranslations('ja-JP', { 'common.test': 'テスト' });
 </script>
 
-<h1>{t('common.save')}</h1>
-<p>Current language: {locale}</p>
-<button onclick={() => setLocale('ja-JP')}>Switch to Japanese</button>
+<h1>{i18n.t('common.save')}</h1>
+<p>Current language: {i18n.locale}</p>
+<button onclick={() => i18n.setLocale('ja-JP')}>Switch to Japanese</button>
 ```
