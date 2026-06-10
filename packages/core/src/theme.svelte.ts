@@ -235,6 +235,8 @@ export interface ThemeConfig {
   disableColorScheme?: boolean;
   /** Built-in color preset name (e.g. 'indigo', 'blue') or a custom ColorPreset object */
   colorPreset?: ColorPreset | string;
+  /** Layout style option: 'default' or 'clean-flat' for high-contrast flat panel design */
+  layoutPreset?: 'default' | 'clean-flat';
 }
 
 const STORAGE_KEY = 'svadmin-theme';
@@ -328,6 +330,13 @@ function applyTheme(m: ThemeMode): void {
 
   const strategy = themeConfig.strategy ?? 'standard';
   const el = document.documentElement;
+  
+  // Apply clean-flat layout preset class to html
+  if (themeConfig.layoutPreset === 'clean-flat') {
+    el.classList.add('layout-clean-flat');
+  } else {
+    el.classList.remove('layout-clean-flat');
+  }
 
   if (strategy === 'dark-first') {
     // Dark-first: default is dark, add 'light' class for light mode
