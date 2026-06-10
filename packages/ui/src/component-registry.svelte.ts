@@ -19,6 +19,7 @@ export interface ComponentRegistry {
   AutoTable: Component<any>;
   AutoForm: Component<any>;
   ShowPage: Component<any>;
+  ErrorPage?: Component<any>;
 
   // Shadcn primitives
   Button: Component<any>;

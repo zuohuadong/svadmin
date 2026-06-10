@@ -2,22 +2,17 @@
   import { AdminApp, setRichTextEditor } from '@svadmin/ui';
   import { Editor } from '@svadmin/editor';
   import '@svadmin/ui/app.css';
-  import { createSimpleRestDataProvider } from '@svadmin/simple-rest';
+  import { inMemoryDataProvider } from './providers/inMemoryDb';
   import { resources } from './resources';
   import { mockAuthProvider } from './providers/mockAuth';
-
-  const dataProviderPromise = createSimpleRestDataProvider({
-    apiUrl: 'https://jsonplaceholder.typicode.com',
-  });
+  import Dashboard from './pages/Dashboard.svelte';
 
   // Register the optional Rich Text Editor plugin globally
   setRichTextEditor(Editor);
 </script>
 
-{#await dataProviderPromise}
-  <div style="display: flex; height: 100vh; align-items: center; justify-content: center;">
-    Loading app...
-  </div>
-{:then dataProvider}
-  <AdminApp {dataProvider} {resources} authProvider={mockAuthProvider} title="svadmin Demo" locale="en" />
-{/await}
+<AdminApp dataProvider={inMemoryDataProvider} {resources} authProvider={mockAuthProvider} title="Inventory Platform" locale="en">
+  {#snippet dashboard()}
+    <Dashboard />
+  {/snippet}
+</AdminApp>

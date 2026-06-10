@@ -1,0 +1,58 @@
+<script lang="ts">
+  import { t } from '@svadmin/core/i18n';
+  import { navigate } from '@svadmin/core/router';
+  import { AlertTriangle, ArrowLeft, FileQuestion, Home } from '@lucide/svelte';
+  import { Button } from './ui/button/index.js';
+  import * as Card from './ui/card/index.js';
+
+  interface Props {
+    status?: '404' | '500';
+    title?: string;
+    description?: string;
+  }
+
+  let { status = '404', title, description }: Props = $props();
+
+  function goBack() {
+    if (typeof window !== 'undefined') {
+      window.history.back();
+    }
+  }
+
+  const isNotFound = $derived(status === '404');
+  const resolvedTitle = $derived(title ?? (isNotFound ? t('common.pageNotFound') : t('common.error')));
+  const resolvedDescription = $derived(
+    description ?? (isNotFound ? t('error.pageNotFoundDescription') : t('error.internalServerErrorDescription')),
+  );
+</script>
+
+<div class="flex min-h-[70vh] items-center justify-center p-4">
+  <Card.Card class="w-full max-w-md border-border/60">
+    <Card.CardContent class="space-y-6 px-6 py-10 text-center">
+      <div class="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground">
+        {#if isNotFound}
+          <FileQuestion class="h-8 w-8" />
+        {:else}
+          <AlertTriangle class="h-8 w-8 text-destructive" />
+        {/if}
+      </div>
+
+      <div class="space-y-2">
+        <p class="text-xs font-semibold uppercase text-muted-foreground">{status}</p>
+        <h1 class="text-2xl font-semibold text-foreground">{resolvedTitle}</h1>
+        <p class="mx-auto max-w-sm text-sm leading-relaxed text-muted-foreground">{resolvedDescription}</p>
+      </div>
+
+      <div class="flex flex-col justify-center gap-2 sm:flex-row">
+        <Button variant="outline" onclick={goBack}>
+          <ArrowLeft class="h-4 w-4" />
+          {t('common.back')}
+        </Button>
+        <Button onclick={() => navigate('/')}>
+          <Home class="h-4 w-4" />
+          {t('common.returnHome')}
+        </Button>
+      </div>
+    </Card.CardContent>
+  </Card.Card>
+</div>

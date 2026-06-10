@@ -1,5 +1,4 @@
 <script lang="ts">
-/* eslint-disable svelte/prefer-svelte-reactivity */
   import { useForm, getResource, deriveValidator } from '@svadmin/core';
   import { slide } from 'svelte/transition';
   import type { FieldDefinition } from '@svadmin/core';
@@ -76,18 +75,6 @@
 
   const validator = $derived(deriveValidator(formFields));
 
-  $effect(() => {
-    if (mode !== 'create') return;
-    if (!form.isTainted()) {
-      for (const key in defaults) {
-        if (form.values[key] !== defaults[key]) {
-          form.setFieldValue(key, defaults[key]);
-        }
-      }
-      form.untaint();
-    }
-  });
-
   // ─── useForm: single source of truth for values, errors, tainted ──
   const form = useForm({
     get resource() { return resourceName; },
@@ -154,6 +141,9 @@
       <ArrowLeft class="h-5 w-5" />
     </TooltipButton>
     <h1 class="text-xl font-semibold text-foreground">{pageTitle}</h1>
+    {#if headerContent}
+      {@render headerContent()}
+    {/if}
     {#if form.isTainted()}
       <Badge variant="outline" class="border-warning/30 bg-warning/10 text-warning-foreground">{t('common.unsaved')}</Badge>
     {/if}

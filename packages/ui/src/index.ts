@@ -68,6 +68,11 @@ export { setRichTextEditor, getRichTextEditor } from "./editor-config.svelte.js"
 // Settings & Preferences
 export { default as AppearanceSettings } from "./components/AppearanceSettings.svelte";
 export { default as AboutSettings } from "./components/AboutSettings.svelte";
+export { default as SecuritySettings } from "./components/SecuritySettings.svelte";
+export { default as IntegrationsSettings } from "./components/IntegrationsSettings.svelte";
+export { default as NotificationsSettings } from "./components/NotificationsSettings.svelte";
+export { default as ApiSettings } from "./components/ApiSettings.svelte";
+export { default as ErrorPage } from "./components/ErrorPage.svelte";
 export { default as PermissionMatrix } from "./components/PermissionMatrix.svelte";
 export type { RoleInfo, ResourceInfo, ActionInfo } from "./types.js";
 export { default as RolesSettings } from "./components/RolesSettings.svelte";

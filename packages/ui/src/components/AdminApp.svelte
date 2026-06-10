@@ -23,6 +23,7 @@
   import Header from './Header.svelte';
   import TaskQueueDrawer from './TaskQueueDrawer.svelte';
   import SettingsPage from './SettingsPage.svelte';
+  import ErrorPage from './ErrorPage.svelte';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
   import { Badge } from './ui/badge/index.js';
@@ -80,7 +81,7 @@
   const defaultComponents: ComponentRegistry = {
     Layout, Sidebar, Header,
     LoginPage, AutoTable, AutoForm, ShowPage,
-    TaskQueueDrawer,
+    TaskQueueDrawer, ErrorPage,
     Button: Button as unknown as ComponentRegistry['Button'],
     Input: Input as unknown as ComponentRegistry['Input'],
     Badge: Badge as unknown as ComponentRegistry['Badge'],
@@ -134,6 +135,8 @@
   // Reactive getters for route state
   const route = $derived(getRoute());
   const params = $derived(getParams());
+  const resourceNames = $derived(new Set(resources.map((resource) => resource.name)));
+  const hasRouteResource = $derived(!params.resource || resourceNames.has(params.resource));
 
   // Auth check
   let isAuthenticated = $state(false);
@@ -198,6 +201,9 @@
       <div class="svadmin-page-enter">
       {#if route.startsWith('/settings')}
         <SettingsPage />
+      {:else if route === '/500' || (route === '/:resource' && params.resource === '500')}
+        {@const ErrorComp = mergedComponents.ErrorPage || ErrorPage}
+        <ErrorComp status="500" />
       {:else if route === '/' || route === ''}
         {#if dashboard}
           {@render dashboard()}
@@ -207,31 +213,34 @@
             <p class="text-muted-foreground">{t('common.dashboardHint')}</p>
           </div>
         {/if}
-      {:else if route === '/:resource' || route === '/:parent/:parentId/:resource'}
+      {:else if (route === '/:resource' || route === '/:parent/:parentId/:resource') && hasRouteResource}
         {#key params.resource}
           {@const Comp = mergedComponents.AutoTable}
           <Comp resourceName={params.resource} />
         {/key}
-      {:else if route === '/:resource/create' || route === '/:parent/:parentId/:resource/create'}
+      {:else if (route === '/:resource/create' || route === '/:parent/:parentId/:resource/create') && hasRouteResource}
         {#key params.resource}
           {@const Comp = mergedComponents.AutoForm}
           <Comp resourceName={params.resource} mode="create" />
         {/key}
-      {:else if route === '/:resource/edit/:id' || route === '/:parent/:parentId/:resource/edit/:id'}
+      {:else if (route === '/:resource/edit/:id' || route === '/:parent/:parentId/:resource/edit/:id') && hasRouteResource}
         {#key `${params.resource}-${params.id}`}
           {@const Comp = mergedComponents.AutoForm}
           <Comp resourceName={params.resource} mode="edit" id={params.id} />
         {/key}
-      {:else if route === '/:resource/show/:id' || route === '/:parent/:parentId/:resource/show/:id'}
+      {:else if (route === '/:resource/show/:id' || route === '/:parent/:parentId/:resource/show/:id') && hasRouteResource}
         {#key `${params.resource}-${params.id}`}
           {@const Comp = mergedComponents.ShowPage}
           <Comp resourceName={params.resource} id={params.id} />
         {/key}
-      {:else if route === '/:resource/clone/:id' || route === '/:parent/:parentId/:resource/clone/:id'}
+      {:else if (route === '/:resource/clone/:id' || route === '/:parent/:parentId/:resource/clone/:id') && hasRouteResource}
         {#key `${params.resource}-clone-${params.id}`}
           {@const Comp = mergedComponents.AutoForm}
           <Comp resourceName={params.resource} mode="clone" id={params.id} />
         {/key}
+      {:else}
+        {@const ErrorComp = mergedComponents.ErrorPage || ErrorPage}
+        <ErrorComp status="404" />
       {/if}
       </div>
       {/key}

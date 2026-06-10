@@ -1,0 +1,191 @@
+<script lang="ts">
+  import { t } from '@svadmin/core/i18n';
+  import { AlertCircle, Calendar, Check, Copy, Key, Plus, ShieldCheck, Trash2 } from '@lucide/svelte';
+  import * as Card from './ui/card/index.js';
+  import { Badge } from './ui/badge/index.js';
+  import { Button } from './ui/button/index.js';
+  import { Checkbox } from './ui/checkbox/index.js';
+  import { Input } from './ui/input/index.js';
+  import { Label } from './ui/label/index.js';
+
+  interface ApiKey {
+    id: string;
+    name: string;
+    maskedToken: string;
+    created: string;
+    permissions: string[];
+  }
+
+  let keys = $state<ApiKey[]>([
+    { id: 'prod-sync', name: 'Production Sync Service', maskedToken: 'sv_demo_prod_••••_4d3e', created: '2026-03-10', permissions: ['Read', 'Write'] },
+    { id: 'reporting', name: 'Internal Reporting Tool', maskedToken: 'sv_demo_report_••••_9e8f', created: '2026-05-18', permissions: ['Read'] },
+  ]);
+
+  let newKeyName = $state('');
+  let newKeyPermissions = $state({ Read: true, Write: false, Delete: false, Admin: false });
+  let generatedToken = $state('');
+  let showCreatedToken = $state(false);
+  let copiedKeyId = $state<string | null>(null);
+
+  function generateDemoToken() {
+    const randomHex = Array.from({ length: 24 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    return `sv_demo_${randomHex}`;
+  }
+
+  function handleGenerateKey(event: SubmitEvent) {
+    event.preventDefault();
+    if (!newKeyName.trim()) return;
+
+    const token = generateDemoToken();
+    const permissions = Object.entries(newKeyPermissions)
+      .filter(([, enabled]) => enabled)
+      .map(([name]) => name);
+
+    keys = [
+      ...keys,
+      {
+        id: Date.now().toString(),
+        name: newKeyName.trim(),
+        maskedToken: `${token.slice(0, 14)}••••${token.slice(-4)}`,
+        created: new Date().toISOString().split('T')[0],
+        permissions,
+      },
+    ];
+    generatedToken = token;
+    showCreatedToken = true;
+    newKeyName = '';
+    newKeyPermissions = { Read: true, Write: false, Delete: false, Admin: false };
+  }
+
+  function deleteKey(id: string) {
+    keys = keys.filter((key) => key.id !== id);
+  }
+
+  async function copyToken(token: string, id: string) {
+    try {
+      await navigator.clipboard.writeText(token);
+      copiedKeyId = id;
+      setTimeout(() => {
+        if (copiedKeyId === id) copiedKeyId = null;
+      }, 2000);
+    } catch {
+      copiedKeyId = null;
+    }
+  }
+</script>
+
+<div class="space-y-6">
+  <div>
+    <h2 class="text-xl font-semibold text-foreground">{t('settings.api')}</h2>
+    <p class="mt-1 text-sm text-muted-foreground">{t('settings.apiDescription')}</p>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <Card.Card class="lg:col-span-1">
+      <Card.CardHeader>
+        <Card.CardTitle class="flex items-center gap-2 text-base">
+          <Plus class="h-4 w-4" />
+          {t('api.generateTitle')}
+        </Card.CardTitle>
+        <Card.CardDescription>{t('api.generateDesc')}</Card.CardDescription>
+      </Card.CardHeader>
+      <Card.CardContent>
+        <form onsubmit={handleGenerateKey} class="space-y-4">
+          <div class="space-y-2">
+            <Label for="api-key-name">{t('api.keyName')}</Label>
+            <Input id="api-key-name" placeholder="CI deployment token" bind:value={newKeyName} required />
+          </div>
+
+          <div class="space-y-3">
+            <Label>{t('api.permissions')}</Label>
+            {#each Object.keys(newKeyPermissions) as permission (permission)}
+              <div class="flex items-center gap-2">
+                <Checkbox id={`perm-${permission}`} bind:checked={newKeyPermissions[permission as keyof typeof newKeyPermissions]} />
+                <Label for={`perm-${permission}`} class="cursor-pointer text-sm font-normal">{permission}</Label>
+              </div>
+            {/each}
+          </div>
+
+          <Button type="submit" class="w-full">{t('api.generateButton')}</Button>
+        </form>
+      </Card.CardContent>
+    </Card.Card>
+
+    <Card.Card class="lg:col-span-2">
+      <Card.CardHeader>
+        <Card.CardTitle class="flex items-center gap-2 text-base">
+          <Key class="h-4 w-4 text-muted-foreground" />
+          {t('api.activeKeysTitle')}
+        </Card.CardTitle>
+        <Card.CardDescription>{t('api.activeKeysDesc')}</Card.CardDescription>
+      </Card.CardHeader>
+      <Card.CardContent>
+        {#if showCreatedToken}
+          <div class="mb-6 space-y-3 rounded-lg border border-green-500/20 bg-green-500/5 p-4">
+            <div class="flex items-start gap-2 text-sm text-green-700 dark:text-green-300">
+              <ShieldCheck class="mt-0.5 h-5 w-5 shrink-0" />
+              <div>
+                <h4 class="font-semibold">{t('api.successTitle')}</h4>
+                <p class="mt-0.5 text-xs">{t('api.successHint')}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <Input readonly value={generatedToken} class="h-9 font-mono text-xs" />
+              <Button size="sm" onclick={() => copyToken(generatedToken, 'new-token')}>
+                {#if copiedKeyId === 'new-token'}
+                  <Check class="h-4 w-4" />
+                {:else}
+                  <Copy class="h-4 w-4" />
+                {/if}
+              </Button>
+            </div>
+            <div class="flex justify-end">
+              <Button variant="ghost" size="sm" onclick={() => { showCreatedToken = false; generatedToken = ''; }}>{t('common.close')}</Button>
+            </div>
+          </div>
+        {/if}
+
+        <div class="divide-y">
+          {#each keys as key (key.id)}
+            <div class="space-y-3 py-4 first:pt-0 last:pb-0">
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0 space-y-1">
+                  <h4 class="text-sm font-semibold text-foreground">{key.name}</h4>
+                  <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <span class="font-mono">{key.maskedToken}</span>
+                    <span class="flex items-center gap-1">
+                      <Calendar class="h-3 w-3" />
+                      {key.created}
+                    </span>
+                  </div>
+                </div>
+                <div class="flex shrink-0 items-center gap-1">
+                  <Button variant="ghost" size="icon-sm" onclick={() => copyToken(key.maskedToken, key.id)} title={t('common.copy')}>
+                    {#if copiedKeyId === key.id}
+                      <Check class="h-4 w-4 text-green-500" />
+                    {:else}
+                      <Copy class="h-4 w-4" />
+                    {/if}
+                  </Button>
+                  <Button variant="ghost" size="icon-sm" onclick={() => deleteKey(key.id)} title={t('common.delete')}>
+                    <Trash2 class="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-1">
+                {#each key.permissions as permission (permission)}
+                  <Badge variant="secondary" class="px-2 py-0 text-[10px]">{permission}</Badge>
+                {/each}
+              </div>
+            </div>
+          {:else}
+            <div class="flex flex-col items-center gap-2 py-8 text-center text-sm text-muted-foreground">
+              <AlertCircle class="h-8 w-8 opacity-60" />
+              <span>{t('api.noKeys')}</span>
+            </div>
+          {/each}
+        </div>
+      </Card.CardContent>
+    </Card.Card>
+  </div>
+</div>
