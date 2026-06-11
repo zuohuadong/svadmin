@@ -318,6 +318,7 @@ export default defineConfig({
 | `locale`         | `string`                        | —        | auto       | Override locale / 覆盖语言                    |
 | `dashboard`      | `Snippet`                       | —        | —          | Custom dashboard / 自定义仪表盘               |
 | `loginPage`      | `Snippet`                       | —        | —          | Custom login page / 自定义登录页              |
+| `loginDefaults`  | `{ identifier?: string; password?: string; hint?: string }` | — | — | Prefill default login credentials / 预填默认登录凭据 |
 | `components`     | `Partial<ComponentRegistry>`    | —        | —          | Override default UI components / 覆盖默认组件 |
 
 ## 🌓 Dark Mode / 暗色模式

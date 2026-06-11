@@ -43,6 +43,12 @@
     themeConfig?: ThemeConfig;
     dashboard?: Snippet;
     loginPage?: Snippet;
+    /** Prefill and display credentials on the default login page, useful for demos/examples. */
+    loginDefaults?: {
+      identifier?: string;
+      password?: string;
+      hint?: string;
+    };
     /** Override default components via DI */
     components?: Partial<ComponentRegistry>;
     /** Custom multi-level menu configuration */
@@ -69,6 +75,7 @@
     themeConfig: userThemeConfig,
     dashboard,
     loginPage,
+    loginDefaults,
     components: userComponents,
     menu,
     siteUrl,
@@ -186,7 +193,13 @@
   {:else if route === '/login' && loginPage}
     {@render loginPage()}
   {:else if route === '/login' && authProvider}
-    <LoginPage {title} onSuccess={() => { isAuthenticated = true; navigate('/'); }} />
+    <LoginPage
+      {title}
+      defaultIdentifier={loginDefaults?.identifier}
+      defaultPassword={loginDefaults?.password}
+      loginHint={loginDefaults?.hint}
+      onSuccess={() => { isAuthenticated = true; navigate('/'); }}
+    />
   {:else if route === '/register' && authProvider?.register}
     <RegisterPage {title} />
   {:else if route === '/forgot-password' && authProvider?.forgotPassword}

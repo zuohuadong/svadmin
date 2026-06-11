@@ -14,7 +14,18 @@
   setChatProvider(createInventoryChatProvider(inMemoryDataProvider, resources));
 </script>
 
-<AdminApp dataProvider={inMemoryDataProvider} {resources} authProvider={mockAuthProvider} title="Inventory Platform" locale="en">
+<AdminApp
+  dataProvider={inMemoryDataProvider}
+  {resources}
+  authProvider={mockAuthProvider}
+  title="Inventory Platform"
+  locale="en"
+  loginDefaults={{
+    identifier: 'demo@example.com',
+    password: 'demo',
+    hint: 'Demo credentials are prefilled for quick testing.',
+  }}
+>
   {#snippet dashboard()}
     <Dashboard />
   {/snippet}

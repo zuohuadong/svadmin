@@ -16,17 +16,35 @@
     onClick: () => void | Promise<void>;
   }
 
-  let { title = 'Admin', onSuccess, socialProviders = [] } = $props<{
+  let {
+    title = 'Admin',
+    onSuccess,
+    socialProviders = [],
+    defaultIdentifier = '',
+    defaultPassword = '',
+    loginHint,
+  } = $props<{
     title?: string;
     onSuccess?: () => void;
     socialProviders?: SocialProvider[];
+    defaultIdentifier?: string;
+    defaultPassword?: string;
+    loginHint?: string;
   }>();
 
   const login = useLogin({ errorMessage: false });
   const authProvider = getAuthProvider();
 
-  let identifier = $state('');
-  let password = $state('');
+  function getInitialIdentifier() {
+    return defaultIdentifier;
+  }
+
+  function getInitialPassword() {
+    return defaultPassword;
+  }
+
+  let identifier = $state(getInitialIdentifier());
+  let password = $state(getInitialPassword());
   let error = $state('');
 
   async function handleSubmit(e: Event) {
@@ -45,95 +63,117 @@
   }
 </script>
 
-<!-- Stripe-inspired split layout: left brand panel + right form panel -->
 <div class="min-h-screen flex flex-col lg:flex-row">
-  <!-- Left panel: brand showcase -->
-  <div class="hidden lg:flex lg:w-[480px] xl:w-[520px] relative overflow-hidden bg-gradient-to-br from-primary/90 via-primary to-primary/80 shrink-0">
-    <!-- Decorative floating shapes -->
+  <div class="hidden lg:flex lg:w-[500px] xl:w-[560px] relative overflow-hidden bg-gradient-to-br from-primary/95 via-primary to-primary/85 shrink-0">
     <div class="absolute inset-0">
-      <div class="absolute top-[12%] left-[8%] w-28 h-28 rounded-3xl border border-white/10 bg-white/5 rotate-12 backdrop-blur-sm"></div>
-      <div class="absolute top-[55%] left-[55%] w-40 h-40 rounded-full border border-white/10 bg-white/5 -rotate-6 backdrop-blur-sm"></div>
-      <div class="absolute bottom-[15%] left-[15%] w-24 h-24 rounded-2xl border border-white/10 bg-white/5 -rotate-12 backdrop-blur-sm"></div>
-      <div class="absolute top-[30%] right-[10%] w-16 h-16 rounded-xl border border-white/10 bg-white/5 rotate-45 backdrop-blur-sm"></div>
-      <!-- Subtle grid pattern -->
-      <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 24px 24px;"></div>
+      <div class="absolute top-[12%] left-[8%] h-32 w-32 rounded-3xl border border-white/10 bg-white/5 rotate-12 backdrop-blur-sm"></div>
+      <div class="absolute top-[54%] left-[54%] h-44 w-44 rounded-full border border-white/10 bg-white/5 -rotate-6 backdrop-blur-sm"></div>
+      <div class="absolute bottom-[14%] left-[13%] h-28 w-28 rounded-2xl border border-white/10 bg-white/5 -rotate-12 backdrop-blur-sm"></div>
+      <div class="absolute top-[30%] right-[10%] h-20 w-20 rounded-xl border border-white/10 bg-white/5 rotate-45 backdrop-blur-sm"></div>
+      <div class="absolute inset-0 opacity-[0.04]" style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 24px 24px;"></div>
     </div>
 
-    <!-- Brand content -->
     <div class="relative z-10 flex flex-col justify-between p-10 xl:p-12 w-full">
       <div class="flex items-center gap-3">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 backdrop-blur-sm">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
           <Shield class="h-5 w-5 text-white" />
         </div>
-        <span class="text-lg font-semibold text-white tracking-tight">{title}</span>
+        <span class="text-xl font-semibold text-white tracking-tight">{title}</span>
       </div>
 
-      <div class="space-y-4">
-        <h2 class="text-3xl xl:text-4xl font-bold text-white leading-tight">
+      <div class="max-w-[360px] space-y-4">
+        <h2 class="text-4xl font-bold text-white leading-tight">
           {t('auth.welcomeBack')}
         </h2>
-        <p class="text-base text-white/70 leading-relaxed max-w-[320px]">
+        <p class="text-lg text-white/75 leading-relaxed">
           {t('auth.welcomeMessage')}
         </p>
       </div>
 
-      <!-- Decorative bottom bar -->
       <div class="flex items-center gap-3">
-        <div class="h-1 w-8 rounded-full bg-white/30"></div>
-        <div class="h-1 w-4 rounded-full bg-white/15"></div>
-        <div class="h-1 w-2 rounded-full bg-white/10"></div>
+        <div class="h-1.5 w-10 rounded-full bg-white/40"></div>
+        <div class="h-1.5 w-5 rounded-full bg-white/20"></div>
+        <div class="h-1.5 w-2 rounded-full bg-white/15"></div>
       </div>
     </div>
   </div>
 
-  <!-- Right panel: login form -->
-  <div class="flex-1 flex items-center justify-center bg-background p-6 sm:p-8 lg:p-12">
-    <div class="w-full max-w-[400px]">
-      <!-- Mobile-only brand header -->
+  <div class="flex-1 flex items-center justify-center bg-background p-6 sm:p-10 lg:p-14">
+    <div class="w-full max-w-[460px] space-y-8">
       <div class="flex items-center gap-3 mb-8 lg:hidden">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Shield class="h-5 w-5" />
         </div>
-        <span class="text-lg font-semibold tracking-tight">{title}</span>
+        <span class="text-xl font-semibold tracking-tight text-foreground">{title}</span>
       </div>
 
-      <div class="space-y-1 mb-8">
-        <h1 class="text-2xl font-semibold tracking-tight">
+      <div class="space-y-2.5">
+        <h1 class="text-3xl font-semibold tracking-tight text-foreground">
           {t('auth.welcomeBack')}
         </h1>
-        <p class="text-sm text-muted-foreground">
+        <p class="text-base text-muted-foreground leading-relaxed">
           {t('auth.welcomeMessage')}
         </p>
       </div>
 
-      <form onsubmit={handleSubmit} class="space-y-5">
+      {#if loginHint || defaultIdentifier || defaultPassword}
+        <div class="rounded-2xl border border-primary/15 bg-primary/[0.06] p-4 shadow-sm">
+          {#if loginHint}
+            <p class="text-sm font-medium text-primary">{loginHint}</p>
+          {/if}
+          <div class="mt-3 grid gap-2 sm:grid-cols-2">
+            {#if defaultIdentifier}
+              <div class="rounded-xl border border-border/70 bg-background/80 px-3 py-2">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t('auth.usernameOrEmail')}
+                </p>
+                <p class="mt-1 font-mono text-sm font-semibold text-foreground">{defaultIdentifier}</p>
+              </div>
+            {/if}
+            {#if defaultPassword}
+              <div class="rounded-xl border border-border/70 bg-background/80 px-3 py-2">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t('auth.password')}
+                </p>
+                <p class="mt-1 font-mono text-sm font-semibold text-foreground">{defaultPassword}</p>
+              </div>
+            {/if}
+          </div>
+        </div>
+      {/if}
+
+      <form onsubmit={handleSubmit} class="space-y-6 login-form">
         {#if error}
-          <Alert.Root variant="destructive">
+          <Alert.Root variant="destructive" class="rounded-xl border border-destructive/20 bg-destructive/5">
             <AlertCircle class="h-4 w-4" />
-            <Alert.Description>{error}</Alert.Description>
+            <Alert.Description class="text-sm font-medium">{error}</Alert.Description>
           </Alert.Root>
         {/if}
 
-        <div class="space-y-2">
-          <Label for="login-identifier">{t('auth.usernameOrEmail')}</Label>
+        <div class="space-y-2.5">
+          <Label for="login-identifier" class="text-sm font-semibold text-foreground/80 pl-0.5">
+            {t('auth.usernameOrEmail')}
+          </Label>
           <div class="relative">
-            <User class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-[1]" />
+            <User class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-[1]" />
             <Input
               id="login-identifier"
               type="text"
               placeholder={t('auth.identifierPlaceholder')}
               bind:value={identifier}
-              class="pl-9"
+              class="pl-12"
               autocomplete="username"
             />
           </div>
         </div>
 
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <Label for="login-password">{t('auth.password')}</Label>
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between pl-0.5">
+            <Label for="login-password" class="text-sm font-semibold text-foreground/80">
+              {t('auth.password')}
+            </Label>
             {#if authProvider.forgotPassword}
-              <Button variant="link" class="text-xs h-auto p-0" onclick={() => navigate('/forgot-password')}>
+              <Button variant="link" class="text-xs h-auto p-0 font-medium hover:text-primary transition-colors" onclick={() => navigate('/forgot-password')}>
                 {t('auth.forgotPasswordLink')}
               </Button>
             {/if}
@@ -146,31 +186,31 @@
           />
         </div>
 
-        <Button type="submit" class="w-full h-10" disabled={login.isLoading}>
+        <Button type="submit" class="w-full h-14 rounded-xl text-base font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200 mt-2" disabled={login.isLoading}>
           {#if login.isLoading}
-            <Loader2 class="h-4 w-4 animate-spin mr-2" />
+            <Loader2 class="h-5 w-5 animate-spin mr-2" />
           {/if}
           {t('auth.loginButton')}
         </Button>
       </form>
 
       {#if socialProviders.length > 0}
-        <div class="relative my-6">
+        <div class="relative my-8">
           <Separator />
-          <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-3 text-xs text-muted-foreground">
+          <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-4 text-xs font-semibold text-muted-foreground tracking-wider uppercase">
             {t('auth.orContinueWith')}
           </span>
         </div>
 
-        <div class="grid gap-2" class:grid-cols-2={socialProviders.length >= 2}>
+        <div class="grid gap-3" class:grid-cols-2={socialProviders.length >= 2}>
           {#each socialProviders as provider (provider.name)}
             <Button
               variant="outline"
-              class="w-full"
+              class="w-full h-12 rounded-xl font-semibold border-input/60 hover:bg-muted/50 hover:text-accent-foreground transition-all duration-200"
               onclick={provider.onClick}
             >
               {#if provider.icon}
-                <span class="mr-2">{provider.icon}</span>
+                <span class="mr-2 text-lg">{provider.icon}</span>
               {/if}
               {provider.name}
             </Button>
@@ -179,17 +219,47 @@
       {/if}
 
       {#if authProvider.register}
-        <div class="flex items-center justify-center gap-1 mt-8 pt-6 border-t">
+        <div class="flex items-center justify-center gap-1.5 mt-8 pt-6 border-t border-border/60">
           <span class="text-sm text-muted-foreground">{t('auth.noAccount')}</span>
-          <Button variant="link" class="text-sm h-auto p-0 font-medium" onclick={() => navigate('/register')}>
+          <Button variant="link" class="text-sm h-auto p-0 font-semibold text-primary hover:underline" onclick={() => navigate('/register')}>
             {t('auth.register')}
           </Button>
         </div>
       {/if}
 
-      <p class="text-xs text-muted-foreground/60 mt-8 text-center">
+      <p class="text-xs text-muted-foreground/50 mt-8 text-center tracking-wide font-medium">
         Powered by {title}
       </p>
     </div>
   </div>
 </div>
+
+<style>
+  .login-form :global(input[data-slot='input']) {
+    height: 3.5rem;
+    border-radius: 0.75rem;
+    border-color: color-mix(in oklch, var(--border) 88%, var(--foreground));
+    background-color: var(--background);
+    font-size: 0.975rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+
+  .login-form :global(input[data-slot='input']:focus-visible) {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 18%, transparent);
+  }
+
+  .login-form :global(.relative > svg:first-of-type) {
+    left: 1rem;
+    height: 1.25rem;
+    width: 1.25rem;
+    color: color-mix(in oklch, var(--muted-foreground) 82%, var(--foreground));
+  }
+
+  .login-form :global(.relative > button) {
+    right: 0.625rem;
+    height: 2.25rem;
+    width: 2.25rem;
+    border-radius: 0.5rem;
+  }
+</style>
