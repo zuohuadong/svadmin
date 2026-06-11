@@ -738,6 +738,7 @@ main {
   background: #ffffff !important;
   color: #181c32 !important;
   border-right: 1px solid #f1f3f7 !important;
+  box-shadow: 0 0 40px rgba(76, 87, 125, 0.04) !important;
 }
 .dark.layout-clean-flat [data-sidebar="sidebar"],
 .dark .layout-clean-flat [data-sidebar="sidebar"] {
@@ -757,7 +758,7 @@ main {
 
 .layout-clean-flat [data-sidebar="menu-button"] {
   color: #5e6278 !important;
-  border-radius: 8px !important;
+  border-radius: 0.675rem !important;
   transition: all 0.15s ease !important;
   font-weight: 500 !important;
 }
@@ -780,6 +781,7 @@ main {
   background: #eef6ff !important;
   color: #3e97ff !important;
   font-weight: 600 !important;
+  box-shadow: none !important;
 }
 .dark.layout-clean-flat [data-sidebar="menu-button"][data-active="true"],
 .dark .layout-clean-flat [data-sidebar="menu-button"][data-active="true"] {
@@ -787,14 +789,20 @@ main {
   color: #3e97ff !important;
 }
 
-.layout-clean-flat [data-sidebar="menu-button"][data-active="true"] > svg {
+.layout-clean-flat [data-sidebar="menu-button"][data-active="true"] svg {
   color: #3e97ff !important;
   opacity: 1 !important;
 }
 
+.layout-clean-flat [data-sidebar="menu-button"][data-active="true"] [data-sidebar="menu-icon"],
+.layout-clean-flat [data-sidebar="menu-sub-button"][data-active="true"] [data-sidebar="menu-icon"] {
+  background: rgba(62, 151, 255, 0.12) !important;
+  color: #3e97ff !important;
+}
+
 .layout-clean-flat [data-sidebar="menu-sub"] {
-  margin-left: 1.25rem !important;
-  padding-left: 0.625rem !important;
+  margin-left: 1.125rem !important;
+  padding-left: 0.75rem !important;
   border-left: 1px solid #f1f3f7 !important;
 }
 .dark.layout-clean-flat [data-sidebar="menu-sub"],
@@ -804,7 +812,7 @@ main {
 
 .layout-clean-flat [data-sidebar="menu-sub-button"] {
   color: #5e6278 !important;
-  border-radius: 6px !important;
+  border-radius: 0.675rem !important;
   font-weight: 400 !important;
   transition: all 0.15s !important;
 }
@@ -823,6 +831,7 @@ main {
   background: #eef6ff !important;
   color: #3e97ff !important;
   font-weight: 500 !important;
+  box-shadow: none !important;
 }
 .dark.layout-clean-flat [data-sidebar="menu-sub-button"][data-active="true"],
 .dark .layout-clean-flat [data-sidebar="menu-sub-button"][data-active="true"] {

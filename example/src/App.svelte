@@ -8,6 +8,13 @@
   import { createResources } from './resources';
   import { mockAuthProvider } from './providers/mockAuth';
   import Dashboard from './pages/Dashboard.svelte';
+  import ProductsPage from './pages/ProductsPage.svelte';
+  import OrdersPage from './pages/OrdersPage.svelte';
+  import PeoplePage from './pages/PeoplePage.svelte';
+  import CalendarPage from './pages/CalendarPage.svelte';
+  import MessagesPage from './pages/MessagesPage.svelte';
+  import InventoryDirectoryPage from './pages/InventoryDirectoryPage.svelte';
+  import OperationsPage from './pages/OperationsPage.svelte';
 
   // Register the optional Rich Text Editor plugin globally
   setRichTextEditor(Editor);
@@ -23,14 +30,37 @@
     resources = nextResources;
     setChatProvider(createInventoryChatProvider(inMemoryDataProvider, nextResources));
   });
+
+  const resourcePages = {
+    products: { list: ProductsPage },
+    skus: { list: InventoryDirectoryPage },
+    categories: { list: InventoryDirectoryPage },
+    suppliers: { list: InventoryDirectoryPage },
+    warehouses: { list: InventoryDirectoryPage },
+    stock_movements: { list: OperationsPage },
+    stock_transfers: { list: OperationsPage },
+    cycle_counts: { list: OperationsPage },
+    inventory_adjustments: { list: OperationsPage },
+    reorder_rules: { list: OperationsPage },
+    purchase_orders: { list: OrdersPage },
+    sales_orders: { list: OrdersPage },
+    todos: { list: OperationsPage },
+    users: { list: PeoplePage },
+    roles: { list: PeoplePage },
+    calendar_events: { list: CalendarPage },
+    notifications: { list: MessagesPage },
+    ai_conversations: { list: MessagesPage },
+  };
 </script>
 
 <AdminApp
   dataProvider={inMemoryDataProvider}
   {resources}
   authProvider={mockAuthProvider}
+  {resourcePages}
   title={appTitle}
   locale={currentLocale}
+  themeConfig={{ layoutPreset: 'clean-flat' }}
   loginDefaults={{
     identifier: 'demo@example.com',
     password: 'demo',

@@ -138,8 +138,8 @@
 
     <div
       class="flex-1 flex flex-col overflow-hidden transition-all duration-300"
-      class:md:ml-64={!collapsed}
-      class:md:ml-16={collapsed}
+      class:md:ml-72={!collapsed}
+      class:md:ml-20={collapsed}
     >
       <!-- Header with mobile hamburger -->
       <Header

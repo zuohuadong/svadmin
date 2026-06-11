@@ -5,7 +5,8 @@
   import SidebarItem from './SidebarItem.svelte';
   import {
     LayoutDashboard, FileText, Users, Settings, Home,
-    ChevronDown, Folder, ExternalLink, Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle, type Icon as LucideIcon,
+    ChevronDown, Folder, ExternalLink, Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle,
+    Barcode, FolderTree, Building2, Warehouse,
   } from '@lucide/svelte';
 
   import { formatLink } from '@svadmin/core/router';
@@ -28,9 +29,13 @@
     'clipboard-check': ClipboardCheck,
     'sliders-horizontal': SlidersHorizontal,
     'alert-triangle': AlertTriangle,
+    'barcode': Barcode,
+    'folder-tree': FolderTree,
+    'building-2': Building2,
+    'warehouse': Warehouse,
   };
 
-  function getIcon(name?: string | any): typeof LayoutDashboard {
+  function getIcon(name?: string | typeof LayoutDashboard): typeof LayoutDashboard {
     if (!name) return depth === 0 ? Settings : Folder;
     if (typeof name !== 'string') return name; // if it's already a component
     return iconMap[name] ?? Settings;
@@ -78,6 +83,8 @@
         ? 'bg-primary/10 text-primary ring-1 ring-primary/15'
         : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
       style="padding-left: {12 + depth * 12}px"
+      data-sidebar={depth === 0 ? "menu-button" : "menu-sub-button"}
+      data-active={childActive ? "true" : "false"}
     >
       <span class="flex items-center gap-3">
         <Icon class="h-4 w-4 flex-shrink-0" />
@@ -86,7 +93,7 @@
       <ChevronDown class="h-3.5 w-3.5 transition-transform duration-200 {isOpen ? 'rotate-180' : ''}" />
     </Collapsible.Trigger>
     <Collapsible.Content>
-      <div class="mt-0.5 space-y-0.5" style="padding-left: {depth > 0 ? 0 : 0}px">
+      <div class="mt-0.5 space-y-0.5" style="padding-left: {depth > 0 ? 0 : 0}px" data-sidebar="menu-sub">
         {#each item.children as child, _i (_i)}
           <SidebarItem item={child} {currentPath} {collapsed} depth={depth + 1} />
         {/each}
@@ -107,6 +114,8 @@
           {active
             ? 'bg-primary/10 text-primary shadow-sm shadow-primary/10 ring-1 ring-primary/15'
             : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
+          data-sidebar={depth === 0 ? "menu-button" : "menu-sub-button"}
+          data-active={active ? "true" : "false"}
         >
           <Icon class="h-4 w-4 flex-shrink-0" />
         </a>
@@ -127,7 +136,12 @@
       ? 'bg-primary/10 text-primary font-semibold shadow-sm shadow-primary/10 ring-1 ring-primary/15'
       : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
     style="padding-left: {12 + depth * 12}px"
+    data-sidebar={depth === 0 ? "menu-button" : "menu-sub-button"}
+    data-active={active ? "true" : "false"}
   >
+    {#if active && !collapsed}
+      <div class="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-primary"></div>
+    {/if}
     <Icon class="h-4 w-4 flex-shrink-0" />
     <span class="flex-1">{label}</span>
     {#if isExternal}

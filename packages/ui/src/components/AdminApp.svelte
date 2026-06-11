@@ -1,7 +1,7 @@
 <script lang="ts">
   // Auto-inject design tokens so consumers don't need to manually import
   import '../app.css';
-  import type { Snippet } from 'svelte';
+  import type { Component, Snippet } from 'svelte';
   import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode, RouterProvider, ThemeConfig, MenuItem, TaskProvider } from '@svadmin/core';
   import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme, setRouterProvider, setTaskProvider, createHashRouterProvider, configureTheme } from '@svadmin/core';
   import { t } from '@svadmin/core/i18n';
@@ -51,6 +51,14 @@
     };
     /** Override default components via DI */
     components?: Partial<ComponentRegistry>;
+    /** Resource-specific page overrides while keeping svadmin defaults as fallback. */
+    resourcePages?: Record<string, {
+      list?: Component<{ resourceName: string }>;
+      create?: Component<{ resourceName: string; mode?: 'create' }>;
+      edit?: Component<{ resourceName: string; mode?: 'edit'; id?: string | number }>;
+      show?: Component<{ resourceName: string; id?: string | number }>;
+      clone?: Component<{ resourceName: string; mode?: 'clone'; id?: string | number }>;
+    }>;
     /** Custom multi-level menu configuration */
     menu?: MenuItem[];
     /** External URL to the main application or workspace (renders a shortcut in the header) */
@@ -77,6 +85,7 @@
     loginPage,
     loginDefaults,
     components: userComponents,
+    resourcePages,
     menu,
     siteUrl,
     routeMode,
@@ -144,6 +153,7 @@
   const params = $derived(getParams());
   const resourceNames = $derived(new Set(resources.map((resource) => resource.name)));
   const hasRouteResource = $derived(!params.resource || resourceNames.has(params.resource));
+  const currentResourcePages = $derived(params.resource ? resourcePages?.[params.resource] : undefined);
 
   // Auth check
   let isAuthenticated = $state(false);
@@ -228,27 +238,27 @@
         {/if}
       {:else if (route === '/:resource' || route === '/:parent/:parentId/:resource') && hasRouteResource}
         {#key params.resource}
-          {@const Comp = mergedComponents.AutoTable}
+          {@const Comp = currentResourcePages?.list ?? mergedComponents.AutoTable}
           <Comp resourceName={params.resource} />
         {/key}
       {:else if (route === '/:resource/create' || route === '/:parent/:parentId/:resource/create') && hasRouteResource}
         {#key params.resource}
-          {@const Comp = mergedComponents.AutoForm}
+          {@const Comp = currentResourcePages?.create ?? mergedComponents.AutoForm}
           <Comp resourceName={params.resource} mode="create" />
         {/key}
       {:else if (route === '/:resource/edit/:id' || route === '/:parent/:parentId/:resource/edit/:id') && hasRouteResource}
         {#key `${params.resource}-${params.id}`}
-          {@const Comp = mergedComponents.AutoForm}
+          {@const Comp = currentResourcePages?.edit ?? mergedComponents.AutoForm}
           <Comp resourceName={params.resource} mode="edit" id={params.id} />
         {/key}
       {:else if (route === '/:resource/show/:id' || route === '/:parent/:parentId/:resource/show/:id') && hasRouteResource}
         {#key `${params.resource}-${params.id}`}
-          {@const Comp = mergedComponents.ShowPage}
+          {@const Comp = currentResourcePages?.show ?? mergedComponents.ShowPage}
           <Comp resourceName={params.resource} id={params.id} />
         {/key}
       {:else if (route === '/:resource/clone/:id' || route === '/:parent/:parentId/:resource/clone/:id') && hasRouteResource}
         {#key `${params.resource}-clone-${params.id}`}
-          {@const Comp = mergedComponents.AutoForm}
+          {@const Comp = currentResourcePages?.clone ?? mergedComponents.AutoForm}
           <Comp resourceName={params.resource} mode="clone" id={params.id} />
         {/key}
       {:else}

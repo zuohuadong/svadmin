@@ -11,9 +11,10 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'products',
     label: 'Products',
-    icon: 'folder',
+    icon: 'package',
     group: inventoryGroup,
     menuOrder: 10,
+    meta: { badge: '4' },
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
       { key: 'name', label: 'Name', type: 'text', required: true, searchable: true },
@@ -30,7 +31,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'skus',
     label: 'SKUs',
-    icon: 'folder',
+    icon: 'barcode',
     group: inventoryGroup,
     menuOrder: 20,
     fields: [
@@ -56,7 +57,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'categories',
     label: 'Categories',
-    icon: 'folder',
+    icon: 'folder-tree',
     group: inventoryGroup,
     menuOrder: 30,
     fields: [
@@ -70,7 +71,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'suppliers',
     label: 'Suppliers',
-    icon: 'users',
+    icon: 'building-2',
     group: inventoryGroup,
     menuOrder: 40,
     fields: [
@@ -86,7 +87,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'warehouses',
     label: 'Warehouses',
-    icon: 'home',
+    icon: 'warehouse',
     group: inventoryGroup,
     menuOrder: 50,
     fields: [
@@ -132,6 +133,7 @@ export const resources: ResourceDefinition[] = [
     icon: 'download',
     group: operationsGroup,
     menuOrder: 100,
+    meta: { badge: '3' },
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
       { key: 'orderNumber', label: 'Order Number', type: 'text', required: true, searchable: true },
@@ -160,6 +162,7 @@ export const resources: ResourceDefinition[] = [
     icon: 'credit-card',
     group: operationsGroup,
     menuOrder: 110,
+    meta: { badge: '2' },
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
       { key: 'orderNumber', label: 'Order Number', type: 'text', required: true, searchable: true },
@@ -495,6 +498,7 @@ export const resources: ResourceDefinition[] = [
     icon: 'bell',
     group: communicationGroup,
     menuOrder: 140,
+    meta: { badge: '3' },
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
       { key: 'title', label: 'Title', type: 'text', required: true, searchable: true },

@@ -12,14 +12,14 @@
   import SidebarItem from './SidebarItem.svelte';
 
   import { ScrollArea } from './ui/scroll-area/index.js';
-  import * as Collapsible from './ui/collapsible/index.js';
   import { Avatar } from './ui/avatar/index.js';
   import {
     LayoutDashboard, FileText, Users, Settings, Home,
-    ChevronLeft, ChevronRight, ChevronDown, LogOut, Sun, Moon, Palette,
+    ChevronLeft, ChevronRight, LogOut, Sun, Moon, Palette,
     Image as ImageIcon, Layout, Folder, Type, Video,
     Download, ListTodo, TrendingUp, Sparkles, Images, Bot, Key, KeyRound, CreditCard, BookOpen, Wrench,
-    Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle
+    Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle, Bell, CalendarDays, Package, Shield,
+    Barcode, FolderTree, Building2, Warehouse
   } from '@lucide/svelte';
 
   let { collapsed, identity, title, onToggle, onLogout, menu, routeMode = 'auto' }: {
@@ -68,6 +68,14 @@
     'clipboard-check': ClipboardCheck,
     'sliders-horizontal': SlidersHorizontal,
     'alert-triangle': AlertTriangle,
+    'bell': Bell,
+    'calendar': CalendarDays,
+    'package': Package,
+    'shield': Shield,
+    'barcode': Barcode,
+    'folder-tree': FolderTree,
+    'building-2': Building2,
+    'warehouse': Warehouse,
   };
 
   interface NavItem {
@@ -75,6 +83,7 @@
     label: string;
     Icon: typeof LayoutDashboard;
     group?: string;
+    badge?: string;
   }
 
   interface NavGroup {
@@ -107,6 +116,7 @@
             label: r.label,
             Icon: (typeof r.icon === 'string' ? iconMap[r.icon] : r.icon) ?? iconMap[r.name] ?? Settings,
             group: r.group,
+            badge: typeof r.meta?.badge === 'string' ? r.meta.badge : undefined,
           });
         }
       }
@@ -162,9 +172,6 @@
     return groups;
   });
 
-  // Track which groups are open
-  let openGroups = $state<Set<string>>(new Set());
-  let groupsInitialized = $state(false);
   let colorPickerOpen = $state(false);
   let colorPickerRef = $state<HTMLDivElement | null>(null);
   let colorPickerOpenedAt = 0;
@@ -189,15 +196,6 @@
   const pyClass = $derived(density === 'compact' ? 'py-1.5' : 'py-2.5');
   const pyClassGroupItem = $derived(density === 'compact' ? 'py-1.5' : 'py-2');
 
-  $effect(() => {
-    if (groupsInitialized) return;
-    const groupNames = navGroups.map((group) => group.name).filter((name): name is string => !!name);
-    if (groupNames.length > 0) {
-      openGroups = new Set(groupNames);
-      groupsInitialized = true;
-    }
-  });
-
   // Click-outside to close color picker
   $effect(() => {
     if (!colorPickerOpen) return;
@@ -220,8 +218,9 @@
 <aside
   aria-label="Sidebar navigation"
   class="fixed inset-y-0 left-0 z-30 flex flex-col border-r border-border/70 bg-sidebar/95 shadow-sm shadow-slate-900/[0.03] backdrop-blur-xl transition-all duration-300"
-  class:w-64={!collapsed}
-  class:w-16={collapsed}
+  class:w-72={!collapsed}
+  class:w-20={collapsed}
+  data-sidebar="sidebar"
 >
   <!-- Logo -->
   <div class="flex h-16 items-center justify-between border-b border-border/60 px-4">
@@ -251,8 +250,9 @@
     {/if}
   </div>
 
-  <ScrollArea class="flex-1">
-  <nav aria-label="Main menu" class="space-y-1 px-3 py-4">
+  <div class="flex min-h-0 flex-1">
+  <ScrollArea class="min-w-0 flex-1">
+  <nav aria-label="Main menu" class="space-y-5 px-3 py-5">
     {#if menu && menu.length > 0}
       <!-- Custom multi-level menu -->
       {#each menu as item, _i (_i)}
@@ -262,39 +262,41 @@
     <!-- Auto-generated menu from resources (fallback) -->
     {#each navGroups as group, _i (_i)}
       {#if group.name && !collapsed}
-        <!-- Grouped section with Collapsible -->
-        <Collapsible.Root open={openGroups.has(group.name)} onOpenChange={(isOpen) => {
-          const next = new Set(openGroups);
-          if (isOpen) next.add(group.name as string); else next.delete(group.name as string);
-          openGroups = next;
-        }}>
-          <div class="rounded-2xl border border-border/60 bg-muted/20 p-1.5">
-            <Collapsible.Trigger
-              class="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent/45 hover:text-sidebar-foreground/75"
-            >
-              <span>{group.name}</span>
-              <ChevronDown class="h-3 w-3 transition-transform {openGroups.has(group.name) ? 'rotate-180' : ''}" />
-            </Collapsible.Trigger>
-            <Collapsible.Content>
-              <div class="mt-1 space-y-1">
+        <!-- Grouped section: expanded by default in desktop light sidebar mode -->
+        <div>
+          <div
+            class="flex w-full items-center justify-between px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/45"
+            data-sidebar="group-label"
+          >
+            <span>{group.name}</span>
+          </div>
+          <div class="mt-1 space-y-1" data-sidebar="menu-sub">
               {#each group.items as item, _i (_i)}
                 {@const active = isActive(item.path)}
                 <a
                   href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
                   onclick={(e) => { e.preventDefault(); navigate(item.path); }}
-                  class="flex items-center gap-3 rounded-xl px-3 {pyClassGroupItem} text-sm font-medium transition-all duration-200
+                  class="group relative flex items-center gap-3 rounded-xl px-3 {pyClassGroupItem} text-sm font-medium transition-all duration-200
                   {active
-                    ? 'bg-primary/10 text-primary shadow-sm shadow-primary/10 ring-1 ring-primary/15'
-                    : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
+                    ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
+                    : 'text-sidebar-foreground/68 hover:bg-background/85 hover:text-sidebar-foreground'}"
+                  data-sidebar="menu-sub-button"
+                  data-active={active ? "true" : "false"}
                 >
-                  <item.Icon class="h-4 w-4 flex-shrink-0" />
-                  <span>{item.label}</span>
+                  {#if active && !collapsed}
+                    <div class="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-primary"></div>
+                  {/if}
+                  <span data-sidebar="menu-icon" class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg {active ? 'bg-primary-foreground/15' : 'bg-muted/60 text-sidebar-foreground/55 group-hover:bg-primary/10 group-hover:text-primary'}">
+                    <item.Icon class="h-4 w-4 flex-shrink-0" />
+                  </span>
+                  <span class="min-w-0 flex-1 truncate">{item.label}</span>
+                  {#if item.badge}
+                    <span class="rounded-full {active ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-primary/10 text-primary'} px-2 py-0.5 text-[10px] font-semibold">{item.badge}</span>
+                  {/if}
                 </a>
               {/each}
-              </div>
-            </Collapsible.Content>
           </div>
-        </Collapsible.Root>
+        </div>
       {:else}
         <!-- Ungrouped items (flat) -->
         {#each group.items as item, _i (_i)}
@@ -311,6 +313,8 @@
                     {active
                       ? 'bg-primary/10 text-primary shadow-sm shadow-primary/10 ring-1 ring-primary/15'
                       : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
+                    data-sidebar="menu-button"
+                    data-active={active ? "true" : "false"}
                   >
                     <item.Icon class="h-4 w-4 flex-shrink-0" />
                   </a>
@@ -324,13 +328,23 @@
             <a
               href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
               onclick={(e) => { e.preventDefault(); navigate(item.path); }}
-              class="flex items-center gap-3 rounded-xl px-3 {pyClass} text-sm font-medium transition-all duration-200
+              class="group relative flex items-center gap-3 rounded-xl px-3 {pyClass} text-sm font-medium transition-all duration-200
               {active
-                ? 'bg-primary/10 text-primary shadow-sm shadow-primary/10 ring-1 ring-primary/15'
-                : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
+                ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
+                : 'text-sidebar-foreground/68 hover:bg-background/85 hover:text-sidebar-foreground'}"
+              data-sidebar="menu-button"
+              data-active={active ? "true" : "false"}
             >
-              <item.Icon class="h-4 w-4 flex-shrink-0" />
-              <span>{item.label}</span>
+              {#if active && !collapsed}
+                <div class="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-primary"></div>
+              {/if}
+              <span data-sidebar="menu-icon" class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg {active ? 'bg-primary-foreground/15' : 'bg-muted/60 text-sidebar-foreground/55 group-hover:bg-primary/10 group-hover:text-primary'}">
+                <item.Icon class="h-4 w-4 flex-shrink-0" />
+              </span>
+              <span class="min-w-0 flex-1 truncate">{item.label}</span>
+              {#if item.badge}
+                <span class="rounded-full {active ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-primary/10 text-primary'} px-2 py-0.5 text-[10px] font-semibold">{item.badge}</span>
+              {/if}
             </a>
           {/if}
         {/each}
@@ -339,6 +353,7 @@
     {/if}
   </nav>
   </ScrollArea>
+  </div>
 
   <!-- Footer -->
   <div class="border-t border-border/60 bg-sidebar/95">
@@ -437,6 +452,16 @@
             {/snippet}
           </Tooltip.Trigger>
           <Tooltip.Content side="right">{t('common.toggleTheme')}</Tooltip.Content>
+        </Tooltip.Root>
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            {#snippet child({ props }: { props: Record<string, unknown> })}
+              <Button {...props} variant="ghost" size="icon" onclick={() => navigate('/settings')} class="w-full text-sidebar-foreground/60 hover:text-sidebar-foreground">
+                <Settings class="h-4 w-4" />
+              </Button>
+            {/snippet}
+          </Tooltip.Trigger>
+          <Tooltip.Content side="right">{t('settings.title')}</Tooltip.Content>
         </Tooltip.Root>
         <Tooltip.Root>
           <Tooltip.Trigger>
