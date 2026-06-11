@@ -14,11 +14,14 @@
     maskedToken: string;
     created: string;
     permissions: string[];
+    lastUsed: string;
+    requests: string;
+    expiresAt: string;
   }
 
   let keys = $state<ApiKey[]>([
-    { id: 'prod-sync', name: 'Production Sync Service', maskedToken: 'sv_demo_prod_••••_4d3e', created: '2026-03-10', permissions: ['Read', 'Write'] },
-    { id: 'reporting', name: 'Internal Reporting Tool', maskedToken: 'sv_demo_report_••••_9e8f', created: '2026-05-18', permissions: ['Read'] },
+    { id: 'prod-sync', name: 'Production Sync Service', maskedToken: 'sv_demo_prod_••••_4d3e', created: '2026-03-10', permissions: ['Read', 'Write'], lastUsed: '12 min ago', requests: '18.4k', expiresAt: '2026-12-31' },
+    { id: 'reporting', name: 'Internal Reporting Tool', maskedToken: 'sv_demo_report_••••_9e8f', created: '2026-05-18', permissions: ['Read'], lastUsed: '2 hours ago', requests: '3.2k', expiresAt: '2026-09-30' },
   ]);
 
   let newKeyName = $state('');
@@ -49,6 +52,9 @@
         maskedToken: `${token.slice(0, 14)}••••${token.slice(-4)}`,
         created: new Date().toISOString().split('T')[0],
         permissions,
+        lastUsed: 'Never',
+        requests: '0',
+        expiresAt: '2027-01-01',
       },
     ];
     generatedToken = token;
@@ -176,6 +182,11 @@
                 {#each key.permissions as permission (permission)}
                   <Badge variant="secondary" class="px-2 py-0 text-[10px]">{permission}</Badge>
                 {/each}
+              </div>
+              <div class="grid gap-2 rounded-lg border border-border/60 bg-muted/20 p-3 text-xs text-muted-foreground sm:grid-cols-3">
+                <span>Last used: <strong class="text-foreground">{key.lastUsed}</strong></span>
+                <span>Requests: <strong class="text-foreground">{key.requests}</strong></span>
+                <span>Expires: <strong class="text-foreground">{key.expiresAt}</strong></span>
               </div>
             </div>
           {:else}

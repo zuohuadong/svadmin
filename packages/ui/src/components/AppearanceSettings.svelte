@@ -38,6 +38,8 @@
   let pageSize = $state<number>(
     typeof window !== 'undefined' ? parseInt(localStorage.getItem(PAGE_SIZE_KEY) ?? '10', 10) : 10
   );
+  let fontScale = $state<'compact' | 'comfortable'>('comfortable');
+  let layoutPreview = $state<'default' | 'dense' | 'wide'>('default');
 
   function setPageSize(size: number) {
     pageSize = size;
@@ -90,6 +92,31 @@
           </button>
         {/each}
       </div>
+    </Card.CardContent>
+  </Card.Card>
+
+  <Card.Card>
+    <Card.CardHeader class="pb-3">
+      <Card.CardTitle class="text-base">布局预览</Card.CardTitle>
+    </Card.CardHeader>
+    <Card.CardContent class="grid gap-3 sm:grid-cols-3">
+      {#each [
+        { id: 'default', label: '默认', rows: 3 },
+        { id: 'dense', label: '紧凑', rows: 5 },
+        { id: 'wide', label: '宽屏', rows: 2 },
+      ] as preview (preview.id)}
+        <button
+          class="rounded-xl border p-3 text-left transition-colors {layoutPreview === preview.id ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground'}"
+          onclick={() => layoutPreview = preview.id as typeof layoutPreview}
+        >
+          <span class="mb-3 block text-sm font-semibold">{preview.label}</span>
+          <span class="grid gap-1">
+            {#each Array(preview.rows) as _, index (index)}
+              <span class="h-2 rounded bg-current {index === 0 ? 'opacity-70' : 'opacity-25'}"></span>
+            {/each}
+          </span>
+        </button>
+      {/each}
     </Card.CardContent>
   </Card.Card>
 
@@ -160,6 +187,27 @@
               {density === 'standard' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-accent'}"
             onclick={() => setDensity('standard')}
           >{t('settings.standard')}</button>
+        </div>
+      </div>
+
+      <div class="h-px bg-border"></div>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-foreground">字体密度</p>
+          <p class="text-xs text-muted-foreground">{fontScale === 'comfortable' ? '舒适阅读' : '高密度扫描'}</p>
+        </div>
+        <div class="flex rounded-lg border border-input overflow-hidden">
+          <button
+            class="px-3 py-1.5 text-xs font-medium transition-colors
+              {fontScale === 'compact' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-accent'}"
+            onclick={() => fontScale = 'compact'}
+          >紧凑</button>
+          <button
+            class="px-3 py-1.5 text-xs font-medium transition-colors
+              {fontScale === 'comfortable' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-accent'}"
+            onclick={() => fontScale = 'comfortable'}
+          >舒适</button>
         </div>
       </div>
 

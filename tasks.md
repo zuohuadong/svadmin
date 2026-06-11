@@ -54,6 +54,7 @@
 | INV-005 | local | zuohuadong/svadmin | - | Add original CRM and property operations example modules | high | medium | done | gpt-5.3-codex executor + Codex review | gpt-5.3-codex | - | - |
 | INV-006 | local | zuohuadong/svadmin | - | Expand example into multi-system admin demo navigation | high | medium | done | gpt-5.2 executor + gpt-5.3-codex verifier + Codex review | gpt-5.2/gpt-5.3-codex | codex/expand-example-multi-system-demo | - |
 | INV-007 | local | zuohuadong/svadmin | - | Polish multi-system example pages and contrast | high | medium | done | Codex + gpt-5.2 review | gpt-5.2 | codex/expand-example-multi-system-demo | - |
+| INV-008 | local | zuohuadong/svadmin | - | Align example page content quality with Metronic Demo1 standard | high | medium | done | Codex + Harvey gpt-5.2 review | gpt-5.2 | codex/expand-example-multi-system-demo | - |
 
 ## Task Contract: INV-001 Implement Inventory Platform example
 
@@ -630,3 +631,133 @@ Profile：
 - `git diff --check`：通过。
 - 外部品牌词扫描：`example`、`packages/ui`、`tasks.md`、`progress.md` 无匹配。
 - Browser smoke：`#/ai_conversations?sort=updatedAt&order=desc`、`#/products`、`#/products/edit/1`、`#/settings/profile` 可打开且 console errors=0；默认浅色 `darkClass=false`；普通侧栏文字对比度 7.56:1、侧栏激活态 4.97:1、表头 5.71:1、表格正文 7.56:1、表单 label 9.91:1。
+## Task Contract: INV-008 对标 Metronic Demo1 补全示例页面内容
+
+目标：
+- 对标 https://keenthemes.com/metronic/tailwind/demo1/ 整体设计风格，补全现有菜单项对应页面的内容丰富度和视觉质量。
+- 当前菜单项和路由已基本齐全（INV-006 已完成），但部分页面内容为骨架占位，缺少与 Metronic Demo1 等价的完整交互和数据展示。
+- 本任务聚焦页面内容质量提升，不是新增路由或菜单。
+
+非目标：
+- 不复制 Metronic 的源码、素材、CSS 文件或像素级布局。
+- 不新增菜单项或路由（菜单和路由已在 INV-006 完成）。
+- 不引入外部品牌词或受版权保护的设计元素。
+
+验收标准：
+- 每个菜单项对应页面内容充实，与 Metronic Demo1 等价的功能区域均有实现。
+- 页面风格统一、视觉质感一致。
+- 通过 Svelte autofixer、类型检查、lint、build、测试。
+- Browser smoke 覆盖所有修改页面。
+
+相关 skill：
+- `svelte-code-writer`
+- `svelte-core-bestpractices`
+- `svadmin-admin-ui`
+- `tailwind-v4`
+- `typescript`
+
+影响范围：
+- `packages/ui/src/components/profile/` 下所有组件
+- `packages/ui/src/components/account/` 下所有组件
+- `packages/ui/src/components/network/` 下所有组件
+- `packages/ui/src/components/ProfilePage.svelte`
+- `packages/ui/src/components/NotificationsSettings.svelte`
+- `packages/ui/src/components/IntegrationsSettings.svelte`
+- `packages/ui/src/components/AppearanceSettings.svelte`
+- `packages/ui/src/components/ApiSettings.svelte`
+- `packages/ui/src/components/TwoFactorAuthPage.svelte`
+- `packages/ui/src/components/ErrorPage.svelte`
+- `packages/ui/src/components/LoginPage.svelte`
+- `packages/ui/src/components/RegisterPage.svelte`
+- `packages/ui/src/app.css`
+- `tasks.md`、`progress.md`
+
+风险和回滚：
+- 风险：页面数量多，逐页提升工作量大；需按优先级分批执行。
+- 风险：样式改动可能影响全局主题一致性；需在每个页面修改后做 browser smoke。
+- 回滚：撤销 INV-008 的所有页面改动，保留 INV-007 及以前的功能。
+
+缺失/待提升页面清单（对标 Metronic Demo1）：
+
+1. Public Profile `/public-profile` — 已有骨架(179行)，需丰富变体差异、社交互动区域、增强 ProfileCard
+2. Projects 2-Columns `/public-profile/projects/2-columns` — ProjectsGrid 仅4个demo卡片，缺进度条、成员头像栈、搜索筛选
+3. Projects 3-Columns `/public-profile/projects/3-columns` — 同上三列布局适配
+4. Activity Timeline `/public-profile/activity` — ActivityTimeline 仅5条，缺图标分类、日期分组、加载更多
+5. Teams Showcase `/public-profile/teams` — TeamsShowcase 仅3个团队，缺成员网格、团队统计、交互按钮
+6. Profile Company `/public-profile/profiles/company` — 公司变体数据少，缺规模图表、认证徽章、专属封面
+7. Profile Gamer `/public-profile/profiles/gamer` — 玩家变体数据少，缺段位进度、成就墙、战绩区域
+8. Profile Default `/public-profile/profiles/default` — 同 Public Profile 通用差距
+9. User Profile `/account/home/user-profile` — ProfilePage 较完整，缺双栏布局、社交账号绑定、时区语言设置
+10. Settings Plain `/account/home/settings-plain` — 仅81行简单表单，缺分组卡片、更多字段、独立保存
+11. Get Started `/account/home/get-started` — 123行，缺步骤进度指示、待完成清单、快捷入口
+12. Notifications Settings `/account/notifications` — 较完整，缺更多通知类别、免打扰时段
+13. Integrations `/account/integrations` — 4个集成项，缺集成市场/分类、配置详情弹窗
+14. NFT Cards `/network/user-cards/nft` — 134行，缺卡片视觉质感、筛选排序
+15. Team Crew Table `/network/user-table/team-crew` — 122行，缺搜索筛选、角色标签、在线状态
+16. Team Members `/account/members/team-members` — 98行，缺邀请按钮、搜索筛选、批量操作
+17. 2FA `/authentication/branded/2fa` — 较完整4步流程，缺品牌化视觉、步骤过渡动画
+18. Error 404 `/authentication/error-404` — ErrorPage 较简洁，缺品牌化插图、搜索框、推荐链接
+19. Error 500 `/authentication/error-500` — 同上
+20. Appearance `/account/appearance` — 较完整，缺字体选择、布局预览缩略图
+21. Company Profile `/account/home/company-profile` — 99行，缺企业专属字段（注册号、税号、地址）、logo上传
+22. Settings Sidebar `/account/home/settings-sidebar` — 98行，缺侧栏导航+内容区双栏布局
+23. API Keys `/account/api-keys` — 较完整，缺密钥使用统计、过期管理
+24. Import Members `/account/members/import-members` — 143行，缺CSV预览、字段映射、导入进度
+25. Security Log `/account/security/security-log` — 108行，缺日志筛选、详情展开、导出功能
+26. Settings Enterprise `/account/home/settings-enterprise` — 131行，缺企业级设置分组（SSO/SAML/审计/合规）
+27. Members Starter `/account/members/members-starter` — 104行，缺新手引导步骤、角色说明
+
+Profile：
+- admin_profile.framework: `svadmin`
+- admin_profile.decision_source: `用户需求 + 主线程分析`
+- admin_profile.backend_provider: `local mock/in-memory`
+- admin_profile.resources: `inventory`, `notifications`, `calendar_events`, `todos`, `ai_conversations`, `users`, `roles`, `crm_*`, `property_*`, `profile/account/network/auth pages`
+- admin_profile.auth_required: true
+- admin_profile.rbac_required: true
+- admin_profile.audit_required: true
+
+验证计划：
+- `bunx @sveltejs/mcp svelte-autofixer` 覆盖所有新增/修改 `.svelte` 文件。
+- `bunx tsc --noEmit --project example/tsconfig.json`
+- `bun run check`
+- `bun run lint`
+- `cd packages/ui && bun run build`
+- `cd example && bun run build`
+- `bun test packages/`
+- `git diff --check`
+- 禁用品牌词搜索。
+- Browser smoke 覆盖所有修改页面。
+
+执行与审查结果：
+- 已按用户要求调度 `gpt-5.2` 子代理 Harvey 做只读审美/信息密度审查；Harvey 建议优先打磨 Public Profile、Projects、Activity、Settings、Team Members、Security Log、Network、2FA/Error 等高曝光页面。
+- 已将 INV-008 相关菜单分组前移到运营首页之后：资料中心、账户中心、网络、认证与错误页现在靠前展示。
+- 已升级 `PublicProfilePage`：新增资料头部、在线/认证状态、四项统计、右侧 Profile signals、company/default/gamer 差异化数据。
+- 已升级 `ProjectsGrid`：新增搜索、状态筛选、优先级、交付进度、成员头像栈、日期和快捷动作。
+- 已升级 `ActivityTimeline`：新增日期分组、事件状态、附件、评论/反应动作和加载更多。
+- 已升级 `TeamsShowcase`：新增团队状态、运营健康度、开放工作量、权限标签和成员头像栈。
+- 已升级 `SettingsPlainPage`、`SettingsSidebarPage`：新增分组设置、局部保存状态、侧栏设置导航和可视化配置区。
+- 已升级 `TeamMembersPage`：新增搜索、角色筛选、批量停用入口、权限标签、在线状态和统计。
+- 已升级 `SecurityLogPage`：新增指标卡、严重级别筛选、行展开明细、request id 复制和风险 badge。
+- 已升级 `UserCardsNFTPage`：新增排序、总体指标、趋势、收藏/打开动作，并收敛原偏紫视觉为更克制的后台资产卡风格。
+- 已升级 `TwoFactorAuthPage`：新增验证码粘贴、满 6 位自动校验和 loading 状态。
+- 已升级 `ErrorPage`：新增诊断/恢复侧栏、搜索/trace、恢复动作和稳定 trace id。
+- 已升级 `GetStartedPage`、`CompanyProfilePage`、`NotificationsSettings`、`IntegrationsSettings`、`AppearanceSettings`、`ApiSettings`、`SettingsEnterprisePage`：补齐快捷入口、企业合规字段、免打扰时段、集成分类/同步状态、布局预览/API 使用统计和企业 SAML/合规设置。
+- 已升级 `ImportMembersPage`：新增上传/预览/字段映射/导入完成分阶段流程、CSV 列映射、异常行提示、导入摘要和示例数据入口。
+- 已升级 `MembersStarterPage`：新增角色说明卡、搜索/状态筛选、成员配置进度、初始化任务清单和权限标签。
+- 已升级 `TeamCrewTablePage`：新增团队统计、部门/状态筛选、技能标签、在线状态、投入进度和更完整的成员表格。
+- 已升级 `ProfilePage`：新增账户偏好、语言/时区设置、摘要通知开关和身份/设备/协作绑定状态；同时移除既有 `null!` 非空断言。
+- 已按用户要求再次调度 `gpt-5.2` critic 做只读审美复核，结论 PASS；非阻塞提醒为窄屏表格滚动和后续 i18n 抽取。
+- 合规边界：页面为 svadmin 原创 UI/UX，不复制外部模板源码、素材、CSS、文案或像素级布局；`example` / `packages/ui` 禁用外部品牌词扫描无匹配。
+
+验证结果：
+- `bunx @sveltejs/mcp svelte-autofixer` 覆盖本轮补齐和上一轮晚改的 11 个 `.svelte` 页面：issues=0；`ProfilePage` 仅剩非阻塞 `bind:this`/attachment 建议。
+- `bunx tsc --noEmit --project example/tsconfig.json`：通过。
+- 定向 ESLint 覆盖本轮补齐和上一轮晚改页面：通过，0 errors。
+- `bun run check`：通过，0 errors / 18 existing warnings。
+- `bun run lint`：通过，0 errors / 183 existing warnings。
+- `cd packages/ui && bun run build`：通过。
+- `cd example && bun run build`：通过，仅既有 Svelte/Vite/chunk warnings。
+- `bun test packages/`：通过，357 pass / 0 fail。
+- `git diff --check`：通过。
+- `rg -n "Metronic|metronic|keenthemes" example packages/ui -S`：无匹配。
+- Browser smoke 覆盖 INV-008 清单 27 条 hash 路由，全部命中目标文本；额外验证 `ImportMembersPage` 示例数据入口、预览、字段映射、开始导入和导入完成流程；console errors=0，默认浅色 `darkClass=false`。

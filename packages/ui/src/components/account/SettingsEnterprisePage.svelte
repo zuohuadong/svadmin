@@ -15,6 +15,8 @@
   let sessionTimeout = $state('30');
   let ipWhitelist = $state('');
   let auditLogging = $state(true);
+  let samlEnabled = $state(true);
+  let complianceMode = $state(true);
   let dataRetention = $state('365');
   let saving = $state(false);
 
@@ -113,6 +115,22 @@
           <p class="text-xs text-muted-foreground">记录所有管理操作以备合规审查</p>
         </div>
         <Switch id="audit-logging" bind:checked={auditLogging} />
+      </div>
+
+      <div class="flex items-center justify-between gap-4">
+        <div class="space-y-1">
+          <Label for="saml-enabled">SAML 元数据同步</Label>
+          <p class="text-xs text-muted-foreground">定期刷新企业 IdP 证书和实体 ID。</p>
+        </div>
+        <Switch id="saml-enabled" bind:checked={samlEnabled} />
+      </div>
+
+      <div class="flex items-center justify-between gap-4">
+        <div class="space-y-1">
+          <Label for="compliance-mode">合规保护模式</Label>
+          <p class="text-xs text-muted-foreground">提高导出、删除和权限变更的审计强度。</p>
+        </div>
+        <Switch id="compliance-mode" bind:checked={complianceMode} />
       </div>
 
       <div class="space-y-2">

@@ -4,13 +4,16 @@
   import { Button } from '../ui/button/index.js';
   import { Input } from '../ui/input/index.js';
   import { Label } from '../ui/label/index.js';
-  import { Upload, Loader2 } from '@lucide/svelte';
+  import { Building2, MapPin, ShieldCheck, Upload, Loader2 } from '@lucide/svelte';
 
   let companyName = $state('Acme Corporation');
   let industry = $state('Technology');
   let website = $state('https://acme.com');
   let employeeCount = $state('1,250');
   let foundedYear = $state('2015');
+  let registrationNo = $state('91310000MA1K0000X1');
+  let taxNo = $state('CN-310115-2026');
+  let address = $state('上海市浦东新区示例路 88 号');
   let description = $state('Building the future of enterprise software with cutting-edge AI and cloud solutions.');
   let saving = $state(false);
 
@@ -51,10 +54,13 @@
     </Card.CardContent>
   </Card.Card>
 
-  <!-- Company Details Form -->
+  <div class="grid gap-4 lg:grid-cols-[1fr_18rem]">
   <Card.Card class="border-border/60">
     <Card.CardHeader>
-      <Card.CardTitle class="text-base">{t('profile.companyName')}</Card.CardTitle>
+      <Card.CardTitle class="flex items-center gap-2 text-base">
+        <Building2 class="h-4 w-4 text-muted-foreground" />
+        {t('profile.companyName')}
+      </Card.CardTitle>
     </Card.CardHeader>
     <Card.CardContent class="space-y-4">
       <div class="grid gap-4 sm:grid-cols-2">
@@ -78,6 +84,18 @@
           <Label for="company-founded">{t('profile.founded')}</Label>
           <Input id="company-founded" bind:value={foundedYear} />
         </div>
+        <div class="space-y-2">
+          <Label for="company-registration">注册号</Label>
+          <Input id="company-registration" bind:value={registrationNo} />
+        </div>
+        <div class="space-y-2">
+          <Label for="company-tax">税务编号</Label>
+          <Input id="company-tax" bind:value={taxNo} />
+        </div>
+      </div>
+      <div class="space-y-2">
+        <Label for="company-address">注册地址</Label>
+        <Input id="company-address" bind:value={address} />
       </div>
       <div class="space-y-2">
         <Label for="company-description">{t('profile.companyDescription')}</Label>
@@ -96,4 +114,35 @@
       </div>
     </Card.CardContent>
   </Card.Card>
+
+  <div class="space-y-4">
+    <Card.Card class="border-border/60">
+      <Card.CardContent class="space-y-3 p-4">
+        <div class="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <ShieldCheck class="h-4 w-4 text-emerald-600" />
+          合规状态
+        </div>
+        {#each [
+          { label: '企业认证', value: '已通过' },
+          { label: '审计周期', value: 'Q2 / FY26' },
+          { label: '数据区域', value: 'CN + APAC' },
+        ] as item (item.label)}
+          <div class="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
+            <span class="text-xs text-muted-foreground">{item.label}</span>
+            <span class="text-sm font-medium text-foreground">{item.value}</span>
+          </div>
+        {/each}
+      </Card.CardContent>
+    </Card.Card>
+    <Card.Card class="border-border/60">
+      <Card.CardContent class="flex items-start gap-3 p-4">
+        <MapPin class="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        <div>
+          <p class="text-sm font-medium text-foreground">总部地址</p>
+          <p class="mt-1 text-sm text-muted-foreground">{address}</p>
+        </div>
+      </Card.CardContent>
+    </Card.Card>
+  </div>
+  </div>
 </div>

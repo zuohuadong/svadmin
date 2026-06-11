@@ -13,6 +13,7 @@
   let currentStep = $state<Step>('intro');
   let is2faEnabled = $state(false);
   let verifyError = $state('');
+  let verifying = $state(false);
   let copiedRecovery = $state(false);
   let codeDigits = $state<string[]>(Array.from({ length: 6 }, () => ''));
 
@@ -42,12 +43,15 @@
     currentStep = 'verify';
   }
 
-  function handleVerify() {
+  async function handleVerify() {
     verifyError = '';
     if (verificationCode.length !== 6) {
       verifyError = t('auth.twoFactorEnterCode');
       return;
     }
+    verifying = true;
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    verifying = false;
     currentStep = 'recovery';
   }
 
@@ -59,6 +63,19 @@
     if (digit && index < codeDigits.length - 1) {
       const next = input.parentElement?.children[index + 1] as HTMLInputElement | undefined;
       next?.focus();
+    }
+    if (codeDigits.join('').length === 6) {
+      void handleVerify();
+    }
+  }
+
+  function handlePaste(e: ClipboardEvent) {
+    const pasted = e.clipboardData?.getData('text')?.replace(/\D/g, '').slice(0, 6) ?? '';
+    if (pasted.length === 0) return;
+    e.preventDefault();
+    codeDigits = Array.from({ length: 6 }, (_, index) => pasted[index] ?? '');
+    if (pasted.length === 6) {
+      void handleVerify();
     }
   }
 
@@ -172,6 +189,7 @@
                 pattern="[0-9]*"
                 bind:value={codeDigits[i]}
                 oninput={(e: Event) => handleDigitInput(e, i)}
+                onpaste={handlePaste}
               />
             {/each}
           </div>
@@ -180,8 +198,12 @@
             <Button variant="outline" class="flex-1" onclick={() => currentStep = 'scan'}>
               <ArrowLeft class="h-4 w-4 mr-2" />{t('common.back')}
             </Button>
-            <Button class="flex-1" onclick={handleVerify}>
-              {t('common.confirm')} <ArrowRight class="h-4 w-4 ml-2" />
+            <Button class="flex-1" onclick={handleVerify} disabled={verifying}>
+              {#if verifying}
+                <span class="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground"></span>
+              {:else}
+                {t('common.confirm')} <ArrowRight class="h-4 w-4 ml-2" />
+              {/if}
             </Button>
           </div>
         </Card.CardContent>
