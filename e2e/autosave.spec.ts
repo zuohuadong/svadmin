@@ -12,7 +12,7 @@ test.describe('AutoSave Race Conditions', () => {
   });
 
   test('queued autoSave modifications are preserved during pending API requests', async ({ page }) => {
-    await page.goto('/#/posts');
+    await page.goto('/#/products');
     // Wait for table to render
     await page.locator('table tbody tr, [class*="table"] [class*="row"]').first().waitFor({ state: 'visible', timeout: 10000 });
 
@@ -33,7 +33,7 @@ test.describe('AutoSave Race Conditions', () => {
 
     let apiInterceptCount = 0;
 
-    await page.route('**/posts/*', async (route, request) => {
+    await page.route('**/products/*', async (route, request) => {
       if (request.method() === 'PATCH' || request.method() === 'PUT') {
         apiInterceptCount++;
         await new Promise(resolve => setTimeout(resolve, 2000));
