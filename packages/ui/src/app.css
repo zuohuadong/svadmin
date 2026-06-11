@@ -899,3 +899,148 @@ main {
 .dark .layout-clean-flat [data-slot="input"]:focus {
   border-color: #3e97ff !important;
 }
+
+/* ─── svadmin Metronic-inspired list and edit surfaces ─── */
+[data-svadmin-list-header],
+[data-svadmin-table-toolbar],
+[data-svadmin-table-card],
+[data-svadmin-form-header],
+[data-svadmin-form-card],
+[data-svadmin-form-actions] {
+  box-shadow: 0 0 24px rgba(76, 87, 125, 0.045) !important;
+}
+
+.layout-clean-flat [data-svadmin-list-header],
+.layout-clean-flat [data-svadmin-table-toolbar],
+.layout-clean-flat [data-svadmin-table-card],
+.layout-clean-flat [data-svadmin-form-header],
+.layout-clean-flat [data-svadmin-form-card],
+.layout-clean-flat [data-svadmin-form-actions] {
+  border-color: #f1f3f7 !important;
+  background: #ffffff !important;
+  border-radius: 1.15rem !important;
+}
+
+.layout-clean-flat [data-svadmin-list-actions] [data-slot="button"],
+.layout-clean-flat [data-svadmin-table-toolbar] [data-slot="button"],
+.layout-clean-flat [data-svadmin-form-actions] [data-slot="button"] {
+  height: 2.625rem !important;
+  border-radius: 0.75rem !important;
+}
+
+.layout-clean-flat [data-svadmin-table-toolbar] {
+  padding: 0.875rem !important;
+}
+
+.layout-clean-flat [data-svadmin-table-toolbar] [data-slot="input"] {
+  height: 2.75rem !important;
+  border-radius: 0.85rem !important;
+  background: #f9f9f9 !important;
+}
+
+[data-svadmin-datatable] {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+[data-svadmin-table-head] [data-slot="table-head"] {
+  height: 3.25rem !important;
+  border-bottom: 1px solid rgba(225, 227, 234, 0.78) !important;
+  background: #f9f9f9 !important;
+  color: #a1a5b7 !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+[data-svadmin-table-row] {
+  border-bottom-color: rgba(241, 243, 247, 0.95) !important;
+}
+
+[data-svadmin-table-row] [data-slot="table-cell"] {
+  height: 3.625rem !important;
+  color: #5e6278 !important;
+  font-size: 0.8125rem !important;
+}
+
+[data-svadmin-table-row]:hover [data-slot="table-cell"] {
+  background: #fbfcfd !important;
+}
+
+[data-svadmin-pagination] {
+  border-radius: 1rem;
+  padding: 0.35rem 0.15rem;
+}
+
+[data-svadmin-form-content] {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+[data-svadmin-form-row] {
+  border-bottom: 1px solid rgba(241, 243, 247, 0.95);
+  padding: 1.35rem 0;
+}
+
+[data-svadmin-form-row]:last-child {
+  border-bottom: 0;
+}
+
+[data-svadmin-field-label] {
+  color: #3f4254 !important;
+  font-weight: 600 !important;
+}
+
+[data-svadmin-form-settings] [data-slot="input"],
+[data-svadmin-form-settings] textarea,
+[data-svadmin-form-settings] [data-slot="select-trigger"] {
+  min-height: 2.75rem !important;
+  border-radius: 0.85rem !important;
+  background: #f9f9f9 !important;
+}
+
+[data-svadmin-form-actions] {
+  width: fit-content;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  [data-svadmin-form-settings] [data-svadmin-field] {
+    display: grid !important;
+    grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr) !important;
+    align-items: start !important;
+    column-gap: 2rem !important;
+    row-gap: 0.35rem !important;
+  }
+
+  [data-svadmin-form-settings] [data-svadmin-field] > [data-svadmin-field-label] {
+    padding-top: 0.8rem !important;
+  }
+
+  [data-svadmin-form-settings] [data-svadmin-field] > :not([data-svadmin-field-label]) {
+    grid-column: 2 !important;
+  }
+}
+
+.dark [data-svadmin-table-head] [data-slot="table-head"] {
+  background: #1a1a27 !important;
+  border-bottom-color: #2b2b40 !important;
+  color: #a1a5b7 !important;
+}
+
+.dark [data-svadmin-table-row] {
+  border-bottom-color: rgba(43, 43, 64, 0.82) !important;
+}
+
+.dark [data-svadmin-table-row] [data-slot="table-cell"] {
+  color: #a1a5b7 !important;
+}
+
+.dark [data-svadmin-table-row]:hover [data-slot="table-cell"] {
+  background: rgba(43, 43, 64, 0.32) !important;
+}
+
+.dark [data-svadmin-form-row] {
+  border-bottom-color: rgba(43, 43, 64, 0.82);
+}

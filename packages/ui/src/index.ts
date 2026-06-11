@@ -163,3 +163,28 @@ export type { FieldComponentMap } from './components/fieldComponentMap';
 
 // Svelte Actions
 export { clickOutside, shortcut, intersect, copyOnClick } from './actions';
+
+// Public Profile
+export { default as ProfileCard } from './components/profile/ProfileCard.svelte';
+export { default as ProjectsGrid } from './components/profile/ProjectsGrid.svelte';
+export { default as ActivityTimeline } from './components/profile/ActivityTimeline.svelte';
+export { default as TeamsShowcase } from './components/profile/TeamsShowcase.svelte';
+export { default as PublicProfilePage } from './components/profile/PublicProfilePage.svelte';
+
+// Account extensions
+export { default as GetStartedPage } from './components/account/GetStartedPage.svelte';
+export { default as CompanyProfilePage } from './components/account/CompanyProfilePage.svelte';
+export { default as SettingsPlainPage } from './components/account/SettingsPlainPage.svelte';
+export { default as SettingsSidebarPage } from './components/account/SettingsSidebarPage.svelte';
+export { default as SettingsEnterprisePage } from './components/account/SettingsEnterprisePage.svelte';
+export { default as ImportMembersPage } from './components/account/ImportMembersPage.svelte';
+export { default as MembersStarterPage } from './components/account/MembersStarterPage.svelte';
+export { default as SecurityLogPage } from './components/account/SecurityLogPage.svelte';
+export { default as TeamMembersPage } from './components/account/TeamMembersPage.svelte';
+
+// Network
+export { default as UserCardsNFTPage } from './components/network/UserCardsNFTPage.svelte';
+export { default as TeamCrewTablePage } from './components/network/TeamCrewTablePage.svelte';
+
+// Auth extensions
+export { default as TwoFactorAuthPage } from './components/TwoFactorAuthPage.svelte';

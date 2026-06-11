@@ -44,14 +44,17 @@
   const hasGroups = $derived(formFields.some(f => f.group));
   const groups = $derived((() => {
     if (!hasGroups) return [];
-    const order: string[] = [];
-    const map = new Map<string, FieldDefinition[]>();
+    const result: Array<{ name: string; fields: FieldDefinition[] }> = [];
     for (const f of formFields) {
       const g = f.group ?? '';
-      if (!map.has(g)) { order.push(g); map.set(g, []); }
-      (map.get(g) ?? []).push(f);
+      let group = result.find(item => item.name === g);
+      if (!group) {
+        group = { name: g, fields: [] };
+        result.push(group);
+      }
+      group.fields.push(f);
     }
-    return order.map(g => ({ name: g, fields: map.get(g) ?? [] }));
+    return result;
   })());
 
   // ─── Default values from field metadata ───────────────────────────
@@ -132,8 +135,8 @@
   }
 </script>
 
-<div class="space-y-6">
-  <div class="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-sm shadow-slate-900/[0.03] backdrop-blur">
+<div class="space-y-6" data-svadmin-form-shell>
+  <div class="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-sm shadow-slate-900/[0.03] backdrop-blur" data-svadmin-form-header>
     <div class="flex flex-wrap items-center gap-4">
       <TooltipButton
         tooltip={t('common.back')}
@@ -144,7 +147,12 @@
       </TooltipButton>
       <div class="min-w-0 flex-1">
         <h1 class="truncate text-2xl font-semibold tracking-tight text-foreground">{pageTitle}</h1>
-        <p class="mt-1 text-sm text-muted-foreground">{resource.label}</p>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+          <Badge variant="secondary" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-semibold">
+            {mode === 'create' ? t('common.create') : mode === 'show' ? t('common.detail') : t('common.edit')}
+          </Badge>
+          <p class="text-sm text-muted-foreground">{resource.label}</p>
+        </div>
       </div>
       {#if headerContent}
         {@render headerContent()}
@@ -167,7 +175,7 @@
       </div>
     </div>
   {:else}
-    <form onsubmit={(e: Event) => { e.preventDefault(); handleSubmit(); }} class="max-w-4xl space-y-6">
+    <form onsubmit={(e: Event) => { e.preventDefault(); handleSubmit(); }} class="max-w-5xl space-y-6" data-svadmin-form-settings>
       {#if submitError}
         <div transition:slide={{ duration: 300, axis: 'y' }} class="svadmin-shake">
           <Alert.Root variant="destructive">
@@ -179,15 +187,15 @@
 
       {#if hasGroups}
         {#each groups as group, _i (_i)}
-          <Card.Root class="overflow-hidden rounded-3xl border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03]">
+          <Card.Root class="overflow-hidden rounded-3xl border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03]" data-svadmin-form-card>
             {#if group.name}
               <Card.Header class="border-b border-border/60 bg-muted/25 px-5 py-4 sm:px-6">
                 <Card.Title class="text-base font-semibold">{group.name}</Card.Title>
               </Card.Header>
             {/if}
-            <Card.Content class="space-y-5 px-4 pb-4 pt-5 sm:px-6 sm:pb-6">
+            <Card.Content class="px-4 py-0 sm:px-6" data-svadmin-form-content>
               {#each group.fields as field (field.key)}
-                <div class:border-destructive={!!form.errors[field.key]}>
+                <div data-svadmin-form-row class:border-destructive={!!form.errors[field.key]}>
                   {#if fieldRenderer}
                     {@render fieldRenderer({ field, value: form.values[field.key], onchange: (val: unknown) => form.setFieldValue(field.key, val) })}
                   {:else}
@@ -207,10 +215,10 @@
           </Card.Root>
         {/each}
       {:else}
-        <Card.Root class="rounded-3xl border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03]">
-          <Card.Content class="space-y-5 px-4 pb-4 pt-5 sm:px-6 sm:pb-6">
+        <Card.Root class="rounded-3xl border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03]" data-svadmin-form-card>
+          <Card.Content class="px-4 py-0 sm:px-6" data-svadmin-form-content>
             {#each formFields as field (field.key)}
-              <div class:border-destructive={!!form.errors[field.key]}>
+              <div data-svadmin-form-row class:border-destructive={!!form.errors[field.key]}>
                 {#if fieldRenderer}
                   {@render fieldRenderer({ field, value: form.values[field.key], onchange: (val: unknown) => form.setFieldValue(field.key, val) })}
                 {:else}
@@ -230,7 +238,7 @@
         </Card.Root>
       {/if}
 
-      <div class="sticky bottom-4 z-10 flex items-center gap-3 rounded-3xl border border-border/70 bg-card/90 p-3 shadow-lg shadow-slate-900/[0.05] backdrop-blur">
+      <div class="sticky bottom-4 z-10 flex items-center gap-3 rounded-3xl border border-border/70 bg-card/90 p-3 shadow-lg shadow-slate-900/[0.05] backdrop-blur" data-svadmin-form-actions>
         {#if formActions}
           {@render formActions({ isLoading: form.submitting, onSubmit: handleSubmit })}
         {:else if !isReadonly}

@@ -85,8 +85,8 @@
   }
 </script>
 
-<div class="space-y-1.5">
-  <Label for={field.key} id="label-{field.key}">
+<div class="space-y-1.5" data-svadmin-field>
+  <Label for={field.key} id="label-{field.key}" data-svadmin-field-label>
     {field.label}
     {#if field.required}
       <span class="text-destructive">*</span>

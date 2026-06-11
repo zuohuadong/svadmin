@@ -24,6 +24,19 @@
   import TaskQueueDrawer from './TaskQueueDrawer.svelte';
   import SettingsPage from './SettingsPage.svelte';
   import ErrorPage from './ErrorPage.svelte';
+  import PublicProfilePage from './profile/PublicProfilePage.svelte';
+  import GetStartedPage from './account/GetStartedPage.svelte';
+  import CompanyProfilePage from './account/CompanyProfilePage.svelte';
+  import SettingsPlainPage from './account/SettingsPlainPage.svelte';
+  import SettingsSidebarPage from './account/SettingsSidebarPage.svelte';
+  import SettingsEnterprisePage from './account/SettingsEnterprisePage.svelte';
+  import ImportMembersPage from './account/ImportMembersPage.svelte';
+  import MembersStarterPage from './account/MembersStarterPage.svelte';
+  import TeamMembersPage from './account/TeamMembersPage.svelte';
+  import SecurityLogPage from './account/SecurityLogPage.svelte';
+  import UserCardsNFTPage from './network/UserCardsNFTPage.svelte';
+  import TeamCrewTablePage from './network/TeamCrewTablePage.svelte';
+  import TwoFactorAuthPage from './TwoFactorAuthPage.svelte';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
   import { Badge } from './ui/badge/index.js';
@@ -220,9 +233,43 @@
     <ConfigErrorScreen title="{title} — {t('common.configRequired')}" />
   {:else if isAuthenticated || !authProvider}
     <Layout {title} {menu} {siteUrl} routeMode={resolvedRouteMode}>
-      {#key route + (params.resource ?? '') + (params.id ?? '')}
+      {#key route + (params.resource ?? '') + (params.id ?? '') + (params.variant ?? '') + (params.columns ?? '')}
       <div class="svadmin-page-enter">
-      {#if route.startsWith('/settings')}
+      {#if route === '/2fa'}
+        <TwoFactorAuthPage />
+      {:else if route === '/public-profile'}
+        <PublicProfilePage variant="default" initialTab="projects" />
+      {:else if route === '/public-profile/projects/:columns'}
+        <PublicProfilePage variant="default" initialTab="projects" columns={params.columns === '3' ? 3 : 2} />
+      {:else if route === '/public-profile/activity'}
+        <PublicProfilePage variant="default" initialTab="activity" />
+      {:else if route === '/public-profile/teams'}
+        <PublicProfilePage variant="default" initialTab="teams" />
+      {:else if route === '/public-profile/profiles/:variant'}
+        <PublicProfilePage variant={(params.variant === 'company' || params.variant === 'gamer' || params.variant === 'default' ? params.variant : 'default') as 'company' | 'gamer' | 'default'} />
+      {:else if route === '/account/get-started'}
+        <GetStartedPage />
+      {:else if route === '/account/company-profile'}
+        <CompanyProfilePage />
+      {:else if route === '/account/settings-plain'}
+        <SettingsPlainPage />
+      {:else if route === '/account/settings-sidebar'}
+        <SettingsSidebarPage />
+      {:else if route === '/account/settings-enterprise'}
+        <SettingsEnterprisePage />
+      {:else if route === '/account/import-members'}
+        <ImportMembersPage />
+      {:else if route === '/account/members-starter'}
+        <MembersStarterPage />
+      {:else if route === '/account/team-members'}
+        <TeamMembersPage />
+      {:else if route === '/account/security-log'}
+        <SecurityLogPage />
+      {:else if route === '/network/user-cards'}
+        <UserCardsNFTPage />
+      {:else if route === '/network/team-crew'}
+        <TeamCrewTablePage />
+      {:else if route.startsWith('/settings')}
         <SettingsPage />
       {:else if route === '/500' || (route === '/:resource' && params.resource === '500')}
         {@const ErrorComp = mergedComponents.ErrorPage || ErrorPage}

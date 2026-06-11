@@ -484,15 +484,15 @@
   }
 </script>
 
-<div class="space-y-5">
+<div class="space-y-5" data-svadmin-list>
   <!-- Header -->
-  <div class="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-sm shadow-slate-900/[0.03] backdrop-blur">
+  <div class="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-sm shadow-slate-900/[0.03] backdrop-blur" data-svadmin-list-header>
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="min-w-0">
         <h1 class="truncate text-2xl font-semibold tracking-tight text-foreground">{resource.label}</h1>
         <p class="mt-1 text-sm text-muted-foreground">{t('common.list')}</p>
       </div>
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2" data-svadmin-list-actions>
       {#if canExport}
         <Button variant="outline" size="sm" class="h-10 rounded-xl" onclick={exportCSV}>
           <Download class="h-4 w-4" data-icon="inline-start" /> {t('common.export')}
@@ -546,7 +546,7 @@
   </div>
 
   <!-- Search and Advanced Filters -->
-  <div class="flex flex-wrap items-center gap-3 rounded-3xl border border-border/70 bg-card/80 p-3 shadow-sm shadow-slate-900/[0.02] backdrop-blur">
+  <div class="flex flex-wrap items-center gap-3 rounded-3xl border border-border/70 bg-card/80 p-3 shadow-sm shadow-slate-900/[0.02] backdrop-blur" data-svadmin-table-toolbar>
     {#if searchableFields.length > 0}
       <div class="relative max-w-sm flex-1 sm:min-w-[250px]">
         <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -621,7 +621,7 @@
   </div>
 
   <!-- Table (TanStack-powered) -->
-  <div class="overflow-hidden rounded-3xl border border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03] backdrop-blur" role="region" aria-label="{resource.label} {t('common.list')}">
+  <div class="overflow-hidden rounded-3xl border border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03] backdrop-blur" data-svadmin-table-card role="region" aria-label="{resource.label} {t('common.list')}">
     {#if query.isLoading}
       <div class="p-4 space-y-3">
         <div class="flex gap-4 mb-2">
@@ -645,8 +645,8 @@
       <div in:fade={{ duration: 150 }}>
         <!-- Desktop Table (hidden on mobile) -->
         <div class="hidden md:block">
-        <Table.Root>
-          <Table.Header>
+        <Table.Root class="svadmin-data-table" data-svadmin-datatable>
+          <Table.Header data-svadmin-table-head>
             {#each table_getHeaderGroups(tbl) as headerGroup, _i (_i)}
               <DraggableHeader
                 columns={headerGroup.headers.map((h: any) => ({ id: h.column.id, header: h }))}
@@ -657,7 +657,7 @@
                   {@const header = col.header as typeof headerGroup.headers[0]}
                   <Table.Head
                     {...dragProps}
-                    class={cn("border-b border-border/50 bg-muted/35 py-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/75 hover:bg-muted/45", dragProps.class)}
+                    class={cn("border-b border-border/50 bg-muted/35 px-4 py-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/75 hover:bg-muted/45", dragProps.class)}
                     style={header_getSize(header) != null && header_getSize(header) !== 150 ? `width:${header_getSize(header)}px` : undefined}
                   >
                     {#if header.id === '_select'}
@@ -699,9 +699,9 @@
               <ContextMenu.Root>
                 <ContextMenu.Trigger>
                   {#snippet child({ props })}
-                    <Table.Row {...props} class="border-b border-border/30 transition-colors duration-200 {row_getIsSelected(row) ? 'bg-primary/5' : 'hover:bg-muted/25'}">
+                    <Table.Row {...props} data-svadmin-table-row class="border-b border-border/30 transition-colors duration-200 {row_getIsSelected(row) ? 'bg-primary/5' : 'hover:bg-muted/25'}">
                       {#each row_getVisibleCells(row) as cell, _i (_i)}
-                        <Table.Cell>
+                        <Table.Cell class="px-4 py-3.5">
                           {#if cell.column.id === '_select'}
                             <Checkbox
                               checked={row_getIsSelected(row)}
@@ -911,7 +911,7 @@
 
   <!-- Pagination (shadcn) -->
   {#if totalPages > 0}
-  <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground" data-svadmin-pagination>
     <div class="flex items-center gap-2">
       <span>{t('common.total', { total: query.data?.total ?? 0 })}</span>
       <select
