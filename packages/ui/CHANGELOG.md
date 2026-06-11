@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.35.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.10...ui-v0.35.0) (2026-06-11)
+
+
+### 🚀 Features
+
+* add inventory operations resources, split-layout auth pages, and AI chat assistant ([104dec3](https://github.com/zuohuadong/svadmin/commit/104dec3d0f9ebc0b573bf1fe6471fe2406b558dd))
+* **example:** add customer and property operations demos ([f128bc6](https://github.com/zuohuadong/svadmin/commit/f128bc66d0a12961c9689132f82d06b048851a58))
+* **example:** polish admin demo shell ([65559dd](https://github.com/zuohuadong/svadmin/commit/65559dddb4531ecbe5540312864dec0f3d35ae1a))
+* **example:** refine metronic-style admin demo ([b4d176a](https://github.com/zuohuadong/svadmin/commit/b4d176a79899f9adaf8bfa5f24d1b6ba86938c79))
+* **example:** show demo credentials on login ([e392f8d](https://github.com/zuohuadong/svadmin/commit/e392f8d7cd45c3eae644e1178e5b0eeb10781554))
+* **ui:** add clean-flat layout preset for high contrast modern aesthetics ([8dba20b](https://github.com/zuohuadong/svadmin/commit/8dba20b7049362ca7e4c9a3de3063660ea8f97db))
+* **ui:** add Metronic-inspired admin pages ([bfa10db](https://github.com/zuohuadong/svadmin/commit/bfa10db87a80c6781e4668340437259705ed6fdc))
+* **ui:** add Settings sub-pages, ErrorPage, Dashboard expansion and i18n ([eb55054](https://github.com/zuohuadong/svadmin/commit/eb55054458928ae2033113e8fd577628a9261819))
+
+
+### 🔧 Miscellaneous Chores
+
+* **ui:** remove stale auth page icon imports ([f74b751](https://github.com/zuohuadong/svadmin/commit/f74b75189940403ebbb12650a5b152a8bc9d41f1))
+
 ## [0.34.10](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.9...ui-v0.34.10) (2026-06-04)
 
 
