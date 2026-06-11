@@ -8,7 +8,7 @@
   import * as Alert from './ui/alert/index.js';
   import PasswordInput from './PasswordInput.svelte';
   import { Separator } from './ui/separator/index.js';
-  import { LogIn, User, Loader2, AlertCircle, Shield } from '@lucide/svelte';
+  import { User, Loader2, AlertCircle, Shield } from '@lucide/svelte';
 
   interface SocialProvider {
     name: string;

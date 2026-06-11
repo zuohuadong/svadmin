@@ -7,7 +7,7 @@
   import { Label } from './ui/label/index.js';
   import * as Alert from './ui/alert/index.js';
   import PasswordInput from './PasswordInput.svelte';
-  import { UserPlus, User, Loader2, AlertCircle, Shield } from '@lucide/svelte';
+  import { User, Loader2, AlertCircle, Shield } from '@lucide/svelte';
 
   let { title = 'Admin', onSuccess } = $props<{
     title?: string;
