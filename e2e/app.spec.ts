@@ -42,12 +42,12 @@ test.describe('CRUD Operations', () => {
   });
 
   test('list page loads data', async ({ page }) => {
-    await page.goto('/#/posts');
+    await page.goto('/#/products');
     await expect(page.locator('table, [class*="table"]').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('navigate to create page', async ({ page }) => {
-    await page.goto('/#/posts');
+    await page.goto('/#/products');
     const createBtn = page.getByRole('button', { name: /create/i });
     await createBtn.waitFor({ state: 'visible', timeout: 10000 });
     await createBtn.click();
@@ -55,7 +55,7 @@ test.describe('CRUD Operations', () => {
   });
 
   test('navigate to edit page', async ({ page }) => {
-    await page.goto('/#/posts');
+    await page.goto('/#/products');
     await page.locator('table tbody tr, [class*="table"] [class*="row"]').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
     const editBtn = page.locator('a[href*="edit"], button:has-text("Edit")').first();
     if (await editBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -82,11 +82,11 @@ test.describe('Navigation', () => {
   });
 
   test('browser back button works', async ({ page }) => {
-    await page.goto('/#/posts');
+    await page.goto('/#/products');
     await page.waitForLoadState('networkidle');
     await page.goto('/#/users');
     await page.waitForLoadState('networkidle');
     await page.goBack();
-    await expect(page).toHaveURL(/posts/, { timeout: 5000 });
+    await expect(page).toHaveURL(/products/, { timeout: 5000 });
   });
 });
