@@ -19,7 +19,8 @@
     Image as ImageIcon, Layout, Folder, Type, Video,
     Download, ListTodo, TrendingUp, Sparkles, Images, Bot, Key, KeyRound, CreditCard, BookOpen, Wrench,
     Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle, Bell, CalendarDays, Package, Shield,
-    Barcode, FolderTree, Building2, Warehouse
+    Barcode, FolderTree, Building2, Warehouse,
+    Handshake, BriefcaseBusiness, UserRoundCheck, CalendarCheck, MapPinned, Puzzle
   } from '@lucide/svelte';
 
   let { collapsed, identity, title, onToggle, onLogout, menu, routeMode = 'auto' }: {
@@ -76,6 +77,12 @@
     'folder-tree': FolderTree,
     'building-2': Building2,
     'warehouse': Warehouse,
+    'handshake': Handshake,
+    'briefcase-business': BriefcaseBusiness,
+    'user-round-check': UserRoundCheck,
+    'calendar-check': CalendarCheck,
+    'map-pinned': MapPinned,
+    'puzzle': Puzzle,
   };
 
   interface NavItem {

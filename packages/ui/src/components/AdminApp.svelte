@@ -37,6 +37,11 @@
   import UserCardsNFTPage from './network/UserCardsNFTPage.svelte';
   import TeamCrewTablePage from './network/TeamCrewTablePage.svelte';
   import TwoFactorAuthPage from './TwoFactorAuthPage.svelte';
+  import ProfilePage from './ProfilePage.svelte';
+  import NotificationsSettings from './NotificationsSettings.svelte';
+  import IntegrationsSettings from './IntegrationsSettings.svelte';
+  import AppearanceSettings from './AppearanceSettings.svelte';
+  import ApiSettings from './ApiSettings.svelte';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
   import { Badge } from './ui/badge/index.js';
@@ -237,16 +242,86 @@
       <div class="svadmin-page-enter">
       {#if route === '/2fa'}
         <TwoFactorAuthPage />
+      {:else if route === '/store-inventory/dashboard'}
+        {#if dashboard}
+          {@render dashboard()}
+        {:else}
+          <div class="space-y-4">
+            <h1 class="text-xl font-semibold text-foreground">{t('common.welcome', { title })}</h1>
+            <p class="text-muted-foreground">{t('common.dashboardHint')}</p>
+          </div>
+        {/if}
+      {:else if route === '/mail/inbox'}
+        {@const Comp = resourcePages?.notifications?.list ?? mergedComponents.AutoTable}
+        <Comp resourceName="notifications" />
+      {:else if route === '/calendar/page'}
+        {@const Comp = resourcePages?.calendar_events?.list ?? mergedComponents.AutoTable}
+        <Comp resourceName="calendar_events" />
+      {:else if route === '/todo/all-tasks'}
+        {@const Comp = resourcePages?.todos?.list ?? mergedComponents.AutoTable}
+        <Comp resourceName="todos" />
+      {:else if route === '/crm/dashboard'}
+        {@const Comp = resourcePages?.crm_accounts?.list ?? mergedComponents.AutoTable}
+        <Comp resourceName="crm_accounts" />
+      {:else if route === '/real-estate/page'}
+        {@const Comp = resourcePages?.properties?.list ?? mergedComponents.AutoTable}
+        <Comp resourceName="properties" />
+      {:else if route === '/ai/start'}
+        {@const Comp = resourcePages?.ai_conversations?.list ?? mergedComponents.AutoTable}
+        <Comp resourceName="ai_conversations" />
+      {:else if route === '/user-management/users'}
+        {@const Comp = resourcePages?.users?.list ?? mergedComponents.AutoTable}
+        <Comp resourceName="users" />
       {:else if route === '/public-profile'}
         <PublicProfilePage variant="default" initialTab="projects" />
       {:else if route === '/public-profile/projects/:columns'}
-        <PublicProfilePage variant="default" initialTab="projects" columns={params.columns === '3' ? 3 : 2} />
+        <PublicProfilePage variant="default" initialTab="projects" columns={params.columns?.startsWith('3') ? 3 : 2} />
       {:else if route === '/public-profile/activity'}
         <PublicProfilePage variant="default" initialTab="activity" />
       {:else if route === '/public-profile/teams'}
         <PublicProfilePage variant="default" initialTab="teams" />
       {:else if route === '/public-profile/profiles/:variant'}
         <PublicProfilePage variant={(params.variant === 'company' || params.variant === 'gamer' || params.variant === 'default' ? params.variant : 'default') as 'company' | 'gamer' | 'default'} />
+      {:else if route === '/account/home/user-profile'}
+        <ProfilePage />
+      {:else if route === '/account/home/settings-plain'}
+        <SettingsPlainPage />
+      {:else if route === '/account/home/get-started'}
+        <GetStartedPage />
+      {:else if route === '/account/notifications'}
+        <NotificationsSettings />
+      {:else if route === '/account/integrations'}
+        <IntegrationsSettings />
+      {:else if route === '/network/user-cards/nft'}
+        <UserCardsNFTPage />
+      {:else if route === '/network/user-table/team-crew'}
+        <TeamCrewTablePage />
+      {:else if route === '/account/members/team-members'}
+        <TeamMembersPage />
+      {:else if route === '/authentication/branded/2fa'}
+        <TwoFactorAuthPage />
+      {:else if route === '/authentication/error-404'}
+        {@const ErrorComp = mergedComponents.ErrorPage || ErrorPage}
+        <ErrorComp status="404" />
+      {:else if route === '/authentication/error-500'}
+        {@const ErrorComp = mergedComponents.ErrorPage || ErrorPage}
+        <ErrorComp status="500" />
+      {:else if route === '/account/appearance'}
+        <AppearanceSettings />
+      {:else if route === '/account/home/company-profile'}
+        <CompanyProfilePage />
+      {:else if route === '/account/home/settings-sidebar'}
+        <SettingsSidebarPage />
+      {:else if route === '/account/api-keys'}
+        <ApiSettings />
+      {:else if route === '/account/members/import-members'}
+        <ImportMembersPage />
+      {:else if route === '/account/security/security-log'}
+        <SecurityLogPage />
+      {:else if route === '/account/home/settings-enterprise'}
+        <SettingsEnterprisePage />
+      {:else if route === '/account/members/members-starter'}
+        <MembersStarterPage />
       {:else if route === '/account/get-started'}
         <GetStartedPage />
       {:else if route === '/account/company-profile'}

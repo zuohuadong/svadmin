@@ -8,6 +8,7 @@
     ChevronDown, Folder, ExternalLink, Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle,
     Barcode, FolderTree, Building2, Warehouse, BriefcaseBusiness, Handshake, UserRoundCheck,
     CalendarCheck, KeyRound, MapPinned,
+    Package, Bell, CalendarDays, ListTodo, Bot, Shield, BookOpen, Palette, Puzzle
   } from '@lucide/svelte';
 
   import { formatLink } from '@svadmin/core/router';
@@ -40,6 +41,15 @@
     'calendar-check': CalendarCheck,
     'key-round': KeyRound,
     'map-pinned': MapPinned,
+    'package': Package,
+    'bell': Bell,
+    'calendar': CalendarDays,
+    'list-todo': ListTodo,
+    'bot': Bot,
+    'shield': Shield,
+    'book-open': BookOpen,
+    'palette': Palette,
+    'puzzle': Puzzle,
   };
 
   function getIcon(name?: string | typeof LayoutDashboard): typeof LayoutDashboard {

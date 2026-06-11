@@ -52,6 +52,7 @@
 | INV-003 | local | zuohuadong/svadmin | - | Complete Inventory AI Chat assistant demo | high | medium | done | gpt-5.2 executor + Codex review | gpt-5.2 | - | - |
 | INV-004 | local | zuohuadong/svadmin | - | Implement Inventory Operations Plus demo resources | high | medium | done | gpt-5.2 executor + Codex review | gpt-5.2 | - | - |
 | INV-005 | local | zuohuadong/svadmin | - | Add original CRM and property operations example modules | high | medium | done | gpt-5.3-codex executor + Codex review | gpt-5.3-codex | - | - |
+| INV-006 | local | zuohuadong/svadmin | - | Expand example into multi-system admin demo navigation | high | medium | done | gpt-5.2 executor + gpt-5.3-codex verifier + Codex review | gpt-5.2/gpt-5.3-codex | codex/expand-example-multi-system-demo | - |
 
 ## Task Contract: INV-001 Implement Inventory Platform example
 
@@ -418,3 +419,93 @@ Profile：
 - Provider CRUD smoke：`stock_transfers`、`cycle_counts`、`inventory_adjustments`、`reorder_rules` list/create/update/getOne/delete 全部通过。
 - AI provider smoke：调拨、盘点、库存调整、补货规则四类问题均返回预期种子记录和摘要。
 - Browser smoke：`http://127.0.0.1:5173/` Dashboard 显示四个运营入口；`#/stock_transfers`、`#/cycle_counts`、`#/inventory_adjustments`、`#/reorder_rules` 路由均显示标题和种子数据；ChatDialog 提问调拨和补货规则均返回预期答案；console errors=0。
+
+## Task Contract: INV-006 Expand example into multi-system admin demo navigation
+
+目标：
+- 将 `example` 收口为多系统后台演示，确保库存运营、邮件/通知、日历、Todo、CRM、房产、AI 对话、用户管理、公共资料、账户中心、网络成员、认证/错误页都能从菜单进入。
+- 为用户列出的 Demo1 风格页面清单增加 svadmin 原创路由别名，保证每个路径都有对应页面而不是 404。
+- 将 `ai_conversations` 从普通消息页拆成独立 AI 工作台页面，保留结构化 CRUD 表格。
+- 统一 example 默认浅色高对比视觉，避免文字和背景颜色接近。
+
+非目标：
+- 不复制外部模板源码、CSS、资产、页面文案、截图或像素级布局。
+- 不引入真实外部 LLM、邮件服务、数据库、API key 或 secrets。
+- 不新增一次性装饰组件；如确需通用 UI，只补最小可复用组件到 `packages/ui`。
+- 不改动无关核心数据 provider、认证、发布配置。
+
+验收标准：
+- `example/src/App.svelte` 显式传入多级 `MenuItem[]`，所有计划中的系统和页面都可从菜单发现。
+- `packages/ui/src/router-state.svelte.ts` 与 `AdminApp.svelte` 覆盖用户列出的全部路径别名。
+- `#/ai_conversations?sort=updatedAt&order=desc` 显示独立 AI 工作台，不再只是消息收件箱。
+- 默认主题为浅色，侧栏、正文、卡片、表格、表单文本对比清晰。
+- 可见 UI 和新增/修改源码中不出现禁用外部品牌词。
+
+相关 skill 和代码规范：
+- `agent-team-automation`
+- `svadmin-admin-ui`
+- `svelte-code-writer`
+- `svelte-core-bestpractices`
+- `tailwind-v4`
+- `typescript`
+
+影响范围：
+- `example/src/App.svelte`
+- `example/src/pages/AiWorkspacePage.svelte`
+- `packages/ui/src/router-state.svelte.ts`
+- `packages/ui/src/components/AdminApp.svelte`
+- `packages/ui/src/app.css`
+- 必要时 `packages/ui/src/components/Sidebar.svelte`、`SidebarItem.svelte` 图标映射
+- `tasks.md`、`progress.md`
+
+风险和回滚：
+- 风险：新增路径别名较多，容易遗漏或被通配资源路由吞掉；需 browser smoke 覆盖每个别名。
+- 风险：自定义菜单过深导致可发现性差；需按系统分组并保持中文标签。
+- 风险：默认暗色偏好可能来自 localStorage；example 需在 demo 默认层面收敛为浅色。
+- 回滚：撤销 INV-006 的菜单、路由别名、AI 工作台和视觉 token 改动，保留 INV-005 及以前资源能力。
+
+Profile：
+- admin_profile.framework: `svadmin`
+- admin_profile.decision_source: `user实施计划 + 主线程审查`
+- admin_profile.backend_provider: `local mock/in-memory`
+- admin_profile.resources: `inventory`, `notifications`, `calendar_events`, `todos`, `ai_conversations`, `users`, `roles`, `crm_*`, `property_*`, `profile/account/network/auth pages`
+- admin_profile.auth_required: true
+- admin_profile.rbac_required: true
+- admin_profile.audit_required: true
+
+验证计划：
+- `bunx @sveltejs/mcp svelte-autofixer` 覆盖新增/修改 `.svelte` 文件。
+- `bunx tsc --noEmit --project example/tsconfig.json`
+- `bun run check`
+- `bun run lint`
+- `cd packages/ui && bun run build`
+- `cd example && bun run build`
+- `bun test packages/`
+- `git diff --check`
+- 禁用品牌词搜索。
+- Browser smoke 覆盖登录、首页、AI 对话、concept 系统入口和全部新增路径别名。
+
+执行与审查结果：
+- 已按用户要求调度 `gpt-5.2` worker 实现限定范围；该 worker 写入核心改动但长时间未返回最终报告，主线程关闭子线程后接管审查、修复和验证。
+- 已新增 example 显式多级菜单，覆盖库存、协作、AI、CRM、资产运营、用户权限、资料中心、账户中心、网络、认证与错误页。
+- 已新增 `example/src/pages/AiWorkspacePage.svelte`，并将 `ai_conversations` 从 `MessagesPage` 切换为独立 AI 工作台，同时保留 `AutoTable` CRUD 表格。
+- 已补齐 concept 系统入口和 Demo1 风格页面清单的 svadmin 原创路径别名，所有路径映射到现有资源页或通用页面组件。
+- 已将 example 默认主题设为 light，并通过浏览器采样确认默认无 `dark` class、侧栏白底深色文本。
+- 已清理 `example` 与 `packages/ui` 中的禁用外部品牌词；历史 changelog 描述改为中性表述。
+- 已按用户要求调度 `gpt-5.3-codex` verifier 做只读审查，但子线程两次等待后仍无输出，主线程关闭子线程并以本地验证证据裁决。
+
+验证结果：
+- `bunx @sveltejs/mcp svelte-autofixer example/src/App.svelte --svelte-version 5`：通过，issues=0；仅既有 effect 建议。
+- `bunx @sveltejs/mcp svelte-autofixer example/src/pages/AiWorkspacePage.svelte --svelte-version 5`：通过，issues=0。
+- `bunx @sveltejs/mcp svelte-autofixer packages/ui/src/components/AdminApp.svelte --svelte-version 5`：无新增 blocking issue；仅既有 state capture/effect 建议。
+- `bunx @sveltejs/mcp svelte-autofixer packages/ui/src/components/Sidebar.svelte packages/ui/src/components/SidebarItem.svelte --svelte-version 5`：通过，issues=0；仅既有建议。
+- `bunx tsc --noEmit --project example/tsconfig.json`：通过。
+- `bun run check`：通过，0 errors / 18 existing warnings；包含既有 create-svadmin template config warning 与 Svelte warnings。
+- `bun run lint`：通过，0 errors / 183 existing warnings。
+- `cd packages/ui && bun run build`：通过。
+- `cd example && bun run build`：通过，仅既有 Svelte/Vite/chunk warnings。
+- `bun test packages/`：通过，357 pass / 0 fail。
+- `git diff --check`：通过。
+- `rg -n "Metronic|metronic|keenthemes" example packages/ui -S`：无匹配。
+- Browser smoke：45 条路由全部通过，覆盖登录、首页、`#/ai_conversations?sort=updatedAt&order=desc`、concept 系统入口、全部 Demo1 风格路径别名和主要资源路由；console errors=0；AI 工作台标题命中；默认浅色采样 `darkClass=false`、body 背景 `oklch(0.975 0.005 264)`、sidebar 白底深色文本。
+- Runtime warning 说明：开发服务器仍出现项目既有 Svelte dev warning（`state_proxy_equality_mismatch`、`derived_inert`），对照普通 `#/products` 同样复现，不作为 INV-006 新增阻断。
