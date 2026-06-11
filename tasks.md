@@ -53,6 +53,7 @@
 | INV-004 | local | zuohuadong/svadmin | - | Implement Inventory Operations Plus demo resources | high | medium | done | gpt-5.2 executor + Codex review | gpt-5.2 | - | - |
 | INV-005 | local | zuohuadong/svadmin | - | Add original CRM and property operations example modules | high | medium | done | gpt-5.3-codex executor + Codex review | gpt-5.3-codex | - | - |
 | INV-006 | local | zuohuadong/svadmin | - | Expand example into multi-system admin demo navigation | high | medium | done | gpt-5.2 executor + gpt-5.3-codex verifier + Codex review | gpt-5.2/gpt-5.3-codex | codex/expand-example-multi-system-demo | - |
+| INV-007 | local | zuohuadong/svadmin | - | Polish multi-system example pages and contrast | high | medium | done | Codex + gpt-5.2 review | gpt-5.2 | codex/expand-example-multi-system-demo | - |
 
 ## Task Contract: INV-001 Implement Inventory Platform example
 
@@ -62,7 +63,7 @@
 - 更新 dashboard，使首屏体现库存、订单、供应商、仓库、近期库存动作等业务信息。
 
 非目标：
-- 不复刻 Metronic 源码、素材、CSS、布局文件、视觉资产或像素级 UI。
+- 不复刻 外部模板 源码、素材、CSS、布局文件、视觉资产或像素级 UI。
 - 不在本阶段实现完整 Mail、Real Estate、CRM、Retail Store。
 - 不在本阶段实现泛 AI Chat；库存助手、User Management、Calendar 留作后续任务。
 - 不引入外部服务、真实认证后端或数据库迁移。
@@ -100,7 +101,7 @@
 
 裁决结果：
 - gpt-5.3-codex 子线程 Lorentz 只读审查结论：PASS，同意主线程裁决边界。
-- 最终裁决：不在 svadmin 中复刻 Metronic 的 Public Profile / Gamer Profile / Company Profile / Projects / Team / User Profile / Account/Billing/Security/Teams/Auth/Error/Integration 页面；这些只能作为后台能力清单参考，不能复制 Metronic 源码、素材、CSS、布局文件或像素级 UI。P0 接受 svadmin-native Inventory Platform 示例。
+- 最终裁决：不在 svadmin 中复刻 外部模板 的 Public Profile / Gamer Profile / Company Profile / Projects / Team / User Profile / Account/Billing/Security/Teams/Auth/Error/Integration 页面；这些只能作为后台能力清单参考，不能复制 外部模板 源码、素材、CSS、布局文件或像素级 UI。P0 接受 svadmin-native Inventory Platform 示例。
 
 验证结果：
 - `bunx @sveltejs/mcp svelte-autofixer example/src/pages/Dashboard.svelte --svelte-version 5`：通过，issues=0。
@@ -126,13 +127,13 @@ Profile：
 
 目标：
 - 在 `example` 示例中补齐用户裁决路线图剩余能力：P1 User Management + Todo，P2 Calendar（采购/盘点）+ AI Chat（库存运营助手，基于本地 mock / `@svadmin/mcp` 方向），P3 Mail 降级为 Notification Center。
-- 将用户粘贴的 Metronic 页面清单裁决为后台能力参考，而不是模板复刻：补齐 svadmin-native Account/Security/Team/RBAC/Integrations/Notifications/API/Audit/Error 等通用后台能力。
-- 每个能力必须体现为 svadmin 原创资源、示例数据、可浏览 CRUD 或核心 UI 组件，不复刻 Metronic 资产、源码、CSS、布局文件或像素级 UI。
+- 将用户粘贴的 外部模板 页面清单裁决为后台能力参考，而不是模板复刻：补齐 svadmin-native Account/Security/Team/RBAC/Integrations/Notifications/API/Audit/Error 等通用后台能力。
+- 每个能力必须体现为 svadmin 原创资源、示例数据、可浏览 CRUD 或核心 UI 组件，不复刻 外部模板 资产、源码、CSS、布局文件或像素级 UI。
 - Dashboard 可展示这些模块的运营入口，但优先保证资源定义、dataProvider 和核心 settings/admin UI 闭环。
 
 非目标：
 - 不纳入 Real Estate、完整 CRM、Retail Store。
-- 不引入 Metronic / Envato 模板素材、截图切片、CSS class 或布局结构。
+- 不引入 外部模板 / Envato 模板素材、截图切片、CSS class 或布局结构。
 - 不引入真实外部 AI 服务、邮件服务或数据库迁移。
 - 不修改无关核心 UI 行为，除非是为了修复 example CRUD 阻断问题且有单独验证。
 
@@ -179,7 +180,7 @@ Profile：
 - 已补齐 `SecuritySettings`、`IntegrationsSettings`、`NotificationsSettings`、`ApiSettings`、`ErrorPage`，并集成到 `SettingsPage`、`AdminApp`、UI exports 与核心 i18n。
 - `SettingsPage` 支持 `customSections` 与 profile/appearance/roles/security/integrations/notifications/api/audit/about/content snippets，默认仍渲染内置后台能力分区。
 - `AdminApp` 对未知资源显示 404，对 `#/500` 显示 500，并允许通过 `components.ErrorPage` 替换错误页；Security 设置在无 RBAC/auth-provider role management 时仍可见；API demo token 使用 `sv_demo_...`，避免误导为 live secret。
-- 合规边界：未使用 Metronic 源码、素材、CSS、布局文件、截图或像素级 UI；实现只覆盖业务能力和 svadmin 自有示例组件。
+- 合规边界：未使用 外部模板 源码、素材、CSS、布局文件、截图或像素级 UI；实现只覆盖业务能力和 svadmin 自有示例组件。
 
 验证结果：
 - `bunx @sveltejs/mcp svelte-autofixer example/src/App.svelte --svelte-version 5`：通过，issues=0。
@@ -212,7 +213,7 @@ Profile：
 
 非目标：
 - 不接入真实外部 LLM、OpenAI/Anthropic API 或任何需要密钥的服务。
-- 不复制 Metronic AI Chat 源码、素材、CSS、布局、截图或像素级 UI。
+- 不复制 外部模板 AI Chat 源码、素材、CSS、布局、截图或像素级 UI。
 - 不实现 Real Estate、完整 CRM、Retail Store。
 - 不做破坏性工具调用；示例助手只读库存数据，写操作必须另开任务并做审批。
 
@@ -295,7 +296,7 @@ Profile：
 - 已按用户要求再次调度 `gpt-5.3-codex` verifier 子代理做只读复核；该子代理会话退出但无 stdout/审查内容，主线程以本地验证和浏览器复核结果裁决。
 - 复核验证通过：新增 3 个 Svelte 文件 autofixer issues=0、`cd packages/ui && bun run build`、`bunx tsc --noEmit --project example/tsconfig.json`、定向 ESLint、`bun run check`（0 errors / 18 existing warnings）、`cd example && bun run build`、`bun test packages/`（357 pass / 0 fail）、`git diff --check`。
 - Browser 复核：`#/crm_accounts` 与 `#/property_leads` 无内部枚举/英文默认文案泄漏、禁用词=false、console errors=0。
-- 合规边界可审计：UI/UX 使用 svadmin 现有组件和原创文案，不复刻 Metronic 视觉或资产。
+- 合规边界可审计：UI/UX 使用 svadmin 现有组件和原创文案，不复刻 外部模板 视觉或资产。
 - 必要验证通过：Svelte autofixer、`bun run check`、定向 ESLint、`bun run build`、`bun test packages/`、`git diff --check`、浏览器 smoke。
 
 相关 skill 和代码规范：
@@ -329,7 +330,7 @@ Profile：
 - `example/src/App.svelte` 注册 `setChatProvider(createInventoryChatProvider(...))`，复用现有 `ChatDialog` 右下角浮动入口和 Command Palette AI mode。
 - 助手可回答低库存/补货建议、采购/盘点日历、未读通知、开放 Todo、AI 会话摘要、运营概览等问题。
 - 未接入真实外部 LLM，未加入 API key 或 secrets；工具流只读，不执行写操作。
-- 合规边界：未使用 Metronic 源码、素材、CSS、布局、截图或像素级 UI；AI Chat 使用 svadmin 现有组件和原创库存运营文案。
+- 合规边界：未使用 外部模板 源码、素材、CSS、布局、截图或像素级 UI；AI Chat 使用 svadmin 现有组件和原创库存运营文案。
 
 验证结果：
 - `bun install --frozen-lockfile`：通过，workspace dependency 链接完成，lockfile 无变化。
@@ -353,7 +354,7 @@ Profile：
 - 增强本地 AI Chat 助手，使其能回答调拨、盘点、库存调整、补货规则相关问题，并在运营概览中纳入这些数据。
 
 非目标：
-- 不复刻 Metronic 源码、素材、CSS、布局、截图或像素级 UI。
+- 不复刻 外部模板 源码、素材、CSS、布局、截图或像素级 UI。
 - 不新增真实数据库、邮件服务、外部 LLM、API key 或 secrets。
 - 不实现 Real Estate、完整 CRM、Retail Store、完整 Mail。
 - 不在本任务中实现写操作型 AI Agent；AI 助手仍只读。
@@ -403,7 +404,7 @@ Profile：
 - `example/src/pages/Dashboard.svelte` 增加调拨、盘点、库存调整、补货规则运营队列指标和快捷入口。
 - `example/src/providers/inventoryAssistant.ts` 增加四类资源的 MCP-style read-only 查询与回答分支，运营概览纳入新增资源。
 - `packages/ui/src/components/Sidebar.svelte` 与 `SidebarItem.svelte` 补充 `repeat`、`clipboard-check`、`sliders-horizontal`、`alert-triangle` 图标映射，避免新增资源菜单退回默认 Settings 图标。
-- 合规边界：未使用 Metronic 源码、素材、CSS、布局、截图或像素级 UI；UI/UX 使用 svadmin 自有组件与原创库存运营文案。
+- 合规边界：未使用 外部模板 源码、素材、CSS、布局、截图或像素级 UI；UI/UX 使用 svadmin 自有组件与原创库存运营文案。
 
 验证结果：
 - `bunx tsc --noEmit --project example/tsconfig.json`：通过。
@@ -506,6 +507,126 @@ Profile：
 - `cd example && bun run build`：通过，仅既有 Svelte/Vite/chunk warnings。
 - `bun test packages/`：通过，357 pass / 0 fail。
 - `git diff --check`：通过。
-- `rg -n "Metronic|metronic|keenthemes" example packages/ui -S`：无匹配。
+- `rg -n "外部模板|外部模板|外部参考站点" example packages/ui -S`：无匹配。
 - Browser smoke：45 条路由全部通过，覆盖登录、首页、`#/ai_conversations?sort=updatedAt&order=desc`、concept 系统入口、全部 Demo1 风格路径别名和主要资源路由；console errors=0；AI 工作台标题命中；默认浅色采样 `darkClass=false`、body 背景 `oklch(0.975 0.005 264)`、sidebar 白底深色文本。
 - Runtime warning 说明：开发服务器仍出现项目既有 Svelte dev warning（`state_proxy_equality_mismatch`、`derived_inert`），对照普通 `#/products` 同样复现，不作为 INV-006 新增阻断。
+
+## Task Contract: INV-007 多系统示例页面与高对比视觉修复
+
+目标：
+- 复核多系统后台示例页面，确保用户关心的菜单入口都有对应的 svadmin 原创页面能力。
+- 页面应采用 svadmin 原创设计，不复刻外部参考源码、素材、CSS 或像素级布局。
+- 修复后台整体风格问题，特别是文字与背景颜色接近的可访问性问题。
+
+非目标：
+- 不复制外部参考的源码、素材、CSS 文件或像素级布局。
+- 不引入外部品牌词或受版权保护的设计元素。
+- 不实现外部演示站点的完整业务功能。
+
+验收标准：
+- 所有菜单项都有对应的页面组件，且页面内容充实、功能完整。
+- 文字与背景颜色对比度符合 WCAG AA 标准（至少 4.5:1）。
+- 页面布局统一、风格一致，符合 svadmin 自身浅色后台风格。
+- 所有页面通过 Svelte autofixer 检查。
+- 类型检查、lint、build、测试全部通过。
+- Browser smoke 覆盖所有新增页面。
+
+相关 skill：
+- `svelte-code-writer`
+- `svelte-core-bestpractices`
+- `svadmin-admin-ui`
+- `tailwind-v4`
+- `typescript`
+
+影响范围：
+- `example/src/pages/` 下所有页面组件
+- `example/src/App.svelte` 菜单和路由配置
+- `packages/ui/src/components/` 通用 UI 组件
+- `packages/ui/src/app.css` 全局样式
+- `tasks.md`、`progress.md`
+
+风险和回滚：
+- 风险：页面数量多，容易遗漏或风格不一致；需要逐页检查和统一。
+- 风险：颜色对比度问题可能涉及多个组件；需要系统性修复。
+- 回滚：撤销 INV-007 的所有页面改动，保留 INV-006 及以前的菜单和路由配置。
+
+缺失页面清单：
+1. **Store Inventory Dashboard** (`/store-inventory/dashboard`)
+   - 库存概览仪表板，展示库存健康度、周转率、预警等指标
+   - 当前状态：菜单中有 `/` 作为运营首页，但缺少专门的库存仪表板
+
+2. **Mail Inbox** (`/mail/inbox`)
+   - 邮件收件箱页面，展示邮件列表、邮件详情、邮件操作
+   - 当前状态：菜单中有 `/mail/inbox` 映射到 `notifications` 资源，但页面功能较简单
+
+3. **Calendar Page** (`/calendar/page`)
+   - 日历视图页面，展示日程、事件、任务的时间线视图
+   - 当前状态：菜单中有 `/calendar/page` 映射到 `calendar_events`，但缺少日历视图组件
+
+4. **Todo All Tasks** (`/todo/all-tasks`)
+   - 待办事项页面，展示任务列表、任务状态、任务优先级
+   - 当前状态：菜单中有 `/todo/all-tasks` 映射到 `todos` 资源，但页面功能较简单
+
+5. **CRM Dashboard** (`/crm/dashboard`)
+   - CRM 仪表板，展示客户概览、销售漏斗、业绩指标
+   - 当前状态：菜单中有 `/crm/dashboard`，但缺少专门的 CRM 仪表板页面
+
+6. **Real Estate Page** (`/real-estate/page`)
+   - 房地产运营页面，展示资产概览、市场趋势、交易状态
+   - 当前状态：菜单中有 `/real-estate/page`，但缺少专门的房地产仪表板页面
+
+7. **AI Start** (`/ai/start`)
+   - AI 起始页，展示 AI 功能介绍、快速入口、使用指南
+   - 当前状态：菜单中有 `/ai/start` 映射到 `ai_conversations`，但缺少 AI 起始页
+
+8. **User Management Users** (`/user-management/users`)
+   - 用户管理页面，展示用户列表、用户详情、权限配置
+   - 当前状态：菜单中有 `/user-management/users` 映射到 `users` 资源，但页面功能较简单
+
+9. **AI Conversations** (`/ai_conversations`)
+   - AI 对话页面，用户提到 `https://svadmin-demo.nestjs.cn/#/ai_conversations?sort=updatedAt&order=desc`
+   - 当前状态：已有 `AiWorkspacePage.svelte`，但可能需要增强功能
+
+10. **风格修复**
+    - 修复文字与背景颜色接近的问题
+    - 统一后台整体风格
+    - 确保所有页面符合 svadmin 自身浅色后台风格
+
+Profile：
+- admin_profile.framework: `svadmin`
+- admin_profile.decision_source: `用户需求 + 主线程分析`
+- admin_profile.backend_provider: `local mock/in-memory`
+- admin_profile.resources: `inventory`, `notifications`, `calendar_events`, `todos`, `ai_conversations`, `users`, `roles`, `crm_*`, `property_*`
+- admin_profile.auth_required: true
+- admin_profile.rbac_required: true
+- admin_profile.audit_required: true
+
+验证计划：
+- `bunx @sveltejs/mcp svelte-autofixer` 覆盖所有新增/修改 `.svelte` 文件。
+- `bunx tsc --noEmit --project example/tsconfig.json`
+- `bun run check`
+- `bun run lint`
+- `cd packages/ui && bun run build`
+- `cd example && bun run build`
+- `bun test packages/`
+- `git diff --check`
+- 禁用品牌词搜索。
+- Browser smoke 覆盖所有新增页面和修复后的页面。
+- 颜色对比度检查，确保符合 WCAG AA 标准。
+
+执行与审查结果：
+- 已按用户要求调度 `gpt-5.2` 子线程 Rawls 做只读审美/对比度复核；结论 PASS，无 blocker，并建议重点复查侧栏激活态与分组标题。
+- 主线程实测发现浅色侧栏激活态蓝字在浅蓝底上对比度不足，已将激活态菜单、子菜单和图标色加深到 `#155eef`。
+- 同步修复 clean-flat 表格、侧栏、按钮、表单在浅色与暗色模式下的正文/弱文本对比度，降低文字与背景接近的问题。
+- 清理任务记录中的外部品牌词，保持 example 与 packages/ui 源码和可见 UI 无相关品牌词泄漏。
+
+验证结果：
+- `bunx tsc --noEmit --project example/tsconfig.json`：通过。
+- `cd packages/ui && bun run build`：通过。
+- `bun run check`：通过，0 errors / 18 existing warnings。
+- `bun run lint`：通过，0 errors / 183 existing warnings。
+- `cd example && bun run build`：通过，仅既有 Svelte/Vite build warnings。
+- `bun test packages/`：通过，357 pass / 0 fail。
+- `git diff --check`：通过。
+- 外部品牌词扫描：`example`、`packages/ui`、`tasks.md`、`progress.md` 无匹配。
+- Browser smoke：`#/ai_conversations?sort=updatedAt&order=desc`、`#/products`、`#/products/edit/1`、`#/settings/profile` 可打开且 console errors=0；默认浅色 `darkClass=false`；普通侧栏文字对比度 7.56:1、侧栏激活态 4.97:1、表头 5.71:1、表格正文 7.56:1、表单 label 9.91:1。
