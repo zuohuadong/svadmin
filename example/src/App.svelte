@@ -15,6 +15,8 @@
   import MessagesPage from './pages/MessagesPage.svelte';
   import InventoryDirectoryPage from './pages/InventoryDirectoryPage.svelte';
   import OperationsPage from './pages/OperationsPage.svelte';
+  import CrmOperationsPage from './pages/CrmOperationsPage.svelte';
+  import PropertyOperationsPage from './pages/PropertyOperationsPage.svelte';
 
   // Register the optional Rich Text Editor plugin globally
   setRichTextEditor(Editor);
@@ -50,6 +52,14 @@
     calendar_events: { list: CalendarPage },
     notifications: { list: MessagesPage },
     ai_conversations: { list: MessagesPage },
+    crm_accounts: { list: CrmOperationsPage },
+    crm_contacts: { list: CrmOperationsPage },
+    crm_deals: { list: CrmOperationsPage },
+    crm_activities: { list: CrmOperationsPage },
+    properties: { list: PropertyOperationsPage },
+    property_agents: { list: PropertyOperationsPage },
+    property_leads: { list: PropertyOperationsPage },
+    property_showings: { list: PropertyOperationsPage },
   };
 </script>
 

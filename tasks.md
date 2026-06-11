@@ -51,6 +51,7 @@
 | INV-002 | local | zuohuadong/svadmin | - | Extend Inventory Platform with roadmap P1-P3 resources | high | medium | done | gpt-5.2 executor + gpt-5.3-codex verifier + Codex review | gpt-5.2/gpt-5.3-codex | - | - |
 | INV-003 | local | zuohuadong/svadmin | - | Complete Inventory AI Chat assistant demo | high | medium | done | gpt-5.2 executor + Codex review | gpt-5.2 | - | - |
 | INV-004 | local | zuohuadong/svadmin | - | Implement Inventory Operations Plus demo resources | high | medium | done | gpt-5.2 executor + Codex review | gpt-5.2 | - | - |
+| INV-005 | local | zuohuadong/svadmin | - | Add original CRM and property operations example modules | high | medium | done | gpt-5.3-codex executor + Codex review | gpt-5.3-codex | - | - |
 
 ## Task Contract: INV-001 Implement Inventory Platform example
 
@@ -218,6 +219,81 @@ Profile：
 - example 启动后右下角 AI Chat 浮动按钮可见，打开后可发送至少 3 类库存运营问题并收到非空、上下文相关回答。
 - Command Palette 的 AI mode 可使用同一个 provider 返回库存助手回答。
 - 如新增 `ai_messages`，资源可在菜单中打开并通过 in-memory provider CRUD 浏览。
+
+## Task Contract: INV-005 Add original CRM and property operations example modules
+
+目标：
+- 在 `example` 中补齐原创 CRM 与物业/资产运营示例模块，使用户给出的参考页面类型可以映射为 svadmin-native 后台能力。
+- 新增资源、示例数据、菜单分组与资源页覆盖，支持客户经营、销售机会、跟进活动、物业档案、经纪人、线索、看房安排等 CRUD 浏览。
+- 已有库存首页、消息、日程、待办、AI、用户管理继续保留；新增页面信息必须使用原创业务语境，不复用用户参考链接中的品牌名、页面标题、示例文案、素材或布局描述。
+- 如实现过程中发现通用 UI 缺口，应把可复用组件添加到 `packages/ui` 并从 example 复用，避免只在 example 内堆重复结构。
+
+非目标：
+- 不接入外部 API、真实 CRM/地产系统、地图服务、邮件服务或数据库迁移。
+- 不复制任何第三方模板源码、CSS class、素材、截图、页面信息或像素级布局。
+- 不改动现有认证、发布流程或无关核心组件行为。
+- 不在用户可见界面、新增代码常量、菜单标题和示例数据中出现第三方模板品牌名。
+
+验收标准：
+- 新增 CRM 与物业/资产运营菜单分组和资源，且每个新增资源可通过 `AdminApp` 打开列表页，并保留 create/edit/show 等默认 CRUD fallback。
+- CRM 与物业/资产运营至少各有一个差异化 list 页面，展示原创摘要、状态分组和可进入结构化表格的工作流。
+- 如新增 `packages/ui` 组件，必须导出并保持通用命名，不绑定 example 业务。
+- 验证通过：Svelte autofixer、`bunx tsc --noEmit --project example/tsconfig.json`、`bun run check`、`cd example && bun run build`、`git diff --check`，并尽量做浏览器 smoke。
+
+相关 skill 和代码规范：
+- `agent-team-automation`
+- `svadmin-admin-ui`
+- `svelte-code-writer`
+- `svelte-core-bestpractices`
+- `typescript`
+
+影响范围：
+- `example/src/resources.ts`
+- `example/src/providers/inMemoryDb.ts`
+- `example/src/App.svelte`
+- `example/src/pages/**`
+- 必要时 `packages/ui/src/components/**` 与 `packages/ui/src/index.ts`
+
+风险和回滚：
+- 风险：新增资源较多，可能导致 example 菜单过重；通过清晰分组、`menuOrder` 和资源页复用控制复杂度。
+- 风险：通用 UI 组件若过度抽象会污染 ui 库；只沉淀明确可复用的页面标题/指标/状态摘要等组件。
+- 回滚：撤销 INV-005 对 `example/src/**`、`packages/ui/src/**` 的改动，并移除本任务 ledger/progress 记录。
+
+Profile：
+- admin_profile.framework: `svadmin`
+- admin_profile.decision_source: `user directive + local codebase evidence`
+- admin_profile.backend_provider: `local mock/in-memory`
+- admin_profile.resources: `crm_accounts`, `crm_contacts`, `crm_deals`, `crm_activities`, `properties`, `property_agents`, `property_leads`, `property_showings`
+- admin_profile.auth_required: true
+- admin_profile.rbac_required: false
+- admin_profile.audit_required: false
+
+执行与审查结果：
+- 已按用户要求调度 `gpt-5.3-codex` executor 子代理执行；该子代理运行约 8 分钟无 stdout、无业务文件变更，主线程终止卡住进程并接管实现。
+- 新增 UI 通用组件 `ResourceOperationsPage`，用于资源运营页的标题、指标、状态泳道、重点队列和 AutoTable 组合，并从 `@svadmin/ui` 源码导出。
+- 新增客户经营资源 `crm_accounts`、`crm_contacts`、`crm_deals`、`crm_activities`，以及资产运营资源 `properties`、`property_agents`、`property_leads`、`property_showings`。
+- 新增 `CrmOperationsPage` 与 `PropertyOperationsPage`，8 个新增资源列表页均接入差异化原创工作台；创建/编辑/详情继续使用 svadmin 默认 CRUD fallback。
+- 补齐 in-memory 示例数据、中文分组/资源/字段/选项本地化、侧栏图标映射，并将本地 demo storage key 升级到 v4。
+- 主线程审核确认新增 example/UI 源码和浏览器可见内容未出现第三方模板品牌名、参考页面标题或参考页面文案。
+
+验证结果：
+- `bunx @sveltejs/mcp svelte-autofixer example/src/pages/CrmOperationsPage.svelte --svelte-version 5`：通过，issues=0。
+- `bunx @sveltejs/mcp svelte-autofixer example/src/pages/PropertyOperationsPage.svelte --svelte-version 5`：通过，issues=0。
+- `bunx @sveltejs/mcp svelte-autofixer packages/ui/src/components/ResourceOperationsPage.svelte --svelte-version 5`：通过，issues=0。
+- `bunx tsc --noEmit --project example/tsconfig.json`：通过。
+- 定向 ESLint：通过。
+- `cd packages/ui && bun run build`：通过。
+- `bun run check`：通过，0 errors / 18 existing warnings。
+- `cd example && bun run build`：通过，仅保留既有 Svelte/Vite warning。
+- `bun test packages/`：通过，357 pass / 0 fail。
+- `git diff --check`：通过。
+- Browser smoke：新增 8 条 hash 路由 `#/crm_accounts`、`#/crm_contacts`、`#/crm_deals`、`#/crm_activities`、`#/properties`、`#/property_agents`、`#/property_leads`、`#/property_showings` 均通过；每页当前资源工作台=1、表格=1、标题匹配、禁用词=false、console errors=0。
+
+提交前审查修复：
+- 主线程审查发现 `ResourceOperationsPage` 默认展示英文空状态/重点队列标题，并且 CRM/资产运营页会在状态泳道中暴露 `at_risk`、`tour_scheduled`、`follow_up` 等内部枚举值；已改为可传入本地化文案，并在 example 页面中转换为中英文友好标签。
+- 已按用户要求再次调度 `gpt-5.3-codex` verifier 子代理做只读复核；该子代理会话退出但无 stdout/审查内容，主线程以本地验证和浏览器复核结果裁决。
+- 复核验证通过：新增 3 个 Svelte 文件 autofixer issues=0、`cd packages/ui && bun run build`、`bunx tsc --noEmit --project example/tsconfig.json`、定向 ESLint、`bun run check`（0 errors / 18 existing warnings）、`cd example && bun run build`、`bun test packages/`（357 pass / 0 fail）、`git diff --check`。
+- Browser 复核：`#/crm_accounts` 与 `#/property_leads` 无内部枚举/英文默认文案泄漏、禁用词=false、console errors=0。
 - 合规边界可审计：UI/UX 使用 svadmin 现有组件和原创文案，不复刻 Metronic 视觉或资产。
 - 必要验证通过：Svelte autofixer、`bun run check`、定向 ESLint、`bun run build`、`bun test packages/`、`git diff --check`、浏览器 smoke。
 

@@ -18,6 +18,7 @@ export { default as FieldRenderer } from './components/FieldRenderer.svelte';
 export { default as EmptyState } from './components/EmptyState.svelte';
 export { default as StatsCard } from './components/StatsCard.svelte';
 export { default as PageHeader } from './components/PageHeader.svelte';
+export { default as ResourceOperationsPage } from './components/ResourceOperationsPage.svelte';
 export { default as LoginPage } from './components/LoginPage.svelte';
 export { default as RegisterPage } from './components/RegisterPage.svelte';
 export { default as ForgotPasswordPage } from './components/ForgotPasswordPage.svelte';

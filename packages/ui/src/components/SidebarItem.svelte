@@ -6,7 +6,8 @@
   import {
     LayoutDashboard, FileText, Users, Settings, Home,
     ChevronDown, Folder, ExternalLink, Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle,
-    Barcode, FolderTree, Building2, Warehouse,
+    Barcode, FolderTree, Building2, Warehouse, BriefcaseBusiness, Handshake, UserRoundCheck,
+    CalendarCheck, KeyRound, MapPinned,
   } from '@lucide/svelte';
 
   import { formatLink } from '@svadmin/core/router';
@@ -33,6 +34,12 @@
     'folder-tree': FolderTree,
     'building-2': Building2,
     'warehouse': Warehouse,
+    'briefcase-business': BriefcaseBusiness,
+    handshake: Handshake,
+    'user-round-check': UserRoundCheck,
+    'calendar-check': CalendarCheck,
+    'key-round': KeyRound,
+    'map-pinned': MapPinned,
   };
 
   function getIcon(name?: string | typeof LayoutDashboard): typeof LayoutDashboard {
