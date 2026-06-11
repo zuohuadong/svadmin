@@ -5,7 +5,7 @@
   import SidebarItem from './SidebarItem.svelte';
   import {
     LayoutDashboard, FileText, Users, Settings, Home,
-    ChevronDown, Folder, ExternalLink, type Icon as LucideIcon,
+    ChevronDown, Folder, ExternalLink, Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle, type Icon as LucideIcon,
   } from '@lucide/svelte';
 
   import { formatLink } from '@svadmin/core/router';
@@ -24,6 +24,10 @@
     settings: Settings,
     home: Home,
     folder: Folder,
+    repeat: Repeat,
+    'clipboard-check': ClipboardCheck,
+    'sliders-horizontal': SlidersHorizontal,
+    'alert-triangle': AlertTriangle,
   };
 
   function getIcon(name?: string | any): typeof LayoutDashboard {

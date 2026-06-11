@@ -18,7 +18,8 @@
     LayoutDashboard, FileText, Users, Settings, Home,
     ChevronLeft, ChevronRight, ChevronDown, LogOut, Sun, Moon, Palette,
     Image as ImageIcon, Layout, Folder, Type, Video,
-    Download, ListTodo, TrendingUp, Sparkles, Images, Bot, Key, KeyRound, CreditCard, BookOpen, Wrench
+    Download, ListTodo, TrendingUp, Sparkles, Images, Bot, Key, KeyRound, CreditCard, BookOpen, Wrench,
+    Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle
   } from '@lucide/svelte';
 
   let { collapsed, identity, title, onToggle, onLogout, menu, routeMode = 'auto' }: {
@@ -63,6 +64,10 @@
     'credit-card': CreditCard,
     'book-open': BookOpen,
     'wrench': Wrench,
+    'repeat': Repeat,
+    'clipboard-check': ClipboardCheck,
+    'sliders-horizontal': SlidersHorizontal,
+    'alert-triangle': AlertTriangle,
   };
 
   interface NavItem {

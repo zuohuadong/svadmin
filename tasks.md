@@ -49,6 +49,8 @@
 |---------|----------|------|------------|-------|----------|------|--------|-------|-------|--------|--------------------|
 | INV-001 | local | zuohuadong/svadmin | - | Implement Inventory Platform example | high | medium | done | Codex + Lorentz verifier | gpt-5.3-codex | - | - |
 | INV-002 | local | zuohuadong/svadmin | - | Extend Inventory Platform with roadmap P1-P3 resources | high | medium | done | gpt-5.2 executor + gpt-5.3-codex verifier + Codex review | gpt-5.2/gpt-5.3-codex | - | - |
+| INV-003 | local | zuohuadong/svadmin | - | Complete Inventory AI Chat assistant demo | high | medium | done | gpt-5.2 executor + Codex review | gpt-5.2 | - | - |
+| INV-004 | local | zuohuadong/svadmin | - | Implement Inventory Operations Plus demo resources | high | medium | done | gpt-5.2 executor + Codex review | gpt-5.2 | - | - |
 
 ## Task Contract: INV-001 Implement Inventory Platform example
 
@@ -196,3 +198,147 @@ Profile：
 - `git diff --check`：通过。
 - Provider CRUD smoke：`notifications` create/update/filter list/delete 通过。
 - Browser smoke：登录后检查 16 条路由通过：`#/settings/profile`、`#/settings/security`、`#/settings/roles`、`#/settings/integrations`、`#/settings/notifications`、`#/settings/api`、`#/settings/audit`、`#/settings/about`、`#/does-not-exist`、`#/500`、`#/users`、`#/roles`、`#/todos`、`#/calendar_events`、`#/ai_conversations`、`#/notifications`；0 console errors，6 条为既有 Svelte dev warning。
+
+## Task Contract: INV-003 Complete Inventory AI Chat assistant demo
+
+目标：
+- 将 AI Chat 从 `ai_conversations` CRUD 资源补全为可打开、可提问、可基于库存数据返回回答的 svadmin-native 演示助手。
+- 在 `example` 中注册本地 mock `ChatProvider` 或 `AgentProvider`，复用现有 `ChatDialog` / Command Palette AI 能力。
+- 助手应能回答库存运营常见问题：低库存、补货建议、即将采购/盘点事件、未读通知、开放 Todo、AI 会话摘要。
+- 尽量通过 `@svadmin/mcp` 暴露的 DataProvider 工具方向实现本地读工具调用或等价 mock flow，保持“基于 @svadmin/mcp 的库存运营助手”路线。
+- 保留 `ai_conversations` 作为会话/意图资源；如需要可增加 `ai_messages` 资源展示示例消息历史。
+
+非目标：
+- 不接入真实外部 LLM、OpenAI/Anthropic API 或任何需要密钥的服务。
+- 不复制 Metronic AI Chat 源码、素材、CSS、布局、截图或像素级 UI。
+- 不实现 Real Estate、完整 CRM、Retail Store。
+- 不做破坏性工具调用；示例助手只读库存数据，写操作必须另开任务并做审批。
+
+验收标准：
+- example 启动后右下角 AI Chat 浮动按钮可见，打开后可发送至少 3 类库存运营问题并收到非空、上下文相关回答。
+- Command Palette 的 AI mode 可使用同一个 provider 返回库存助手回答。
+- 如新增 `ai_messages`，资源可在菜单中打开并通过 in-memory provider CRUD 浏览。
+- 合规边界可审计：UI/UX 使用 svadmin 现有组件和原创文案，不复刻 Metronic 视觉或资产。
+- 必要验证通过：Svelte autofixer、`bun run check`、定向 ESLint、`bun run build`、`bun test packages/`、`git diff --check`、浏览器 smoke。
+
+相关 skill 和代码规范：
+- `agent-team-automation`
+- `svadmin-admin-ui`
+- `svelte-code-writer`
+- `svelte-core-bestpractices`
+- `typescript`
+
+影响范围：
+- 预期主要影响 `example/src/**`，可能包括 `example/package.json` 增加 `@svadmin/mcp` workspace dependency。
+- 避免触碰 `packages/ui/**` 和 `packages/core/**`，除非现有 ChatDialog 阻断且需单独记录。
+
+风险和回滚：
+- 风险：真实 LLM 语义容易被误解为生产 AI 能力；必须明确这是本地 mock / MCP-style demo。
+- 风险：工具调用若写数据会扩大范围；本任务只做只读。
+- 回滚：移除 example AI provider 注册、新增助手文件和可选 `ai_messages` 资源，保留 INV-002 的 `ai_conversations` CRUD。
+
+Profile：
+- admin_profile.framework: `svadmin`
+- admin_profile.decision_source: `user追问 + 主线程审查`
+- admin_profile.backend_provider: `local mock/in-memory + MCP-style read tools`
+- admin_profile.resources: `ai_conversations`, optional `ai_messages`, inventory read resources
+- admin_profile.auth_required: true
+- admin_profile.rbac_required: false
+- admin_profile.audit_required: false
+
+执行与审查结果：
+- 已按用户“使用子线程补全”的方向调度 `gpt-5.2` executor；该子线程长时间无 stdout、无 mailbox 输出、无文件变更，未形成有效实现证据。主线程为避免任务悬空，接管完成实现并负责审查。
+- 新增 `example/src/providers/inventoryAssistant.ts`，实现本地 `ChatProvider`，通过 `@svadmin/mcp` 的 read-only `svadmin_getList` 工具读取 `products`、`purchase_orders`、`calendar_events`、`notifications`、`todos`、`ai_conversations`。
+- `example/src/App.svelte` 注册 `setChatProvider(createInventoryChatProvider(...))`，复用现有 `ChatDialog` 右下角浮动入口和 Command Palette AI mode。
+- 助手可回答低库存/补货建议、采购/盘点日历、未读通知、开放 Todo、AI 会话摘要、运营概览等问题。
+- 未接入真实外部 LLM，未加入 API key 或 secrets；工具流只读，不执行写操作。
+- 合规边界：未使用 Metronic 源码、素材、CSS、布局、截图或像素级 UI；AI Chat 使用 svadmin 现有组件和原创库存运营文案。
+
+验证结果：
+- `bun install --frozen-lockfile`：通过，workspace dependency 链接完成，lockfile 无变化。
+- `bunx tsc --noEmit --project example/tsconfig.json`：通过。
+- `bunx @sveltejs/mcp svelte-autofixer example/src/App.svelte --svelte-version 5`：通过，issues=0。
+- `bunx eslint example/src/App.svelte example/src/providers/inventoryAssistant.ts example/src/providers/inMemoryDb.ts example/src/resources.ts`：通过。
+- `bun run check`：通过，0 errors / 18 existing warnings。
+- `bun run lint`：通过，0 errors / 185 existing warnings。
+- `bun run build`：通过，只有既有 Svelte/Vite warnings。
+- `bun test packages/`：通过，357 pass / 0 fail。
+- `git diff --check`：通过。
+- Provider smoke：直接调用 `sendMessage` 验证低库存、日历、库存概览三类问题均返回非空上下文答案。
+- Browser smoke：`http://127.0.0.1:5173/` 登录后右下角 `chat.title` 浮动按钮可见；ChatDialog 连续提问低库存、日历、库存概览均返回相关答案；Command Palette 输入通知问题出现 AI 分组并触发同一 provider 返回未读通知答案；console errors=0。
+
+## Task Contract: INV-004 Implement Inventory Operations Plus demo resources
+
+目标：
+- 将 Inventory Platform 示例从资源展示推进到库存运营闭环，新增并接入 `stock_transfers`、`cycle_counts`、`inventory_adjustments`、`reorder_rules` 资源。
+- 为新增资源补齐 in-memory 示例数据、ResourceDefinition 字段、菜单分组、排序和 CRUD 演示能力。
+- 增强 Dashboard，使首屏能展示调拨、盘点、库存调整、补货规则等运营队列和风险摘要。
+- 增强本地 AI Chat 助手，使其能回答调拨、盘点、库存调整、补货规则相关问题，并在运营概览中纳入这些数据。
+
+非目标：
+- 不复刻 Metronic 源码、素材、CSS、布局、截图或像素级 UI。
+- 不新增真实数据库、邮件服务、外部 LLM、API key 或 secrets。
+- 不实现 Real Estate、完整 CRM、Retail Store、完整 Mail。
+- 不在本任务中实现写操作型 AI Agent；AI 助手仍只读。
+- 不大改 `packages/ui/**` 核心组件；若通用 Calendar View、Notification Drawer 或权限矩阵需要核心能力，后续另开任务。
+
+验收标准：
+- `stock_transfers`、`cycle_counts`、`inventory_adjustments`、`reorder_rules` 在 example 菜单可见，并支持本地 list/create/update/delete CRUD。
+- Dashboard 展示新增库存运营能力入口和至少一组可读运营摘要。
+- AI Chat 可回答至少 3 类新增运营问题：调拨、盘点、补货规则/调整。
+- 合规边界可审计：UI/UX 为 svadmin 原创设计，MIT 分发安全。
+- 必要验证通过：Svelte autofixer、`bunx tsc --noEmit --project example/tsconfig.json`、定向 ESLint、`bun run check`、`bun run build`、`bun test packages/`、`git diff --check`、provider CRUD smoke 和浏览器 smoke。
+
+相关 skill 和代码规范：
+- `agent-team-automation`
+- `svadmin-admin-ui`
+- `svelte-code-writer`
+- `svelte-core-bestpractices`
+- `typescript`
+
+影响范围：
+- `example/src/resources.ts`
+- `example/src/providers/inMemoryDb.ts`
+- `example/src/providers/inventoryAssistant.ts`
+- `example/src/pages/Dashboard.svelte`
+- `packages/ui/src/components/Sidebar.svelte`
+- `packages/ui/src/components/SidebarItem.svelte`
+- `tasks.md`、`progress.md`
+
+风险和回滚：
+- 风险：新增资源较多，字段默认值不足可能影响 create/update 表单；需要通过 provider CRUD smoke 和 browser smoke 验证。
+- 风险：Dashboard 若一次塞入太多信息会降低可读性；保持运营摘要紧凑，使用现有 svadmin 风格。
+- 回滚：移除新增资源定义、示例数据、Dashboard 区块和 AI assistant 分支，恢复 INV-003 状态。
+
+Profile：
+- admin_profile.framework: `svadmin`
+- admin_profile.decision_source: `user要求实施 + 主线程审查`
+- admin_profile.backend_provider: `local mock/in-memory`
+- admin_profile.resources: `stock_transfers`, `cycle_counts`, `inventory_adjustments`, `reorder_rules`
+- admin_profile.auth_required: true
+- admin_profile.rbac_required: false
+- admin_profile.audit_required: false
+
+执行与审查结果：
+- 已调用 `gpt-5.2` executor 子线程；该子线程无可用 stdout，但随后出现部分资源/Dashboard 改动。主线程接管审核，去重并收敛为 svadmin-native 实现。
+- 新增 `stock_transfers`、`cycle_counts`、`inventory_adjustments`、`reorder_rules` 四个资源定义，接入 Operations 分组、排序、字段、关系字段和本地 CRUD。
+- `example/src/providers/inMemoryDb.ts` 增加四类运营资源的种子数据，并 bump localStorage key 到 `svadmin_inventory_demo_db_v3`，避免旧 demo 数据污染新字段。
+- `example/src/pages/Dashboard.svelte` 增加调拨、盘点、库存调整、补货规则运营队列指标和快捷入口。
+- `example/src/providers/inventoryAssistant.ts` 增加四类资源的 MCP-style read-only 查询与回答分支，运营概览纳入新增资源。
+- `packages/ui/src/components/Sidebar.svelte` 与 `SidebarItem.svelte` 补充 `repeat`、`clipboard-check`、`sliders-horizontal`、`alert-triangle` 图标映射，避免新增资源菜单退回默认 Settings 图标。
+- 合规边界：未使用 Metronic 源码、素材、CSS、布局、截图或像素级 UI；UI/UX 使用 svadmin 自有组件与原创库存运营文案。
+
+验证结果：
+- `bunx tsc --noEmit --project example/tsconfig.json`：通过。
+- `bunx @sveltejs/mcp svelte-autofixer example/src/pages/Dashboard.svelte --svelte-version 5`：通过，issues=0。
+- `bunx @sveltejs/mcp svelte-autofixer packages/ui/src/components/Sidebar.svelte --svelte-version 5`：通过，issues=0；仅既有 `$effect`/state capture 建议。
+- `bunx @sveltejs/mcp svelte-autofixer packages/ui/src/components/SidebarItem.svelte --svelte-version 5`：通过，issues=0；仅既有 `isOpen` effect 建议。
+- 定向 ESLint：通过，0 errors；相关 warning 为既有未使用变量/any 基线。
+- `bun run check`：通过，0 errors / 18 existing warnings。
+- `bun run lint`：通过，0 errors / 185 existing warnings。
+- `bun run build`：通过，只有既有 Svelte/Vite warnings。
+- `bun test packages/`：通过，357 pass / 0 fail。
+- `git diff --check`：通过。
+- Provider CRUD smoke：`stock_transfers`、`cycle_counts`、`inventory_adjustments`、`reorder_rules` list/create/update/getOne/delete 全部通过。
+- AI provider smoke：调拨、盘点、库存调整、补货规则四类问题均返回预期种子记录和摘要。
+- Browser smoke：`http://127.0.0.1:5173/` Dashboard 显示四个运营入口；`#/stock_transfers`、`#/cycle_counts`、`#/inventory_adjustments`、`#/reorder_rules` 路由均显示标题和种子数据；ChatDialog 提问调拨和补货规则均返回预期答案；console errors=0。

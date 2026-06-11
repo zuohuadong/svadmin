@@ -26,7 +26,7 @@ import type {
   UpdateResult,
 } from '@svadmin/core';
 
-const STORAGE_KEY = 'svadmin_inventory_demo_db_v2';
+const STORAGE_KEY = 'svadmin_inventory_demo_db_v3';
 
 type ResourceName =
   | 'products'
@@ -42,7 +42,11 @@ type ResourceName =
   | 'roles'
   | 'calendar_events'
   | 'ai_conversations'
-  | 'notifications';
+  | 'notifications'
+  | 'stock_transfers'
+  | 'cycle_counts'
+  | 'inventory_adjustments'
+  | 'reorder_rules';
 
 type DbState = Record<ResourceName, BaseRecord[]>;
 
@@ -360,6 +364,131 @@ const initialDbState: DbState = {
       read: true,
       createdAt: '2026-06-09',
       body: 'Mateo Silva has not completed the invite flow yet.',
+    },
+  ],
+  stock_transfers: [
+    {
+      id: 1,
+      transferNumber: 'TR-2026-001',
+      productId: 1,
+      fromWarehouseId: 1,
+      toWarehouseId: 2,
+      quantity: 12,
+      status: 'in_transit',
+      requestedById: 2,
+      requestedDate: '2026-06-10',
+      expectedDate: '2026-06-12',
+      notes: 'Balance West Hub demo laptop stock before field rollout.',
+    },
+    {
+      id: 2,
+      transferNumber: 'TR-2026-002',
+      productId: 4,
+      fromWarehouseId: 3,
+      toWarehouseId: 1,
+      quantity: 20,
+      status: 'draft',
+      requestedById: 3,
+      requestedDate: '2026-06-11',
+      expectedDate: '2026-06-14',
+      notes: 'Move packing supplies near outbound lanes after reorder approval.',
+    },
+  ],
+  cycle_counts: [
+    {
+      id: 1,
+      countNumber: 'CC-2026-001',
+      warehouseId: 1,
+      ownerId: 2,
+      scheduledDate: '2026-06-15',
+      status: 'scheduled',
+      scope: 'Electronics Aisle',
+      expectedItems: 42,
+      countedItems: 0,
+      varianceItems: 0,
+      notes: 'Focus on laptop and mouse bins before monthly close.',
+    },
+    {
+      id: 2,
+      countNumber: 'CC-2026-002',
+      warehouseId: 3,
+      ownerId: 3,
+      scheduledDate: '2026-06-13',
+      status: 'in_progress',
+      scope: 'Packing Supplies',
+      expectedItems: 18,
+      countedItems: 12,
+      varianceItems: 2,
+      notes: 'Tape variance is under review after packing line consumption.',
+    },
+  ],
+  inventory_adjustments: [
+    {
+      id: 1,
+      adjustmentNumber: 'ADJ-2026-001',
+      productId: 4,
+      warehouseId: 3,
+      quantityChange: -6,
+      reason: 'damage',
+      status: 'pending_approval',
+      requestedById: 2,
+      approvedById: null,
+      requestedDate: '2026-06-11',
+      notes: 'Damaged tape rolls found during returns bay cleanup.',
+    },
+    {
+      id: 2,
+      adjustmentNumber: 'ADJ-2026-002',
+      productId: 2,
+      warehouseId: 2,
+      quantityChange: 2,
+      reason: 'cycle_count_variance',
+      status: 'approved',
+      requestedById: 3,
+      approvedById: 1,
+      requestedDate: '2026-06-09',
+      notes: 'Cycle count found two chairs staged but not scanned.',
+    },
+  ],
+  reorder_rules: [
+    {
+      id: 1,
+      productId: 2,
+      warehouseId: 2,
+      minStock: 6,
+      targetStock: 18,
+      reorderQuantity: 14,
+      supplierId: 2,
+      leadTimeDays: 7,
+      status: 'active',
+      lastReviewedAt: '2026-06-10',
+      notes: 'Chair demand is steady; keep one-week coverage in West Hub.',
+    },
+    {
+      id: 2,
+      productId: 4,
+      warehouseId: 3,
+      minStock: 24,
+      targetStock: 72,
+      reorderQuantity: 54,
+      supplierId: 3,
+      leadTimeDays: 5,
+      status: 'review',
+      lastReviewedAt: '2026-06-11',
+      notes: 'Packing line consumption accelerated; analyst review required.',
+    },
+    {
+      id: 3,
+      productId: 1,
+      warehouseId: 1,
+      minStock: 10,
+      targetStock: 40,
+      reorderQuantity: 20,
+      supplierId: 1,
+      leadTimeDays: 9,
+      status: 'active',
+      lastReviewedAt: '2026-06-08',
+      notes: 'Laptop stock remains healthy after initial receiving.',
     },
   ],
 };

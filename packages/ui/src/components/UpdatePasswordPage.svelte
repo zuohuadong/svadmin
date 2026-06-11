@@ -3,10 +3,9 @@
   import { t } from '@svadmin/core/i18n';
   import { navigate } from '@svadmin/core/router';
   import { Button } from './ui/button/index.js';
-  import * as Card from './ui/card/index.js';
   import * as Alert from './ui/alert/index.js';
   import PasswordInput from './PasswordInput.svelte';
-  import { ShieldCheck, Loader2, AlertCircle } from '@lucide/svelte';
+  import { ShieldCheck, Loader2, AlertCircle, Shield } from '@lucide/svelte';
 
   let { title = 'Admin' } = $props<{
     title?: string;
@@ -32,58 +31,97 @@
   }
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-background p-4">
-  <div class="w-full max-w-[380px]">
-    <Card.Card>
-      <Card.CardHeader class="text-center pb-2">
-        <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary mx-auto mb-3">
+<div class="min-h-screen flex flex-col lg:flex-row">
+  <!-- Left brand panel -->
+  <div class="hidden lg:flex lg:w-[480px] xl:w-[520px] relative overflow-hidden bg-gradient-to-br from-primary/90 via-primary to-primary/80 shrink-0">
+    <div class="absolute inset-0">
+      <div class="absolute top-[12%] left-[8%] w-28 h-28 rounded-3xl border border-white/10 bg-white/5 rotate-12 backdrop-blur-sm"></div>
+      <div class="absolute top-[55%] left-[55%] w-40 h-40 rounded-full border border-white/10 bg-white/5 -rotate-6 backdrop-blur-sm"></div>
+      <div class="absolute bottom-[15%] left-[15%] w-24 h-24 rounded-2xl border border-white/10 bg-white/5 -rotate-12 backdrop-blur-sm"></div>
+      <div class="absolute top-[30%] right-[10%] w-16 h-16 rounded-xl border border-white/10 bg-white/5 rotate-45 backdrop-blur-sm"></div>
+      <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 24px 24px;"></div>
+    </div>
+
+    <div class="relative z-10 flex flex-col justify-between p-10 xl:p-12 w-full">
+      <div class="flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 backdrop-blur-sm">
+          <Shield class="h-5 w-5 text-white" />
+        </div>
+        <span class="text-lg font-semibold text-white tracking-tight">{title}</span>
+      </div>
+
+      <div class="space-y-4">
+        <h2 class="text-3xl xl:text-4xl font-bold text-white leading-tight">
+          {t('auth.resetPassword')}
+        </h2>
+        <p class="text-base text-white/70 leading-relaxed max-w-[320px]">
+          {t('auth.resetPasswordDescription')}
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="h-1 w-8 rounded-full bg-white/30"></div>
+        <div class="h-1 w-4 rounded-full bg-white/15"></div>
+        <div class="h-1 w-2 rounded-full bg-white/10"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right form panel -->
+  <div class="flex-1 flex items-center justify-center bg-background p-6 sm:p-8 lg:p-12">
+    <div class="w-full max-w-[400px]">
+      <div class="flex items-center gap-3 mb-8 lg:hidden">
+        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <ShieldCheck class="h-5 w-5" />
         </div>
-        <Card.CardTitle class="text-xl">{t('auth.resetPassword')}</Card.CardTitle>
+        <span class="text-lg font-semibold tracking-tight">{title}</span>
+      </div>
+
+      <div class="space-y-1 mb-8">
+        <h1 class="text-2xl font-semibold tracking-tight">{t('auth.resetPassword')}</h1>
         <p class="text-sm text-muted-foreground">{t('auth.resetPasswordDescription')}</p>
-      </Card.CardHeader>
-      <Card.CardContent>
-        <form onsubmit={handleSubmit} class="space-y-4">
-          {#if error}
-            <Alert.Root variant="destructive">
-              <AlertCircle class="h-4 w-4" />
-              <Alert.Description>{error}</Alert.Description>
-            </Alert.Root>
+      </div>
+
+      <form onsubmit={handleSubmit} class="space-y-5">
+        {#if error}
+          <Alert.Root variant="destructive">
+            <AlertCircle class="h-4 w-4" />
+            <Alert.Description>{error}</Alert.Description>
+          </Alert.Root>
+        {/if}
+
+        <PasswordInput
+          id="new-password"
+          label={t('auth.password')}
+          bind:value={password}
+          autocomplete="new-password"
+          showStrength
+        />
+
+        <PasswordInput
+          id="confirm-password"
+          label={t('auth.confirmPassword')}
+          bind:value={confirmPassword}
+          autocomplete="new-password"
+        />
+
+        <Button type="submit" class="w-full h-10" disabled={updatePw.isLoading}>
+          {#if updatePw.isLoading}
+            <Loader2 class="h-4 w-4 animate-spin mr-2" />
           {/if}
+          {t('auth.resetPassword')}
+        </Button>
 
-          <PasswordInput
-            id="new-password"
-            label={t('auth.password')}
-            bind:value={password}
-            autocomplete="new-password"
-            showStrength
-          />
-
-          <PasswordInput
-            id="confirm-password"
-            label={t('auth.confirmPassword')}
-            bind:value={confirmPassword}
-            autocomplete="new-password"
-          />
-
-          <Button type="submit" class="w-full" disabled={updatePw.isLoading}>
-            {#if updatePw.isLoading}
-              <Loader2 class="h-4 w-4 animate-spin mr-2" />
-            {/if}
-            {t('auth.resetPassword')}
+        <div class="flex items-center justify-center mt-2">
+          <Button variant="link" class="text-sm h-auto p-0 font-medium" onclick={() => navigate('/login')}>
+            {t('auth.backToLogin')}
           </Button>
+        </div>
+      </form>
 
-          <div class="flex items-center justify-center mt-2">
-            <Button variant="link" class="text-sm h-auto p-0 font-medium" onclick={() => navigate('/login')}>
-              {t('auth.backToLogin')}
-            </Button>
-          </div>
-        </form>
-      </Card.CardContent>
-    </Card.Card>
-
-    <p class="text-xs text-muted-foreground mt-4 text-center opacity-60">
-      Powered by {title}
-    </p>
+      <p class="text-xs text-muted-foreground/60 mt-8 text-center">
+        Powered by {title}
+      </p>
+    </div>
   </div>
 </div>
