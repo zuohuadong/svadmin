@@ -38,10 +38,10 @@
   </PageHeader>
 
   {#if query.isLoading}
-    <Card.Root class="overflow-hidden border-border/40 shadow-sm">
-      <Card.Content class="p-0">
+    <Card.Root class="overflow-hidden rounded-3xl border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03]">
+      <Card.Content class="space-y-3 p-4 sm:p-5">
         {#each showFields.slice(0, 6) as _, i (i)}
-          <div class="flex flex-col sm:flex-row px-4 sm:px-6 py-3 sm:py-4 {i % 2 === 1 ? 'bg-muted/20' : ''}">
+          <div class="flex flex-col rounded-2xl border border-border/50 bg-muted/20 px-4 py-3 sm:flex-row sm:py-4">
             <Skeleton class="h-4 w-1/2 sm:w-1/4" />
             <Skeleton class="h-4 w-3/4 sm:w-2/5 mt-1 sm:mt-0 sm:ml-auto" />
           </div>
@@ -49,14 +49,14 @@
       </Card.Content>
     </Card.Root>
   {:else if query.data?.data}
-    <Card.Root class="overflow-hidden border-border/40 shadow-sm">
-      <Card.Content class="p-0">
+    <Card.Root class="overflow-hidden rounded-3xl border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03]">
+      <Card.Content class="space-y-3 p-4 sm:p-5">
         {#each showFields as field, i (i)}
           {@const value = ((query.data as { data: Record<string, unknown> }).data as Record<string, unknown>)[field.key]}
           {@const DisplayComponent = getDisplayComponent(field.type)}
-          <div class="flex flex-col sm:flex-row px-4 sm:px-6 py-3 sm:py-4 {i % 2 === 1 ? 'bg-muted/20' : ''}">
-            <div class="sm:w-1/3 text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-0">{field.label}</div>
-            <div class="sm:w-2/3 text-sm text-foreground">
+          <div class="flex flex-col rounded-2xl border border-border/55 bg-background/70 px-4 py-3 transition-colors hover:bg-muted/20 sm:flex-row sm:items-start sm:py-4 {i % 2 === 1 ? 'bg-muted/15' : ''}">
+            <div class="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:mb-0 sm:w-1/3">{field.label}</div>
+            <div class="text-sm text-foreground sm:w-2/3">
               {#if DisplayComponent && value != null}
                 <DisplayComponent
                   {value}
@@ -72,7 +72,7 @@
       </Card.Content>
     </Card.Root>
   {:else}
-    <Card.Root class="overflow-hidden border-border/40 shadow-sm">
+    <Card.Root class="overflow-hidden rounded-3xl border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03]">
       <Card.Content class="p-8 text-center">
         <p class="text-muted-foreground">{t('common.noData')}</p>
         {#if query.isError}

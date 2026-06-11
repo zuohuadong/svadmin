@@ -164,6 +164,7 @@
 
   // Track which groups are open
   let openGroups = $state<Set<string>>(new Set());
+  let groupsInitialized = $state(false);
   let colorPickerOpen = $state(false);
   let colorPickerRef = $state<HTMLDivElement | null>(null);
   let colorPickerOpenedAt = 0;
@@ -188,6 +189,15 @@
   const pyClass = $derived(density === 'compact' ? 'py-1.5' : 'py-2.5');
   const pyClassGroupItem = $derived(density === 'compact' ? 'py-1.5' : 'py-2');
 
+  $effect(() => {
+    if (groupsInitialized) return;
+    const groupNames = navGroups.map((group) => group.name).filter((name): name is string => !!name);
+    if (groupNames.length > 0) {
+      openGroups = new Set(groupNames);
+      groupsInitialized = true;
+    }
+  });
+
   // Click-outside to close color picker
   $effect(() => {
     if (!colorPickerOpen) return;
@@ -209,34 +219,40 @@
 
 <aside
   aria-label="Sidebar navigation"
-  class="fixed inset-y-0 left-0 z-30 flex flex-col backdrop-blur-xl transition-all duration-300"
-  style="background-color: var(--sidebar);"
+  class="fixed inset-y-0 left-0 z-30 flex flex-col border-r border-border/70 bg-sidebar/95 shadow-sm shadow-slate-900/[0.03] backdrop-blur-xl transition-all duration-300"
   class:w-64={!collapsed}
   class:w-16={collapsed}
 >
   <!-- Logo -->
-  <div class="flex h-16 items-center justify-between px-4">
+  <div class="flex h-16 items-center justify-between border-b border-border/60 px-4">
     {#if !collapsed}
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-purple-500 shrink-0" style="box-shadow: 0 4px 12px oklch(0.488 0.243 264.376 / 20%);"></div>
-        <span class="font-semibold text-lg tracking-tight text-sidebar-foreground">{title}</span>
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm shadow-primary/25">
+          {title.slice(0, 1).toUpperCase()}
+        </div>
+        <div class="min-w-0">
+          <span class="block truncate text-[0.95rem] font-semibold tracking-tight text-sidebar-foreground">{title}</span>
+          <span class="block truncate text-[11px] font-medium text-sidebar-foreground/50">{getLocale() === 'zh-CN' ? '管理控制台' : 'Admin Console'}</span>
+        </div>
       </div>
     {:else}
-      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-purple-500 shrink-0 mx-auto" style="box-shadow: 0 4px 12px oklch(0.488 0.243 264.376 / 20%);"></div>
+      <div class="mx-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm shadow-primary/25">
+        {title.slice(0, 1).toUpperCase()}
+      </div>
     {/if}
     {#if !collapsed}
-      <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle}>
+      <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle} class="rounded-xl text-sidebar-foreground/55 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground">
         <ChevronLeft class="h-4 w-4" />
       </TooltipButton>
     {:else}
-      <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle} class="mx-auto mt-2 mb-2 block">
+      <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle} class="mx-auto mb-2 mt-2 block rounded-xl text-sidebar-foreground/55 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground">
         <ChevronRight class="h-4 w-4" />
       </TooltipButton>
     {/if}
   </div>
 
   <ScrollArea class="flex-1">
-  <nav aria-label="Main menu" class="py-4 px-3 space-y-1">
+  <nav aria-label="Main menu" class="space-y-1 px-3 py-4">
     {#if menu && menu.length > 0}
       <!-- Custom multi-level menu -->
       {#each menu as item, _i (_i)}
@@ -252,30 +268,32 @@
           if (isOpen) next.add(group.name as string); else next.delete(group.name as string);
           openGroups = next;
         }}>
-          <Collapsible.Trigger
-            class="flex w-full items-center justify-between px-3 py-1.5 text-sm font-semibold tracking-wider text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
-          >
-            <span>{group.name}</span>
-            <ChevronDown class="h-3 w-3 transition-transform {openGroups.has(group.name) ? 'rotate-180' : ''}" />
-          </Collapsible.Trigger>
-          <Collapsible.Content>
-            <div class="mt-1 space-y-1">
+          <div class="rounded-2xl border border-border/60 bg-muted/20 p-1.5">
+            <Collapsible.Trigger
+              class="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent/45 hover:text-sidebar-foreground/75"
+            >
+              <span>{group.name}</span>
+              <ChevronDown class="h-3 w-3 transition-transform {openGroups.has(group.name) ? 'rotate-180' : ''}" />
+            </Collapsible.Trigger>
+            <Collapsible.Content>
+              <div class="mt-1 space-y-1">
               {#each group.items as item, _i (_i)}
                 {@const active = isActive(item.path)}
                 <a
                   href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
                   onclick={(e) => { e.preventDefault(); navigate(item.path); }}
-                  class="flex items-center gap-3 rounded-xl px-3 {pyClassGroupItem} text-sm font-medium transition-all duration-300
+                  class="flex items-center gap-3 rounded-xl px-3 {pyClassGroupItem} text-sm font-medium transition-all duration-200
                   {active
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground sidebar-nav-active shadow-[0_2px_12px_rgb(0,0,0,0.08)] ring-1 ring-border/20 translate-x-1'
-                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
+                    ? 'bg-primary/10 text-primary shadow-sm shadow-primary/10 ring-1 ring-primary/15'
+                    : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
                 >
                   <item.Icon class="h-4 w-4 flex-shrink-0" />
                   <span>{item.label}</span>
                 </a>
               {/each}
-            </div>
-          </Collapsible.Content>
+              </div>
+            </Collapsible.Content>
+          </div>
         </Collapsible.Root>
       {:else}
         <!-- Ungrouped items (flat) -->
@@ -289,10 +307,10 @@
                     {...props}
                     href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
                     onclick={(e) => { e.preventDefault(); navigate(item.path); }}
-                    class="flex items-center justify-center gap-3 rounded-xl px-3 {pyClass} text-sm font-medium transition-all duration-300
+                    class="flex items-center justify-center gap-3 rounded-xl px-3 {pyClass} text-sm font-medium transition-all duration-200
                     {active
-                      ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_2px_12px_rgb(0,0,0,0.08)] ring-1 ring-border/20'
-                      : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground'}"
+                      ? 'bg-primary/10 text-primary shadow-sm shadow-primary/10 ring-1 ring-primary/15'
+                      : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
                   >
                     <item.Icon class="h-4 w-4 flex-shrink-0" />
                   </a>
@@ -306,10 +324,10 @@
             <a
               href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
               onclick={(e) => { e.preventDefault(); navigate(item.path); }}
-              class="flex items-center gap-3 rounded-xl px-3 {pyClass} text-sm font-medium transition-all duration-300
+              class="flex items-center gap-3 rounded-xl px-3 {pyClass} text-sm font-medium transition-all duration-200
               {active
-                ? 'bg-sidebar-accent text-sidebar-accent-foreground sidebar-nav-active shadow-[0_2px_12px_rgb(0,0,0,0.08)] ring-1 ring-border/20 translate-x-1'
-                : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
+                ? 'bg-primary/10 text-primary shadow-sm shadow-primary/10 ring-1 ring-primary/15'
+                : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
             >
               <item.Icon class="h-4 w-4 flex-shrink-0" />
               <span>{item.label}</span>
@@ -323,14 +341,14 @@
   </ScrollArea>
 
   <!-- Footer -->
-  <div>
+  <div class="border-t border-border/60 bg-sidebar/95">
     <!-- Color theme picker -->
     {#if !collapsed}
       <div class="px-3 pt-3 pb-1">
         <div class="relative" bind:this={colorPickerRef}>
           <Button
             variant="ghost"
-            class="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors h-auto justify-start"
+            class="flex h-auto w-full items-center justify-start gap-2 rounded-xl px-2 py-1.5 text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
             onclick={() => { if (!colorPickerOpen) colorPickerOpenedAt = Date.now(); colorPickerOpen = !colorPickerOpen; }}
           >
             <Palette class="h-4 w-4" />
@@ -363,7 +381,7 @@
     <!-- User info -->
     {#if !collapsed && identity}
       <div class="px-3 pb-3 pt-1">
-        <div class="flex items-center gap-3 rounded-lg p-2 hover:bg-sidebar-accent/50 transition-colors">
+        <div class="flex items-center gap-3 rounded-2xl border border-border/50 bg-background/65 p-2 shadow-sm shadow-slate-900/[0.02] transition-colors hover:bg-sidebar-accent/50">
           <Avatar
             src={(identity as Record<string, unknown>).avatar as string | undefined}
             alt={identity.name ?? 'User'}

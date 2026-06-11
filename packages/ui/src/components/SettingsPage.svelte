@@ -107,17 +107,17 @@
   });
 </script>
 
-<div class="flex flex-col lg:flex-row gap-0 min-h-full">
+<div class="flex min-h-full flex-col overflow-hidden rounded-3xl border border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03] backdrop-blur lg:flex-row">
   <!-- Left sidebar navigation -->
-  <nav class="w-full lg:w-56 shrink-0 bg-muted/10 shadow-[inset_0_-1px_0_rgba(0,0,0,0.05)] lg:shadow-[inset_-1px_0_0_rgba(0,0,0,0.05)] dark:shadow-[inset_-1px_0_0_rgba(255,255,255,0.05)]">
+  <nav class="w-full shrink-0 border-b border-border/70 bg-muted/20 lg:w-64 lg:border-b-0 lg:border-r">
     <!-- Mobile: horizontal scroll tabs -->
-    <div class="flex lg:hidden overflow-x-auto px-4 py-2 gap-1">
+    <div class="flex gap-2 overflow-x-auto px-4 py-3 lg:hidden">
       {#each resolvedSections as section, _i (_i)}
         {#each section.items as item, _j (_j)}
           {@const active = activeKey === item.key}
           <button
-            class="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-colors
-              {active ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-background/50'}"
+            class="flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-colors
+              {active ? 'bg-primary/10 text-primary ring-1 ring-primary/15' : 'text-muted-foreground hover:bg-background/70 hover:text-foreground'}"
             onclick={() => navigate(item.path)}
           >
             <item.icon class="h-4 w-4" />
@@ -128,24 +128,24 @@
     </div>
 
     <!-- Desktop: vertical nav with groups -->
-    <div class="hidden lg:block py-6 px-3 space-y-6">
-      <div class="px-3">
-        <h2 class="text-lg font-semibold text-foreground">{t("settings.title")}</h2>
+    <div class="hidden space-y-6 px-4 py-6 lg:block">
+      <div class="rounded-2xl border border-border/60 bg-background/70 p-4">
+        <h2 class="text-lg font-semibold tracking-tight text-foreground">{t("settings.title")}</h2>
         <p class="text-xs text-muted-foreground mt-1">{t("settings.settingsDescription")}</p>
       </div>
       {#each resolvedSections as section, _i (_i)}
         <div>
-          <h3 class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+          <h3 class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
             {t(section.group)}
           </h3>
-          <div class="space-y-0.5">
+          <div class="space-y-1">
             {#each section.items as item, _j (_j)}
               {@const active = activeKey === item.key}
               <button
-                class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all
+                class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all
                   {active
-                    ? 'bg-primary/10 text-primary font-medium'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}"
+                    ? 'bg-primary/10 text-primary font-medium ring-1 ring-primary/15 shadow-sm shadow-primary/10'
+                    : 'text-muted-foreground hover:bg-background/75 hover:text-foreground'}"
                 onclick={() => navigate(item.path)}
               >
                 <item.icon class="h-4 w-4 shrink-0" />
@@ -159,7 +159,7 @@
   </nav>
 
   <!-- Right content area -->
-  <div class="flex-1 p-6 lg:p-8 {activeKey === 'roles' || activeKey === 'audit' || activeKey === 'integrations' || activeKey === 'api' ? 'max-w-6xl' : 'max-w-3xl'}">
+  <div class="flex-1 bg-background/60 p-5 sm:p-6 lg:p-8 {activeKey === 'roles' || activeKey === 'audit' || activeKey === 'integrations' || activeKey === 'api' ? 'max-w-6xl' : 'max-w-3xl'}">
     {#if activeKey === "profile"}
       {#if profile}{@render profile()}{:else}<ProfilePage />{/if}
     {:else if activeKey === "appearance"}

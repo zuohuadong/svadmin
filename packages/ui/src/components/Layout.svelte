@@ -104,8 +104,8 @@
   ontouchend={handleTouchEnd}
 />
 {#if loading}
-  <div class="flex h-screen" in:fade={{ duration: 150 }}>
-    <div class="hidden md:block w-64 bg-sidebar/80 p-4 space-y-4">
+  <div class="flex h-screen bg-muted/30" in:fade={{ duration: 150 }}>
+    <div class="hidden w-64 space-y-4 border-r border-border/70 bg-card p-4 md:block">
       <Skeleton class="h-8 w-32" />
       <div class="space-y-2 mt-6">
         {#each Array(5) as _, _i (_i)}
@@ -113,7 +113,7 @@
         {/each}
       </div>
     </div>
-    <div class="flex-1 p-8 space-y-6">
+    <div class="flex-1 space-y-6 p-8">
       <Skeleton class="h-8 w-48" />
       <div class="space-y-3">
         {#each Array(4) as _, _i (_i)}
@@ -123,7 +123,7 @@
     </div>
   </div>
 {:else}
-  <div class="flex h-screen bg-background" in:fade={{ duration: 200, delay: 50 }}>
+  <div class="flex h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.08),transparent_32rem),linear-gradient(180deg,hsl(var(--muted)/0.48),hsl(var(--background))_42rem)]" in:fade={{ duration: 200, delay: 50 }}>
     <!-- Desktop sidebar -->
     <div class="hidden md:block">
       <Sidebar {collapsed} {identity} {title} {menu} {routeMode} onToggle={() => collapsed = !collapsed} onLogout={handleLogout} />
@@ -163,9 +163,9 @@
       </Header>
 
       <!-- Content area -->
-      <main class="flex-1 overflow-y-auto p-6 md:p-8">
+      <main class="flex-1 overflow-y-auto px-4 py-5 sm:px-6 md:px-8 md:py-7">
         {#key getPath()}
-          <div in:fly={{ x: 20, duration: 150 }} out:fade={{ duration: 80 }}>
+          <div class="mx-auto w-full max-w-[1680px]" in:fly={{ x: 20, duration: 150 }} out:fade={{ duration: 80 }}>
             {@render children()}
           </div>
         {/key}

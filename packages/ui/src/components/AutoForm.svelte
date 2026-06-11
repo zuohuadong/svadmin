@@ -133,25 +133,31 @@
 </script>
 
 <div class="space-y-6">
-  <div class="flex items-center gap-4">
-    <TooltipButton
-      tooltip={t('common.back')}
-      onclick={() => guardNavigate(() => navigate(`/${resourceName}`))}
-    >
-      <ArrowLeft class="h-5 w-5" />
-    </TooltipButton>
-    <h1 class="text-xl font-semibold text-foreground">{pageTitle}</h1>
-    {#if headerContent}
-      {@render headerContent()}
-    {/if}
-    {#if form.isTainted()}
-      <Badge variant="outline" class="border-warning/30 bg-warning/10 text-warning-foreground">{t('common.unsaved')}</Badge>
-    {/if}
+  <div class="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-sm shadow-slate-900/[0.03] backdrop-blur">
+    <div class="flex flex-wrap items-center gap-4">
+      <TooltipButton
+        tooltip={t('common.back')}
+        onclick={() => guardNavigate(() => navigate(`/${resourceName}`))}
+        class="h-10 w-10 rounded-xl border border-border/70 bg-background/80"
+      >
+        <ArrowLeft class="h-5 w-5" />
+      </TooltipButton>
+      <div class="min-w-0 flex-1">
+        <h1 class="truncate text-2xl font-semibold tracking-tight text-foreground">{pageTitle}</h1>
+        <p class="mt-1 text-sm text-muted-foreground">{resource.label}</p>
+      </div>
+      {#if headerContent}
+        {@render headerContent()}
+      {/if}
+      {#if form.isTainted()}
+        <Badge variant="outline" class="border-warning/30 bg-warning/10 text-warning-foreground">{t('common.unsaved')}</Badge>
+      {/if}
+    </div>
   </div>
 
   {#if form.loading}
-    <div class="max-w-3xl space-y-6">
-      <div class="rounded-lg shadow-sm ring-1 ring-border/10 p-6 space-y-5">
+    <div class="max-w-4xl space-y-6">
+      <div class="space-y-5 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-sm shadow-slate-900/[0.03]">
         {#each Array(4) as _, _i (_i)}
           <div class="space-y-2">
             <Skeleton class="h-4 w-24" />
@@ -161,7 +167,7 @@
       </div>
     </div>
   {:else}
-    <form onsubmit={(e: Event) => { e.preventDefault(); handleSubmit(); }} class="max-w-3xl space-y-6">
+    <form onsubmit={(e: Event) => { e.preventDefault(); handleSubmit(); }} class="max-w-4xl space-y-6">
       {#if submitError}
         <div transition:slide={{ duration: 300, axis: 'y' }} class="svadmin-shake">
           <Alert.Root variant="destructive">
@@ -173,13 +179,13 @@
 
       {#if hasGroups}
         {#each groups as group, _i (_i)}
-          <Card.Root class="border-border/40 shadow-sm">
+          <Card.Root class="overflow-hidden rounded-3xl border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03]">
             {#if group.name}
-              <Card.Header>
-                <Card.Title class="text-lg">{group.name}</Card.Title>
+              <Card.Header class="border-b border-border/60 bg-muted/25 px-5 py-4 sm:px-6">
+                <Card.Title class="text-base font-semibold">{group.name}</Card.Title>
               </Card.Header>
             {/if}
-            <Card.Content class="space-y-5 px-4 sm:px-6 pb-4 sm:pb-6 pt-0">
+            <Card.Content class="space-y-5 px-4 pb-4 pt-5 sm:px-6 sm:pb-6">
               {#each group.fields as field (field.key)}
                 <div class:border-destructive={!!form.errors[field.key]}>
                   {#if fieldRenderer}
@@ -201,8 +207,8 @@
           </Card.Root>
         {/each}
       {:else}
-        <Card.Root class="border-border/40 shadow-sm">
-          <Card.Content class="space-y-5 px-4 sm:px-6 pb-4 sm:pb-6 pt-0">
+        <Card.Root class="rounded-3xl border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03]">
+          <Card.Content class="space-y-5 px-4 pb-4 pt-5 sm:px-6 sm:pb-6">
             {#each formFields as field (field.key)}
               <div class:border-destructive={!!form.errors[field.key]}>
                 {#if fieldRenderer}
@@ -224,11 +230,11 @@
         </Card.Root>
       {/if}
 
-      <div class="flex items-center gap-3">
+      <div class="sticky bottom-4 z-10 flex items-center gap-3 rounded-3xl border border-border/70 bg-card/90 p-3 shadow-lg shadow-slate-900/[0.05] backdrop-blur">
         {#if formActions}
           {@render formActions({ isLoading: form.submitting, onSubmit: handleSubmit })}
         {:else if !isReadonly}
-          <Button type="submit" disabled={form.submitting}>
+          <Button type="submit" disabled={form.submitting} class="h-10 rounded-xl px-5 shadow-sm shadow-primary/15">
             {#if form.submitting}
               <Loader2 class="h-4 w-4 animate-spin" data-icon="inline-start" />
             {:else}
@@ -239,6 +245,7 @@
           <Button
             type="button"
             variant="outline"
+            class="h-10 rounded-xl"
             onclick={() => guardNavigate(() => navigate(`/${resourceName}`))}
           >
             {t('common.cancel')}

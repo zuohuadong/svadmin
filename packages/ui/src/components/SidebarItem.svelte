@@ -73,10 +73,10 @@
   <!-- Parent node with children: render as collapsible group -->
   <Collapsible.Root bind:open={isOpen}>
     <Collapsible.Trigger
-      class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200
+      class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200
       {childActive
-        ? 'text-sidebar-foreground bg-sidebar-accent/30'
-        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
+        ? 'bg-primary/10 text-primary ring-1 ring-primary/15'
+        : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
       style="padding-left: {12 + depth * 12}px"
     >
       <span class="flex items-center gap-3">
@@ -103,10 +103,10 @@
           href={finalHref}
           target={isExternal ? '_blank' : undefined}
           rel={isExternal ? 'noopener noreferrer' : undefined}
-          class="flex items-center justify-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200
+          class="flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200
           {active
-            ? 'bg-card text-sidebar-primary shadow-sm ring-1 ring-foreground/5'
-            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
+            ? 'bg-primary/10 text-primary shadow-sm shadow-primary/10 ring-1 ring-primary/15'
+            : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
         >
           <Icon class="h-4 w-4 flex-shrink-0" />
         </a>
@@ -122,10 +122,10 @@
     href={finalHref}
     target={isExternal ? '_blank' : undefined}
     rel={isExternal ? 'noopener noreferrer' : undefined}
-    class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200
+    class="relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200
     {active
-      ? 'bg-card text-sidebar-primary shadow-sm ring-1 ring-foreground/5 font-semibold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:bg-primary before:rounded-r-md overflow-hidden relative'
-      : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
+      ? 'bg-primary/10 text-primary font-semibold shadow-sm shadow-primary/10 ring-1 ring-primary/15'
+      : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
     style="padding-left: {12 + depth * 12}px"
   >
     <Icon class="h-4 w-4 flex-shrink-0" />

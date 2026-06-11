@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { useList } from '@svadmin/core';
+  import { getLocale, useList } from '@svadmin/core';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import {
     AlertTriangle,
@@ -152,53 +152,59 @@
   const activeCycleCounts = $derived(cycleCounts.filter((count) => !['reconciled', 'cancelled'].includes(count.status)).length);
   const pendingAdjustments = $derived(adjustments.filter((adjustment) => adjustment.status === 'pending_approval').length);
   const reviewReorderRules = $derived(reorderRules.filter((rule) => rule.status === 'review').length);
+  const currentLocale = $derived(getLocale());
+  const isZh = $derived(currentLocale === 'zh-CN');
+
+  function tr(en: string, zh: string): string {
+    return isZh ? zh : en;
+  }
 
   const stats = $derived([
-    { label: 'Stock Units', value: totalStock, href: '#/products', Icon: Package, tone: 'bg-info/10 text-info border-info/20' },
-    { label: 'Low Stock', value: lowStockProducts.length, href: '#/products', Icon: AlertTriangle, tone: 'bg-destructive/10 text-destructive border-destructive/20' },
-    { label: 'Warehouses', value: warehousesQuery.data?.total ?? 0, href: '#/warehouses', Icon: Home, tone: 'bg-success/10 text-success border-success/20' },
-    { label: 'Suppliers', value: suppliersQuery.data?.total ?? 0, href: '#/suppliers', Icon: Truck, tone: 'bg-warning/10 text-warning border-warning/20' },
+    { label: tr('Stock Units', '库存总量'), value: totalStock, hint: tr('Across active products', '覆盖所有在售商品'), href: '#/products', Icon: Package, tone: 'from-sky-500 to-blue-600' },
+    { label: tr('Low Stock', '低库存预警'), value: lowStockProducts.length, hint: tr('Need replenishment', '需要补货关注'), href: '#/products', Icon: AlertTriangle, tone: 'from-rose-500 to-orange-500' },
+    { label: tr('Warehouses', '仓库节点'), value: warehousesQuery.data?.total ?? 0, hint: tr('Fulfillment locations', '履约与存储节点'), href: '#/warehouses', Icon: Home, tone: 'from-emerald-500 to-teal-600' },
+    { label: tr('Suppliers', '供应商'), value: suppliersQuery.data?.total ?? 0, hint: tr('Active partners', '活跃合作伙伴'), href: '#/suppliers', Icon: Truck, tone: 'from-amber-500 to-yellow-600' },
   ]);
 
   const orderSummary = $derived([
-    { label: 'Purchase Orders', value: purchaseOrdersQuery.data?.total ?? 0, href: '#/purchase_orders', Icon: ClipboardCheck },
-    { label: 'Sales Orders', value: salesOrdersQuery.data?.total ?? 0, href: '#/sales_orders', Icon: CreditCard },
-    { label: 'Open Todo', value: openTodos, href: '#/todos', Icon: TrendingUp },
-    { label: 'Stock Transfers', value: activeTransfers, href: '#/stock_transfers', Icon: Shuffle },
-    { label: 'Cycle Counts', value: activeCycleCounts, href: '#/cycle_counts', Icon: ClipboardCheck },
-    { label: 'Adjustments', value: pendingAdjustments, href: '#/inventory_adjustments', Icon: Sliders },
-    { label: 'Reorder Rules', value: reviewReorderRules, href: '#/reorder_rules', Icon: Settings },
+    { label: tr('Purchase Orders', '采购订单'), value: purchaseOrdersQuery.data?.total ?? 0, href: '#/purchase_orders', Icon: ClipboardCheck },
+    { label: tr('Sales Orders', '销售订单'), value: salesOrdersQuery.data?.total ?? 0, href: '#/sales_orders', Icon: CreditCard },
+    { label: tr('Open Todo', '待办事项'), value: openTodos, href: '#/todos', Icon: TrendingUp },
+    { label: tr('Stock Transfers', '库存调拨'), value: activeTransfers, href: '#/stock_transfers', Icon: Shuffle },
+    { label: tr('Cycle Counts', '循环盘点'), value: activeCycleCounts, href: '#/cycle_counts', Icon: ClipboardCheck },
+    { label: tr('Adjustments', '库存调整'), value: pendingAdjustments, href: '#/inventory_adjustments', Icon: Sliders },
+    { label: tr('Reorder Rules', '补货规则'), value: reviewReorderRules, href: '#/reorder_rules', Icon: Settings },
   ]);
 
   const roadmapModules = $derived([
     {
-      label: 'User Management',
+      label: tr('User Management', '组织权限'),
       value: usersQuery.data?.total ?? 0,
-      meta: `${rolesQuery.data?.total ?? 0} roles`,
+      meta: tr(`${rolesQuery.data?.total ?? 0} roles`, `${rolesQuery.data?.total ?? 0} 个角色`),
       href: '#/users',
       Icon: Users,
       tone: 'bg-primary/10 text-primary border-primary/20',
     },
     {
-      label: 'Calendar',
+      label: tr('Calendar', '计划日程'),
       value: calendarQuery.data?.total ?? 0,
-      meta: 'purchase and count planning',
+      meta: tr('purchase and count planning', '采购与盘点计划'),
       href: '#/calendar_events',
       Icon: CalendarDays,
       tone: 'bg-info/10 text-info border-info/20',
     },
     {
-      label: 'AI Chat',
+      label: tr('AI Chat', 'AI 对话'),
       value: openConversations,
-      meta: 'open operations threads',
+      meta: tr('open operations threads', '待处理运营会话'),
       href: '#/ai_conversations',
       Icon: Bot,
       tone: 'bg-primary/10 text-primary border-primary/20',
     },
     {
-      label: 'Notification Center',
+      label: tr('Notification Center', '通知中心'),
       value: unreadNotifications,
-      meta: 'unread notices',
+      meta: tr('unread notices', '未读通知'),
       href: '#/notifications',
       Icon: Bell,
       tone: 'bg-warning/10 text-warning border-warning/20',
@@ -221,36 +227,84 @@
     if (severity === 'warning') return 'bg-warning/10 text-warning';
     return 'bg-muted text-muted-foreground';
   }
+
+  function statusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      open: '打开',
+      waiting: '等待中',
+      resolved: '已解决',
+      critical: '严重',
+      warning: '警告',
+      info: '信息',
+    };
+    return isZh ? (labels[status] ?? status) : status;
+  }
+
+  function eventTypeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      purchase: '采购',
+      cycle_count: '盘点',
+      receiving: '收货',
+      review: '复核',
+    };
+    return isZh ? (labels[type] ?? type) : type;
+  }
 </script>
 
 <div class="space-y-6">
-  <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+  <header class="relative overflow-hidden rounded-3xl border border-border/60 bg-card p-6 shadow-sm md:p-7">
+    <div class="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/0.18),transparent_28rem)]"></div>
+    <div class="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
     <div>
-      <h1 class="text-2xl font-semibold text-foreground">Inventory Platform</h1>
-      <p class="mt-1 text-sm text-muted-foreground">
-        A focused svadmin example for inventory, operations, access, planning, assistance, and notifications.
+        <span class="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+          {tr('Live operations dashboard', '实时运营驾驶舱')}
+        </span>
+      <h1 class="mt-4 text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+        {tr('Inventory Platform', '库存运营平台')}
+      </h1>
+      <p class="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+        {tr('A focused svadmin example for inventory, operations, access, planning, assistance, and notifications.', '面向库存、订单、调拨、盘点、权限、日程、AI 协同和通知的 svadmin 原创后台示例。')}
       </p>
     </div>
-    {#if isLoading}
-      <div class="flex items-center gap-2 text-sm text-muted-foreground">
+      <div class="grid gap-3 sm:grid-cols-3 xl:w-[520px]">
+        <div class="rounded-2xl border bg-background/80 p-4">
+          <p class="text-xs font-medium text-muted-foreground">{tr('Open Work', '待处理事项')}</p>
+          <p class="mt-2 text-2xl font-semibold">{openTodos + activeTransfers + pendingAdjustments}</p>
+        </div>
+        <div class="rounded-2xl border bg-background/80 p-4">
+          <p class="text-xs font-medium text-muted-foreground">{tr('Alerts', '风险提醒')}</p>
+          <p class="mt-2 text-2xl font-semibold text-destructive">{lowStockProducts.length + unreadNotifications}</p>
+        </div>
+        <div class="rounded-2xl border bg-background/80 p-4">
+          <p class="text-xs font-medium text-muted-foreground">{tr('AI Threads', 'AI 会话')}</p>
+          <p class="mt-2 text-2xl font-semibold">{openConversations}</p>
+        </div>
+      </div>
+    </div>
+      {#if isLoading}
+      <div class="relative mt-4 flex items-center gap-2 text-sm text-muted-foreground">
         <Loader2 class="h-4 w-4 animate-spin" />
-        Refreshing
+        {tr('Refreshing', '正在刷新')}
       </div>
     {/if}
   </header>
 
   <!-- Key stats -->
-  <section class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
     {#each stats as stat (stat.label)}
-      <a href={stat.href} class="block rounded-lg border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <a href={stat.href} class="group block overflow-hidden rounded-3xl border border-border/60 bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="h-1 bg-gradient-to-r {stat.tone}"></div>
+        <div class="p-5">
         <div class="flex items-center justify-between gap-3">
           <div class="min-w-0">
-            <p class="truncate text-xs font-medium uppercase text-muted-foreground">{stat.label}</p>
-            <p class="mt-2 text-2xl font-semibold text-foreground">{stat.value}</p>
+              <p class="truncate text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{stat.label}</p>
+              <p class="mt-3 text-3xl font-semibold text-foreground">{stat.value}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{stat.hint}</p>
           </div>
-          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border {stat.tone}">
+            <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-muted text-muted-foreground transition group-hover:scale-105 group-hover:text-primary">
             <stat.Icon class="h-5 w-5" />
           </span>
+        </div>
         </div>
       </a>
     {/each}
@@ -258,10 +312,10 @@
 
   <!-- Inventory Health + Operations Queue -->
   <section class="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-    <Card.Root class="overflow-hidden border-border/40">
-      <Card.Header class="flex flex-row items-center justify-between border-b px-5 py-4">
-        <Card.Title class="text-sm font-semibold">Inventory Health</Card.Title>
-        <a class="text-sm font-medium text-primary hover:underline" href="#/products">Products</a>
+    <Card.Root class="overflow-hidden rounded-3xl border-border/60 shadow-sm">
+      <Card.Header class="flex flex-row items-center justify-between border-b bg-muted/25 px-5 py-4">
+        <Card.Title class="text-sm font-semibold">{tr('Inventory Health', '库存健康')}</Card.Title>
+        <a class="text-sm font-medium text-primary hover:underline" href="#/products">{tr('Products', '商品档案')}</a>
       </Card.Header>
       <Card.Content class="p-0">
         <div class="divide-y">
@@ -273,26 +327,28 @@
               </div>
               <div class="text-right">
                 <p class="text-sm font-semibold text-destructive">{product.stock} / {product.minStock}</p>
-                <p class="text-xs text-muted-foreground">on hand / minimum</p>
+                <p class="text-xs text-muted-foreground">{tr('on hand / minimum', '现有 / 最低')}</p>
               </div>
             </div>
           {:else}
-            <div class="px-5 py-8 text-sm text-muted-foreground">All tracked products are above threshold.</div>
+            <div class="px-5 py-8 text-sm text-muted-foreground">{tr('All tracked products are above threshold.', '所有跟踪商品均高于安全库存。')}</div>
           {/each}
         </div>
       </Card.Content>
     </Card.Root>
 
-    <Card.Root class="overflow-hidden border-border/40">
-      <Card.Header class="border-b px-5 py-4">
-        <Card.Title class="text-sm font-semibold">Operations Queue</Card.Title>
+    <Card.Root class="overflow-hidden rounded-3xl border-border/60 shadow-sm">
+      <Card.Header class="border-b bg-muted/25 px-5 py-4">
+        <Card.Title class="text-sm font-semibold">{tr('Operations Queue', '运营队列')}</Card.Title>
       </Card.Header>
       <Card.Content class="p-4">
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
           {#each orderSummary as item (item.label)}
-            <a href={item.href} class="rounded-lg border p-3 transition hover:border-primary/50 hover:bg-muted/50">
+            <a href={item.href} class="rounded-2xl border bg-background/70 p-3 transition hover:border-primary/50 hover:bg-primary/[0.04]">
               <div class="flex items-center justify-between gap-3">
-                <item.Icon class="h-4 w-4 text-muted-foreground" />
+                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                  <item.Icon class="h-4 w-4" />
+                </span>
                 <span class="text-lg font-semibold text-foreground">{item.value}</span>
               </div>
               <p class="mt-2 text-xs font-medium text-muted-foreground">{item.label}</p>
@@ -304,11 +360,11 @@
   </section>
 
   <!-- Roadmap modules -->
-  <section class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
     {#each roadmapModules as module (module.label)}
-      <a href={module.href} class="rounded-lg border bg-card p-4 shadow-sm transition hover:border-primary/50 hover:bg-muted/50">
+      <a href={module.href} class="rounded-3xl border border-border/60 bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg">
         <div class="flex items-center justify-between gap-3">
-          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border {module.tone}">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border {module.tone}">
             <module.Icon class="h-5 w-5" />
           </span>
           <span class="text-2xl font-semibold text-foreground">{module.value}</span>
@@ -323,29 +379,29 @@
 
   <!-- Calendar / AI / Notifications columns -->
   <section class="grid gap-4 xl:grid-cols-3">
-    <Card.Root class="overflow-hidden border-border/40">
-      <Card.Header class="flex flex-row items-center justify-between border-b px-5 py-4">
-        <Card.Title class="text-sm font-semibold">Calendar</Card.Title>
-        <a class="text-sm font-medium text-primary hover:underline" href="#/calendar_events">View all</a>
+    <Card.Root class="overflow-hidden rounded-3xl border-border/60 shadow-sm">
+      <Card.Header class="flex flex-row items-center justify-between border-b bg-muted/25 px-5 py-4">
+        <Card.Title class="text-sm font-semibold">{tr('Calendar', '计划日程')}</Card.Title>
+        <a class="text-sm font-medium text-primary hover:underline" href="#/calendar_events">{tr('View all', '查看全部')}</a>
       </Card.Header>
       <Card.Content class="p-0">
         <div class="divide-y">
           {#each calendarEvents as event (event.id)}
             <div class="px-5 py-3">
               <p class="truncate text-sm font-medium text-foreground">{event.title}</p>
-              <p class="mt-1 text-xs text-muted-foreground">{event.startDate} / {event.type}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{event.startDate} / {eventTypeLabel(event.type)}</p>
             </div>
           {:else}
-            <div class="px-5 py-8 text-sm text-muted-foreground">No scheduled events.</div>
+            <div class="px-5 py-8 text-sm text-muted-foreground">{tr('No scheduled events.', '暂无计划日程。')}</div>
           {/each}
         </div>
       </Card.Content>
     </Card.Root>
 
-    <Card.Root class="overflow-hidden border-border/40">
-      <Card.Header class="flex flex-row items-center justify-between border-b px-5 py-4">
-        <Card.Title class="text-sm font-semibold">AI Operations</Card.Title>
-        <a class="text-sm font-medium text-primary hover:underline" href="#/ai_conversations">View all</a>
+    <Card.Root class="overflow-hidden rounded-3xl border-border/60 shadow-sm">
+      <Card.Header class="flex flex-row items-center justify-between border-b bg-muted/25 px-5 py-4">
+        <Card.Title class="text-sm font-semibold">{tr('AI Operations', 'AI 运营助手')}</Card.Title>
+        <a class="text-sm font-medium text-primary hover:underline" href="#/ai_conversations">{tr('View all', '查看全部')}</a>
       </Card.Header>
       <Card.Content class="p-0">
         <div class="divide-y">
@@ -355,19 +411,19 @@
                 <p class="truncate text-sm font-medium text-foreground">{conversation.title}</p>
                 <p class="text-xs text-muted-foreground">{conversation.updatedAt}</p>
               </div>
-              <span class="rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">{conversation.status}</span>
+              <span class="rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">{statusLabel(conversation.status)}</span>
             </div>
           {:else}
-            <div class="px-5 py-8 text-sm text-muted-foreground">No AI threads yet.</div>
+            <div class="px-5 py-8 text-sm text-muted-foreground">{tr('No AI threads yet.', '暂无 AI 会话。')}</div>
           {/each}
         </div>
       </Card.Content>
     </Card.Root>
 
-    <Card.Root class="overflow-hidden border-border/40">
-      <Card.Header class="flex flex-row items-center justify-between border-b px-5 py-4">
-        <Card.Title class="text-sm font-semibold">Notifications</Card.Title>
-        <a class="text-sm font-medium text-primary hover:underline" href="#/notifications">View all</a>
+    <Card.Root class="overflow-hidden rounded-3xl border-border/60 shadow-sm">
+      <Card.Header class="flex flex-row items-center justify-between border-b bg-muted/25 px-5 py-4">
+        <Card.Title class="text-sm font-semibold">{tr('Notifications', '通知中心')}</Card.Title>
+        <a class="text-sm font-medium text-primary hover:underline" href="#/notifications">{tr('View all', '查看全部')}</a>
       </Card.Header>
       <Card.Content class="p-0">
         <div class="divide-y">
@@ -378,11 +434,11 @@
                 <p class="text-xs text-muted-foreground">{notification.createdAt}</p>
               </div>
               <span class="rounded-md px-2 py-1 text-xs font-semibold {notificationTone(notification.severity)}">
-                {notification.severity}
+                {statusLabel(notification.severity)}
               </span>
             </div>
           {:else}
-            <div class="px-5 py-8 text-sm text-muted-foreground">No notifications yet.</div>
+            <div class="px-5 py-8 text-sm text-muted-foreground">{tr('No notifications yet.', '暂无通知。')}</div>
           {/each}
         </div>
       </Card.Content>
@@ -390,10 +446,10 @@
   </section>
 
   <!-- Recent Stock Movements -->
-  <Card.Root class="overflow-hidden border-border/40">
-    <Card.Header class="flex flex-row items-center justify-between border-b px-5 py-4">
-      <Card.Title class="text-sm font-semibold">Recent Stock Movements</Card.Title>
-      <a class="text-sm font-medium text-primary hover:underline" href="#/stock_movements">View all</a>
+  <Card.Root class="overflow-hidden rounded-3xl border-border/60 shadow-sm">
+    <Card.Header class="flex flex-row items-center justify-between border-b bg-muted/25 px-5 py-4">
+      <Card.Title class="text-sm font-semibold">{tr('Recent Stock Movements', '最近库存流水')}</Card.Title>
+      <a class="text-sm font-medium text-primary hover:underline" href="#/stock_movements">{tr('View all', '查看全部')}</a>
     </Card.Header>
     <Card.Content class="p-0">
       <div class="divide-y">
@@ -408,7 +464,7 @@
             </span>
           </div>
         {:else}
-          <div class="px-5 py-8 text-sm text-muted-foreground">No movements recorded yet.</div>
+          <div class="px-5 py-8 text-sm text-muted-foreground">{tr('No movements recorded yet.', '暂无库存流水。')}</div>
         {/each}
       </div>
     </Card.Content>
