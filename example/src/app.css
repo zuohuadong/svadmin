@@ -154,31 +154,6 @@
   }
 }
 
-/* ╔═══════════════════════════════════════════════════════════╗
-   ║              GLASS / GRADIENT EFFECTS                    ║
-   ╚═══════════════════════════════════════════════════════════╝ */
-
-@layer components {
-  .glass {
-    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg
-           border border-white/20 dark:border-slate-800/30 shadow-xl;
-  }
-  .glass-card {
-    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg
-           border border-white/20 dark:border-slate-800/30
-           shadow-xl rounded-2xl p-6
-           transition-all duration-300
-           hover:shadow-2xl hover:scale-[1.01];
-  }
-}
-
-@layer utilities {
-  .text-gradient {
-    @apply bg-clip-text text-transparent
-           bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500;
-  }
-}
-
 /* ── Scrollbar ─────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

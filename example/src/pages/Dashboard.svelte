@@ -252,8 +252,7 @@
 </script>
 
 <div class="space-y-6">
-  <header class="relative overflow-hidden rounded-3xl border border-border/60 bg-card p-6 shadow-sm md:p-7">
-    <div class="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/0.18),transparent_28rem)]"></div>
+  <header class="border-b border-border/60 pb-5">
     <div class="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
     <div>
         <span class="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
@@ -267,15 +266,15 @@
       </p>
     </div>
       <div class="grid gap-3 sm:grid-cols-3 xl:w-[520px]">
-        <div class="rounded-2xl border bg-background/80 p-4">
+        <div class="py-3">
           <p class="text-xs font-medium text-muted-foreground">{tr('Open Work', '待处理事项')}</p>
           <p class="mt-2 text-2xl font-semibold">{openTodos + activeTransfers + pendingAdjustments}</p>
         </div>
-        <div class="rounded-2xl border bg-background/80 p-4">
+        <div class="py-3">
           <p class="text-xs font-medium text-muted-foreground">{tr('Alerts', '风险提醒')}</p>
           <p class="mt-2 text-2xl font-semibold text-destructive">{lowStockProducts.length + unreadNotifications}</p>
         </div>
-        <div class="rounded-2xl border bg-background/80 p-4">
+        <div class="py-3">
           <p class="text-xs font-medium text-muted-foreground">{tr('AI Threads', 'AI 会话')}</p>
           <p class="mt-2 text-2xl font-semibold">{openConversations}</p>
         </div>
@@ -292,16 +291,15 @@
   <!-- Key stats -->
   <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
     {#each stats as stat (stat.label)}
-      <a href={stat.href} class="group block overflow-hidden rounded-3xl border border-border/60 bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
-        <div class="h-1 bg-gradient-to-r {stat.tone}"></div>
-        <div class="p-5">
+      <a href={stat.href} class="group block border-b border-border/60 py-4 transition hover:text-primary">
+            <div class="p-5">
         <div class="flex items-center justify-between gap-3">
           <div class="min-w-0">
               <p class="truncate text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{stat.label}</p>
               <p class="mt-3 text-3xl font-semibold text-foreground">{stat.value}</p>
               <p class="mt-1 text-xs text-muted-foreground">{stat.hint}</p>
           </div>
-            <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-muted text-muted-foreground transition group-hover:scale-105 group-hover:text-primary">
+            <span class="flex h-12 w-12 shrink-0 items-center justify-center text-muted-foreground transition group-hover:scale-105 group-hover:text-primary">
             <stat.Icon class="h-5 w-5" />
           </span>
         </div>
@@ -312,8 +310,8 @@
 
   <!-- Inventory Health + Operations Queue -->
   <section class="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-    <Card.Root class="overflow-hidden rounded-3xl border-border/60 shadow-sm">
-      <Card.Header class="flex flex-row items-center justify-between border-b bg-muted/25 px-5 py-4">
+    <Card.Root>
+      <Card.Header>
         <Card.Title class="text-sm font-semibold">{tr('Inventory Health', '库存健康')}</Card.Title>
         <a class="text-sm font-medium text-primary hover:underline" href="#/products">{tr('Products', '商品档案')}</a>
       </Card.Header>
@@ -337,16 +335,16 @@
       </Card.Content>
     </Card.Root>
 
-    <Card.Root class="overflow-hidden rounded-3xl border-border/60 shadow-sm">
-      <Card.Header class="border-b bg-muted/25 px-5 py-4">
+    <Card.Root>
+      <Card.Header>
         <Card.Title class="text-sm font-semibold">{tr('Operations Queue', '运营队列')}</Card.Title>
       </Card.Header>
       <Card.Content class="p-4">
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
           {#each orderSummary as item (item.label)}
-            <a href={item.href} class="rounded-2xl border bg-background/70 p-3 transition hover:border-primary/50 hover:bg-primary/[0.04]">
+            <a href={item.href} class="py-3 transition hover:text-primary">
               <div class="flex items-center justify-between gap-3">
-                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <span class="flex h-8 w-8 items-center justify-center text-muted-foreground">
                   <item.Icon class="h-4 w-4" />
                 </span>
                 <span class="text-lg font-semibold text-foreground">{item.value}</span>
@@ -362,9 +360,9 @@
   <!-- Roadmap modules -->
   <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
     {#each roadmapModules as module (module.label)}
-      <a href={module.href} class="rounded-3xl border border-border/60 bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg">
+      <a href={module.href} class="border-b border-border/60 py-4 transition hover:text-primary">
         <div class="flex items-center justify-between gap-3">
-          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border {module.tone}">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center {module.tone}">
             <module.Icon class="h-5 w-5" />
           </span>
           <span class="text-2xl font-semibold text-foreground">{module.value}</span>
@@ -379,8 +377,8 @@
 
   <!-- Calendar / AI / Notifications columns -->
   <section class="grid gap-4 xl:grid-cols-3">
-    <Card.Root class="overflow-hidden rounded-3xl border-border/60 shadow-sm">
-      <Card.Header class="flex flex-row items-center justify-between border-b bg-muted/25 px-5 py-4">
+    <Card.Root>
+      <Card.Header>
         <Card.Title class="text-sm font-semibold">{tr('Calendar', '计划日程')}</Card.Title>
         <a class="text-sm font-medium text-primary hover:underline" href="#/calendar_events">{tr('View all', '查看全部')}</a>
       </Card.Header>
@@ -398,8 +396,8 @@
       </Card.Content>
     </Card.Root>
 
-    <Card.Root class="overflow-hidden rounded-3xl border-border/60 shadow-sm">
-      <Card.Header class="flex flex-row items-center justify-between border-b bg-muted/25 px-5 py-4">
+    <Card.Root>
+      <Card.Header>
         <Card.Title class="text-sm font-semibold">{tr('AI Operations', 'AI 运营助手')}</Card.Title>
         <a class="text-sm font-medium text-primary hover:underline" href="#/ai_conversations">{tr('View all', '查看全部')}</a>
       </Card.Header>
@@ -420,8 +418,8 @@
       </Card.Content>
     </Card.Root>
 
-    <Card.Root class="overflow-hidden rounded-3xl border-border/60 shadow-sm">
-      <Card.Header class="flex flex-row items-center justify-between border-b bg-muted/25 px-5 py-4">
+    <Card.Root>
+      <Card.Header>
         <Card.Title class="text-sm font-semibold">{tr('Notifications', '通知中心')}</Card.Title>
         <a class="text-sm font-medium text-primary hover:underline" href="#/notifications">{tr('View all', '查看全部')}</a>
       </Card.Header>
@@ -446,8 +444,8 @@
   </section>
 
   <!-- Recent Stock Movements -->
-  <Card.Root class="overflow-hidden rounded-3xl border-border/60 shadow-sm">
-    <Card.Header class="flex flex-row items-center justify-between border-b bg-muted/25 px-5 py-4">
+  <Card.Root>
+    <Card.Header>
       <Card.Title class="text-sm font-semibold">{tr('Recent Stock Movements', '最近库存流水')}</Card.Title>
       <a class="text-sm font-medium text-primary hover:underline" href="#/stock_movements">{tr('View all', '查看全部')}</a>
     </Card.Header>

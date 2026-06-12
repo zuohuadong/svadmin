@@ -1,26 +1,29 @@
 <script lang="ts">
 /* eslint-disable svelte/prefer-svelte-reactivity */
-  import { getResources, canAccessAsync } from '@svadmin/core';
+  import { getResources, canAccessAsync, getAuthProvider } from '@svadmin/core';
   import type { Identity, MenuItem } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
   import { getPath } from '../router-state.svelte.js';
   import { t, getLocale, setLocale, getAvailableLocales } from '@svadmin/core/i18n';
-  import { toggleTheme, getResolvedTheme, getColorThemes, getColorTheme, setColorTheme } from '@svadmin/core';
+  import { toggleTheme, getResolvedTheme } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
   import * as Tooltip from './ui/tooltip/index.js';
+  import * as Popover from './ui/popover/index.js';
   import SidebarItem from './SidebarItem.svelte';
 
   import { ScrollArea } from './ui/scroll-area/index.js';
   import { Avatar } from './ui/avatar/index.js';
   import {
     LayoutDashboard, FileText, Users, Settings, Home,
-    ChevronLeft, ChevronRight, LogOut, Sun, Moon, Palette,
+    ChevronLeft, ChevronRight, ChevronDown, LogOut, Sun, Moon, Palette,
     Image as ImageIcon, Layout, Folder, Type, Video,
     Download, ListTodo, TrendingUp, Sparkles, Images, Bot, Key, KeyRound, CreditCard, BookOpen, Wrench,
     Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle, Bell, CalendarDays, Package, Shield,
-    Barcode, FolderTree, Building2, Warehouse
+    Barcode, FolderTree, Building2, Warehouse, Languages, User, Lock, Puzzle, FileSearch, Info
   } from '@lucide/svelte';
+
+  const authProvider = getAuthProvider({ optional: true });
 
   let { collapsed, identity, title, onToggle, onLogout, menu, routeMode = 'auto' }: {
     collapsed: boolean;
@@ -91,6 +94,23 @@
     items: NavItem[];
   }
 
+  interface UserSettingsItem {
+    key: string;
+    path: string;
+    icon: typeof LayoutDashboard;
+    label: string;
+  }
+
+  const userSettingsItems: UserSettingsItem[] = [
+    { key: 'account', path: '/settings/account', icon: User, label: 'settings.accountPreferences' },
+    { key: 'access', path: '/settings/access', icon: Lock, label: 'settings.accessSecurity' },
+    { key: 'developer', path: '/settings/developer', icon: Puzzle, label: 'settings.integrationApi' },
+    ...(authProvider ? [
+      { key: 'audit', path: '/settings/audit', icon: FileSearch, label: 'settings.auditLogs' },
+    ] : []),
+    { key: 'about', path: '/settings/about', icon: Info, label: 'settings.about' },
+  ];
+
   // Use effect to build nav items, taking access control into account
   let navItems = $state.raw<NavItem[]>([]);
 
@@ -140,10 +160,30 @@
 
   // Track current hash for active state
   const path = $derived(getPath());
+  let userMenuOpen = $state(false);
 
   function isActive(itemPath: string): boolean {
     if (itemPath === '/') return path === '/';
     return path === itemPath || path.startsWith(itemPath + "/");
+  }
+
+  function aggregateBadges(items: { badge?: string }[]): string | undefined {
+    const total = items.reduce((sum, item) => {
+      const value = Number(item.badge);
+      return Number.isFinite(value) ? sum + value : sum;
+    }, 0);
+
+    return total > 0 ? String(total) : undefined;
+  }
+
+  function openUserMenuRoute(path: string) {
+    userMenuOpen = false;
+    navigate(path);
+  }
+
+  function handleUserMenuAction(action: () => void) {
+    userMenuOpen = false;
+    action();
   }
 
   /** Prefetch resource data on hover for instant navigation */
@@ -172,9 +212,38 @@
     return groups;
   });
 
-  let colorPickerOpen = $state(false);
-  let colorPickerRef = $state<HTMLDivElement | null>(null);
-  let colorPickerOpenedAt = 0;
+  let autoGroupOpen = $state<Record<string, boolean>>({});
+  let autoGroupTouched = $state<Record<string, boolean>>({});
+
+  function isGroupActive(group: NavGroup): boolean {
+    return group.items.some((item) => isActive(item.path));
+  }
+
+  function isAutoGroupOpen(group: NavGroup): boolean {
+    if (!group.name) return true;
+    return autoGroupOpen[group.name] ?? true;
+  }
+
+  function toggleAutoGroup(group: NavGroup) {
+    if (!group.name) return;
+    const currentOpen = isAutoGroupOpen(group);
+    autoGroupTouched = { ...autoGroupTouched, [group.name]: true };
+    autoGroupOpen = { ...autoGroupOpen, [group.name]: !currentOpen };
+  }
+
+  $effect(() => {
+    let nextOpen = autoGroupOpen;
+    let changed = false;
+
+    for (const group of navGroups) {
+      if (!group.name || autoGroupTouched[group.name] || !isGroupActive(group) || autoGroupOpen[group.name]) continue;
+      if (!changed) nextOpen = { ...autoGroupOpen };
+      nextOpen[group.name] = true;
+      changed = true;
+    }
+
+    if (changed) autoGroupOpen = nextOpen;
+  });
 
   // Density state
   let density = $state<'compact' | 'standard'>('standard');
@@ -196,21 +265,6 @@
   const pyClass = $derived(density === 'compact' ? 'py-1.5' : 'py-2.5');
   const pyClassGroupItem = $derived(density === 'compact' ? 'py-1.5' : 'py-2');
 
-  // Click-outside to close color picker
-  $effect(() => {
-    if (!colorPickerOpen) return;
-    function handleMouseDown(e: MouseEvent) {
-      // Ignore if opened within last 200ms (same interaction)
-      if (Date.now() - colorPickerOpenedAt < 200) return;
-      if (colorPickerRef && !colorPickerRef.contains(e.target as Node)) {
-        colorPickerOpen = false;
-      }
-    }
-    document.addEventListener('mousedown', handleMouseDown, true);
-    return () => {
-      document.removeEventListener('mousedown', handleMouseDown, true);
-    };
-  });
 </script>
 
 
@@ -219,32 +273,33 @@
   aria-label="Sidebar navigation"
   class="fixed inset-y-0 left-0 z-30 flex flex-col border-r border-border/70 bg-sidebar/95 shadow-sm shadow-slate-900/[0.03] backdrop-blur-xl transition-all duration-300"
   class:w-72={!collapsed}
-  class:w-20={collapsed}
+  class:w-16={collapsed}
   data-sidebar="sidebar"
+  data-collapsed={collapsed ? "true" : "false"}
 >
   <!-- Logo -->
-  <div class="flex h-16 items-center justify-between border-b border-border/60 px-4">
+  <div class="flex border-b border-border/60 {collapsed ? 'h-24 flex-col items-center justify-center gap-1 px-2' : 'h-16 items-center justify-between px-4'}">
     {#if !collapsed}
-      <div class="flex items-center gap-3">
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm shadow-primary/25">
+      <div class="flex min-w-0 flex-1 items-center gap-3">
+        <div class="flex h-9 w-6 shrink-0 items-center justify-center text-sm font-bold text-primary">
           {title.slice(0, 1).toUpperCase()}
         </div>
-        <div class="min-w-0">
-          <span class="block truncate text-[0.95rem] font-semibold tracking-tight text-sidebar-foreground">{title}</span>
-          <span class="block truncate text-[11px] font-medium text-sidebar-foreground/50">{getLocale() === 'zh-CN' ? '管理控制台' : 'Admin Console'}</span>
+        <div class="min-w-0 flex-1 text-left">
+          <span class="block truncate text-[1.15rem] font-semibold leading-6 tracking-tight text-sidebar-foreground">{title}</span>
+          <span class="block truncate text-xs font-medium leading-4 text-sidebar-foreground/50">{getLocale() === 'zh-CN' ? '管理控制台' : 'Admin Console'}</span>
         </div>
       </div>
     {:else}
-      <div class="mx-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm shadow-primary/25">
+      <div class="mx-auto flex h-9 w-9 shrink-0 items-center justify-center text-sm font-bold text-primary">
         {title.slice(0, 1).toUpperCase()}
       </div>
     {/if}
     {#if !collapsed}
-      <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle} class="rounded-xl text-sidebar-foreground/55 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground">
+      <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle} class="text-sidebar-foreground/55 hover:bg-transparent hover:text-sidebar-foreground">
         <ChevronLeft class="h-4 w-4" />
       </TooltipButton>
     {:else}
-      <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle} class="mx-auto mb-2 mt-2 block rounded-xl text-sidebar-foreground/55 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground">
+      <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle} class="mx-auto text-sidebar-foreground/55 hover:bg-transparent hover:text-sidebar-foreground">
         <ChevronRight class="h-4 w-4" />
       </TooltipButton>
     {/if}
@@ -252,7 +307,7 @@
 
   <div class="flex min-h-0 flex-1">
   <ScrollArea class="min-w-0 flex-1">
-  <nav aria-label="Main menu" class="space-y-5 px-3 py-5">
+  <nav aria-label="Main menu" class="space-y-2 py-4 px-2">
     {#if menu && menu.length > 0}
       <!-- Custom multi-level menu -->
       {#each menu as item, _i (_i)}
@@ -262,31 +317,40 @@
     <!-- Auto-generated menu from resources (fallback) -->
     {#each navGroups as group, _i (_i)}
       {#if group.name && !collapsed}
-        <!-- Grouped section: expanded by default in desktop light sidebar mode -->
-        <div>
-          <div
-            class="flex w-full items-center justify-between px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/45"
+        {@const groupOpen = isAutoGroupOpen(group)}
+        {@const groupActive = isGroupActive(group)}
+        {@const groupBadge = aggregateBadges(group.items)}
+        <div class="border-b border-border/60 pb-2 last:border-b-0">
+          <button
+            type="button"
+            class="flex w-full items-center justify-between px-0.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors {groupActive ? 'text-primary' : 'text-sidebar-foreground/45 hover:text-sidebar-foreground/75'}"
             data-sidebar="group-label"
+            aria-expanded={groupOpen}
+            onclick={() => toggleAutoGroup(group)}
           >
-            <span>{group.name}</span>
-          </div>
-          <div class="mt-1 space-y-1" data-sidebar="menu-sub">
+            <span class="flex min-w-0 flex-1 items-center">
+              <span class="truncate">{group.name}</span>
+              {#if groupBadge}
+                <span class="ml-2 rounded-full {groupActive ? 'bg-primary/12 text-primary' : 'bg-sidebar-accent text-sidebar-foreground/60'} px-2 py-0.5 text-[10px] font-semibold tracking-normal">{groupBadge}</span>
+              {/if}
+            </span>
+            <ChevronDown class="h-3.5 w-3.5 shrink-0 transition-transform duration-200 {groupOpen ? 'rotate-180' : ''}" />
+          </button>
+          {#if groupOpen}
+            <div class="mt-0.5 divide-y divide-border/45" data-sidebar="menu-sub">
               {#each group.items as item, _i (_i)}
                 {@const active = isActive(item.path)}
                 <a
                   href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
                   onclick={(e) => { e.preventDefault(); navigate(item.path); }}
-                  class="group relative flex items-center gap-3 rounded-xl px-3 {pyClassGroupItem} text-sm font-medium transition-all duration-200
+                  class="group relative flex items-center gap-3 px-2 {pyClassGroupItem} text-sm font-medium transition-all duration-200 first:rounded-t-xl last:rounded-b-xl
                   {active
-                    ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
-                    : 'text-sidebar-foreground/68 hover:bg-background/85 hover:text-sidebar-foreground'}"
+                    ? 'text-primary font-semibold'
+                    : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/45 hover:text-sidebar-foreground'}"
                   data-sidebar="menu-sub-button"
                   data-active={active ? "true" : "false"}
                 >
-                  {#if active && !collapsed}
-                    <div class="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-primary"></div>
-                  {/if}
-                  <span data-sidebar="menu-icon" class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg {active ? 'bg-primary-foreground/15' : 'bg-muted/60 text-sidebar-foreground/55 group-hover:bg-primary/10 group-hover:text-primary'}">
+                  <span data-sidebar="menu-icon" class="flex h-5 w-5 shrink-0 items-center justify-center {active ? 'text-primary' : 'text-sidebar-foreground/55 group-hover:text-primary'}">
                     <item.Icon class="h-4 w-4 flex-shrink-0" />
                   </span>
                   <span class="min-w-0 flex-1 truncate">{item.label}</span>
@@ -295,7 +359,8 @@
                   {/if}
                 </a>
               {/each}
-          </div>
+            </div>
+          {/if}
         </div>
       {:else}
         <!-- Ungrouped items (flat) -->
@@ -309,10 +374,10 @@
                     {...props}
                     href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
                     onclick={(e) => { e.preventDefault(); navigate(item.path); }}
-                    class="flex items-center justify-center gap-3 rounded-xl px-3 {pyClass} text-sm font-medium transition-all duration-200
+                    class="mx-auto flex h-10 w-10 items-center justify-center text-sm font-medium transition-colors duration-200
                     {active
-                      ? 'bg-primary/10 text-primary shadow-sm shadow-primary/10 ring-1 ring-primary/15'
-                      : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
+                      ? 'text-primary'
+                      : 'text-sidebar-foreground/60 hover:text-sidebar-foreground'}"
                     data-sidebar="menu-button"
                     data-active={active ? "true" : "false"}
                   >
@@ -328,17 +393,13 @@
             <a
               href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
               onclick={(e) => { e.preventDefault(); navigate(item.path); }}
-              class="group relative flex items-center gap-3 rounded-xl px-3 {pyClass} text-sm font-medium transition-all duration-200
+              class="group relative flex items-center gap-3 rounded-xl px-2 {pyClass} text-sm font-medium transition-all duration-200
               {active
-                ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
-                : 'text-sidebar-foreground/68 hover:bg-background/85 hover:text-sidebar-foreground'}"
+                ? 'text-primary font-semibold'
+                : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/45 hover:text-sidebar-foreground'}"
               data-sidebar="menu-button"
               data-active={active ? "true" : "false"}
-            >
-              {#if active && !collapsed}
-                <div class="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-primary"></div>
-              {/if}
-              <span data-sidebar="menu-icon" class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg {active ? 'bg-primary-foreground/15' : 'bg-muted/60 text-sidebar-foreground/55 group-hover:bg-primary/10 group-hover:text-primary'}">
+            >              <span data-sidebar="menu-icon" class="flex h-5 w-5 shrink-0 items-center justify-center {active ? 'text-primary' : 'text-sidebar-foreground/55 group-hover:text-primary'}">
                 <item.Icon class="h-4 w-4 flex-shrink-0" />
               </span>
               <span class="min-w-0 flex-1 truncate">{item.label}</span>
@@ -357,136 +418,129 @@
 
   <!-- Footer -->
   <div class="border-t border-border/60 bg-sidebar/95">
-    <!-- Color theme picker -->
-    {#if !collapsed}
-      <div class="px-3 pt-3 pb-1">
-        <div class="relative" bind:this={colorPickerRef}>
-          <Button
-            variant="ghost"
-            class="flex h-auto w-full items-center justify-start gap-2 rounded-xl px-2 py-1.5 text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
-            onclick={() => { if (!colorPickerOpen) colorPickerOpenedAt = Date.now(); colorPickerOpen = !colorPickerOpen; }}
-          >
-            <Palette class="h-4 w-4" />
-            <span class="flex-1 text-left text-xs">{t('common.toggleTheme')}</span>
-            <span
-              class="h-3.5 w-3.5 rounded-full ring-1 ring-offset-1 ring-offset-sidebar"
-              style="background-color: {getColorThemes().find(c => c.id === getColorTheme())?.color ?? '#6366f1'}; --tw-ring-color: {getColorThemes().find(c => c.id === getColorTheme())?.color ?? '#6366f1'}"
-            ></span>
-          </Button>
-          {#if colorPickerOpen}
-            <div class="absolute bottom-full left-0 mb-1 z-50 w-40 rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg animate-in fade-in-0 zoom-in-95">
-              {#each getColorThemes() as ct, _i (_i)}
-                <button
-                  class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                  onclick={() => { setColorTheme(ct.id as typeof ct.id & import('@svadmin/core').ColorTheme); colorPickerOpen = false; }}
-                >
-                  <span
-                    class="h-3.5 w-3.5 rounded-full {getColorTheme() === ct.id ? 'ring-2 ring-offset-1 scale-110' : 'opacity-70'}"
-                    style="background-color: {ct.color}; {getColorTheme() === ct.id ? `--tw-ring-color: ${ct.color}` : ''}"
-                  ></span>
-                  <span class="text-xs">{ct.label}</span>
-                </button>
-              {/each}
-            </div>
-          {/if}
-        </div>
-      </div>
-    {/if}
-
     <!-- User info -->
     {#if !collapsed && identity}
-      <div class="px-3 pb-3 pt-1">
-        <div class="flex items-center gap-3 rounded-2xl border border-border/50 bg-background/65 p-2 shadow-sm shadow-slate-900/[0.02] transition-colors hover:bg-sidebar-accent/50">
-          <Avatar
-            src={(identity as Record<string, unknown>).avatar as string | undefined}
-            alt={identity.name ?? 'User'}
-            fallback={identity.name?.charAt(0).toUpperCase() ?? 'U'}
-            size="sm"
-          />
-          <div class="flex-1 min-w-0">
-            <p class="truncate text-sm font-medium text-sidebar-foreground">{identity.name}</p>
-            <p class="truncate text-[10px] text-sidebar-foreground/50">{((identity as Record<string, unknown>).role || (identity as Record<string, unknown>).roleName) ?? 'User'}</p>
-          </div>
-        </div>
-        <div class="flex items-center justify-between px-1 mt-1">
-          <TooltipButton tooltip={t('common.switchLanguage')} variant="ghost" size="icon-sm" onclick={toggleLocale} class="text-sidebar-foreground/60 hover:text-sidebar-foreground">
-            <span class="text-xs font-bold">{localeLabel}</span>
-          </TooltipButton>
-          <TooltipButton tooltip={t('common.toggleTheme')} variant="ghost" size="icon-sm" onclick={toggleTheme} class="text-sidebar-foreground/60 hover:text-sidebar-foreground">
-            {#if getResolvedTheme() === 'dark'}
-              <Sun class="h-4 w-4" />
-            {:else}
-              <Moon class="h-4 w-4" />
-            {/if}
-          </TooltipButton>
-          <TooltipButton tooltip={t('settings.title')} variant="ghost" size="icon-sm" onclick={() => navigate('/settings')} class="text-sidebar-foreground/60 hover:text-sidebar-foreground">
-            <Settings class="h-4 w-4" />
-          </TooltipButton>
-          <TooltipButton tooltip={t('common.logout')} variant="ghost" size="icon-sm" onclick={onLogout} class="text-sidebar-foreground/60 hover:text-destructive">
-            <LogOut class="h-4 w-4" />
-          </TooltipButton>
-        </div>
+      <div class="px-3 py-3">
+        <Popover.Root bind:open={userMenuOpen}>
+          <Popover.Trigger>
+            {#snippet child({ props }: { props: Record<string, unknown> })}
+              <button
+                {...props}
+                type="button"
+                class="flex w-full items-center gap-3 rounded-2xl border border-border/50 bg-background/65 p-2 text-left shadow-sm shadow-slate-900/[0.02] transition-colors hover:bg-sidebar-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                aria-label={identity.name ?? 'User'}
+              >
+                <Avatar
+                  src={(identity as Record<string, unknown>).avatar as string | undefined}
+                  alt={identity.name ?? 'User'}
+                  fallback={identity.name?.charAt(0).toUpperCase() ?? 'U'}
+                  size="sm"
+                />
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-medium text-sidebar-foreground">{identity.name}</p>
+                  <p class="truncate text-[10px] text-sidebar-foreground/50">{((identity as Record<string, unknown>).role || (identity as Record<string, unknown>).roleName) ?? 'User'}</p>
+                </div>
+                <ChevronDown class="h-3.5 w-3.5 shrink-0 text-sidebar-foreground/45 transition-transform {userMenuOpen ? 'rotate-180' : ''}" />
+              </button>
+            {/snippet}
+          </Popover.Trigger>
+          <Popover.Content align="start" side="right" sideOffset={10} class="w-56 p-2">
+            <div class="space-y-1">
+              <button type="button" class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground" onclick={() => handleUserMenuAction(toggleLocale)}>
+                <Languages class="h-4 w-4 shrink-0" />
+                <span class="min-w-0 flex-1 truncate">{t('common.switchLanguage')}</span>
+                <span class="text-xs font-semibold text-muted-foreground">{localeLabel}</span>
+              </button>
+              <button type="button" class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground" onclick={() => handleUserMenuAction(toggleTheme)}>
+                {#if getResolvedTheme() === 'dark'}
+                  <Sun class="h-4 w-4 shrink-0" />
+                {:else}
+                  <Moon class="h-4 w-4 shrink-0" />
+                {/if}
+                <span class="min-w-0 flex-1 truncate">{t('common.toggleTheme')}</span>
+              </button>
+              <div class="my-1 h-px bg-border/60"></div>
+              {#each userSettingsItems as item, _i (_i)}
+                {@const active = isActive(item.path)}
+                <button
+                  type="button"
+                  class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors
+                    {active
+                      ? 'bg-muted text-foreground font-medium'
+                      : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'}"
+                  onclick={() => openUserMenuRoute(item.path)}
+                >
+                  <item.icon class="h-4 w-4 shrink-0" />
+                  <span class="min-w-0 flex-1 truncate">{t(item.label)}</span>
+                </button>
+              {/each}
+              <div class="my-1 h-px bg-border/60"></div>
+              <button type="button" class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive" onclick={() => handleUserMenuAction(onLogout)}>
+                <LogOut class="h-4 w-4 shrink-0" />
+                <span class="min-w-0 flex-1 truncate">{t('common.logout')}</span>
+              </button>
+            </div>
+          </Popover.Content>
+        </Popover.Root>
       </div>
     {:else if collapsed}
-      <div class="px-1 py-3 space-y-1">
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            {#snippet child({ props }: { props: Record<string, unknown> })}
-              <Button {...props} variant="ghost" size="icon" onclick={toggleLocale} class="w-full text-sidebar-foreground/60 hover:text-sidebar-foreground">
-                <span class="text-xs font-bold">{localeLabel}</span>
-              </Button>
-            {/snippet}
-          </Tooltip.Trigger>
-          <Tooltip.Content side="right">{t('common.switchLanguage')}</Tooltip.Content>
-        </Tooltip.Root>
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            {#snippet child({ props }: { props: Record<string, unknown> })}
-              <Button {...props} variant="ghost" size="icon" onclick={toggleTheme} class="w-full text-sidebar-foreground/60 hover:text-sidebar-foreground">
-                {#if getResolvedTheme() === 'dark'}
-                  <Sun class="h-4 w-4" />
-                {:else}
-                  <Moon class="h-4 w-4" />
-                {/if}
-              </Button>
-            {/snippet}
-          </Tooltip.Trigger>
-          <Tooltip.Content side="right">{t('common.toggleTheme')}</Tooltip.Content>
-        </Tooltip.Root>
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            {#snippet child({ props }: { props: Record<string, unknown> })}
-              <Button {...props} variant="ghost" size="icon" onclick={() => navigate('/settings')} class="w-full text-sidebar-foreground/60 hover:text-sidebar-foreground">
-                <Settings class="h-4 w-4" />
-              </Button>
-            {/snippet}
-          </Tooltip.Trigger>
-          <Tooltip.Content side="right">{t('settings.title')}</Tooltip.Content>
-        </Tooltip.Root>
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            {#snippet child({ props }: { props: Record<string, unknown> })}
-              <Button {...props} variant="ghost" size="icon" onclick={onLogout} class="w-full text-sidebar-foreground/60 hover:text-destructive">
-                <LogOut class="h-4 w-4" />
-              </Button>
-            {/snippet}
-          </Tooltip.Trigger>
-          <Tooltip.Content side="right">{t('common.logout')}</Tooltip.Content>
-        </Tooltip.Root>
+      <div class="flex flex-col items-center px-2 py-3">
+        {#if identity}
+          <Popover.Root bind:open={userMenuOpen}>
+            <Popover.Trigger>
+              {#snippet child({ props }: { props: Record<string, unknown> })}
+                <button {...props} type="button" class="mx-auto flex h-10 w-10 items-center justify-center rounded-full text-sidebar-foreground transition-colors hover:bg-sidebar-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" aria-label={identity.name ?? 'User'}>
+                  <Avatar
+                    src={(identity as Record<string, unknown>).avatar as string | undefined}
+                    alt={identity.name ?? 'User'}
+                    fallback={identity.name?.charAt(0).toUpperCase() ?? 'U'}
+                    size="sm"
+                  />
+                </button>
+              {/snippet}
+            </Popover.Trigger>
+            <Popover.Content align="start" side="right" sideOffset={10} class="w-56 p-2">
+              <div class="space-y-1">
+                <button type="button" class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground" onclick={() => handleUserMenuAction(toggleLocale)}>
+                  <Languages class="h-4 w-4 shrink-0" />
+                  <span class="min-w-0 flex-1 truncate">{t('common.switchLanguage')}</span>
+                  <span class="text-xs font-semibold text-muted-foreground">{localeLabel}</span>
+                </button>
+                <button type="button" class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground" onclick={() => handleUserMenuAction(toggleTheme)}>
+                  {#if getResolvedTheme() === 'dark'}
+                    <Sun class="h-4 w-4 shrink-0" />
+                  {:else}
+                    <Moon class="h-4 w-4 shrink-0" />
+                  {/if}
+                  <span class="min-w-0 flex-1 truncate">{t('common.toggleTheme')}</span>
+                </button>
+                <div class="my-1 h-px bg-border/60"></div>
+                {#each userSettingsItems as item, _i (_i)}
+                  {@const active = isActive(item.path)}
+                  <button
+                    type="button"
+                    class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors
+                      {active
+                        ? 'bg-muted text-foreground font-medium'
+                        : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'}"
+                    onclick={() => openUserMenuRoute(item.path)}
+                  >
+                    <item.icon class="h-4 w-4 shrink-0" />
+                    <span class="min-w-0 flex-1 truncate">{t(item.label)}</span>
+                  </button>
+                {/each}
+                <div class="my-1 h-px bg-border/60"></div>
+                <button type="button" class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive" onclick={() => handleUserMenuAction(onLogout)}>
+                  <LogOut class="h-4 w-4 shrink-0" />
+                  <span class="min-w-0 flex-1 truncate">{t('common.logout')}</span>
+                </button>
+              </div>
+            </Popover.Content>
+          </Popover.Root>
+        {/if}
       </div>
     {:else}
-      <div class="flex gap-1 p-3">
-        <TooltipButton tooltip={t('common.switchLanguage')} variant="ghost" size="icon" onclick={toggleLocale} class="flex-1 text-sidebar-foreground/60 hover:text-sidebar-foreground">
-          <span class="text-xs font-bold">{localeLabel}</span>
-        </TooltipButton>
-        <TooltipButton tooltip={t('common.toggleTheme')} variant="ghost" size="icon" onclick={toggleTheme} class="flex-1 text-sidebar-foreground/60 hover:text-sidebar-foreground">
-          {#if getResolvedTheme() === 'dark'}
-            <Sun class="h-4 w-4" />
-          {:else}
-            <Moon class="h-4 w-4" />
-          {/if}
-        </TooltipButton>
-      </div>
+      <div class="h-3"></div>
     {/if}
   </div>
 </aside>

@@ -45,7 +45,7 @@
   const initials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 </script>
 
-<div class="space-y-6">
+<div class="space-y-6" data-svadmin-content-page="network">
   <div class="flex items-start justify-between gap-4">
     <div>
       <h2 class="text-xl font-semibold text-foreground">{t('network.teamCrew')}</h2>
@@ -69,7 +69,7 @@
   <!-- Table -->
   <Card.Card class="border-border/60">
     <Card.CardContent class="p-0">
-      <div class="overflow-x-auto">
+      <div class="hidden overflow-x-auto lg:block">
         <table class="w-full">
           <thead>
             <tr class="border-b bg-muted/30">
@@ -116,6 +116,39 @@
             {/each}
           </tbody>
         </table>
+      </div>
+      <div class="divide-y lg:hidden">
+        {#each filtered as member (member.id)}
+          {@const sc = statusConfig[member.status]}
+          <div class="space-y-3 p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex min-w-0 items-center gap-3">
+                <div class="relative shrink-0">
+                  <div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                    {initials(member.name)}
+                  </div>
+                  <span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full {sc.dot} ring-2 ring-card"></span>
+                </div>
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-medium text-foreground">{member.name}</p>
+                  <p class="truncate text-xs text-muted-foreground">{member.email}</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon-sm" class="shrink-0"><MoreHorizontal class="h-4 w-4" /></Button>
+            </div>
+            <div class="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+              <div class="min-w-0">
+                <span class="block font-medium text-foreground">{member.role}</span>
+                <span class="truncate">{member.department}</span>
+              </div>
+              <div class="flex items-center gap-1 {sc.color}">
+                <sc.icon class="h-3 w-3" />{sc.label}
+              </div>
+              <div>{t('publicProfile.projects')}: <span class="font-medium text-foreground">{member.projects}</span></div>
+              <div>{t('account.joined')}: <span class="font-medium text-foreground">{member.joinedAt}</span></div>
+            </div>
+          </div>
+        {/each}
       </div>
     </Card.CardContent>
   </Card.Card>

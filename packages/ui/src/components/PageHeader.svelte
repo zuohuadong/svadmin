@@ -19,13 +19,13 @@
   }: Props = $props();
 </script>
 
-<div class="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-sm shadow-slate-900/[0.03] backdrop-blur {className}">
+<div class="border-b border-border/70 pb-5 {className}" data-svadmin-page-header>
   {#if showBreadcrumbs}
     <div class="mb-4">
       <Breadcrumbs />
     </div>
   {/if}
-  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
     <div class="min-w-0">
       <h1 class="truncate text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
       {#if description}
@@ -33,7 +33,7 @@
       {/if}
     </div>
     {#if actions}
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
         {@render actions()}
       </div>
     {/if}

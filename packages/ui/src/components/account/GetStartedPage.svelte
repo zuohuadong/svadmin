@@ -47,7 +47,7 @@
   }
 </script>
 
-<div class="space-y-6">
+<div class="space-y-6" data-svadmin-content-page="account">
   <div class="flex items-start justify-between gap-4">
     <div>
       <h2 class="text-xl font-semibold text-foreground">{t('account.getStarted')}</h2>
