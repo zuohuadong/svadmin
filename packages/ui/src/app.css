@@ -883,7 +883,7 @@ main {
   border-color: #3e97ff !important;
 }
 
-/* ─── svadmin Metronic-inspired list and edit surfaces ─── */
+/* svadmin flat list and edit surfaces */
 [data-svadmin-list-header],
 [data-svadmin-table-toolbar],
 [data-svadmin-table-card],
@@ -1291,7 +1291,7 @@ main {
   }
 }
 
-/* Metronic-inspired content pages: profile/account/network/auth/error surfaces */
+/* svadmin content pages: profile/account/network/auth/error surfaces */
 .layout-clean-flat [data-svadmin-content-page] {
   --svadmin-content-border: color-mix(in oklch, var(--border) 78%, transparent);
   --svadmin-content-muted: color-mix(in oklch, var(--muted) 58%, var(--background));

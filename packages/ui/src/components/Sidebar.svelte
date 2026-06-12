@@ -1,12 +1,10 @@
 <script lang="ts">
-/* eslint-disable svelte/prefer-svelte-reactivity */
   import { getResources, canAccessAsync, getAuthProvider } from '@svadmin/core';
   import type { Identity, MenuItem } from '@svadmin/core';
   import { navigate } from '@svadmin/core/router';
   import { getPath } from '../router-state.svelte.js';
   import { t, getLocale, setLocale, getAvailableLocales } from '@svadmin/core/i18n';
   import { toggleTheme, getResolvedTheme } from '@svadmin/core';
-  import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
   import * as Tooltip from './ui/tooltip/index.js';
   import * as Popover from './ui/popover/index.js';
@@ -41,8 +39,6 @@
       ? (typeof window !== 'undefined' && window.location.hash.startsWith('#/') ? 'hash' : 'path')
       : routeMode
   );
-
-  const _resources = getResources();
 
   const iconMap: Record<string, typeof LayoutDashboard> = {
     'dashboard': LayoutDashboard,
@@ -115,7 +111,7 @@
   let navItems = $state.raw<NavItem[]>([]);
 
   $effect(() => {
-    const _localeVal = getLocale();
+    getLocale();
     const currentResources = getResources();
     let cancelled = false;
 
@@ -184,15 +180,6 @@
   function handleUserMenuAction(action: () => void) {
     userMenuOpen = false;
     action();
-  }
-
-  /** Prefetch resource data on hover for instant navigation */
-  const prefetchedResources = new Set<string>();
-  function _prefetchResource(resourceName: string) {
-    if (resourceName === '/' || prefetchedResources.has(resourceName)) return;
-    prefetchedResources.add(resourceName);
-    // Trigger a background fetch by navigating the browser cache
-    // The actual prefetch happens via the #key block re-creating useList in AdminApp
   }
 
   // Group nav items by group field (null = ungrouped)
