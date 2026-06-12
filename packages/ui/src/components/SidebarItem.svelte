@@ -64,16 +64,41 @@
     return menuItem.children?.some((c: MenuItem) => hasActiveChild(c)) ?? false;
   }
 
+  function getItemBadge(menuItem: MenuItem): string | undefined {
+    const meta = menuItem.meta as (MenuItem['meta'] & { badge?: unknown }) | undefined;
+    return typeof meta?.badge === 'string' ? meta.badge : undefined;
+  }
+
+  function aggregateBadges(menuItems: MenuItem[] | undefined): string | undefined {
+    const total = menuItems?.reduce((sum, menuItem) => {
+      const ownBadge = Number(getItemBadge(menuItem));
+      const childBadge = Number(aggregateBadges(menuItem.children));
+      return sum + (Number.isFinite(ownBadge) ? ownBadge : 0) + (Number.isFinite(childBadge) ? childBadge : 0);
+    }, 0) ?? 0;
+
+    return total > 0 ? String(total) : undefined;
+  }
+
   const hasChildren = $derived(item.children && item.children.length > 0);
   const active = $derived(isActive(item.href));
   const childActive = $derived(hasActiveChild(item));
   const isExternal = $derived(item.target === '_blank' || item.href?.startsWith('http'));
+  const badge = $derived(getItemBadge(item));
+  const childrenBadge = $derived(aggregateBadges(item.children));
 
   const finalHref = $derived(isExternal ? item.href : (item.href ? formatLink(item.href) : undefined));
-
-  // Track open state — auto-open if a child is active
+  // Auto-open the active branch once, then respect manual collapse/expand.
   let isOpen = $state(false);
-  $effect(() => { if (childActive) isOpen = true; });
+  let touchedOpen = $state(false);
+
+  function setOpen(nextOpen: boolean) {
+    touchedOpen = true;
+    isOpen = nextOpen;
+  }
+
+  $effect(() => {
+    if (childActive && !touchedOpen && !isOpen) isOpen = true;
+  });
 
   const Icon = $derived(getIcon(item.icon));
   const label = $derived(getLabel(item));
@@ -83,13 +108,13 @@
   <!-- hidden item, render nothing -->
 {:else if hasChildren && !collapsed}
   <!-- Parent node with children: render as collapsible group -->
-  <Collapsible.Root bind:open={isOpen}>
+  <Collapsible.Root open={isOpen} onOpenChange={setOpen}>
     <Collapsible.Trigger
-      class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200
+      class="flex w-full items-center justify-between rounded-xl px-3 {depth === 1 ? 'py-1.5' : 'py-2'} text-sm font-medium transition-all duration-200
       {childActive
-        ? 'bg-primary/10 text-primary ring-1 ring-primary/15'
-        : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
-      style="padding-left: {12 + depth * 12}px"
+        ? 'text-primary font-semibold'
+        : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/45 hover:text-sidebar-foreground'}"
+      style="padding-left: {depth === 0 ? 12 : 4 + (depth - 1) * 12}px"
       data-sidebar={depth === 0 ? "menu-button" : "menu-sub-button"}
       data-active={childActive ? "true" : "false"}
     >
@@ -97,10 +122,19 @@
         <Icon class="h-4 w-4 flex-shrink-0" />
         <span>{label}</span>
       </span>
-      <ChevronDown class="h-3.5 w-3.5 transition-transform duration-200 {isOpen ? 'rotate-180' : ''}" />
+      <span class="ml-2 flex items-center gap-2">
+        {#if childrenBadge}
+          <span class="rounded-full {childActive ? 'bg-primary/12 text-primary' : 'bg-sidebar-accent text-sidebar-foreground/60'} px-2 py-0.5 text-[10px] font-semibold">{childrenBadge}</span>
+        {/if}
+        <ChevronDown class="h-3.5 w-3.5 transition-transform duration-200 {isOpen ? 'rotate-180' : ''}" />
+      </span>
     </Collapsible.Trigger>
     <Collapsible.Content>
-      <div class="mt-0.5 space-y-0.5" style="padding-left: {depth > 0 ? 0 : 0}px" data-sidebar="menu-sub">
+      <div
+        class="mt-0.5 {depth >= 1 ? 'divide-y divide-border/45' : 'space-y-0'}"
+        style="padding-left: {depth > 0 ? 0 : 0}px"
+        data-sidebar="menu-sub"
+      >
         {#each item.children as child, _i (_i)}
           <SidebarItem item={child} {currentPath} {collapsed} depth={depth + 1} />
         {/each}
@@ -117,10 +151,10 @@
           href={finalHref}
           target={isExternal ? '_blank' : undefined}
           rel={isExternal ? 'noopener noreferrer' : undefined}
-          class="flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200
+          class="mx-auto flex h-10 w-10 items-center justify-center text-sm font-medium transition-colors duration-200
           {active
-            ? 'bg-primary/10 text-primary shadow-sm shadow-primary/10 ring-1 ring-primary/15'
-            : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
+            ? 'text-primary'
+            : 'text-sidebar-foreground/68 hover:text-sidebar-foreground'}"
           data-sidebar={depth === 0 ? "menu-button" : "menu-sub-button"}
           data-active={active ? "true" : "false"}
         >
@@ -138,21 +172,21 @@
     href={finalHref}
     target={isExternal ? '_blank' : undefined}
     rel={isExternal ? 'noopener noreferrer' : undefined}
-    class="relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200
+    class="relative flex items-center gap-3 px-3 {depth === 1 ? 'py-1.5' : 'py-2'} text-sm font-medium transition-all duration-200 {depth >= 2 ? 'first:rounded-t-xl last:rounded-b-xl' : 'rounded-xl'}
     {active
-      ? 'bg-primary/10 text-primary font-semibold shadow-sm shadow-primary/10 ring-1 ring-primary/15'
-      : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/65 hover:text-sidebar-foreground'}"
+      ? 'text-primary font-semibold'
+      : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/45 hover:text-sidebar-foreground'}"
     style="padding-left: {12 + depth * 12}px"
     data-sidebar={depth === 0 ? "menu-button" : "menu-sub-button"}
     data-active={active ? "true" : "false"}
   >
-    {#if active && !collapsed}
-      <div class="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-primary"></div>
-    {/if}
     <Icon class="h-4 w-4 flex-shrink-0" />
     <span class="flex-1">{label}</span>
     {#if isExternal}
       <ExternalLink class="h-3 w-3 opacity-50" />
+    {/if}
+    {#if badge}
+      <span class="rounded-full {active ? 'bg-primary/12 text-primary' : 'bg-sidebar-accent text-sidebar-foreground/60'} px-2 py-0.5 text-[10px] font-semibold">{badge}</span>
     {/if}
   </a>
 {/if}

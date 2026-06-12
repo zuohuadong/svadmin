@@ -59,7 +59,7 @@
   }
 </script>
 
-<div class="space-y-6">
+<div class="space-y-6" data-svadmin-content-page="account">
   <div>
     <h2 class="text-xl font-semibold text-foreground">{t('account.importMembers')}</h2>
     <p class="mt-1 text-sm text-muted-foreground">{t('account.importMembersDescription')}</p>

@@ -136,12 +136,12 @@
 </script>
 
 <div class="space-y-6" data-svadmin-form-shell>
-  <div class="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-sm shadow-slate-900/[0.03] backdrop-blur" data-svadmin-form-header>
+  <div class="border-b border-border/60 pb-5" data-svadmin-form-header>
     <div class="flex flex-wrap items-center gap-4">
       <TooltipButton
         tooltip={t('common.back')}
         onclick={() => guardNavigate(() => navigate(`/${resourceName}`))}
-        class="h-10 w-10 rounded-xl border border-border/70 bg-background/80"
+        class="h-10 w-10"
       >
         <ArrowLeft class="h-5 w-5" />
       </TooltipButton>
@@ -165,7 +165,7 @@
 
   {#if form.loading}
     <div class="max-w-4xl space-y-6">
-      <div class="space-y-5 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-sm shadow-slate-900/[0.03]">
+      <div class="space-y-5 border-y border-border/60 py-6">
         {#each Array(4) as _, _i (_i)}
           <div class="space-y-2">
             <Skeleton class="h-4 w-24" />
@@ -187,9 +187,9 @@
 
       {#if hasGroups}
         {#each groups as group, _i (_i)}
-          <Card.Root class="overflow-hidden rounded-3xl border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03]" data-svadmin-form-card>
+          <Card.Root class="border-border/60 bg-card shadow-none" data-svadmin-form-card>
             {#if group.name}
-              <Card.Header class="border-b border-border/60 bg-muted/25 px-5 py-4 sm:px-6">
+              <Card.Header>
                 <Card.Title class="text-base font-semibold">{group.name}</Card.Title>
               </Card.Header>
             {/if}
@@ -215,7 +215,7 @@
           </Card.Root>
         {/each}
       {:else}
-        <Card.Root class="rounded-3xl border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03]" data-svadmin-form-card>
+        <Card.Root class="border-border/60 bg-card shadow-none" data-svadmin-form-card>
           <Card.Content class="px-4 py-0 sm:px-6" data-svadmin-form-content>
             {#each formFields as field (field.key)}
               <div data-svadmin-form-row class:border-destructive={!!form.errors[field.key]}>
@@ -238,11 +238,11 @@
         </Card.Root>
       {/if}
 
-      <div class="sticky bottom-4 z-10 flex items-center gap-3 rounded-3xl border border-border/70 bg-card/90 p-3 shadow-lg shadow-slate-900/[0.05] backdrop-blur" data-svadmin-form-actions>
+      <div class="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 border-t border-border/60 bg-background/95 p-3 backdrop-blur" data-svadmin-form-actions>
         {#if formActions}
           {@render formActions({ isLoading: form.submitting, onSubmit: handleSubmit })}
         {:else if !isReadonly}
-          <Button type="submit" disabled={form.submitting} class="h-10 rounded-xl px-5 shadow-sm shadow-primary/15">
+          <Button type="submit" disabled={form.submitting} class="h-10 px-5">
             {#if form.submitting}
               <Loader2 class="h-4 w-4 animate-spin" data-icon="inline-start" />
             {:else}

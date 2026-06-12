@@ -43,7 +43,7 @@
 
 </script>
 
-<div class="space-y-6">
+<div class="space-y-6" data-svadmin-content-page="account">
   <div class="flex items-start justify-between gap-4">
     <div>
       <h2 class="text-xl font-semibold text-foreground">{t('account.securityLog')}</h2>
@@ -74,7 +74,7 @@
   <!-- Log table -->
   <Card.Card class="border-border/60">
     <Card.CardContent class="p-0">
-      <div class="overflow-x-auto">
+      <div class="hidden overflow-x-auto md:block">
         <table class="w-full">
           <thead>
             <tr class="border-b bg-muted/30">
@@ -102,6 +102,33 @@
             {/each}
           </tbody>
         </table>
+      </div>
+      <div class="divide-y md:hidden">
+        {#each filteredLogs as log (log.id)}
+          <div class="space-y-3 p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex min-w-0 items-center gap-2">
+                <span class="inline-flex h-2 w-2 shrink-0 rounded-full {log.severity === 'critical' ? 'bg-red-500' : log.severity === 'warning' ? 'bg-amber-500' : 'bg-blue-500'}"></span>
+                <span class="truncate text-sm font-medium text-foreground">{log.eventLabel}</span>
+              </div>
+              <span class="shrink-0 text-xs text-muted-foreground">{log.time}</span>
+            </div>
+            <div class="grid gap-2 text-xs text-muted-foreground">
+              <div class="flex items-center justify-between gap-3">
+                <span>{t('securityLog.ip')}</span>
+                <span class="font-mono text-foreground">{log.ip}</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span>{t('securityLog.device')}</span>
+                <span class="truncate text-foreground">{log.device}</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span>{t('securityLog.location')}</span>
+                <span class="truncate text-foreground">{log.location}</span>
+              </div>
+            </div>
+          </div>
+        {/each}
       </div>
     </Card.CardContent>
   </Card.Card>

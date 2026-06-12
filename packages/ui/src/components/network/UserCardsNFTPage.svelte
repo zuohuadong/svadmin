@@ -51,7 +51,7 @@
   }
 </script>
 
-<div class="space-y-6">
+<div class="space-y-6" data-svadmin-content-page="network">
   <div>
     <h2 class="text-xl font-semibold text-foreground">{t('network.userCards')}</h2>
     <p class="mt-1 text-sm text-muted-foreground">{t('network.userCardsDescription')}</p>

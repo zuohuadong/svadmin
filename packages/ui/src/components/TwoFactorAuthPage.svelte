@@ -79,7 +79,7 @@
   }
 </script>
 
-<div class="flex min-h-[70vh] items-center justify-center p-4">
+<div class="flex min-h-[70vh] items-center justify-center p-4" data-svadmin-content-page="auth-2fa">
   <div class="w-full max-w-lg space-y-6">
     {#if currentStep === 'intro' && !is2faEnabled}
       <!-- Intro -->

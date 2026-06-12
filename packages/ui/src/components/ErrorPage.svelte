@@ -26,7 +26,7 @@
   );
 </script>
 
-<div class="flex min-h-[70vh] items-center justify-center p-4">
+<div class="flex min-h-[70vh] items-center justify-center p-4" data-svadmin-content-page="error">
   <Card.Card class="w-full max-w-md border-border/60">
     <Card.CardContent class="space-y-6 px-6 py-10 text-center">
       <div class="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground">

@@ -99,7 +99,7 @@
   ];
 </script>
 
-<div class="space-y-6">
+<div class="space-y-6" data-svadmin-content-page="public-profile">
   <!-- Cover + Profile Header -->
   <Card.Card class="overflow-hidden border-border/60">
     <div class="h-40 bg-gradient-to-r from-primary/25 via-primary/15 to-accent/20 relative">

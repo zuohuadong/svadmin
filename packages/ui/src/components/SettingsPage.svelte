@@ -2,7 +2,7 @@
   import type { Component, Snippet } from "svelte";
   import { t } from "@svadmin/core/i18n";
   import { navigate } from "@svadmin/core/router";
-  import { User, Palette, Info, Shield, FileSearch, Lock, Puzzle, Bell, Key } from "@lucide/svelte";
+  import { User, Info, FileSearch, Lock, Puzzle } from "@lucide/svelte";
   import ProfilePage from "./ProfilePage.svelte";
   import AppearanceSettings from "./AppearanceSettings.svelte";
   import AboutSettings from "./AboutSettings.svelte";
@@ -60,25 +60,19 @@
     {
       group: "settings.general",
       items: [
-        { key: "profile", path: "/settings/profile", icon: User, label: "settings.profile" },
-        { key: "appearance", path: "/settings/appearance", icon: Palette, label: "settings.appearance" },
-        { key: "notifications", path: "/settings/notifications", icon: Bell, label: "settings.notifications" },
+        { key: "account", path: "/settings/account", icon: User, label: "settings.accountPreferences" },
       ],
     },
     {
       group: "settings.workspace",
       items: [
-        { key: "security", path: "/settings/security", icon: Lock, label: "settings.security" },
-        ...(authProvider ? [
-          { key: "roles", path: "/settings/roles", icon: Shield, label: "settings.rolesAndPermissions" },
-        ] : []),
-        { key: "integrations", path: "/settings/integrations", icon: Puzzle, label: "settings.integrations" },
+        { key: "access", path: "/settings/access", icon: Lock, label: "settings.accessSecurity" },
+        { key: "developer", path: "/settings/developer", icon: Puzzle, label: "settings.integrationApi" },
       ],
     },
     {
       group: "settings.developer",
       items: [
-        { key: "api", path: "/settings/api", icon: Key, label: "settings.api" },
         ...(authProvider ? [
           { key: "audit", path: "/settings/audit", icon: FileSearch, label: "settings.auditLogs" },
         ] : []),
@@ -92,87 +86,59 @@
 
   import { getParams, getRoute } from "../router-state.svelte.js";
 
+  function normalizeKey(tab: string | undefined): string {
+    if (!tab) return "account";
+    if (["profile", "appearance", "notifications"].includes(tab)) return "account";
+    if (["security", "roles"].includes(tab)) return "access";
+    if (["integrations", "api"].includes(tab)) return "developer";
+    return tab;
+  }
+
+  function pathForKey(key: string): string {
+    return `/settings/${key}`;
+  }
+
   let activeKey = $derived.by(() => {
     const tab = getParams().tab;
-    if (!tab) return "profile";
-    if (sectionKeys.has(tab)) return tab;
-    return content ? tab : "profile";
+    const normalized = normalizeKey(tab);
+    if (sectionKeys.has(normalized)) return normalized;
+    return content ? normalized : "account";
   });
 
-  // Default redirect to profile
   $effect(() => {
     if (getRoute() === "/settings") {
-      navigate("/settings/profile");
+      navigate("/settings/account");
+      return;
+    }
+
+    const tab = getParams().tab;
+    const normalized = normalizeKey(tab);
+    if (tab && tab !== normalized && sectionKeys.has(normalized)) {
+      navigate(pathForKey(normalized));
     }
   });
 </script>
 
-<div class="flex min-h-full flex-col overflow-hidden rounded-3xl border border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03] backdrop-blur lg:flex-row">
-  <!-- Left sidebar navigation -->
-  <nav class="w-full shrink-0 border-b border-border/70 bg-muted/20 lg:w-64 lg:border-b-0 lg:border-r">
-    <!-- Mobile: horizontal scroll tabs -->
-    <div class="flex gap-2 overflow-x-auto px-4 py-3 lg:hidden">
-      {#each resolvedSections as section, _i (_i)}
-        {#each section.items as item, _j (_j)}
-          {@const active = activeKey === item.key}
-          <button
-            class="flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-colors
-              {active ? 'bg-primary/10 text-primary ring-1 ring-primary/15' : 'text-muted-foreground hover:bg-background/70 hover:text-foreground'}"
-            onclick={() => navigate(item.path)}
-          >
-            <item.icon class="h-4 w-4" />
-            {t(item.label)}
-          </button>
-        {/each}
-      {/each}
+<div class="min-h-full max-w-6xl">
+  <div class="mb-6 border-b border-border/70 pb-4">
+    <div class="min-w-0">
+      <h2 class="text-2xl font-semibold tracking-tight text-foreground">{t("settings.title")}</h2>
+      <p class="mt-1 text-sm text-muted-foreground">{t("settings.settingsDescription")}</p>
     </div>
+  </div>
 
-    <!-- Desktop: vertical nav with groups -->
-    <div class="hidden space-y-6 px-4 py-6 lg:block">
-      <div class="rounded-2xl border border-border/60 bg-background/70 p-4">
-        <h2 class="text-lg font-semibold tracking-tight text-foreground">{t("settings.title")}</h2>
-        <p class="text-xs text-muted-foreground mt-1">{t("settings.settingsDescription")}</p>
-      </div>
-      {#each resolvedSections as section, _i (_i)}
-        <div>
-          <h3 class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
-            {t(section.group)}
-          </h3>
-          <div class="space-y-1">
-            {#each section.items as item, _j (_j)}
-              {@const active = activeKey === item.key}
-              <button
-                class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all
-                  {active
-                    ? 'bg-primary/10 text-primary font-medium ring-1 ring-primary/15 shadow-sm shadow-primary/10'
-                    : 'text-muted-foreground hover:bg-background/75 hover:text-foreground'}"
-                onclick={() => navigate(item.path)}
-              >
-                <item.icon class="h-4 w-4 shrink-0" />
-                {t(item.label)}
-              </button>
-            {/each}
-          </div>
-        </div>
-      {/each}
-    </div>
-  </nav>
-
-  <!-- Right content area -->
-  <div class="flex-1 bg-background/60 p-5 sm:p-6 lg:p-8 {activeKey === 'roles' || activeKey === 'audit' || activeKey === 'integrations' || activeKey === 'api' ? 'max-w-6xl' : 'max-w-3xl'}">
-    {#if activeKey === "profile"}
+  <div class="{activeKey === 'access' || activeKey === 'audit' || activeKey === 'developer' ? 'max-w-6xl' : 'max-w-3xl'} space-y-6">
+    {#if activeKey === "account"}
       {#if profile}{@render profile()}{:else}<ProfilePage />{/if}
-    {:else if activeKey === "appearance"}
       {#if appearance}{@render appearance()}{:else}<AppearanceSettings />{/if}
-    {:else if activeKey === "roles"}
-      {#if roles}{@render roles()}{:else}<RolesSettings />{/if}
-    {:else if activeKey === "security"}
-      {#if security}{@render security()}{:else}<SecuritySettings />{/if}
-    {:else if activeKey === "integrations"}
-      {#if integrations}{@render integrations()}{:else}<IntegrationsSettings />{/if}
-    {:else if activeKey === "notifications"}
       {#if notifications}{@render notifications()}{:else}<NotificationsSettings />{/if}
-    {:else if activeKey === "api"}
+    {:else if activeKey === "access"}
+      {#if security}{@render security()}{:else}<SecuritySettings />{/if}
+      {#if authProvider}
+        {#if roles}{@render roles()}{:else}<RolesSettings />{/if}
+      {/if}
+    {:else if activeKey === "developer"}
+      {#if integrations}{@render integrations()}{:else}<IntegrationsSettings />{/if}
       {#if api}{@render api()}{:else}<ApiSettings />{/if}
     {:else if activeKey === "audit"}
       {#if audit}{@render audit()}{:else}<AuditLogViewer />{/if}

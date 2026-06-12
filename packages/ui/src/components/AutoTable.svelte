@@ -915,7 +915,7 @@
     <div class="flex items-center gap-2">
       <span>{t('common.total', { total: query.data?.total ?? 0 })}</span>
       <select
-        class="h-8 w-[70px] px-1 py-1 flex items-center justify-between rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        class="h-8 w-[70px] px-2 rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         value={String(pagination.pageSize ?? 10)}
         onchange={(e) => {
           const size = Number((e.target as HTMLSelectElement).value);
@@ -930,7 +930,7 @@
         <option value="100">100</option>
       </select>
     </div>
-    <PaginationUI.Root>
+    <PaginationUI.Root class="sm:w-auto sm:justify-end sm:mx-0">
       <PaginationUI.Content>
         <PaginationUI.Item>
           <PaginationUI.Previous
