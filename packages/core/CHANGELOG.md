@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.0](https://github.com/zuohuadong/svadmin/compare/core-v0.28.0...core-v0.29.0) (2026-06-12)
+
+
+### 🚀 Features
+
+* **ui:** refine sidebar and content pages ([bba29e0](https://github.com/zuohuadong/svadmin/commit/bba29e0e6c00b0dc05aac4d499e9fef88623f29e))
+
 ## [0.28.0](https://github.com/zuohuadong/svadmin/compare/core-v0.27.1...core-v0.28.0) (2026-06-11)
 
 

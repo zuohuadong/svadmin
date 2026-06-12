@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.35.0...ui-v0.36.0) (2026-06-12)
+
+
+### 🚀 Features
+
+* **ui:** refine sidebar and content pages ([bba29e0](https://github.com/zuohuadong/svadmin/commit/bba29e0e6c00b0dc05aac4d499e9fef88623f29e))
+
 ## [0.35.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.34.10...ui-v0.35.0) (2026-06-11)
 
 

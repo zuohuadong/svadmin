@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.11.6...create-svadmin-v0.12.0) (2026-06-12)
+
+
+### 🚀 Features
+
+* **ui:** refine sidebar and content pages ([bba29e0](https://github.com/zuohuadong/svadmin/commit/bba29e0e6c00b0dc05aac4d499e9fef88623f29e))
+
 ## [0.11.6](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.11.5...create-svadmin-v0.11.6) (2026-06-04)
 
 
