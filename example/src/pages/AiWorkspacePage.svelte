@@ -4,6 +4,7 @@
   import { AutoTable, Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { Bot, Boxes, BrainCircuit, BriefcaseBusiness, Code2, GraduationCap, Heart, History, MessageSquare, Palette, Pin, Send, Settings, Share2, Sparkles, Trash2 } from '@lucide/svelte';
+  import { readHashView } from '../utils/hashView';
 
   interface Conversation {
     id: number;
@@ -15,6 +16,7 @@
   }
 
   let { resourceName = 'ai_conversations' } = $props<{ resourceName?: string }>();
+  let activeView = $state(readHashView('threads'));
 
   const locale = $derived(getLocale());
   const isZh = $derived(locale === 'zh-CN');
@@ -24,6 +26,7 @@
   const openCount = $derived(conversations.filter((item) => item.status !== 'resolved').length);
   const resolvedCount = $derived(conversations.filter((item) => item.status === 'resolved').length);
   const waitingCount = $derived(conversations.filter((item) => item.status === 'waiting').length);
+  const normalizedView = $derived(['new', 'templates', 'settings'].includes(activeView) ? activeView : 'threads');
 
   const prompts = $derived([
     isZh ? '汇总低库存和补货动作' : 'Summarize low-stock actions',
@@ -107,6 +110,39 @@
     { label: isZh ? '聊天历史' : 'Chat History', value: conversations.length, Icon: History },
     { label: isZh ? 'AI 设置' : 'AI Settings', value: isZh ? '本地' : 'local', Icon: Settings },
   ]);
+  const viewCopy = $derived.by(() => {
+    const copies = {
+      threads: {
+        badge: isZh ? '智能助手' : 'AI Assistant',
+        title: isZh ? 'AI 助手工作区' : 'AI Workspace',
+        description: isZh ? '查看助手对话、运营提示词、模板和模型路由示例。' : 'Review assistant conversations, operations prompts, templates, and model routing examples.',
+        panelTitle: isZh ? '用本地运营数据发起一次分析' : 'Start an analysis from local operations data',
+      },
+      new: {
+        badge: isZh ? '新建对话' : 'New Chat',
+        title: isZh ? '新建 AI 对话' : 'Start a New AI Chat',
+        description: isZh ? '从运营问题、模板或本地数据域快速发起一次安全只读分析。' : 'Launch a safe read-only analysis from an operations question, template, or local data domain.',
+        panelTitle: isZh ? '选择上下文并发送第一条消息' : 'Choose context and send the first message',
+      },
+      templates: {
+        badge: isZh ? '模板' : 'Templates',
+        title: isZh ? 'AI 模板库' : 'AI Template Library',
+        description: isZh ? '按开发者、业务、培训和创意场景组织提示词模板。' : 'Organize prompts by developer, business, educator, and creative scenarios.',
+        panelTitle: isZh ? '从模板开始一次分析' : 'Start from a template',
+      },
+      settings: {
+        badge: isZh ? 'AI 设置' : 'AI Settings',
+        title: isZh ? 'AI 运行设置' : 'AI Runtime Settings',
+        description: isZh ? '展示模型路由、数据域、历史保留和本地 provider 配置。' : 'Show model routing, data domains, history retention, and local provider settings.',
+        panelTitle: isZh ? '检查本地助手配置' : 'Review local assistant configuration',
+      },
+    } satisfies Record<string, { badge: string; title: string; description: string; panelTitle: string }>;
+    return copies[normalizedView as keyof typeof copies];
+  });
+
+  function syncView(): void {
+    activeView = readHashView('threads');
+  }
 
   function statusLabel(status: string): string {
     if (!isZh) return status;
@@ -126,22 +162,67 @@
   }
 </script>
 
-<div class="space-y-6" data-app-page="ai-workspace">
+<svelte:window onhashchange={syncView} onpopstate={syncView} />
+
+<div class="space-y-6" data-app-page="ai-workspace" data-ai-view={normalizedView}>
   <section class="rounded-2xl border bg-card p-5 shadow-sm">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <Badge>{isZh ? '智能助手' : 'AI Assistant'}</Badge>
+        <Badge>{viewCopy.badge}</Badge>
         <h2 class="mt-3 flex items-center gap-2 text-2xl font-semibold text-foreground">
           <BrainCircuit class="h-6 w-6 text-primary" />
-          {isZh ? 'AI 助手工作区' : 'AI Workspace'}
+          {viewCopy.title}
         </h2>
         <p class="mt-2 text-sm text-muted-foreground">
-          {isZh ? '查看助手对话、运营提示词、模板和模型路由示例。' : 'Review assistant conversations, operations prompts, templates, and model routing examples.'}
+          {viewCopy.description}
         </p>
       </div>
-      <Button><Sparkles class="mr-2 h-4 w-4" />{isZh ? '新建对话' : 'New chat'}</Button>
+      <a href="#/ai_conversations?view=new"><Button><Sparkles class="mr-2 h-4 w-4" />{isZh ? '新建对话' : 'New chat'}</Button></a>
     </div>
   </section>
+
+  {#if normalizedView !== 'threads'}
+    <section class="grid gap-4 lg:grid-cols-[1fr_0.72fr]">
+      <Card.Root class="overflow-hidden border-primary/25 bg-primary/5">
+        <Card.Header class="border-b">
+          <Badge>{viewCopy.badge}</Badge>
+          <Card.Title class="mt-3 text-xl">{viewCopy.panelTitle}</Card.Title>
+          <Card.Description>{viewCopy.description}</Card.Description>
+        </Card.Header>
+        <Card.Content class="grid gap-3 p-5 md:grid-cols-2">
+          {#if normalizedView === 'settings'}
+            {#each modelChoices as item (item.name)}
+              <div class="rounded-xl border bg-card p-4">
+                <p class="font-semibold">{item.name}</p>
+                <p class="mt-2 text-sm text-muted-foreground">{item.hint}</p>
+                {#if item.active}<Badge class="mt-3">{isZh ? '当前路由' : 'Active route'}</Badge>{/if}
+              </div>
+            {/each}
+          {:else}
+            {#each templates as item (item.key)}
+              <div class="rounded-xl border bg-card p-4">
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><item.Icon class="h-5 w-5" /></span>
+                <p class="mt-3 font-semibold">{item.title}</p>
+                <p class="mt-2 text-sm text-muted-foreground">{item.description}</p>
+              </div>
+            {/each}
+          {/if}
+        </Card.Content>
+      </Card.Root>
+      <Card.Root>
+        <Card.Header><Card.Title class="text-base">{isZh ? '本次上下文' : 'Session Context'}</Card.Title></Card.Header>
+        <Card.Content class="space-y-3">
+          {#each promptFocus as item (item.label)}
+            <div class="flex items-center justify-between rounded-xl border px-3 py-2 text-sm">
+              <span>{item.label}</span>
+              <Badge variant="outline">{item.value}</Badge>
+            </div>
+          {/each}
+          <Button class="w-full"><Send class="mr-2 h-4 w-4" />{normalizedView === 'settings' ? (isZh ? '保存设置' : 'Save settings') : (isZh ? '使用此上下文' : 'Use this context')}</Button>
+        </Card.Content>
+      </Card.Root>
+    </section>
+  {/if}
 
   <section class="grid gap-3 md:grid-cols-3">
     {#each threadStats as stat (stat.label)}
@@ -215,7 +296,7 @@
         <div class="flex items-center justify-between gap-3">
           <div>
             <Badge>{isZh ? '智能工作台' : 'AI Workspace'}</Badge>
-            <Card.Title class="mt-3 text-2xl">{isZh ? '用本地运营数据发起一次分析' : 'Start an analysis from local operations data'}</Card.Title>
+            <Card.Title class="mt-3 text-2xl">{viewCopy.panelTitle}</Card.Title>
             <Card.Description class="mt-2">{isZh ? '示例助手只读取本地 mock 数据，不需要外部密钥。' : 'The demo assistant reads local mock data only and requires no external key.'}</Card.Description>
           </div>
           <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Sparkles class="h-6 w-6" /></span>

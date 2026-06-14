@@ -14,6 +14,7 @@
     ShoppingBag,
     Users,
   } from '@lucide/svelte';
+  import { readHashView } from '../utils/hashView';
 
   interface PageCopy {
     eyebrow: string;
@@ -36,6 +37,7 @@
   }
 
   let { resourceName }: { resourceName: string } = $props();
+  let activeView = $state(readHashView('default'));
 
   const locale = $derived(getLocale());
   const resource = $derived(getResource(resourceName));
@@ -694,19 +696,60 @@
       : `Manage ${label} list, create, edit, and detail workflows.`;
   }
 
+  function viewOverride(resourceKey: string, view: string) {
+    type ViewOverrideCopy = {
+      zh: readonly [string, string, string, string];
+      en: readonly [string, string, string, string];
+    };
+    const overrides: Record<string, Record<string, ViewOverrideCopy>> = {
+      sales_orders: {
+        customers: {
+          zh: ['客户订单视图', '从客户需求、销售订单、发货状态和异常提醒切入库存客户管理。', '新建客户订单', '以客户维度查看销售订单，适合从库存中心的客户入口进入。'],
+          en: ['Customer Order View', 'Manage inventory customers through demand, sales orders, shipment state, and exceptions.', 'New customer order', 'Review sales orders by customer context from the inventory customer entry.'],
+        },
+      },
+      reorder_rules: {
+        settings: {
+          zh: ['库存设置', '集中查看补货策略、安全库存、提前期和自动化阈值。', '新建库存策略', '以设置视角维护补货规则，覆盖阈值、提前期和策略说明。'],
+          en: ['Inventory Settings', 'Review replenishment policies, safety stock, lead time, and automation thresholds.', 'New inventory policy', 'Maintain reorder rules as inventory settings with thresholds, lead times, and policy notes.'],
+        },
+      },
+      notifications: {
+        direct: {
+          zh: ['直接消息', '聚合团队即时沟通、点对点提醒和需要当天回复的消息。', '新建直接消息', '从直接消息入口查看通知中心记录，保留排序、筛选和处理动作。'],
+          en: ['Direct Messages', 'Collect team conversations, one-to-one alerts, and same-day replies.', 'New direct message', 'Review notification-center records from the direct message entry with full table actions.'],
+        },
+        support: {
+          zh: ['支持请求', '把客户与内部支持请求放入同一个响应队列。', '新建支持请求', '按支持场景查看通知记录、优先级和后续动作。'],
+          en: ['Support Requests', 'Place customer and internal support requests into one response queue.', 'New support request', 'Review notification records by support context, priority, and next action.'],
+        },
+        feedback: {
+          zh: ['反馈收集', '跟踪体验建议、回访结果和需要产品/运营处理的反馈。', '新建反馈', '从反馈入口查看通知记录，并把体验建议转为可执行事项。'],
+          en: ['Feedback Inbox', 'Track experience notes, follow-up results, and product or operations feedback.', 'New feedback', 'Review notification records from feedback context and turn notes into action.'],
+        },
+      },
+    } as const;
+    const resourceOverrides = overrides[resourceKey as keyof typeof overrides];
+    const override = resourceOverrides?.[view as keyof typeof resourceOverrides];
+    if (!override) return undefined;
+    const [title, description, actionLabel, tableDescription] = locale === 'zh-CN' ? override.zh : override.en;
+    return { title, description, actionLabel, tableDescription };
+  }
+
   const config = $derived(configFor(resourceName));
   const baseCopy = $derived(locale === 'zh-CN' ? config.zh : config.en);
   const copy = $derived.by(() => {
     const label = resource.label;
+    const override = viewOverride(resourceName, activeView);
     return {
       ...baseCopy,
-      title: label,
-      description: resourceDescription(resourceName, label),
-      actionLabel: locale === 'zh-CN' ? `新建${label}` : `New ${label}`,
+      title: override?.title ?? label,
+      description: override?.description ?? resourceDescription(resourceName, label),
+      actionLabel: override?.actionLabel ?? (locale === 'zh-CN' ? `新建${label}` : `New ${label}`),
       tableLabel: label,
-      tableDescription: locale === 'zh-CN'
+      tableDescription: override?.tableDescription ?? (locale === 'zh-CN'
         ? `使用表格维护${label}数据，覆盖查询、新建、编辑、详情和删除流程。`
-        : `Use the table to maintain ${label} data across list, create, edit, show, and delete flows.`,
+        : `Use the table to maintain ${label} data across list, create, edit, show, and delete flows.`),
     };
   });
   const metrics = $derived(config.metrics.map((metric) => ({
@@ -726,21 +769,29 @@
     meta: localizeText(item.meta),
     badge: localizeText(item.badge),
   })));
+
+  function syncView(): void {
+    activeView = readHashView('default');
+  }
 </script>
 
-<ResourceOperationsPage
-  {resourceName}
-  eyebrow={copy.eyebrow}
-  title={copy.title}
-  description={copy.description}
-  actionLabel={copy.actionLabel}
-  icon={config.icon}
-  {metrics}
-  {lanes}
-  {highlights}
-  tableLabel={copy.tableLabel}
-  tableDescription={copy.tableDescription}
-  highlightsLabel={copy.highlightsLabel}
-  emptyLanesText={locale === 'zh-CN' ? '暂无分组记录。' : 'No grouped records yet.'}
-  workspaceStyle={config.workspaceStyle}
-/>
+<svelte:window onhashchange={syncView} onpopstate={syncView} />
+
+<div data-app-page="resource-operations" data-resource-name={resourceName} data-resource-view={activeView}>
+  <ResourceOperationsPage
+    {resourceName}
+    eyebrow={copy.eyebrow}
+    title={copy.title}
+    description={copy.description}
+    actionLabel={copy.actionLabel}
+    icon={config.icon}
+    {metrics}
+    {lanes}
+    {highlights}
+    tableLabel={copy.tableLabel}
+    tableDescription={copy.tableDescription}
+    highlightsLabel={copy.highlightsLabel}
+    emptyLanesText={locale === 'zh-CN' ? '暂无分组记录。' : 'No grouped records yet.'}
+    workspaceStyle={config.workspaceStyle}
+  />
+</div>

@@ -16,6 +16,7 @@
     UserPlus,
     Users,
   } from '@lucide/svelte';
+  import { readHashView } from '../utils/hashView';
 
   interface User {
     id: number;
@@ -75,6 +76,7 @@
   type UserManagementResource = 'users' | 'roles' | 'permissions' | 'user_accounts' | 'user_logs' | 'user_settings';
 
   let { resourceName = 'users' } = $props<{ resourceName?: string }>();
+  let activeView = $state(readHashView('default'));
 
   const locale = $derived(getLocale());
   const isZh = $derived(locale === 'zh-CN');
@@ -158,8 +160,31 @@
       },
     };
 
+    if (activeResource === 'user_settings' && activeView === 'ai') {
+      return {
+        badge: isZh ? 'AI 设置' : 'AI Settings',
+        title: isZh ? 'AI 助手权限与策略' : 'AI Assistant Access and Policy',
+        description: isZh ? '从智能助手入口维护模型访问、历史保留、提示词审批和数据域权限。' : 'Maintain model access, history retention, prompt approval, and data-domain permissions from the AI entry.',
+        action: isZh ? '新增 AI 策略' : 'Add AI policy',
+        focus: isZh ? 'AI 治理' : 'AI governance',
+      };
+    }
+    if (activeResource === 'user_settings' && activeView === 'mail') {
+      return {
+        badge: isZh ? '邮件设置' : 'Mail Settings',
+        title: isZh ? '邮件规则与通知策略' : 'Mail Rules and Notification Policy',
+        description: isZh ? '从邮件入口维护签名、通知、自动归档、反馈分流和支持提醒。' : 'Maintain signatures, notifications, auto-archive, feedback routing, and support alerts from the mail entry.',
+        action: isZh ? '新增邮件规则' : 'Add mail rule',
+        focus: isZh ? '邮件治理' : 'Mail governance',
+      };
+    }
+
     return copies[activeResource];
   });
+
+  function syncView(): void {
+    activeView = readHashView('default');
+  }
 
   function initials(name: string): string {
     return name.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
@@ -207,7 +232,9 @@
   }
 </script>
 
-<div class="space-y-6" data-app-page="user-management" data-user-management-resource={activeResource}>
+<svelte:window onhashchange={syncView} onpopstate={syncView} />
+
+<div class="space-y-6" data-app-page="user-management" data-user-management-resource={activeResource} data-user-management-view={activeView}>
   <section class="grid gap-4 xl:grid-cols-[1fr_0.36fr]">
     <Card.Root class="overflow-hidden border-primary/20">
       <Card.Header class="border-b">

@@ -4,6 +4,7 @@
   import { AutoTable, Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { Building2, CalendarClock, Heart, MapPin, Search, SlidersHorizontal, UserRoundCheck } from '@lucide/svelte';
+  import { readHashView } from '../utils/hashView';
 
   interface Agent { id: number; name: string; territory: string; status: string; capacityScore: number; notes: string; }
   interface Property { id: number; propertyName: string; market: string; assetType: string; askingPrice: number; status: string; units: number; occupancy: number; notes: string; }
@@ -11,6 +12,7 @@
   interface Showing { id: number; showingNumber: string; scheduledDate: string; status: string; feedbackScore: number | null; notes: string; }
 
   let { resourceName = 'properties' } = $props<{ resourceName?: string }>();
+  let activeView = $state(readHashView('portfolio'));
 
   const locale = $derived(getLocale());
   const isZh = $derived(locale === 'zh-CN');
@@ -24,12 +26,13 @@
   const showings = $derived((showingsQuery.data?.data ?? []) as unknown as Showing[]);
   const showingCount = $derived(showings.length);
   const avgOccupancy = $derived(properties.length ? Math.round(properties.reduce((sum, property) => sum + property.occupancy, 0) / properties.length) : 0);
+  const normalizedView = $derived(['buy', 'rent', 'sell', 'commercial', 'saved', 'map', 'filters'].includes(activeView) ? activeView : 'portfolio');
   const marketTabs = $derived([
-    isZh ? '购买' : 'Buy',
-    isZh ? '租赁' : 'Rent',
-    isZh ? '出售' : 'Sell',
-    isZh ? '商业' : 'Commercial',
-    isZh ? '已收藏' : 'Saved',
+    { key: 'buy', label: isZh ? '购买' : 'Buy', href: '#/properties?view=buy' },
+    { key: 'rent', label: isZh ? '租赁' : 'Rent', href: '#/properties?view=rent' },
+    { key: 'sell', label: isZh ? '出售' : 'Sell', href: '#/properties?view=sell' },
+    { key: 'commercial', label: isZh ? '商业' : 'Commercial', href: '#/properties?view=commercial' },
+    { key: 'saved', label: isZh ? '已收藏' : 'Saved', href: '#/property_leads?view=saved' },
   ]);
   const filterChips = $derived([
     { label: isZh ? '类型' : 'Type', value: isZh ? '多户 / 办公 / 工业' : 'multifamily / office / industrial' },
@@ -55,32 +58,92 @@
     if (status === 'on_leave') return '休假';
     return status;
   }
+
+  const viewCopy = $derived.by(() => {
+    const copies = {
+      portfolio: {
+        badge: isZh ? '资产运营' : 'Real Estate',
+        title: isZh ? '资产搜索与看房工作台' : 'Property Search and Tour Workspace',
+        description: isZh ? '把买/租筛选、资产卡片、地图态势和线索跟进放到一个页面。' : 'Combine buy/rent filters, property cards, map context, and lead follow-up.',
+        action: isZh ? '新增看房' : 'New tour',
+      },
+      buy: {
+        badge: isZh ? '购买' : 'Buy',
+        title: isZh ? '购买资产筛选' : 'Buy-side Property Search',
+        description: isZh ? '聚焦可购买资产、预算窗口、出租率和投资回报信号。' : 'Focus on purchasable assets, budget windows, occupancy, and return signals.',
+        action: isZh ? '新增购买线索' : 'New buyer lead',
+      },
+      rent: {
+        badge: isZh ? '租赁' : 'Rent',
+        title: isZh ? '租赁需求工作台' : 'Rental Demand Workspace',
+        description: isZh ? '按区域、预算和看房日程跟进租赁客户。' : 'Track rental clients by region, budget, and tour schedule.',
+        action: isZh ? '安排租赁看房' : 'Schedule rental tour',
+      },
+      sell: {
+        badge: isZh ? '出售' : 'Sell',
+        title: isZh ? '出售委托视图' : 'Seller Listing View',
+        description: isZh ? '关注挂牌状态、报价、买方反馈和成交风险。' : 'Watch listing state, offers, buyer feedback, and closing risk.',
+        action: isZh ? '新增出售委托' : 'New seller listing',
+      },
+      commercial: {
+        badge: isZh ? '商业' : 'Commercial',
+        title: isZh ? '商业资产雷达' : 'Commercial Asset Radar',
+        description: isZh ? '按办公、工业、多户和租约状态筛选商业机会。' : 'Filter commercial opportunities by office, industrial, multifamily, and lease status.',
+        action: isZh ? '新增商业机会' : 'New commercial lead',
+      },
+      saved: {
+        badge: isZh ? '已收藏' : 'Saved',
+        title: isZh ? '收藏资产与线索' : 'Saved Properties and Leads',
+        description: isZh ? '复盘收藏资产、线索预算和下一次联系计划。' : 'Review saved assets, lead budgets, and next-contact plans.',
+        action: isZh ? '复盘收藏' : 'Review saved items',
+      },
+      map: {
+        badge: isZh ? '地图视图' : 'Map View',
+        title: isZh ? '地图态势视图' : 'Map Context View',
+        description: isZh ? '用区域热区、资产点位和看房节奏判断下一步动作。' : 'Use market hot spots, property pins, and tour cadence to decide next actions.',
+        action: isZh ? '打开地图筛选' : 'Open map filters',
+      },
+      filters: {
+        badge: isZh ? '筛选器' : 'Filters',
+        title: isZh ? '资产筛选器' : 'Property Filters',
+        description: isZh ? '按类型、状态、位置、价格和时间窗口组合筛选条件。' : 'Combine type, condition, location, price, and timing filters.',
+        action: isZh ? '保存筛选' : 'Save filters',
+      },
+    } satisfies Record<string, { badge: string; title: string; description: string; action: string }>;
+    return copies[normalizedView as keyof typeof copies];
+  });
+
+  function syncView(): void {
+    activeView = readHashView('portfolio');
+  }
 </script>
 
-<div class="space-y-6" data-app-page="real-estate-workspace">
+<svelte:window onhashchange={syncView} onpopstate={syncView} />
+
+<div class="space-y-6" data-app-page="real-estate-workspace" data-property-view={normalizedView}>
   <section class="overflow-hidden rounded-xl border bg-card">
     <div class="grid gap-4 border-b p-5 xl:grid-cols-[1fr_0.42fr]">
       <div>
-        <Badge>{isZh ? '资产运营' : 'Real Estate'}</Badge>
-        <h1 class="mt-3 flex items-center gap-2 text-2xl font-semibold"><Building2 class="h-6 w-6 text-primary" />{isZh ? '资产搜索与看房工作台' : 'Property Search and Tour Workspace'}</h1>
-        <p class="mt-2 text-sm text-muted-foreground">{isZh ? '把买/租筛选、资产卡片、地图态势和线索跟进放到一个页面。' : 'Combine buy/rent filters, property cards, map context, and lead follow-up.'}</p>
+        <Badge>{viewCopy.badge}</Badge>
+        <h1 class="mt-3 flex items-center gap-2 text-2xl font-semibold"><Building2 class="h-6 w-6 text-primary" />{viewCopy.title}</h1>
+        <p class="mt-2 text-sm text-muted-foreground">{viewCopy.description}</p>
       </div>
-      <div class="grid grid-cols-3 gap-2 text-center">
-        <div class="rounded-xl border p-3"><p class="text-xl font-semibold">{properties.length}</p><p class="text-xs text-muted-foreground">{isZh ? '资产' : 'Assets'}</p></div>
-        <div class="rounded-xl border p-3"><p class="text-xl font-semibold">{leads.length}</p><p class="text-xs text-muted-foreground">{isZh ? '线索' : 'Leads'}</p></div>
-        <div class="rounded-xl border p-3"><p class="text-xl font-semibold">{avgOccupancy}%</p><p class="text-xs text-muted-foreground">{isZh ? '出租率' : 'Occupancy'}</p></div>
+      <div class="grid grid-cols-3 gap-2 text-center text-[11px] sm:text-xs">
+        <div class="min-w-0 rounded-xl border p-2 sm:p-3"><p class="text-lg font-semibold sm:text-xl">{properties.length}</p><p class="truncate text-muted-foreground">{isZh ? '资产' : 'Assets'}</p></div>
+        <div class="min-w-0 rounded-xl border p-2 sm:p-3"><p class="text-lg font-semibold sm:text-xl">{leads.length}</p><p class="truncate text-muted-foreground">{isZh ? '线索' : 'Leads'}</p></div>
+        <div class="min-w-0 rounded-xl border p-2 sm:p-3"><p class="text-lg font-semibold sm:text-xl">{avgOccupancy}%</p><p class="truncate text-muted-foreground">{isZh ? '出租率' : 'Occupancy'}</p></div>
       </div>
     </div>
     <div class="flex flex-wrap items-center gap-2 border-b px-4 py-3">
-      {#each marketTabs as tab, index (tab)}
-        <button class={`rounded-full px-3 py-1.5 text-sm transition ${index === 0 ? 'bg-primary text-primary-foreground' : 'border bg-background text-muted-foreground hover:text-foreground'}`}>{tab}</button>
+      {#each marketTabs as tab (tab.key)}
+        <a href={tab.href} class={`rounded-full px-3 py-1.5 text-sm transition ${normalizedView === tab.key ? 'bg-primary text-primary-foreground' : 'border bg-background text-muted-foreground hover:text-foreground'}`}>{tab.label}</a>
       {/each}
-      <span class="ml-auto rounded-full border bg-muted/35 px-3 py-1.5 text-sm text-muted-foreground">{isZh ? '地图视图' : 'Map View'}</span>
+      <a href="#/properties?view=map" class={`ml-auto rounded-full border px-3 py-1.5 text-sm ${normalizedView === 'map' ? 'bg-primary text-primary-foreground' : 'bg-muted/35 text-muted-foreground'}`}>{isZh ? '地图视图' : 'Map View'}</a>
     </div>
     <div class="grid gap-3 p-4 md:grid-cols-[1fr_auto_auto]">
       <div class="flex items-center gap-2 rounded-xl border bg-background px-3 py-2 text-sm text-muted-foreground"><Search class="h-4 w-4" />{isZh ? '城市、预算、户型、关键词' : 'City, budget, beds, keywords'}</div>
-      <Button variant="outline"><SlidersHorizontal class="mr-2 h-4 w-4" />{isZh ? '筛选' : 'Filters'}</Button>
-      <Button>{isZh ? '新增看房' : 'New tour'}</Button>
+      <a href="#/properties?view=filters"><Button variant="outline"><SlidersHorizontal class="mr-2 h-4 w-4" />{isZh ? '筛选' : 'Filters'}</Button></a>
+      <Button>{viewCopy.action}</Button>
     </div>
     <div class="grid gap-2 border-t bg-muted/15 p-4 md:grid-cols-5">
       {#each filterChips as chip (chip.label)}
@@ -91,7 +154,7 @@
       {/each}
     </div>
     <div class="flex justify-end border-t px-4 py-3">
-      <Button variant="outline">{isZh ? '保存搜索' : 'Save Search'}</Button>
+      <Button variant="outline">{normalizedView === 'filters' ? viewCopy.action : (isZh ? '保存搜索' : 'Save Search')}</Button>
     </div>
   </section>
 

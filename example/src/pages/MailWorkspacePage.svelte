@@ -4,6 +4,7 @@
   import { AutoTable, Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { Archive, Clock, FileText, Inbox, Mail, Paperclip, Plus, Send, ShieldAlert, Tag, Trash2 } from '@lucide/svelte';
+  import { readHashView } from '../utils/hashView';
 
   interface MailMessage {
     id: number;
@@ -18,6 +19,7 @@
   }
 
   let { resourceName = 'mail_inbox' } = $props<{ resourceName?: string }>();
+  let activeView = $state(readHashView('folder'));
 
   const locale = $derived(getLocale());
   const isZh = $derived(locale === 'zh-CN');
@@ -45,11 +47,12 @@
     { name: isZh ? '财务' : 'Finance', count: 1 },
     { name: isZh ? '资产' : 'Property', count: 1 },
   ]);
+  const normalizedView = $derived(activeView === 'categories' ? 'categories' : 'folder');
   const mailUtilities = $derived([
-    { label: isZh ? '直接消息' : 'Direct Messages', hint: isZh ? '团队即时沟通' : 'team conversations', count: 3 },
-    { label: isZh ? '支持' : 'Support', hint: isZh ? '客户和内部请求' : 'customer and internal requests', count: 2 },
-    { label: isZh ? '设置' : 'Settings', hint: isZh ? '签名、规则、通知' : 'signature, rules, notifications', count: 4 },
-    { label: isZh ? '反馈' : 'Feedback', hint: isZh ? '体验建议与回访' : 'experience notes and follow-up', count: 1 },
+    { key: 'direct', label: isZh ? '直接消息' : 'Direct Messages', href: '#/notifications?view=direct', hint: isZh ? '团队即时沟通' : 'team conversations', count: 3 },
+    { key: 'support', label: isZh ? '支持' : 'Support', href: '#/notifications?view=support', hint: isZh ? '客户和内部请求' : 'customer and internal requests', count: 2 },
+    { key: 'settings', label: isZh ? '设置' : 'Settings', href: '#/user_settings?view=mail', hint: isZh ? '签名、规则、通知' : 'signature, rules, notifications', count: 4 },
+    { key: 'feedback', label: isZh ? '反馈' : 'Feedback', href: '#/notifications?view=feedback', hint: isZh ? '体验建议与回访' : 'experience notes and follow-up', count: 1 },
   ]);
   const categories = $derived([
     { label: isZh ? '优先处理' : 'Priority', tone: 'bg-destructive/10 text-destructive' },
@@ -70,17 +73,38 @@
   function messageDate(message: MailMessage): string {
     return message.date ?? message.sentAt ?? message.updatedAt ?? '';
   }
+
+  const viewCopy = $derived.by(() => {
+    if (normalizedView === 'categories') {
+      return {
+        badge: isZh ? '分类' : 'Categories',
+        title: isZh ? '邮件分类与标签' : 'Mail Categories and Labels',
+        description: isZh ? '把归档邮件按优先级、对账、看房确认等运营标签重新组织。' : 'Reorganize archived mail by priority, reconciliation, tour confirmation, and other operations labels.',
+      };
+    }
+    return {
+      badge: isZh ? '消息与邮件' : 'Messages & Mail',
+      title: isZh ? '收件箱处理队列' : 'Inbox Processing Queue',
+      description: isZh ? '把未读、草稿、归档和运营标签放在同一个工作流。' : 'Unify unread mail, drafts, archive, and operations tags in one workflow.',
+    };
+  });
+
+  function syncView(): void {
+    activeView = readHashView('folder');
+  }
 </script>
 
-<div class="space-y-6" data-app-page="mail-workspace">
+<svelte:window onhashchange={syncView} onpopstate={syncView} />
+
+<div class="space-y-6" data-app-page="mail-workspace" data-mail-view={normalizedView}>
   <section class="grid gap-4 lg:grid-cols-[1fr_0.72fr]">
     <Card.Root class="overflow-hidden border-primary/20">
       <Card.Header class="border-b">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <Badge>{isZh ? '消息与邮件' : 'Messages & Mail'}</Badge>
-            <Card.Title class="mt-3 text-2xl">{isZh ? '收件箱处理队列' : 'Inbox Processing Queue'}</Card.Title>
-            <Card.Description>{isZh ? '把未读、草稿、归档和运营标签放在同一个工作流。' : 'Unify unread mail, drafts, archive, and operations tags in one workflow.'}</Card.Description>
+            <Badge>{viewCopy.badge}</Badge>
+            <Card.Title class="mt-3 text-2xl">{viewCopy.title}</Card.Title>
+            <Card.Description>{viewCopy.description}</Card.Description>
           </div>
           <Button><Plus class="mr-2 h-4 w-4" />{isZh ? '写邮件' : 'Compose'}</Button>
         </div>
@@ -116,14 +140,14 @@
         {/each}
         <div class="my-3 border-t"></div>
         <p class="px-3 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{isZh ? '协作' : 'Collaboration'}</p>
-        {#each mailUtilities as item (item.label)}
-          <button class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-muted/50">
+        {#each mailUtilities as item (item.key)}
+          <a href={item.href} class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-muted/50">
             <span>
               <span class="block">{item.label}</span>
               <span class="text-xs text-muted-foreground">{item.hint}</span>
             </span>
             <Badge variant="outline">{item.count}</Badge>
-          </button>
+          </a>
         {/each}
       </Card.Content>
     </Card.Root>
@@ -177,7 +201,7 @@
           </div>
         </div>
         <div class="rounded-xl border bg-background p-3">
-          <p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{isZh ? '分类' : 'Categories'}</p>
+            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{viewCopy.badge}</p>
           <div class="mt-3 flex flex-wrap gap-2">
             {#each categories as category (category.label)}
               <span class={`rounded-full px-2.5 py-1 text-xs font-medium ${category.tone}`}>{category.label}</span>

@@ -4,6 +4,7 @@
   import { AutoTable, Badge } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { BarChart3, BriefcaseBusiness, Building2, CircleDollarSign, ClipboardList, FileText, PhoneCall, Star, TrendingUp, Users } from '@lucide/svelte';
+  import { readHashView } from '../utils/hashView';
 
   interface Account { id: number; accountName: string; health: string; ownerId: number; nextStep: string; }
   interface Contact { id: number; fullName: string; roleTitle: string; influence: string; status: string; lastTouchDate: string; notes: string; }
@@ -11,6 +12,7 @@
   interface Activity { id: number; subject: string; type: string; dueDate: string; status: string; }
 
   let { resourceName = 'crm_accounts' } = $props<{ resourceName?: string }>();
+  let activeView = $state(readHashView('default'));
 
   const locale = $derived(getLocale());
   const isZh = $derived(locale === 'zh-CN');
@@ -27,19 +29,65 @@
   const activeContacts = $derived(contacts.filter((contact) => contact.status === 'active').length);
   const plannedActivities = $derived(activities.filter((activity) => activity.status !== 'completed').length);
   const stages = $derived(['discovery', 'proposal', 'negotiation', 'won']);
+  const normalizedView = $derived(['dashboard', 'companies', 'tasks', 'notes', 'reports'].includes(activeView) ? activeView : 'default');
   const crmNav = $derived([
-    { label: isZh ? '任务' : 'Tasks', value: plannedActivities, Icon: ClipboardList },
-    { label: isZh ? '笔记' : 'Notes', value: contacts.length, Icon: FileText },
-    { label: isZh ? '联系人' : 'Contacts', value: contacts.length, Icon: Users },
-    { label: isZh ? '公司' : 'Companies', value: accounts.length, Icon: Building2 },
-    { label: isZh ? '收藏' : 'Favorites', value: 3, Icon: Star },
-    { label: isZh ? '报表' : 'Reports', value: 4, Icon: BarChart3 },
+    { key: 'tasks', label: isZh ? '任务' : 'Tasks', href: '#/crm_activities?view=tasks', value: plannedActivities, Icon: ClipboardList },
+    { key: 'notes', label: isZh ? '笔记' : 'Notes', href: '#/crm_activities?view=notes', value: contacts.length, Icon: FileText },
+    { key: 'contacts', label: isZh ? '联系人' : 'Contacts', href: '#/crm_contacts', value: contacts.length, Icon: Users },
+    { key: 'companies', label: isZh ? '公司' : 'Companies', href: '#/crm_accounts?view=companies', value: accounts.length, Icon: Building2 },
+    { key: 'favorites', label: isZh ? '收藏' : 'Favorites', href: '#/crm_accounts', value: 3, Icon: Star },
+    { key: 'reports', label: isZh ? '报表' : 'Reports', href: '#/crm_deals?view=reports', value: 4, Icon: BarChart3 },
   ]);
   const recentNotes = $derived([
     { title: isZh ? '最近笔记' : 'Recent note', source: accounts[0]?.accountName ?? 'Helio Manufacturing', meta: isZh ? '方案复盘' : 'proposal review' },
     { title: isZh ? '新增线索' : 'Lead added', source: contacts[0]?.fullName ?? 'Nina Wallace', meta: isZh ? '需要回访' : 'needs follow-up' },
     { title: isZh ? '公司动态' : 'Company update', source: accounts[1]?.accountName ?? 'Summit Field Services', meta: isZh ? '采购窗口' : 'buying window' },
   ]);
+  const viewCopy = $derived.by(() => {
+    const copies = {
+      default: {
+        badge: isZh ? '客户经营' : 'CRM',
+        title: isZh ? '收入管线仪表盘' : 'Revenue Pipeline Dashboard',
+        description: isZh ? '聚合客户账户、商机、任务和关系健康度。' : 'Unify accounts, opportunities, tasks, and relationship health.',
+        focusTitle: isZh ? '客户经营焦点' : 'CRM Focus',
+      },
+      dashboard: {
+        badge: isZh ? 'CRM 仪表盘' : 'CRM Dashboard',
+        title: isZh ? '客户经营总览' : 'Customer Operations Overview',
+        description: isZh ? '从账户、联系人、商机和活动四个维度查看经营状态。' : 'Review account, contact, deal, and activity health in one overview.',
+        focusTitle: isZh ? '仪表盘摘要' : 'Dashboard Summary',
+      },
+      companies: {
+        badge: isZh ? '公司' : 'Companies',
+        title: isZh ? '公司账户视图' : 'Company Account View',
+        description: isZh ? '集中查看重点公司、健康度、负责人和下一步动作。' : 'Focus on priority companies, health, owners, and next steps.',
+        focusTitle: isZh ? '公司跟进' : 'Company Follow-up',
+      },
+      tasks: {
+        badge: isZh ? '任务' : 'Tasks',
+        title: isZh ? '客户任务队列' : 'Customer Task Queue',
+        description: isZh ? '按状态、日期和跟进类型管理客户动作。' : 'Manage customer actions by status, due date, and follow-up type.',
+        focusTitle: isZh ? '任务阻塞点' : 'Task Blockers',
+      },
+      notes: {
+        badge: isZh ? '笔记' : 'Notes',
+        title: isZh ? '客户笔记复盘' : 'Customer Notes Review',
+        description: isZh ? '把最近笔记、线索新增和公司动态汇总成复盘区。' : 'Turn recent notes, new leads, and company updates into a review rail.',
+        focusTitle: isZh ? '最近笔记' : 'Recent Notes',
+      },
+      reports: {
+        badge: isZh ? '报表' : 'Reports',
+        title: isZh ? 'CRM 报表快照' : 'CRM Reports Snapshot',
+        description: isZh ? '按管线、公司和活动维度展示经营结果。' : 'Show CRM results by pipeline, company, and activity dimensions.',
+        focusTitle: isZh ? '报表维度' : 'Report Dimensions',
+      },
+    } satisfies Record<string, { badge: string; title: string; description: string; focusTitle: string }>;
+    return copies[normalizedView as keyof typeof copies];
+  });
+
+  function syncView(): void {
+    activeView = readHashView('default');
+  }
 
   function money(value: number): string { return `$${Math.round(value / 1000)}K`; }
   function stageLabel(stage: string): string {
@@ -68,13 +116,15 @@
   }
 </script>
 
-<div class="space-y-6" data-app-page="crm-dashboard">
+<svelte:window onhashchange={syncView} onpopstate={syncView} />
+
+<div class="space-y-6" data-app-page="crm-dashboard" data-crm-view={normalizedView}>
   <section class="grid gap-4 xl:grid-cols-[1fr_0.38fr]">
     <Card.Root class="overflow-hidden border-primary/20">
       <Card.Header class="border-b">
-        <Badge>{isZh ? '客户经营' : 'CRM'}</Badge>
-        <Card.Title class="mt-3 flex items-center gap-2 text-2xl"><BriefcaseBusiness class="h-6 w-6 text-primary" />{isZh ? '收入管线仪表盘' : 'Revenue Pipeline Dashboard'}</Card.Title>
-        <Card.Description>{isZh ? '聚合客户账户、商机、任务和关系健康度。' : 'Unify accounts, opportunities, tasks, and relationship health.'}</Card.Description>
+        <Badge>{viewCopy.badge}</Badge>
+        <Card.Title class="mt-3 flex items-center gap-2 text-2xl"><BriefcaseBusiness class="h-6 w-6 text-primary" />{viewCopy.title}</Card.Title>
+        <Card.Description>{viewCopy.description}</Card.Description>
       </Card.Header>
       <Card.Content class="space-y-5 p-5">
         <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -100,16 +150,54 @@
       <Card.Root>
         <Card.Header class="pb-3"><Card.Title class="text-base">{isZh ? '快捷导航' : 'Quick Navigation'}</Card.Title></Card.Header>
         <Card.Content class="grid gap-2">
-          {#each crmNav as item (item.label)}
-            <button class="flex items-center justify-between rounded-xl border bg-card px-3 py-2 text-left text-sm transition hover:border-primary/40">
+          {#each crmNav as item (item.key)}
+            <a href={item.href} class={`flex items-center justify-between rounded-xl border px-3 py-2 text-left text-sm transition ${normalizedView === item.key ? 'border-primary bg-primary text-primary-foreground' : 'bg-card hover:border-primary/40'}`}>
               <span class="flex items-center gap-2"><item.Icon class="h-4 w-4 text-muted-foreground" />{item.label}</span>
               <Badge variant="outline">{item.value}</Badge>
-            </button>
+            </a>
           {/each}
         </Card.Content>
       </Card.Root>
     </div>
   </section>
+
+  <Card.Root class="border-primary/20">
+    <Card.Header>
+      <Card.Title class="text-base">{viewCopy.focusTitle}</Card.Title>
+      <Card.Description>{viewCopy.description}</Card.Description>
+    </Card.Header>
+    <Card.Content class="grid gap-3 md:grid-cols-3">
+      {#if normalizedView === 'tasks'}
+        {#each activities as activity (activity.id)}
+          <div class="rounded-xl border bg-card p-4">
+            <p class="font-semibold">{activity.subject}</p>
+            <p class="mt-1 text-xs text-muted-foreground">{activity.type} · {activity.dueDate}</p>
+            <Badge variant="outline" class="mt-3">{activity.status.replace('_', ' ')}</Badge>
+          </div>
+        {/each}
+      {:else if normalizedView === 'notes'}
+        {#each recentNotes as note (note.title)}
+          <div class="rounded-xl border bg-card p-4">
+            <p class="font-semibold">{note.title}</p>
+            <p class="mt-1 text-xs text-muted-foreground">{note.source}</p>
+            <Badge variant="outline" class="mt-3">{note.meta}</Badge>
+          </div>
+        {/each}
+      {:else if normalizedView === 'reports'}
+        <div class="rounded-xl border bg-card p-4"><p class="text-xs text-muted-foreground">{isZh ? '管线报表' : 'Pipeline report'}</p><p class="mt-2 text-2xl font-semibold">{money(weighted)}</p></div>
+        <div class="rounded-xl border bg-card p-4"><p class="text-xs text-muted-foreground">{isZh ? '公司报表' : 'Company report'}</p><p class="mt-2 text-2xl font-semibold">{accounts.length}</p></div>
+        <div class="rounded-xl border bg-card p-4"><p class="text-xs text-muted-foreground">{isZh ? '活动报表' : 'Activity report'}</p><p class="mt-2 text-2xl font-semibold">{activities.length}</p></div>
+      {:else}
+        {#each accounts.slice(0, 3) as account (account.id)}
+          <div class="rounded-xl border bg-card p-4">
+            <p class="font-semibold">{account.accountName}</p>
+            <p class="mt-1 text-xs text-muted-foreground">{account.nextStep}</p>
+            <Badge variant="outline" class="mt-3">{healthLabel(account.health)}</Badge>
+          </div>
+        {/each}
+      {/if}
+    </Card.Content>
+  </Card.Root>
 
   <section class="grid gap-4 xl:grid-cols-3">
     <Card.Root><Card.Header><Card.Title class="text-base">{isZh ? '重点客户' : 'Priority Accounts'}</Card.Title></Card.Header><Card.Content class="space-y-3">{#each accounts.slice(0, 4) as account (account.id)}<div class="rounded-xl border p-3"><div class="flex items-center justify-between"><p class="font-semibold">{account.accountName}</p><Badge variant="outline">{healthLabel(account.health)}</Badge></div><p class="mt-1 text-xs text-muted-foreground">{account.nextStep}</p></div>{/each}</Card.Content></Card.Root>
