@@ -409,9 +409,9 @@ export const exampleMenu: MenuNode[] = [
       item('sales_orders', 'credit-card', '/sales_orders'),
     ]),
     item('app_organization', 'shield', undefined, [
-      item('users', 'users', '/users'),
-      item('roles', 'shield', '/roles'),
       item('app_user_management', 'users', undefined, [
+        item('users', 'users', '/users'),
+        item('roles', 'shield', '/roles'),
         item('permissions', 'key-round', '/permissions'),
         item('user_accounts', 'settings', '/user_accounts'),
         item('user_logs', 'book-open', '/user_logs'),
