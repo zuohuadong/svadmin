@@ -399,6 +399,7 @@ export const resources: ResourceDefinition[] = [
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
       { key: 'name', label: 'Name', type: 'text', required: true, searchable: true },
+      { key: 'slug', label: 'Slug', type: 'text', required: true, searchable: true, width: '160px' },
       { key: 'scope', label: 'Scope', type: 'text', required: true, searchable: true },
       {
         key: 'level',
@@ -1372,6 +1373,7 @@ const zhFieldLabels: Record<string, string> = {
   Department: '部门',
   'Last Active': '最近活跃',
   Level: '等级',
+  Slug: '标识',
   Module: '模块',
   Action: '动作',
   Effect: '策略',

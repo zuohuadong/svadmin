@@ -39,7 +39,7 @@
   const todayTasks = $derived(todos.filter((todo) => todo.dueDate <= '2026-06-14' && !todo.completed).length);
   const upcomingTasks = $derived(todos.filter((todo) => todo.dueDate > '2026-06-14' && !todo.completed).length);
   const taskLists = $derived([
-    { key: 'all', label: isZh ? '全部任务' : 'All Tasks', count: todos.length, href: '#/todos', Icon: ListTodo },
+    { key: 'all', label: isZh ? '全部任务 / All Tasks' : 'All Tasks', count: todos.length, href: '#/todos', Icon: ListTodo },
     { key: 'today', label: isZh ? '今日' : 'Today', count: todayTasks, href: '#/todos?view=today', Icon: CalendarDays },
     { key: 'upcoming', label: isZh ? '即将到来' : 'Upcoming', count: upcomingTasks, href: '#/todos?view=upcoming', Icon: CalendarDays },
     { key: 'priority', label: isZh ? '优先级' : 'Priority', count: highPriorityCount, href: '#/todos?view=priority', Icon: Flag },
@@ -55,7 +55,7 @@
   const viewCopy = $derived.by(() => {
     const copies = {
       all: {
-        badge: isZh ? '全部任务' : 'All Tasks',
+        badge: isZh ? '全部任务 / All Tasks' : 'All Tasks',
         title: isZh ? '每日执行进度' : 'Daily Execution Progress',
         description: isZh ? '汇总所有任务、优先级和阻塞状态，适合班前会快速巡检。' : 'Summarize all tasks, priorities, and blockers for a fast standup review.',
         helper: isZh ? '跨清单复盘' : 'cross-list review',

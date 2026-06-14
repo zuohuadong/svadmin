@@ -62,16 +62,19 @@
   ]);
   const threadStats = $derived([
     {
+      code: 'THREADS',
       label: isZh ? '会话' : 'Threads',
       value: conversations.length,
       hint: isZh ? `${openCount} 个活跃对话` : `${openCount} active chats`,
     },
     {
+      code: 'RESOLVED',
       label: isZh ? '已解决' : 'Resolved',
       value: resolvedCount,
       hint: isZh ? '已关闭答案' : 'closed answers',
     },
     {
+      code: 'WAITING',
       label: isZh ? '等待中' : 'Waiting',
       value: waitingCount,
       hint: isZh ? '需要更多上下文' : 'needs context',
@@ -228,7 +231,8 @@
     {#each threadStats as stat (stat.label)}
       <Card.Root>
         <Card.Content class="p-5">
-          <p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{stat.label}</p>
+          <p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{stat.code}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{stat.label}</p>
           <p class="mt-2 text-3xl font-semibold">{stat.value}</p>
           <p class="mt-1 text-xs text-muted-foreground">{stat.hint}</p>
         </Card.Content>

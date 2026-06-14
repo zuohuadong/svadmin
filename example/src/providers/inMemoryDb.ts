@@ -253,10 +253,10 @@ const initialDbState: DbState = {
     },
   ],
   roles: [
-    { id: 1, name: 'Inventory Admin', scope: 'All warehouses and user management', level: 'owner', description: 'Can configure platform settings and manage access.' },
-    { id: 2, name: 'Warehouse Manager', scope: 'Warehouse operations', level: 'manager', description: 'Can manage stock, movements, orders, and cycle counts.' },
-    { id: 3, name: 'Operations Analyst', scope: 'Planning and reporting', level: 'operator', description: 'Can review dashboards, tasks, calendar events, and AI recommendations.' },
-    { id: 4, name: 'Read Only Auditor', scope: 'Audit review', level: 'viewer', description: 'Can inspect records without changing operational data.' },
+    { id: 1, name: 'Inventory Admin', slug: 'inventory-admin', scope: 'All warehouses and user management', level: 'owner', description: 'Can configure platform settings and manage access.' },
+    { id: 2, name: 'Warehouse Manager', slug: 'warehouse-manager', scope: 'Warehouse operations', level: 'manager', description: 'Can manage stock, movements, orders, and cycle counts.' },
+    { id: 3, name: 'Operations Analyst', slug: 'operations-analyst', scope: 'Planning and reporting', level: 'operator', description: 'Can review dashboards, tasks, calendar events, and AI recommendations.' },
+    { id: 4, name: 'Read Only Auditor', slug: 'read-only-auditor', scope: 'Audit review', level: 'viewer', description: 'Can inspect records without changing operational data.' },
   ],
   users: [
     {

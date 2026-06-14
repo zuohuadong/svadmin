@@ -106,7 +106,7 @@
             <Card.Title class="mt-3 text-2xl">{viewCopy.title}</Card.Title>
             <Card.Description>{viewCopy.description}</Card.Description>
           </div>
-          <Button><Plus class="mr-2 h-4 w-4" />{isZh ? '写邮件' : 'Compose'}</Button>
+          <Button><Plus class="mr-2 h-4 w-4" />{isZh ? '写信 / Compose' : 'Compose'}</Button>
         </div>
       </Card.Header>
       <Card.Content class="grid gap-3 p-5 sm:grid-cols-3">
