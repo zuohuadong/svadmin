@@ -46,13 +46,19 @@
   };
 
   const initials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+  function statusLabel(status: TeamMember['status']) {
+    if (status === 'active') return t('account.active');
+    if (status === 'invited') return t('account.invited');
+    return t('account.inactive');
+  }
 </script>
 
 <div class="space-y-6" data-svadmin-content-page="account">
   <div class="flex items-start justify-between gap-4">
     <div>
-      <h2 class="text-xl font-semibold text-foreground">{t('account.membersStarter')}</h2>
-      <p class="mt-1 text-sm text-muted-foreground">{t('account.membersStarterDescription')}</p>
+      <h2 class="text-xl font-semibold text-foreground">{t('account.teamMembers')}</h2>
+      <p class="mt-1 text-sm text-muted-foreground">{t('account.teamMembersDescription')}</p>
     </div>
     <Button size="sm">
       <UserPlus class="h-4 w-4 mr-1" />{t('account.inviteMember')}
@@ -82,7 +88,7 @@
               <p class="text-xs text-muted-foreground truncate">{member.email}</p>
               <div class="mt-2 flex flex-wrap gap-1.5">
                 <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold {roleColors[member.role]}">{member.role}</span>
-                <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold {statusColors[member.status]}">{member.status}</span>
+                <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold {statusColors[member.status]}">{statusLabel(member.status)}</span>
               </div>
               <div class="mt-2 flex items-center justify-between">
                 <span class="text-xs text-muted-foreground">{member.department}</span>

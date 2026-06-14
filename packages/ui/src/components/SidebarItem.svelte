@@ -2,11 +2,12 @@
   import type { MenuItem } from '@svadmin/core';
   import * as Collapsible from './ui/collapsible/index.js';
   import * as Tooltip from './ui/tooltip/index.js';
+  import { Badge } from './ui/badge/index.js';
   import SidebarItem from './SidebarItem.svelte';
   import {
     LayoutDashboard, FileText, Users, Settings, Home,
     ChevronDown, Folder, ExternalLink, Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle,
-    Mail, Send, ShoppingBag, Briefcase, Building2, Calendar, Bell, Clock, Trash2, Palette, Layout,
+    Mail, Map as MapIcon, MessageSquare, Send, ShoppingBag, Star, Briefcase, Building2, Calendar, Bell, Clock, Tag, Trash2, Palette, Layout,
     Download, ListTodo, TrendingUp, Sparkles, Images, Bot, Key, KeyRound, CreditCard, BookOpen, Wrench, Shield,
   } from '@lucide/svelte';
 
@@ -32,13 +33,17 @@
     'sliders-horizontal': SlidersHorizontal,
     'alert-triangle': AlertTriangle,
     mail: Mail,
+    map: MapIcon,
+    'message-square': MessageSquare,
     send: Send,
     'shopping-bag': ShoppingBag,
+    star: Star,
     briefcase: Briefcase,
     building: Building2,
     calendar: Calendar,
     bell: Bell,
     clock: Clock,
+    tag: Tag,
     trash: Trash2,
     palette: Palette,
     layout: Layout,
@@ -91,6 +96,7 @@
 
   const Icon = $derived(getIcon(item.icon));
   const label = $derived(getLabel(item));
+  const soon = $derived(Boolean((item.meta as { soon?: boolean } | undefined)?.soon));
 </script>
 
 {#if item.meta?.hidden}
@@ -156,6 +162,9 @@
   >
     <Icon class="h-4 w-4 flex-shrink-0" />
     <span class="flex-1">{label}</span>
+    {#if soon}
+      <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">Soon</Badge>
+    {/if}
     {#if isExternal}
       <ExternalLink class="h-3 w-3 opacity-50" />
     {/if}

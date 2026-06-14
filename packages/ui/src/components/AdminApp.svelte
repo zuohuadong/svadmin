@@ -235,46 +235,50 @@
     <Layout {title} {menu} {siteUrl} routeMode={resolvedRouteMode}>
       {#key route + (params.resource ?? '') + (params.id ?? '') + (params.variant ?? '') + (params.columns ?? '')}
       <div class="svadmin-page-enter">
-      {#if route === '/2fa'}
+      {#if route === '/2fa' || route === '/authentication/branded/2fa'}
         <TwoFactorAuthPage />
       {:else if route === '/public-profile'}
         <PublicProfilePage variant="default" initialTab="projects" />
       {:else if route === '/public-profile/projects/:columns'}
-        <PublicProfilePage variant="default" initialTab="projects" columns={params.columns === '3' ? 3 : 2} />
+        <PublicProfilePage variant="default" initialTab="projects" columns={params.columns?.includes('3') ? 3 : 2} />
       {:else if route === '/public-profile/activity'}
         <PublicProfilePage variant="default" initialTab="activity" />
       {:else if route === '/public-profile/teams'}
         <PublicProfilePage variant="default" initialTab="teams" />
       {:else if route === '/public-profile/profiles/:variant'}
         <PublicProfilePage variant={(params.variant === 'company' || params.variant === 'gamer' || params.variant === 'default' ? params.variant : 'default') as 'company' | 'gamer' | 'default'} />
-      {:else if route === '/account/get-started'}
+      {:else if route === '/account/get-started' || route === '/account/home/get-started'}
         <GetStartedPage />
-      {:else if route === '/account/company-profile'}
+      {:else if route === '/account/home/user-profile'}
+        <SettingsPage />
+      {:else if route === '/account/company-profile' || route === '/account/home/company-profile'}
         <CompanyProfilePage />
-      {:else if route === '/account/settings-plain'}
+      {:else if route === '/account/settings-plain' || route === '/account/home/settings-plain'}
         <SettingsPlainPage />
-      {:else if route === '/account/settings-sidebar'}
+      {:else if route === '/account/settings-sidebar' || route === '/account/home/settings-sidebar'}
         <SettingsSidebarPage />
-      {:else if route === '/account/settings-enterprise'}
+      {:else if route === '/account/settings-enterprise' || route === '/account/home/settings-enterprise'}
         <SettingsEnterprisePage />
-      {:else if route === '/account/import-members'}
+      {:else if route === '/account/:tab'}
+        <SettingsPage />
+      {:else if route === '/account/import-members' || route === '/account/members/import-members'}
         <ImportMembersPage />
-      {:else if route === '/account/members-starter'}
+      {:else if route === '/account/members-starter' || route === '/account/members/members-starter'}
         <MembersStarterPage />
-      {:else if route === '/account/team-members'}
+      {:else if route === '/account/team-members' || route === '/account/members/team-members'}
         <TeamMembersPage />
-      {:else if route === '/account/security-log'}
+      {:else if route === '/account/security-log' || route === '/account/security/security-log'}
         <SecurityLogPage />
-      {:else if route === '/network/user-cards'}
+      {:else if route === '/network/user-cards' || route === '/network/user-cards/nft'}
         <UserCardsNFTPage />
-      {:else if route === '/network/team-crew'}
+      {:else if route === '/network/team-crew' || route === '/network/user-table/team-crew'}
         <TeamCrewTablePage />
       {:else if route.startsWith('/settings')}
         <SettingsPage />
       {:else if route === '/500' || (route === '/:resource' && params.resource === '500')}
         {@const ErrorComp = mergedComponents.ErrorPage || ErrorPage}
         <ErrorComp status="500" />
-      {:else if route === '/' || route === ''}
+      {:else if route === '/' || route === '' || route === '/inventory-dashboard'}
         {#if dashboard}
           {@render dashboard()}
         {:else}

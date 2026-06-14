@@ -7,7 +7,6 @@
   import CommandPalette from './CommandPalette.svelte';
   import KeyboardShortcuts from './KeyboardShortcuts.svelte';
   import ChatDialog from './ChatDialog.svelte';
-  import TooltipButton from './TooltipButton.svelte';
   import { t } from '@svadmin/core/i18n';
   import { getAuthProvider, getTaskProvider } from '@svadmin/core';
   import type { Identity, MenuItem, TaskProvider, TaskRecord } from '@svadmin/core';
@@ -17,6 +16,7 @@
   import * as Sheet from './ui/sheet/index.js';
   import { Menu } from '@lucide/svelte';
   import { getComponentRegistry } from '../component-registry.svelte.js';
+  import { Button } from './ui/button/index.js';
 
   let commandOpen = $state(false);
   let shortcutsOpen = $state(false);
@@ -149,9 +149,17 @@
       >
         {#snippet children()}
           <!-- Mobile hamburger -->
-          <TooltipButton tooltip={t('common.menu')} class="md:hidden" onclick={() => { mobileMenuOpen = true; }}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            class="md:hidden gap-1.5 px-2.5"
+            aria-label={t('common.menu')}
+            onclick={() => { mobileMenuOpen = true; }}
+          >
             <Menu class="h-5 w-5" />
-          </TooltipButton>
+            <span class="text-xs">{t('common.menu')}</span>
+          </Button>
         {/snippet}
         {#snippet rightActions()}
           {#if taskProvider}

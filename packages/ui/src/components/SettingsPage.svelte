@@ -95,8 +95,9 @@
   let activeKey = $derived.by(() => {
     const tab = getParams().tab;
     if (!tab) return "profile";
-    if (sectionKeys.has(tab)) return tab;
-    return content ? tab : "profile";
+    const alias = tab === "api-keys" ? "api" : tab;
+    if (sectionKeys.has(alias)) return alias;
+    return content ? alias : "profile";
   });
 
   // Default redirect to profile

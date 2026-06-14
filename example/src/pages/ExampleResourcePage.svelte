@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getResource } from '@svadmin/core';
   import { getLocale } from '@svadmin/core/i18n';
   import { ResourceOperationsPage } from '@svadmin/ui';
   import type { Component } from 'svelte';
@@ -26,6 +27,7 @@
 
   interface PageConfig {
     icon: Component<{ class?: string }>;
+    workspaceStyle: 'inventory' | 'operations' | 'people' | 'calendar' | 'communications' | 'crm' | 'property' | 'ai' | 'store';
     en: PageCopy;
     zh: PageCopy;
     metrics: Array<{ label: string; value: string | number; hint?: string }>;
@@ -36,9 +38,11 @@
   let { resourceName }: { resourceName: string } = $props();
 
   const locale = $derived(getLocale());
+  const resource = $derived(getResource(resourceName));
 
   const fallbackConfig: PageConfig = {
     icon: ClipboardList,
+    workspaceStyle: 'operations',
     en: {
       eyebrow: 'Operations',
       title: 'Workspace records',
@@ -76,6 +80,7 @@
     inventory: {
       ...fallbackConfig,
       icon: Package,
+      workspaceStyle: 'inventory',
       en: {
         eyebrow: 'Inventory',
         title: 'Inventory control cockpit',
@@ -112,6 +117,7 @@
     operations: {
       ...fallbackConfig,
       icon: ClipboardList,
+      workspaceStyle: 'operations',
       en: {
         eyebrow: 'Operations',
         title: 'Operations execution board',
@@ -148,6 +154,7 @@
     people: {
       ...fallbackConfig,
       icon: Users,
+      workspaceStyle: 'people',
       en: {
         eyebrow: 'Organization',
         title: 'User and access workspace',
@@ -183,6 +190,7 @@
     calendar: {
       ...fallbackConfig,
       icon: CalendarDays,
+      workspaceStyle: 'calendar',
       en: {
         eyebrow: 'Planning',
         title: 'Calendar planning board',
@@ -218,6 +226,7 @@
     communications: {
       ...fallbackConfig,
       icon: Mail,
+      workspaceStyle: 'communications',
       en: {
         eyebrow: 'Communications',
         title: 'Message operations center',
@@ -253,6 +262,7 @@
     crm: {
       ...fallbackConfig,
       icon: Briefcase,
+      workspaceStyle: 'crm',
       en: {
         eyebrow: 'CRM',
         title: 'Customer revenue workspace',
@@ -288,6 +298,7 @@
     property: {
       ...fallbackConfig,
       icon: Building2,
+      workspaceStyle: 'property',
       en: {
         eyebrow: 'Property',
         title: 'Property operations workspace',
@@ -323,6 +334,7 @@
     ai: {
       ...fallbackConfig,
       icon: Bot,
+      workspaceStyle: 'ai',
       en: {
         eyebrow: 'AI',
         title: 'AI assistant workspace',
@@ -358,6 +370,7 @@
     store: {
       ...fallbackConfig,
       icon: ShoppingBag,
+      workspaceStyle: 'store',
       en: {
         eyebrow: 'Store',
         title: 'Storefront operations workspace',
@@ -392,6 +405,260 @@
     },
   };
 
+  const resourceDescriptions = {
+    products: {
+      en: 'Maintain product master data, pricing, stock thresholds, supplier links, and catalog readiness.',
+      zh: '维护商品主数据、价格、库存阈值、供应商关联和目录完整度。',
+    },
+    skus: {
+      en: 'Track SKU codes, variants, lifecycle status, and product-level operational details.',
+      zh: '跟踪 SKU 编码、规格变体、生命周期状态和商品运营细节。',
+    },
+    categories: {
+      en: 'Organize catalog categories and keep product grouping rules consistent.',
+      zh: '管理目录品类，保持商品分组和分类规则一致。',
+    },
+    suppliers: {
+      en: 'Manage supplier contacts, sourcing ownership, and replenishment communication.',
+      zh: '管理供应商联系人、采购负责人和补货沟通信息。',
+    },
+    warehouses: {
+      en: 'Maintain warehouse locations, capacity, utilization, and fulfillment coverage.',
+      zh: '维护仓库位置、容量、利用率和履约覆盖信息。',
+    },
+    stock_movements: {
+      en: 'Audit inbound, outbound, transfer, and adjustment movement records.',
+      zh: '审计入库、出库、调拨和调整产生的库存流水。',
+    },
+    stock_transfers: {
+      en: 'Coordinate warehouse-to-warehouse transfer requests, quantities, owners, and status.',
+      zh: '协调仓库间调拨申请、数量、负责人和处理状态。',
+    },
+    cycle_counts: {
+      en: 'Plan cycle count windows, owners, variance notes, and inventory accuracy checks.',
+      zh: '安排循环盘点窗口、负责人、差异备注和库存准确性检查。',
+    },
+    inventory_adjustments: {
+      en: 'Review manual stock corrections with reason codes, approvals, and audit notes.',
+      zh: '复核人工库存修正、原因代码、审批状态和审计备注。',
+    },
+    reorder_rules: {
+      en: 'Maintain reorder thresholds, target stock, safety stock, and lead-time policies.',
+      zh: '维护补货阈值、目标库存、安全库存和提前期策略。',
+    },
+    purchase_orders: {
+      en: 'Track purchase orders, suppliers, receiving windows, and procurement status.',
+      zh: '跟踪采购订单、供应商、到货窗口和采购状态。',
+    },
+    sales_orders: {
+      en: 'Review sales order fulfillment, customer demand, shipment status, and exceptions.',
+      zh: '查看销售订单履约、客户需求、发货状态和异常。',
+    },
+    todos: {
+      en: 'Manage operational tasks, priorities, due dates, and ownership.',
+      zh: '管理运营待办、优先级、截止时间和负责人。',
+    },
+    users: {
+      en: 'Manage demo users, identities, ownership, and operational activity.',
+      zh: '管理演示用户、身份信息、负责人和运营活动。',
+    },
+    roles: {
+      en: 'Maintain access roles, scopes, permission levels, and role descriptions.',
+      zh: '维护访问角色、权限范围、权限等级和角色说明。',
+    },
+    calendar_events: {
+      en: 'Plan events, receiving windows, reviews, reminders, and recurring operations.',
+      zh: '安排事件、收货窗口、复盘、提醒和周期运营事项。',
+    },
+    ai_conversations: {
+      en: 'Review AI assistant conversations, prompt status, and operational follow-up.',
+      zh: '查看 AI 助手对话、提示词状态和运营跟进。',
+    },
+    notifications: {
+      en: 'Triage notification priority, read status, owners, and operational alerts.',
+      zh: '分拣通知优先级、已读状态、负责人和运营提醒。',
+    },
+    crm_accounts: {
+      en: 'Manage customer accounts, health signals, revenue ownership, and next steps.',
+      zh: '管理客户账户、健康信号、收入负责人和下一步动作。',
+    },
+    crm_contacts: {
+      en: 'Maintain customer contacts, roles, communication channels, and relationship notes.',
+      zh: '维护客户联系人、角色、沟通渠道和关系备注。',
+    },
+    crm_deals: {
+      en: 'Track revenue opportunities, stages, value, risk, and close plans.',
+      zh: '跟踪收入机会、阶段、金额、风险和成交计划。',
+    },
+    crm_activities: {
+      en: 'Review customer calls, meetings, emails, and follow-up activities.',
+      zh: '查看客户电话、会议、邮件和跟进活动。',
+    },
+    properties: {
+      en: 'Manage property portfolio details, locations, pricing, and availability.',
+      zh: '管理资产组合详情、位置、价格和可用状态。',
+    },
+    property_agents: {
+      en: 'Maintain advisor profiles, service areas, capacity, and assignments.',
+      zh: '维护资产顾问资料、服务区域、容量和分配。',
+    },
+    property_leads: {
+      en: 'Track buyer or renter demand, qualification status, budget, and follow-up.',
+      zh: '跟踪买家或租客需求、资格状态、预算和跟进。',
+    },
+    property_showings: {
+      en: 'Coordinate tour schedules, participants, property readiness, and outcomes.',
+      zh: '协调看房排期、参与人、资产准备状态和结果。',
+    },
+    store_client_products: {
+      en: 'Maintain storefront product cards, pricing, ratings, and availability.',
+      zh: '维护商城商品卡片、价格、评分和可售状态。',
+    },
+    store_client_orders: {
+      en: 'Review storefront orders, payment status, shipment progress, and totals.',
+      zh: '查看商城订单、付款状态、发货进度和金额。',
+    },
+  } satisfies Record<string, { en: string; zh: string }>;
+
+  const zhText: Record<string, string> = {
+    Active: '活跃',
+    Alerts: '警报',
+    Assets: '资产',
+    Blocked: '阻塞',
+    Catalog: '目录',
+    Checkout: '结账',
+    Closed: '已关闭',
+    Completed: '已完成',
+    Coverage: '覆盖率',
+    Delivered: '已送达',
+    Discovery: '发现阶段',
+    Draft: '草稿',
+    Drafts: '草稿',
+    Events: '事件',
+    Forecast: '预测',
+    Health: '健康度',
+    Inbox: '收件箱',
+    'In progress': '进行中',
+    Invited: '已邀请',
+    Invites: '邀请',
+    Listed: '已上架',
+    'Low stock': '低库存',
+    Members: '成员',
+    'Needs reorder': '需要补货',
+    Negotiation: '谈判阶段',
+    'Open work': '未结作业',
+    Pipeline: '管线',
+    Products: '商品',
+    Proposal: '方案阶段',
+    Qualified: '已合格',
+    Queued: '排队中',
+    Rating: '评分',
+    Ready: '就绪',
+    'Ready to ship': '可发货',
+    Replenishment: '补货',
+    Resolved: '已解决',
+    Review: '待复核',
+    Reviews: '复盘',
+    Roles: '角色',
+    Scheduled: '已排期',
+    Sent: '已发送',
+    SLA: '服务水平',
+    Snoozed: '稍后提醒',
+    Suspended: '已停用',
+    Threads: '对话',
+    Tours: '看房',
+    Unread: '未读',
+    Waiting: '等待中',
+    Accounts: '客户账户',
+    'At risk': '风险项',
+    Leads: '线索',
+    'active chats': '活跃对话',
+    'active demand': '活跃需求',
+    'active portfolio': '活跃组合',
+    'active tasks': '活跃任务',
+    'active users': '活跃用户',
+    'avg score': '平均评分',
+    'available for action': '可处理',
+    'below minimum stock': '低于最低库存',
+    'below threshold': '低于阈值',
+    'client-facing store flows': '客户端商城流程',
+    'closed answers': '已关闭答案',
+    'commercial review': '商务复核',
+    'completed order': '已完成订单',
+    'currently owned': '已有负责人',
+    'cross-team reviews': '跨团队复盘',
+    'decision points': '决策节点',
+    'demo catalog': '演示目录',
+    'demo records': '演示记录',
+    'healthy lanes': '健康通道',
+    'incoming messages': '收到的消息',
+    'inventory prompts': '库存提示词',
+    'knowledge prompts': '知识提示词',
+    'late-stage': '后期阶段',
+    'lead stage': '线索阶段',
+    'managed items': '管理条目',
+    'managed properties': '管理资产',
+    'market ready': '可面向市场',
+    'missing enrichment': '缺少补充信息',
+    'needs context': '需要上下文',
+    'needs owner': '需要负责人',
+    'needs review': '需要复核',
+    'new opportunities': '新机会',
+    'no current holds': '当前无冻结',
+    'normal stock range': '正常库存范围',
+    'not sent': '尚未发送',
+    'not yet released': '尚未发布',
+    'on-time work': '按时完成',
+    'operational milestones': '运营里程碑',
+    'outbound notes': '外发消息',
+    'pending': '待处理',
+    'planned items': '计划事项',
+    'planning prompts': '计划提示词',
+    'policy prompts': '策略提示词',
+    'recent checkout': '近期结账',
+    'recent closure': '近期关闭',
+    'requires attention': '需要关注',
+    'scheduled follow-up': '定时跟进',
+    scheduled: '已排期',
+    'upcoming tours': '即将看房',
+    'waiting for setup': '等待配置',
+    'watch list': '观察名单',
+    'weighted value': '加权金额',
+    'WH-MAIN cycle count': 'WH-MAIN 循环盘点',
+    'Count window starts today.': '盘点窗口今天开始。',
+    'Owner: Operations Analyst': '负责人：运营分析师',
+    Today: '今日',
+    'Tape reorder rule': '胶带补货规则',
+    'Target quantity needs review.': '目标数量需要复核。',
+    'Lead time: 5 days': '提前期：5 天',
+    Policy: '策略',
+    'Daily review': '每日复核',
+    'Check the highest priority records first.': '优先检查最高优先级记录。',
+    'Updated today': '今日更新',
+    Live: '实时',
+    'Ergonomic Chair': '人体工学椅',
+    'Below minimum stock in West Hub.': '西部仓库存低于最低阈值。',
+    '4 / 6 units': '4 / 6 件',
+    Low: '低库存',
+    'Packing Tape': '打包胶带',
+    'Consumption is above the weekly baseline.': '消耗高于周度基线。',
+    '18 / 24 units': '18 / 24 件',
+    'Low stock review': '低库存复核',
+    'Operations message waiting in the inbox.': '收件箱中有一条运营消息等待处理。',
+    Mail: '邮件',
+    'Renewal account': '续约客户',
+    'Decision maker needs one more technical review.': '决策人还需要一次技术复核。',
+    'Close date: Jun 28': '预计成交：6 月 28 日',
+    Hot: '高优先级',
+    'Harbor Lofts tour': 'Harbor Lofts 看房',
+    'Prepare amenity and rent-roll details.': '准备配套设施和租金清单细节。',
+    'Jun 14': '6 月 14 日',
+    Tour: '看房',
+    'Reorder assistant': '补货助手',
+    'Use stock and purchase data for local guidance.': '使用库存与采购数据生成本地建议。',
+    'Read-only demo': '只读演示',
+  };
+
   function configFor(resource: string): PageConfig {
     if (['products', 'skus', 'categories', 'suppliers', 'warehouses'].includes(resource)) return appConfigs.inventory;
     if ([
@@ -414,8 +681,51 @@
     return fallbackConfig;
   }
 
+  function localizeText(value: string | undefined): string | undefined {
+    if (!value || locale !== 'zh-CN') return value;
+    return zhText[value] ?? value;
+  }
+
+  function resourceDescription(resourceKey: string, label: string): string {
+    const description = resourceDescriptions[resourceKey as keyof typeof resourceDescriptions];
+    if (description) return locale === 'zh-CN' ? description.zh : description.en;
+    return locale === 'zh-CN'
+      ? `管理${label}的列表、创建、编辑和详情流程。`
+      : `Manage ${label} list, create, edit, and detail workflows.`;
+  }
+
   const config = $derived(configFor(resourceName));
-  const copy = $derived(locale === 'zh-CN' ? config.zh : config.en);
+  const baseCopy = $derived(locale === 'zh-CN' ? config.zh : config.en);
+  const copy = $derived.by(() => {
+    const label = resource.label;
+    return {
+      ...baseCopy,
+      title: label,
+      description: resourceDescription(resourceName, label),
+      actionLabel: locale === 'zh-CN' ? `新建${label}` : `New ${label}`,
+      tableLabel: label,
+      tableDescription: locale === 'zh-CN'
+        ? `使用表格维护${label}数据，覆盖查询、新建、编辑、详情和删除流程。`
+        : `Use the table to maintain ${label} data across list, create, edit, show, and delete flows.`,
+    };
+  });
+  const metrics = $derived(config.metrics.map((metric) => ({
+    ...metric,
+    label: localizeText(metric.label) ?? metric.label,
+    hint: localizeText(metric.hint),
+  })));
+  const lanes = $derived(config.lanes.map((lane) => ({
+    ...lane,
+    label: localizeText(lane.label) ?? lane.label,
+    hint: localizeText(lane.hint),
+  })));
+  const highlights = $derived(config.highlights.map((item) => ({
+    ...item,
+    title: localizeText(item.title) ?? item.title,
+    description: localizeText(item.description),
+    meta: localizeText(item.meta),
+    badge: localizeText(item.badge),
+  })));
 </script>
 
 <ResourceOperationsPage
@@ -425,11 +735,12 @@
   description={copy.description}
   actionLabel={copy.actionLabel}
   icon={config.icon}
-  metrics={config.metrics}
-  lanes={config.lanes}
-  highlights={config.highlights}
+  {metrics}
+  {lanes}
+  {highlights}
   tableLabel={copy.tableLabel}
   tableDescription={copy.tableDescription}
   highlightsLabel={copy.highlightsLabel}
   emptyLanesText={locale === 'zh-CN' ? '暂无分组记录。' : 'No grouped records yet.'}
+  workspaceStyle={config.workspaceStyle}
 />

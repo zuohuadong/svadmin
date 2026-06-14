@@ -18,8 +18,8 @@
     ChevronLeft, ChevronRight, ChevronDown, LogOut, Sun, Moon, Palette,
     Image as ImageIcon, Layout, Folder, Type, Video,
     Download, ListTodo, TrendingUp, Sparkles, Images, Bot, Key, KeyRound, CreditCard, BookOpen, Wrench,
-    Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle, Mail, Send, ShoppingBag, Briefcase, Building2,
-    Calendar, Bell, Clock, Trash2, Shield
+    Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle, Mail, Map as MapIcon, MessageSquare, Send, ShoppingBag, Star, Briefcase, Building2,
+    Calendar, Bell, Clock, Tag, Trash2, Shield
   } from '@lucide/svelte';
 
   let { collapsed, identity, title, onToggle, onLogout, menu, routeMode = 'auto' }: {
@@ -68,13 +68,17 @@
     'sliders-horizontal': SlidersHorizontal,
     'alert-triangle': AlertTriangle,
     'mail': Mail,
+    'map': MapIcon,
+    'message-square': MessageSquare,
     'send': Send,
     'shopping-bag': ShoppingBag,
+    'star': Star,
     'briefcase': Briefcase,
     'building': Building2,
     'calendar': Calendar,
     'bell': Bell,
     'clock': Clock,
+    'tag': Tag,
     'trash': Trash2,
     'shield': Shield,
   };

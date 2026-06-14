@@ -24,6 +24,7 @@
     id: number;
     name: string;
     sku: string;
+    price: number;
     stock: number;
     minStock: number;
   }
@@ -65,6 +66,22 @@
     createdAt: string;
   }
 
+  interface User {
+    id: number;
+    name: string;
+    department: string;
+    status: string;
+  }
+
+  interface SalesOrder {
+    id: number;
+    orderNumber: string;
+    customerName: string;
+    status: string;
+    totalAmount: number;
+    orderDate: string;
+  }
+
   interface StockTransfer {
     id: number;
     status: string;
@@ -94,9 +111,9 @@
   const adjustmentsQuery = useList({ resource: 'inventory_adjustments', pagination: { mode: 'off' } });
   const reorderRulesQuery = useList({ resource: 'reorder_rules', pagination: { mode: 'off' } });
   const purchaseOrdersQuery = useList({ resource: 'purchase_orders', pagination: { current: 1, pageSize: 1 } });
-  const salesOrdersQuery = useList({ resource: 'sales_orders', pagination: { current: 1, pageSize: 1 } });
+  const salesOrdersQuery = useList({ resource: 'sales_orders', pagination: { current: 1, pageSize: 5 }, sorters: [{ field: 'orderDate', order: 'desc' }] });
   const todosQuery = useList({ resource: 'todos', pagination: { mode: 'off' } });
-  const usersQuery = useList({ resource: 'users', pagination: { current: 1, pageSize: 1 } });
+  const usersQuery = useList({ resource: 'users', pagination: { mode: 'off' } });
   const rolesQuery = useList({ resource: 'roles', pagination: { current: 1, pageSize: 1 } });
   const calendarQuery = useList({
     resource: 'calendar_events',
@@ -124,6 +141,8 @@
   const adjustments = $derived((adjustmentsQuery.data?.data ?? []) as unknown as InventoryAdjustment[]);
   const reorderRules = $derived((reorderRulesQuery.data?.data ?? []) as unknown as ReorderRule[]);
   const todos = $derived((todosQuery.data?.data ?? []) as unknown as Todo[]);
+  const users = $derived((usersQuery.data?.data ?? []) as unknown as User[]);
+  const salesOrders = $derived((salesOrdersQuery.data?.data ?? []) as unknown as SalesOrder[]);
   const calendarEvents = $derived((calendarQuery.data?.data ?? []) as unknown as CalendarEvent[]);
   const conversations = $derived((conversationsQuery.data?.data ?? []) as unknown as Conversation[]);
   const notifications = $derived((notificationsQuery.data?.data ?? []) as unknown as Notification[]);
@@ -148,7 +167,10 @@
   );
 
   const totalStock = $derived(products.reduce((sum, product) => sum + product.stock, 0));
+  const totalAssetValue = $derived(products.reduce((sum, product) => sum + product.stock * product.price, 0));
   const lowStockProducts = $derived(products.filter((product) => product.stock <= product.minStock));
+  const outOfStockProducts = $derived(products.filter((product) => product.stock === 0));
+  const availableProducts = $derived(products.filter((product) => product.stock > product.minStock));
   const openTodos = $derived(todos.filter((todo) => !todo.completed).length);
   const unreadNotifications = $derived(notifications.filter((notification) => !notification.read).length);
   const openConversations = $derived(conversations.filter((conversation) => conversation.status !== 'resolved').length);
@@ -156,12 +178,28 @@
   const activeCycleCounts = $derived(cycleCounts.filter((count) => !['reconciled', 'cancelled'].includes(count.status)).length);
   const pendingAdjustments = $derived(adjustments.filter((adjustment) => adjustment.status === 'pending_approval').length);
   const reviewReorderRules = $derived(reorderRules.filter((rule) => rule.status === 'review').length);
+  const bestSellers = $derived(products.slice().sort((a, b) => b.stock - a.stock).slice(0, 3));
+  const staffPerformance = $derived(
+    users.slice(0, 4).map((user, index) => ({
+      ...user,
+      score: [98, 94, 89, 84][index] ?? 82,
+      closed: [18, 15, 12, 9][index] ?? 8,
+    })),
+  );
 
   const stats = $derived([
+    { label: isZh ? '资产价值' : 'Total Asset Value', value: `$${Math.round(totalAssetValue / 1000)}K`, href: '#/products', Icon: TrendingUp, tone: 'bg-primary/10 text-primary border-primary/20' },
+    { label: isZh ? '可用商品' : 'Available', value: availableProducts.length, href: '#/products', Icon: Package, tone: 'bg-success/10 text-success border-success/20' },
     { label: isZh ? '库存件数' : 'Stock Units', value: totalStock, href: '#/products', Icon: Package, tone: 'bg-info/10 text-info border-info/20' },
     { label: isZh ? '低库存' : 'Low Stock', value: lowStockProducts.length, href: '#/products', Icon: AlertTriangle, tone: 'bg-destructive/10 text-destructive border-destructive/20' },
+    { label: isZh ? '缺货' : 'Out of Stock', value: outOfStockProducts.length, href: '#/products', Icon: AlertTriangle, tone: 'bg-warning/10 text-warning border-warning/20' },
     { label: isZh ? '仓库' : 'Warehouses', value: warehousesQuery.data?.total ?? 0, href: '#/warehouses', Icon: Home, tone: 'bg-success/10 text-success border-success/20' },
     { label: isZh ? '供应商' : 'Suppliers', value: suppliersQuery.data?.total ?? 0, href: '#/suppliers', Icon: Truck, tone: 'bg-warning/10 text-warning border-warning/20' },
+    { label: isZh ? '客户' : 'Customer', value: salesOrdersQuery.data?.total ?? 0, href: '#/sales_orders', Icon: Users, tone: 'bg-info/10 text-info border-info/20' },
+    { label: isZh ? '库存设置' : 'Settings', value: reorderRules.length, href: '#/reorder_rules', Icon: Settings, tone: 'bg-muted text-muted-foreground border-border' },
+    { label: isZh ? '采购订单' : 'Purchase Orders', value: purchaseOrdersQuery.data?.total ?? 0, href: '#/purchase_orders', Icon: ClipboardCheck, tone: 'bg-primary/10 text-primary border-primary/20' },
+    { label: isZh ? '销售订单' : 'Sales Orders', value: salesOrdersQuery.data?.total ?? 0, href: '#/sales_orders', Icon: CreditCard, tone: 'bg-info/10 text-info border-info/20' },
+    { label: isZh ? '未读提醒' : 'Unread Alerts', value: unreadNotifications, href: '#/notifications', Icon: Bell, tone: 'bg-warning/10 text-warning border-warning/20' },
   ]);
 
   const orderSummary = $derived([
@@ -234,6 +272,39 @@
     return type;
   }
 
+  function eventTitle(title: string): string {
+    if (!isZh) return title;
+    if (title === 'Warehouse cycle count') return '仓库循环盘点';
+    if (title === 'Supplier delivery window') return '供应商到货窗口';
+    if (title === 'Monthly purchase review') return '月度采购复盘';
+    return title;
+  }
+
+  function conversationTitle(title: string): string {
+    if (!isZh) return title;
+    if (title === 'Reorder planning assistant') return '补货计划助手';
+    if (title === 'Forecast variance review') return '预测偏差复核';
+    if (title === 'Receiving exception triage') return '收货异常分诊';
+    return title;
+  }
+
+  function notificationTitle(title: string): string {
+    if (!isZh) return title;
+    if (title === 'Two products below minimum stock') return '两个商品低于最低库存';
+    if (title === 'PO-2026-002 delivery scheduled') return 'PO-2026-002 已安排到货';
+    if (title === 'New analyst invitation pending') return '新分析师邀请待完成';
+    return title;
+  }
+
+  function movementNote(note: string): string {
+    if (!isZh) return note;
+    if (note === 'Initial receiving') return '初始入库';
+    if (note === 'Sales order shipment') return '销售订单出库';
+    if (note === 'Supplier delivery') return '供应商到货';
+    if (note === 'Packing line consumption') return '包装线消耗';
+    return note;
+  }
+
   function conversationStatusLabel(status: string): string {
     if (!isZh) return status;
     if (status === 'open') return '进行中';
@@ -249,6 +320,15 @@
     if (severity === 'info') return '信息';
     return severity;
   }
+
+  function orderStatusLabel(status: string): string {
+    if (!isZh) return status;
+    if (status === 'pending') return '待处理';
+    if (status === 'processing') return '处理中';
+    if (status === 'shipped') return '已发货';
+    if (status === 'cancelled') return '已取消';
+    return status;
+  }
 </script>
 
 <div class="space-y-6">
@@ -258,12 +338,12 @@
         {isZh ? '运营驾驶舱' : 'Operations Cockpit'}
       </div>
       <h1 class="mt-3 text-3xl font-semibold tracking-tight text-foreground">
-        {isZh ? '库存运营示例平台' : 'Inventory Operations Platform'}
+        svadmin example
       </h1>
       <p class="mt-2 max-w-3xl text-sm text-muted-foreground">
         {isZh
-          ? '集中呈现库存、作业、权限、计划、AI 对话和通知的高密度后台示例。'
-          : 'A dense svadmin workspace for inventory, operations, access, planning, assistance, and notifications.'}
+          ? '集中呈现库存、作业、权限、计划、AI 对话和通知的高密度 example。'
+          : 'A dense svadmin example for inventory, operations, access, planning, assistance, and notifications.'}
       </p>
       <div class="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
         <span class="rounded-md border bg-card px-2.5 py-1">{isZh ? '本地数据源' : 'Local data provider'}</span>
@@ -391,7 +471,7 @@
         <div class="divide-y">
           {#each calendarEvents as event (event.id)}
             <div class="px-6 py-4">
-              <p class="truncate text-sm font-medium text-foreground">{event.title}</p>
+              <p class="truncate text-sm font-medium text-foreground">{eventTitle(event.title)}</p>
               <p class="mt-1 text-xs text-muted-foreground">{event.startDate} / {eventTypeLabel(event.type)}</p>
             </div>
           {:else}
@@ -411,7 +491,7 @@
           {#each conversations as conversation (conversation.id)}
             <div class="flex items-center justify-between gap-4 px-6 py-4">
               <div class="min-w-0">
-                <p class="truncate text-sm font-medium text-foreground">{conversation.title}</p>
+                <p class="truncate text-sm font-medium text-foreground">{conversationTitle(conversation.title)}</p>
                 <p class="text-xs text-muted-foreground">{conversation.updatedAt}</p>
               </div>
               <span class="rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">{conversationStatusLabel(conversation.status)}</span>
@@ -433,7 +513,7 @@
           {#each notifications as notification (notification.id)}
             <div class="flex items-center justify-between gap-4 px-6 py-4">
               <div class="min-w-0">
-                <p class="truncate text-sm font-medium text-foreground">{notification.title}</p>
+                <p class="truncate text-sm font-medium text-foreground">{notificationTitle(notification.title)}</p>
                 <p class="text-xs text-muted-foreground">{notification.createdAt}</p>
               </div>
               <span class="rounded-md px-2 py-1 text-xs font-semibold {notificationTone(notification.severity)}">
@@ -442,6 +522,111 @@
             </div>
           {:else}
             <div class="px-6 py-8 text-sm text-muted-foreground">{isZh ? '暂无通知。' : 'No notifications yet.'}</div>
+          {/each}
+        </div>
+      </Card.Content>
+    </Card.Root>
+  </section>
+
+  <section class="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
+    <Card.Root class="overflow-hidden border-border/40">
+      <Card.Header class="flex flex-row items-center justify-between border-b px-6 py-4">
+        <Card.Title class="text-sm font-semibold">{isZh ? '热销与周转' : 'Best Sellers'}</Card.Title>
+        <a class="text-sm font-medium text-primary hover:underline" href="#/products">{isZh ? '商品档案' : 'Products'}</a>
+      </Card.Header>
+      <Card.Content class="p-0">
+        <div class="divide-y">
+          {#each bestSellers as product (product.id)}
+            <div class="grid gap-3 px-6 py-4 sm:grid-cols-[1fr_auto] sm:items-center">
+              <div class="min-w-0">
+                <p class="truncate text-sm font-medium text-foreground">{product.name}</p>
+                <p class="text-xs text-muted-foreground">{product.sku}</p>
+              </div>
+              <div class="min-w-40">
+                <div class="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{isZh ? '可售库存' : 'sellable stock'}</span>
+                  <span>{product.stock}</span>
+                </div>
+                <div class="mt-2 h-2 rounded-full bg-muted">
+                  <div class="h-2 rounded-full bg-primary" style:width={`${Math.min(100, Math.max(16, product.stock))}%`}></div>
+                </div>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </Card.Content>
+    </Card.Root>
+
+    <Card.Root class="overflow-hidden border-border/40">
+      <Card.Header class="flex flex-row items-center justify-between border-b px-6 py-4">
+        <Card.Title class="text-sm font-semibold">{isZh ? '团队表现' : 'Staff Performance'}</Card.Title>
+        <a class="text-sm font-medium text-primary hover:underline" href="#/users">{isZh ? '用户管理' : 'Users'}</a>
+      </Card.Header>
+      <Card.Content class="p-0">
+        <div class="divide-y">
+          {#each staffPerformance as member (member.id)}
+            <div class="grid gap-3 px-6 py-4 sm:grid-cols-[1fr_auto] sm:items-center">
+              <div class="min-w-0">
+                <p class="truncate text-sm font-medium text-foreground">{member.name}</p>
+                <p class="text-xs text-muted-foreground">{member.department}</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">{member.closed} {isZh ? '项' : 'closed'}</span>
+                <span class="text-sm font-semibold text-foreground">{member.score}%</span>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </Card.Content>
+    </Card.Root>
+  </section>
+
+  <section class="grid gap-4 xl:grid-cols-[0.72fr_1.28fr]">
+    <Card.Root class="overflow-hidden border-border/40">
+      <Card.Header class="border-b px-6 py-4">
+        <Card.Title class="text-sm font-semibold">{isZh ? '销售活动' : 'Sales Activity'}</Card.Title>
+      </Card.Header>
+      <Card.Content class="space-y-4 p-6">
+        <div class="rounded-xl border bg-muted/20 p-4">
+          <p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{isZh ? '今日履约节奏' : 'Today flow'}</p>
+          <p class="mt-2 text-3xl font-semibold text-foreground">{salesOrders.length + movements.length}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{isZh ? '订单与库存动作合计' : 'orders and inventory actions'}</p>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="rounded-lg border p-3">
+            <p class="text-lg font-semibold">{salesOrders.filter((order) => order.status === 'pending').length}</p>
+            <p class="text-xs text-muted-foreground">{isZh ? '待处理' : 'Pending'}</p>
+          </div>
+          <div class="rounded-lg border p-3">
+            <p class="text-lg font-semibold">{salesOrders.filter((order) => order.status === 'processing').length}</p>
+            <p class="text-xs text-muted-foreground">{isZh ? '处理中' : 'Processing'}</p>
+          </div>
+          <div class="rounded-lg border p-3">
+            <p class="text-lg font-semibold">{salesOrders.filter((order) => order.status === 'shipped').length}</p>
+            <p class="text-xs text-muted-foreground">{isZh ? '已发货' : 'Shipped'}</p>
+          </div>
+        </div>
+      </Card.Content>
+    </Card.Root>
+
+    <Card.Root class="overflow-hidden border-border/40">
+      <Card.Header class="flex flex-row items-center justify-between border-b px-6 py-4">
+        <Card.Title class="text-sm font-semibold">{isZh ? '近期订单' : 'Recent Orders'}</Card.Title>
+        <a class="text-sm font-medium text-primary hover:underline" href="#/sales_orders">{isZh ? '销售订单' : 'Sales Orders'}</a>
+      </Card.Header>
+      <Card.Content class="p-0">
+        <div class="divide-y">
+          {#each salesOrders as order (order.id)}
+            <div class="grid gap-3 px-6 py-4 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+              <div class="min-w-0">
+                <p class="truncate text-sm font-medium text-foreground">{order.orderNumber}</p>
+                <p class="text-xs text-muted-foreground">{order.customerName} · {order.orderDate}</p>
+              </div>
+              <span class="rounded-md bg-muted px-2 py-1 text-xs font-semibold text-muted-foreground">{orderStatusLabel(order.status)}</span>
+              <p class="text-sm font-semibold text-foreground">${order.totalAmount}</p>
+            </div>
+          {:else}
+            <div class="px-6 py-8 text-sm text-muted-foreground">{isZh ? '暂无近期订单。' : 'No recent orders.'}</div>
           {/each}
         </div>
       </Card.Content>
@@ -459,7 +644,7 @@
         {#each movements as movement (movement.id)}
           <div class="flex items-center justify-between gap-4 px-6 py-4">
             <div class="min-w-0">
-              <p class="truncate text-sm font-medium text-foreground">{movement.note}</p>
+              <p class="truncate text-sm font-medium text-foreground">{movementNote(movement.note)}</p>
               <p class="text-xs text-muted-foreground">{movement.date}</p>
             </div>
             <span class="rounded-md px-2 py-1 text-xs font-semibold {movementTone(movement.type)}">

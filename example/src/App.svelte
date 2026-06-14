@@ -9,7 +9,15 @@
   import { createExampleMenu, registerExampleMenuTranslations } from './exampleMenuCatalog';
   import { mockAuthProvider } from './providers/mockAuth';
   import Dashboard from './pages/Dashboard.svelte';
+  import AppPreviewPage from './pages/AppPreviewPage.svelte';
+  import AiWorkspacePage from './pages/AiWorkspacePage.svelte';
+  import CalendarWorkspacePage from './pages/CalendarWorkspacePage.svelte';
+  import CrmDashboardPage from './pages/CrmDashboardPage.svelte';
   import ExampleResourcePage from './pages/ExampleResourcePage.svelte';
+  import MailWorkspacePage from './pages/MailWorkspacePage.svelte';
+  import RealEstateWorkspacePage from './pages/RealEstateWorkspacePage.svelte';
+  import TodoWorkspacePage from './pages/TodoWorkspacePage.svelte';
+  import UserManagementPage from './pages/UserManagementPage.svelte';
 
   // Register the optional Rich Text Editor plugin globally
   registerExampleMenuTranslations();
@@ -18,7 +26,7 @@
   const currentLocale = $derived(getLocale());
   const resources = $derived.by(() => createResources(currentLocale));
   const menu = $derived.by(() => createExampleMenu(currentLocale));
-  const appTitle = $derived(currentLocale === 'zh-CN' ? '运营示例平台' : 'Example Operations');
+  const appTitle = 'svadmin example';
   const loginHint = $derived(currentLocale === 'zh-CN' ? '已预填演示账号，方便快速测试。' : 'Demo credentials are prefilled for quick testing.');
 
   $effect(() => {
@@ -38,29 +46,38 @@
     reorder_rules: { list: ExampleResourcePage },
     purchase_orders: { list: ExampleResourcePage },
     sales_orders: { list: ExampleResourcePage },
-    todos: { list: ExampleResourcePage },
-    users: { list: ExampleResourcePage },
-    roles: { list: ExampleResourcePage },
-    calendar_events: { list: ExampleResourcePage },
+    todos: { list: TodoWorkspacePage },
+    users: { list: UserManagementPage },
+    roles: { list: UserManagementPage },
+    permissions: { list: UserManagementPage },
+    user_accounts: { list: UserManagementPage },
+    user_logs: { list: UserManagementPage },
+    user_settings: { list: UserManagementPage },
+    calendar_events: { list: CalendarWorkspacePage },
     notifications: { list: ExampleResourcePage },
-    ai_conversations: { list: ExampleResourcePage },
-    mail_inbox: { list: ExampleResourcePage },
-    mail_draft: { list: ExampleResourcePage },
-    mail_sent: { list: ExampleResourcePage },
-    mail_archive: { list: ExampleResourcePage },
-    mail_snoozed: { list: ExampleResourcePage },
-    mail_spam: { list: ExampleResourcePage },
-    mail_trash: { list: ExampleResourcePage },
+    ai_conversations: { list: AiWorkspacePage },
+    mail_inbox: { list: MailWorkspacePage },
+    mail_draft: { list: MailWorkspacePage },
+    mail_sent: { list: MailWorkspacePage },
+    mail_archive: { list: MailWorkspacePage },
+    mail_snoozed: { list: MailWorkspacePage },
+    mail_spam: { list: MailWorkspacePage },
+    mail_trash: { list: MailWorkspacePage },
     store_client_products: { list: ExampleResourcePage },
     store_client_orders: { list: ExampleResourcePage },
-    crm_accounts: { list: ExampleResourcePage },
-    crm_contacts: { list: ExampleResourcePage },
-    crm_deals: { list: ExampleResourcePage },
-    crm_activities: { list: ExampleResourcePage },
-    properties: { list: ExampleResourcePage },
-    property_agents: { list: ExampleResourcePage },
-    property_leads: { list: ExampleResourcePage },
-    property_showings: { list: ExampleResourcePage },
+    crm_accounts: { list: CrmDashboardPage },
+    crm_contacts: { list: CrmDashboardPage },
+    crm_deals: { list: CrmDashboardPage },
+    crm_activities: { list: CrmDashboardPage },
+    properties: { list: RealEstateWorkspacePage },
+    property_agents: { list: RealEstateWorkspacePage },
+    property_leads: { list: RealEstateWorkspacePage },
+    property_showings: { list: RealEstateWorkspacePage },
+    project_planning: { list: AppPreviewPage },
+    store_admin: { list: AppPreviewPage },
+    store_services: { list: AppPreviewPage },
+    ai_prompt: { list: AppPreviewPage },
+    invoice_generator: { list: AppPreviewPage },
   };
 </script>
 

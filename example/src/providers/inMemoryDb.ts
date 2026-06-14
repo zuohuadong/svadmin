@@ -40,6 +40,10 @@ type ResourceName =
   | 'todos'
   | 'users'
   | 'roles'
+  | 'permissions'
+  | 'user_accounts'
+  | 'user_logs'
+  | 'user_settings'
   | 'calendar_events'
   | 'ai_conversations'
   | 'notifications'
@@ -63,7 +67,12 @@ type ResourceName =
   | 'mail_spam'
   | 'mail_trash'
   | 'store_client_products'
-  | 'store_client_orders';
+  | 'store_client_orders'
+  | 'project_planning'
+  | 'store_admin'
+  | 'store_services'
+  | 'ai_prompt'
+  | 'invoice_generator';
 
 type DbState = Record<ResourceName, BaseRecord[]>;
 
@@ -285,6 +294,116 @@ const initialDbState: DbState = {
       status: 'active',
       department: 'Finance',
       lastActiveAt: '2026-06-07',
+    },
+  ],
+  permissions: [
+    {
+      id: 1,
+      module: 'Inventory',
+      action: 'manage',
+      roleId: 1,
+      effect: 'allow',
+      updatedAt: '2026-06-10',
+      notes: 'Platform owners can manage catalog, stock, and order records.',
+    },
+    {
+      id: 2,
+      module: 'Purchasing',
+      action: 'approve',
+      roleId: 2,
+      effect: 'review',
+      updatedAt: '2026-06-09',
+      notes: 'Manager approvals require dual review above threshold.',
+    },
+    {
+      id: 3,
+      module: 'Audit',
+      action: 'export',
+      roleId: 4,
+      effect: 'allow',
+      updatedAt: '2026-06-08',
+      notes: 'Auditors can export read-only compliance snapshots.',
+    },
+  ],
+  user_accounts: [
+    {
+      id: 1,
+      userId: 1,
+      accountType: 'internal',
+      status: 'active',
+      lastSignInAt: '2026-06-11',
+      notes: 'Primary admin account with 2FA enabled.',
+    },
+    {
+      id: 2,
+      userId: 3,
+      accountType: 'internal',
+      status: 'pending_review',
+      lastSignInAt: '2026-06-09',
+      notes: 'Invitation accepted; awaiting role confirmation.',
+    },
+    {
+      id: 3,
+      userId: 4,
+      accountType: 'partner',
+      status: 'locked',
+      lastSignInAt: '2026-06-05',
+      notes: 'Locked after access review until finance confirms need.',
+    },
+  ],
+  user_logs: [
+    {
+      id: 1,
+      userId: 1,
+      event: 'Signed in',
+      ipAddress: '192.0.2.18',
+      severity: 'info',
+      createdAt: '2026-06-11',
+      details: 'Successful dashboard session from trusted device.',
+    },
+    {
+      id: 2,
+      userId: 3,
+      event: 'Role changed',
+      ipAddress: '198.51.100.22',
+      severity: 'warning',
+      createdAt: '2026-06-10',
+      details: 'Temporary planning role granted for cycle count rehearsal.',
+    },
+    {
+      id: 3,
+      userId: 4,
+      event: 'Account locked',
+      ipAddress: '203.0.113.11',
+      severity: 'critical',
+      createdAt: '2026-06-08',
+      details: 'Access paused after repeated stale session attempts.',
+    },
+  ],
+  user_settings: [
+    {
+      id: 1,
+      setting: 'Require two-factor authentication',
+      scope: 'All active members',
+      status: 'enabled',
+      ownerId: 1,
+      updatedAt: '2026-06-10',
+    },
+    {
+      id: 2,
+      setting: 'Invite approval workflow',
+      scope: 'Manager and owner roles',
+      status: 'enabled',
+      ownerId: 2,
+      updatedAt: '2026-06-09',
+    },
+    {
+      id: 3,
+      setting: 'Dormant account reminder',
+      scope: 'Users inactive for 14 days',
+      status: 'optional',
+      ownerId: 4,
+      updatedAt: '2026-06-07',
     },
   ],
   calendar_events: [
@@ -839,6 +958,31 @@ const initialDbState: DbState = {
     { id: 1, orderNumber: 'WEB-2026-1001', totalAmount: 1499, status: 'processing', orderDate: '2026-06-12' },
     { id: 2, orderNumber: 'WEB-2026-1002', totalAmount: 389, status: 'shipped', orderDate: '2026-06-10' },
     { id: 3, orderNumber: 'WEB-2026-1003', totalAmount: 84, status: 'delivered', orderDate: '2026-06-08' },
+  ],
+  project_planning: [
+    { id: 1, milestone: 'Workspace launch checklist', ownerId: 1, dueDate: '2026-06-21', status: 'in_progress', confidence: 82, notes: 'Finalize sidebar taxonomy and sample data coverage.' },
+    { id: 2, milestone: 'Mobile evidence pack', ownerId: 2, dueDate: '2026-06-24', status: 'review', confidence: 76, notes: 'Collect screenshots and smoke logs for five compact routes.' },
+    { id: 3, milestone: 'Template handoff notes', ownerId: 3, dueDate: '2026-06-28', status: 'planned', confidence: 68, notes: 'Document which references informed layout, density, and information architecture.' },
+  ],
+  store_admin: [
+    { id: 1, module: 'Catalog moderation', ownerId: 1, status: 'in_progress', targetDate: '2026-07-02', notes: 'Review queue for rich product content and publishing state.' },
+    { id: 2, module: 'Promotion rule builder', ownerId: 4, status: 'planned', targetDate: '2026-07-08', notes: 'Create guardrails for coupon stacking and margin review.' },
+    { id: 3, module: 'Merchant dashboard', ownerId: 2, status: 'review', targetDate: '2026-07-12', notes: 'Summarize orders, refunds, and fulfillment exceptions.' },
+  ],
+  store_services: [
+    { id: 1, serviceName: 'Checkout orchestration', runtime: 'edge', status: 'planned', latencyBudgetMs: 180, notes: 'Coordinate tax, shipping, and payment preflight checks.' },
+    { id: 2, serviceName: 'Inventory reservation queue', runtime: 'queue', status: 'in_progress', latencyBudgetMs: 450, notes: 'Reserve stock during payment authorization windows.' },
+    { id: 3, serviceName: 'Notification worker', runtime: 'worker', status: 'review', latencyBudgetMs: 250, notes: 'Send order, invoice, and delivery updates.' },
+  ],
+  ai_prompt: [
+    { id: 1, promptName: 'Developer refactor guide', audience: 'developer', status: 'review', usageCount: 42, content: 'Explain refactor risk, dependencies, and verification steps.' },
+    { id: 2, promptName: 'Business launch brief', audience: 'business', status: 'planned', usageCount: 31, content: 'Summarize launch readiness, blockers, and owner commitments.' },
+    { id: 3, promptName: 'Creative campaign draft', audience: 'creative', status: 'completed', usageCount: 56, content: 'Generate three campaign angles with operational constraints.' },
+  ],
+  invoice_generator: [
+    { id: 1, templateName: 'Order invoice packet', channel: 'order', status: 'in_progress', nextRunAt: '2026-06-18', notes: 'Generate buyer-facing invoice with shipment detail.' },
+    { id: 2, templateName: 'Monthly account statement', channel: 'email', status: 'planned', nextRunAt: '2026-07-01', notes: 'Attach statement summary and open balance snapshot.' },
+    { id: 3, templateName: 'System credit memo', channel: 'system', status: 'review', nextRunAt: '2026-06-22', notes: 'Route adjustment approvals before issuing credit memo.' },
   ],
 };
 
