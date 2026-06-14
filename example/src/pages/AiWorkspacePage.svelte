@@ -15,18 +15,50 @@
     updatedAt: string;
   }
 
+  interface ChatMessage {
+    id: string;
+    threadId: number;
+    role: 'user' | 'assistant';
+    text: string;
+    time: string;
+  }
+
   let { resourceName = 'ai_conversations' } = $props<{ resourceName?: string }>();
   let activeView = $state(readHashView('threads'));
+  let selectedThreadId = $state<number | null>(null);
+  let draftMessage = $state('');
+  let localMessages = $state<ChatMessage[]>([]);
 
   const locale = $derived(getLocale());
   const isZh = $derived(locale === 'zh-CN');
   const query = useList({ resource: 'ai_conversations', pagination: { mode: 'off' }, sorters: [{ field: 'updatedAt', order: 'desc' }] });
   const conversations = $derived((query.data?.data ?? []) as unknown as Conversation[]);
   const active = $derived(conversations[0]);
+  const selectedThread = $derived(conversations.find((thread) => thread.id === selectedThreadId) ?? active);
   const openCount = $derived(conversations.filter((item) => item.status !== 'resolved').length);
   const resolvedCount = $derived(conversations.filter((item) => item.status === 'resolved').length);
   const waitingCount = $derived(conversations.filter((item) => item.status === 'waiting').length);
   const normalizedView = $derived(['new', 'templates', 'settings'].includes(activeView) ? activeView : 'threads');
+  const chatMessages = $derived.by(() => {
+    if (!selectedThread) return [];
+    const seed: ChatMessage[] = [
+      {
+        id: `seed-user-${selectedThread.id}`,
+        threadId: selectedThread.id,
+        role: 'user',
+        text: isZh ? `请分析：${selectedThread.title}` : `Please analyze: ${selectedThread.title}`,
+        time: selectedThread.updatedAt,
+      },
+      {
+        id: `seed-assistant-${selectedThread.id}`,
+        threadId: selectedThread.id,
+        role: 'assistant',
+        text: selectedThread.lastMessage,
+        time: isZh ? '刚刚' : 'just now',
+      },
+    ];
+    return [...seed, ...localMessages.filter((message) => message.threadId === selectedThread.id)];
+  });
 
   const prompts = $derived([
     isZh ? '汇总低库存和补货动作' : 'Summarize low-stock actions',
@@ -145,6 +177,41 @@
 
   function syncView(): void {
     activeView = readHashView('threads');
+  }
+
+  function selectThread(threadId: number): void {
+    selectedThreadId = threadId;
+  }
+
+  function usePrompt(prompt: string): void {
+    draftMessage = prompt;
+  }
+
+  function sendMessage(): void {
+    const text = draftMessage.trim();
+    if (!text || !selectedThread) return;
+
+    const now = new Date().toLocaleTimeString(isZh ? 'zh-CN' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+    localMessages = [
+      ...localMessages,
+      {
+        id: `user-${selectedThread.id}-${Date.now()}`,
+        threadId: selectedThread.id,
+        role: 'user',
+        text,
+        time: now,
+      },
+      {
+        id: `assistant-${selectedThread.id}-${Date.now()}`,
+        threadId: selectedThread.id,
+        role: 'assistant',
+        text: isZh
+          ? `我已基于本地库存、待办、日历和通知数据生成建议：优先处理低库存 SKU，确认本周排期，并把风险动作同步到待办。`
+          : `I checked local inventory, todos, calendar, and notifications: prioritize low-stock SKUs, confirm this week's schedule, and sync risk actions into Todo.`,
+        time: now,
+      },
+    ];
+    draftMessage = '';
   }
 
   function statusLabel(status: string): string {
@@ -280,7 +347,10 @@
         </div>
         <div class="divide-y">
           {#each conversations as thread (thread.id)}
-            <button class="block w-full px-4 py-3 text-left transition hover:bg-muted/45">
+            <button
+              class={`block w-full px-4 py-3 text-left transition ${selectedThread?.id === thread.id ? 'bg-primary/5' : 'hover:bg-muted/45'}`}
+              onclick={() => selectThread(thread.id)}
+            >
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                   <p class="truncate text-sm font-semibold">{thread.title}</p>
@@ -307,22 +377,34 @@
         </div>
       </Card.Header>
       <Card.Content class="space-y-4 p-5">
-        <div class="rounded-2xl rounded-tl-sm border bg-background p-4 shadow-sm">
-          <p class="text-sm font-semibold">{isZh ? '助手' : 'Assistant'}</p>
-          <p class="mt-2 text-sm text-muted-foreground">
-            {active?.lastMessage ?? (isZh ? '选择一个模板，我会把库存、待办、日历和通知串起来回答。' : 'Pick a template and I will connect inventory, todos, calendar, and notifications.')}
-          </p>
+        <div class="max-h-[360px] space-y-3 overflow-y-auto rounded-2xl border bg-background p-4" data-ai-chat-panel>
+          {#each chatMessages as message (message.id)}
+            <div class={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div class={`max-w-[82%] rounded-2xl px-4 py-3 text-sm shadow-sm ${message.role === 'user' ? 'rounded-br-sm bg-primary text-primary-foreground' : 'rounded-tl-sm border bg-card text-card-foreground'}`}>
+                <div class="mb-1 flex items-center gap-2 text-[11px] opacity-80">
+                  <span>{message.role === 'user' ? (isZh ? '你' : 'You') : (isZh ? '助手' : 'Assistant')}</span>
+                  <span>{message.time}</span>
+                </div>
+                <p class="leading-6">{message.text}</p>
+              </div>
+            </div>
+          {/each}
+          {#if chatMessages.length === 0}
+            <p class="text-sm text-muted-foreground">{isZh ? '选择一个模板，我会把库存、待办、日历和通知串起来回答。' : 'Pick a template and I will connect inventory, todos, calendar, and notifications.'}</p>
+          {/if}
         </div>
         <div class="grid gap-2 sm:grid-cols-2">
           {#each prompts as prompt (prompt)}
-            <button class="rounded-xl border bg-card px-3 py-2 text-left text-sm transition hover:border-primary/50 hover:bg-primary/5">{prompt}</button>
+            <button class="rounded-xl border bg-card px-3 py-2 text-left text-sm transition hover:border-primary/50 hover:bg-primary/5" onclick={() => usePrompt(prompt)}>{prompt}</button>
           {/each}
         </div>
-        <div class="flex flex-col gap-2 rounded-2xl border bg-background p-2 sm:flex-row">
-          <div class="min-h-11 flex-1 rounded-xl bg-muted/35 px-4 py-3 text-sm text-muted-foreground">
-            {isZh ? '输入一个运营问题，例如：哪些商品需要补货？' : 'Ask an operations question, for example: what needs replenishment?'}
-          </div>
-          <Button><Send class="mr-2 h-4 w-4" />{isZh ? '发送' : 'Send'}</Button>
+        <div class="flex flex-col gap-2 rounded-2xl border bg-background p-2 sm:flex-row" data-ai-composer>
+          <textarea
+            bind:value={draftMessage}
+            class="min-h-16 flex-1 resize-none rounded-xl bg-muted/35 px-4 py-3 text-sm outline-none focus:bg-background focus:ring-2 focus:ring-primary/15"
+            placeholder={isZh ? '输入一个运营问题，例如：哪些商品需要补货？' : 'Ask an operations question, for example: what needs replenishment?'}
+          ></textarea>
+          <Button onclick={sendMessage} disabled={!draftMessage.trim()}><Send class="mr-2 h-4 w-4" />{isZh ? '发送' : 'Send'}</Button>
         </div>
       </Card.Content>
     </Card.Root>

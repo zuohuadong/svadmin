@@ -82,6 +82,7 @@
   let sortField = $state(readHashParam('sort') ?? 'name');
   let sortOrder = $state(readHashParam('order') ?? 'asc');
   let roleSearch = $state('');
+  let selectedRoleId = $state<number | null>(null);
 
   const locale = $derived(getLocale());
   const isZh = $derived(locale === 'zh-CN');
@@ -133,6 +134,29 @@
       ...role.permissions.map(permissionLabel),
     ].some((value) => value.toLowerCase().includes(queryText)));
   });
+  const selectedRole = $derived(roleCards.find((role) => role.id === selectedRoleId) ?? roleCards[0]);
+  const selectedPermissionDomains = $derived.by(() => {
+    if (!selectedRole) return [];
+    const domains: { module: string; permissions: Permission[] }[] = [];
+    for (const permission of selectedRole.permissions) {
+      const existing = domains.find((domain) => domain.module === permission.module);
+      if (existing) {
+        existing.permissions = [...existing.permissions, permission];
+      } else {
+        domains.push({ module: permission.module, permissions: [permission] });
+      }
+    }
+    return domains;
+  });
+  const focusedRoleId = $derived.by(() => {
+    if (!activeView.startsWith('role-')) return null;
+    const id = Number(activeView.replace('role-', ''));
+    return Number.isFinite(id) ? id : null;
+  });
+  const visiblePermissions = $derived(
+    focusedRoleId ? permissions.filter((permission) => permission.roleId === focusedRoleId) : permissions,
+  );
+  const focusedRoleName = $derived(focusedRoleId ? roleName(focusedRoleId) : null);
   const pageCopy = $derived.by(() => {
     const copies: Record<UserManagementResource, { badge: string; title: string; description: string; action: string; focus: string }> = {
       users: {
@@ -207,6 +231,10 @@
     sortOrder = readHashParam('order') ?? 'asc';
   }
 
+  function selectRole(roleId: number): void {
+    selectedRoleId = roleId;
+  }
+
   function initials(name: string): string {
     return name.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   }
@@ -277,6 +305,21 @@
     };
     return labels[scope] ?? scope;
   }
+
+  function permissionDomainLabel(module: string): string {
+    if (!isZh) return module;
+    const labels: Record<string, string> = {
+      Inventory: '库存',
+      Purchasing: '采购',
+      CRM: '客户',
+      Properties: '资产',
+      Sales: '销售',
+      Support: '支持',
+      Audit: '审计',
+      AI: 'AI',
+    };
+    return labels[module] ?? module;
+  }
 </script>
 
 <svelte:window onhashchange={syncView} onpopstate={syncView} />
@@ -325,28 +368,29 @@
   {/if}
 
   {#if activeResource === 'roles'}
-    <section class="grid gap-4">
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {#each roleCards.slice(0, 3) as role (role.id)}
-          <Card.Root class="overflow-hidden border-primary/15">
-            <Card.Header class="space-y-3">
+    <section class="grid gap-4" data-role-workspace>
+      <div class="grid gap-4 xl:grid-cols-[1fr_0.36fr]">
+        <div class="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          {#each roleCards as role (role.id)}
+            <button
+              class={`rounded-2xl border bg-card p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md ${selectedRole?.id === role.id ? 'border-primary/45 ring-2 ring-primary/10' : 'border-border'}`}
+              onclick={() => selectRole(role.id)}
+            >
               <div class="flex items-start justify-between gap-3">
-                <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary">
+                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary">
                   {initials(role.name)}
                 </span>
                 <Badge variant="outline">{roleLevelLabel(role.level)}</Badge>
               </div>
-              <div>
-                <Card.Title class="text-base">{role.name}</Card.Title>
-                <Card.Description>{role.description}</Card.Description>
+              <div class="mt-4">
+                <p class="font-semibold">{role.name}</p>
+                <p class="mt-1 line-clamp-2 text-sm text-muted-foreground">{role.description}</p>
               </div>
-            </Card.Header>
-            <Card.Content class="space-y-4">
-              <div class="flex items-center justify-between rounded-xl border bg-muted/20 px-3 py-2 text-sm">
+              <div class="mt-4 flex items-center justify-between rounded-xl border bg-muted/20 px-3 py-2 text-sm">
                 <span class="text-muted-foreground">{isZh ? '成员' : 'Members'}</span>
                 <span class="font-semibold">{role.assignedUsers.length}</span>
               </div>
-              <div class="flex -space-x-2">
+              <div class="mt-4 flex -space-x-2">
                 {#each role.assignedUsers.slice(0, 4) as user (user.id)}
                   <span class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-primary/10 text-[10px] font-semibold text-primary" title={user.name}>
                     {initials(user.name)}
@@ -356,24 +400,66 @@
                   <span class="text-xs text-muted-foreground">{isZh ? '暂无成员' : 'No assigned members'}</span>
                 {/if}
               </div>
-              <div class="flex flex-wrap gap-1.5">
-                {#each role.permissions.slice(0, 2) as permission (permission.id)}
-                  <Badge variant="secondary">{permissionLabel(permission)}</Badge>
+              <div class="mt-4 flex flex-wrap gap-1.5">
+                {#each role.permissions.slice(0, 3) as permission (permission.id)}
+                  <Badge variant="secondary">{permissionDomainLabel(permission.module)}</Badge>
                 {/each}
-                {#if role.permissions.length > 2}
-                  <Badge variant="outline">{role.permissions.length - 2} {isZh ? '更多' : 'more'}</Badge>
+                {#if role.permissions.length > 3}
+                  <Badge variant="outline">{role.permissions.length - 3} {isZh ? '更多' : 'more'}</Badge>
                 {/if}
               </div>
-            </Card.Content>
-          </Card.Root>
-        {/each}
-        <a href="#/roles/create" class="flex min-h-[230px] flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/10 p-5 text-center transition hover:border-primary/60 hover:bg-primary/5">
-          <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <ShieldCheck class="h-5 w-5" />
-          </span>
-          <span class="mt-4 font-semibold">{isZh ? '新增角色' : 'Add New Role'}</span>
-          <span class="mt-2 text-sm text-muted-foreground">{isZh ? '创建角色、Slug 和默认权限集合。' : 'Create a role, slug, and default permission set.'}</span>
-        </a>
+            </button>
+          {/each}
+          <a href="#/roles/create" class="flex min-h-[250px] flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/10 p-5 text-center transition hover:border-primary/60 hover:bg-primary/5">
+            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <ShieldCheck class="h-5 w-5" />
+            </span>
+            <span class="mt-4 font-semibold">{isZh ? '新增角色' : 'Add New Role'}</span>
+            <span class="mt-2 text-sm text-muted-foreground">{isZh ? '创建角色、Slug 和默认权限集合。' : 'Create a role, slug, and default permission set.'}</span>
+          </a>
+        </div>
+
+        <Card.Root class="border-primary/25 bg-primary/5">
+          <Card.Header>
+            <Badge>{isZh ? '权限工作台' : 'Permission Studio'}</Badge>
+            <Card.Title class="mt-3 text-xl">{selectedRole?.name ?? (isZh ? '选择角色' : 'Select a role')}</Card.Title>
+            <Card.Description>{selectedRole?.description ?? (isZh ? '点击左侧角色卡片查看权限分组。' : 'Click a role card to review grouped permissions.')}</Card.Description>
+          </Card.Header>
+          <Card.Content class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="rounded-xl border bg-card p-3">
+                <p class="text-xs text-muted-foreground">{isZh ? '成员' : 'Members'}</p>
+                <p class="mt-1 text-2xl font-semibold">{selectedRole?.assignedUsers.length ?? 0}</p>
+              </div>
+              <div class="rounded-xl border bg-card p-3">
+                <p class="text-xs text-muted-foreground">{isZh ? '权限' : 'Permissions'}</p>
+                <p class="mt-1 text-2xl font-semibold">{selectedRole?.permissionCount ?? 0}</p>
+              </div>
+            </div>
+            <div class="space-y-2">
+              {#each selectedPermissionDomains as domain (domain.module)}
+                <div class="rounded-xl border bg-card p-3">
+                  <div class="flex items-center justify-between gap-3">
+                    <p class="text-sm font-semibold">{permissionDomainLabel(domain.module)}</p>
+                    <Badge variant="outline">{domain.permissions.length}</Badge>
+                  </div>
+                  <div class="mt-3 flex flex-wrap gap-1.5">
+                    {#each domain.permissions as permission (permission.id)}
+                      <Badge variant="secondary">{permission.action}</Badge>
+                    {/each}
+                  </div>
+                </div>
+              {/each}
+              {#if selectedPermissionDomains.length === 0}
+                <p class="rounded-xl border bg-card p-3 text-sm text-muted-foreground">{isZh ? '该角色暂无权限，可通过下方表格进入配置。' : 'This role has no permissions yet; use the table below to configure it.'}</p>
+              {/if}
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <a class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground transition hover:bg-primary/90" href={`#/permissions?view=role-${selectedRole?.id ?? ''}`}>{isZh ? '配置权限' : 'Configure permissions'}</a>
+              <a class="inline-flex h-9 items-center justify-center rounded-md border bg-background px-3 text-xs font-medium transition hover:bg-muted" href={`#/roles/edit/${selectedRole?.id ?? ''}`}>{isZh ? '编辑角色' : 'Edit role'}</a>
+            </div>
+          </Card.Content>
+        </Card.Root>
       </div>
 
       <Card.Root class="overflow-hidden">
@@ -473,9 +559,22 @@
       </Card.Root>
     </section>
   {:else if activeResource === 'permissions'}
-    <section class="grid gap-4 lg:grid-cols-3">
-      {#each permissions as permission (permission.id)}
-        <Card.Root>
+    <section class="grid gap-4">
+      {#if focusedRoleName}
+        <Card.Root class="border-primary/25 bg-primary/5">
+          <Card.Content class="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <Badge>{isZh ? '角色过滤' : 'Role filter'}</Badge>
+              <p class="mt-2 font-semibold">{focusedRoleName}</p>
+              <p class="mt-1 text-sm text-muted-foreground">{isZh ? '当前只展示该角色关联的权限策略。' : 'Only policies linked to this role are shown.'}</p>
+            </div>
+            <a class="inline-flex h-9 items-center justify-center rounded-md border bg-background px-3 text-sm font-medium transition hover:bg-muted" href="#/permissions">{isZh ? '查看全部权限' : 'View all permissions'}</a>
+          </Card.Content>
+        </Card.Root>
+      {/if}
+      <div class="grid gap-4 lg:grid-cols-3">
+      {#each visiblePermissions as permission (permission.id)}
+        <Card.Root class={focusedRoleId === permission.roleId ? 'border-primary/25' : ''}>
           <Card.Header>
             <div class="flex items-center justify-between gap-3"><Badge>{permission.module}</Badge><Badge variant="outline">{statusLabel(permission.effect)}</Badge></div>
             <Card.Title class="text-base">{permission.action}</Card.Title>
@@ -483,7 +582,12 @@
           </Card.Header>
           <Card.Content><p class="text-sm text-muted-foreground">{permission.notes}</p><p class="mt-3 text-xs font-medium text-primary">{permission.updatedAt}</p></Card.Content>
         </Card.Root>
+      {:else}
+        <Card.Root class="lg:col-span-3">
+          <Card.Content class="p-8 text-center text-sm text-muted-foreground">{isZh ? '该角色暂无权限策略。' : 'No permission policies are linked to this role yet.'}</Card.Content>
+        </Card.Root>
       {/each}
+      </div>
     </section>
   {:else if activeResource === 'user_accounts'}
     <section class="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
