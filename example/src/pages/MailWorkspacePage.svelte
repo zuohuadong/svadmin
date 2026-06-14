@@ -21,6 +21,7 @@
   let { resourceName = 'mail_inbox' } = $props<{ resourceName?: string }>();
   let activeView = $state(readHashView('folder'));
   let selectedMessageId = $state<number | null>(null);
+  let composerOpen = $state(false);
 
   const locale = $derived(getLocale());
   const isZh = $derived(locale === 'zh-CN');
@@ -107,7 +108,7 @@
             <Card.Title class="mt-3 text-2xl">{viewCopy.title}</Card.Title>
             <Card.Description>{viewCopy.description}</Card.Description>
           </div>
-          <Button><Plus class="mr-2 h-4 w-4" />{isZh ? '写信 / Compose' : 'Compose'}</Button>
+          <Button onclick={() => composerOpen = !composerOpen}><Plus class="mr-2 h-4 w-4" />{isZh ? '写信 / Compose' : 'Compose'}</Button>
         </div>
       </Card.Header>
       <Card.Content class="grid gap-3 p-5 sm:grid-cols-3">
@@ -125,6 +126,46 @@
       </Card.Content>
     </Card.Root>
   </section>
+
+  {#if composerOpen}
+    <section class="rounded-2xl border bg-card shadow-sm" data-mail-composer>
+      <div class="flex flex-col gap-3 border-b p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <Badge>{isZh ? '撰写邮件' : 'Compose Mail'}</Badge>
+          <h2 class="mt-3 text-xl font-semibold">{isZh ? '给运营团队发送一封跟进邮件' : 'Send a follow-up to the operations team'}</h2>
+          <p class="mt-1 text-sm text-muted-foreground">{isZh ? '本地示例不会发送真实邮件，只演示邮件工作流结构。' : 'This local example does not send real mail; it demonstrates the workflow shape.'}</p>
+        </div>
+        <Button variant="outline" onclick={() => composerOpen = false}>{isZh ? '收起' : 'Collapse'}</Button>
+      </div>
+      <div class="grid gap-3 p-5 lg:grid-cols-[0.72fr_1.28fr]">
+        <div class="space-y-3">
+          <label class="block">
+            <span class="text-xs font-medium text-muted-foreground">{isZh ? '收件人' : 'To'}</span>
+            <input class="mt-1 h-10 w-full rounded-lg border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15" value="ops@example.com" readonly />
+          </label>
+          <label class="block">
+            <span class="text-xs font-medium text-muted-foreground">{isZh ? '主题' : 'Subject'}</span>
+            <input class="mt-1 h-10 w-full rounded-lg border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15" value={isZh ? '今日库存与客户跟进' : 'Today inventory and customer follow-up'} readonly />
+          </label>
+          <div class="flex flex-wrap gap-2">
+            {#each categories as category (category.label)}
+              <span class={`rounded-full px-2.5 py-1 text-xs font-medium ${category.tone}`}>{category.label}</span>
+            {/each}
+          </div>
+        </div>
+        <div class="rounded-xl border bg-background p-4">
+          <p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{isZh ? '正文草稿' : 'Draft body'}</p>
+          <p class="mt-3 text-sm leading-6 text-muted-foreground">
+            {isZh ? '团队好，今天请优先关注低库存 SKU、待确认看房和未读客户消息。我已经把相关任务同步到待办和日历。' : 'Hi team, please prioritize low-stock SKUs, pending tours, and unread customer messages today. I have synced the related work into Todo and Calendar.'}
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <Button><Send class="mr-2 h-4 w-4" />{isZh ? '发送示例' : 'Send demo'}</Button>
+            <Button variant="outline">{isZh ? '保存草稿' : 'Save draft'}</Button>
+          </div>
+        </div>
+      </div>
+    </section>
+  {/if}
 
   <section class="grid gap-4 xl:grid-cols-[0.68fr_1fr_1.15fr]">
     <Card.Root class="overflow-hidden">

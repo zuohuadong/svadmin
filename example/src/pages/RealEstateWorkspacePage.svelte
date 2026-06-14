@@ -172,7 +172,39 @@
       {/each}
     </div>
     <div class="grid gap-4 content-start">
-      <Card.Root class="overflow-hidden"><Card.Header><Card.Title class="text-base">{isZh ? '地图态势' : 'Map Context'}</Card.Title></Card.Header><Card.Content><div class="relative mx-auto h-72 w-full max-w-md rounded-xl border bg-[radial-gradient(circle_at_30%_25%,hsl(var(--primary)/0.22),transparent_22%),radial-gradient(circle_at_70%_55%,hsl(var(--success)/0.18),transparent_18%),linear-gradient(135deg,hsl(var(--muted)),hsl(var(--background)))]"><span class="absolute left-[32%] top-[28%] h-4 w-4 rounded-full border-2 border-background bg-primary shadow"></span><span class="absolute left-[68%] top-[54%] h-4 w-4 rounded-full border-2 border-background bg-success shadow"></span><span class="absolute left-[48%] top-[72%] h-4 w-4 rounded-full border-2 border-background bg-warning shadow"></span></div></Card.Content></Card.Root>
+      <Card.Root class="overflow-hidden">
+        <Card.Header>
+          <Card.Title class="text-base">{isZh ? '地图态势' : 'Map Context'}</Card.Title>
+          <Card.Description>{isZh ? '用可读 pin、区域热度和看房路线模拟地图工作台。' : 'A map-like workspace with readable pins, heat zones, and tour routes.'}</Card.Description>
+        </Card.Header>
+        <Card.Content class="space-y-3">
+          <div class="flex flex-wrap gap-2">
+            <Badge variant="outline">{isZh ? '挂牌' : 'Listed'}</Badge>
+            <Badge variant="outline">{isZh ? '线索热区' : 'Lead heat'}</Badge>
+            <Badge variant="outline">{isZh ? '今日路线' : 'Today route'}</Badge>
+          </div>
+          <div class="relative mx-auto h-72 w-full max-w-md overflow-hidden rounded-xl border bg-[linear-gradient(90deg,hsl(var(--border))_1px,transparent_1px),linear-gradient(0deg,hsl(var(--border))_1px,transparent_1px),radial-gradient(circle_at_30%_25%,hsl(var(--primary)/0.22),transparent_22%),radial-gradient(circle_at_70%_55%,hsl(var(--success)/0.18),transparent_18%),linear-gradient(135deg,hsl(var(--muted)),hsl(var(--background)))] bg-[size:44px_44px,44px_44px,auto,auto,auto]">
+            <div class="absolute left-[20%] top-[18%] rounded-xl border bg-card/95 px-3 py-2 text-xs shadow-sm">
+              <p class="font-semibold">{isZh ? '南湾资产' : 'South Bay'}</p>
+              <p class="text-muted-foreground">$24M</p>
+            </div>
+            <div class="absolute right-[12%] top-[42%] rounded-xl border bg-card/95 px-3 py-2 text-xs shadow-sm">
+              <p class="font-semibold">{isZh ? '租赁热区' : 'Rent heat'}</p>
+              <p class="text-muted-foreground">{leads.length} {isZh ? '线索' : 'leads'}</p>
+            </div>
+            <div class="absolute bottom-[13%] left-[34%] rounded-xl border bg-card/95 px-3 py-2 text-xs shadow-sm">
+              <p class="font-semibold">{isZh ? '今日看房' : 'Tours today'}</p>
+              <p class="text-muted-foreground">{showingCount} {isZh ? '条路线' : 'routes'}</p>
+            </div>
+            <span class="absolute left-[32%] top-[28%] h-4 w-4 rounded-full border-2 border-background bg-primary shadow"></span>
+            <span class="absolute left-[68%] top-[54%] h-4 w-4 rounded-full border-2 border-background bg-success shadow"></span>
+            <span class="absolute left-[48%] top-[72%] h-4 w-4 rounded-full border-2 border-background bg-warning shadow"></span>
+            <svg class="pointer-events-none absolute inset-0 h-full w-full text-primary/45" viewBox="0 0 400 288" aria-hidden="true">
+              <path d="M128 82 C180 116 204 178 272 156 C304 148 280 214 192 208" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="8 8" />
+            </svg>
+          </div>
+        </Card.Content>
+      </Card.Root>
       <Card.Root><Card.Header><Card.Title class="text-base">{isZh ? '活跃线索' : 'Active Leads'}</Card.Title></Card.Header><Card.Content class="space-y-3">{#each leads.slice(0, 3) as lead (lead.id)}<div class="rounded-xl border p-3"><div class="flex items-center justify-between"><p class="font-semibold">{lead.leadName}</p><Badge>{money(lead.budget)}</Badge></div><p class="mt-1 text-xs text-muted-foreground">{statusLabel(lead.status)}</p></div>{/each}</Card.Content></Card.Root>
     </div>
   </section>
