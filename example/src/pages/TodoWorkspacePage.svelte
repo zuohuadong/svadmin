@@ -18,37 +18,44 @@
 
   let { resourceName = 'todos' } = $props<{ resourceName?: string }>();
   let activeView = $state(readHashView('all'));
+  let statusOverrides = $state<Record<number, string>>({});
+  let draggedTodoId = $state<number | null>(null);
 
   const locale = $derived(getLocale());
   const isZh = $derived(locale === 'zh-CN');
   const query = useList({ resource: 'todos', pagination: { mode: 'off' }, sorters: [{ field: 'dueDate', order: 'asc' }] });
   const todos = $derived((query.data?.data ?? []) as unknown as Todo[]);
+  const boardTodos = $derived(todos.map((todo) => {
+    const hasOverride = Object.hasOwn(statusOverrides, todo.id);
+    const status = hasOverride ? statusOverrides[todo.id] : todo.status;
+    return { ...todo, status, completed: hasOverride ? status === 'done' : status === 'done' || todo.completed };
+  }));
   const lanes = $derived([
     { key: 'open', title: isZh ? '待开始' : 'Open' },
     { key: 'in_progress', title: isZh ? '进行中' : 'In Progress' },
     { key: 'blocked', title: isZh ? '阻塞' : 'Blocked' },
     { key: 'done', title: isZh ? '已完成' : 'Done' },
   ]);
-  const completedCount = $derived(todos.filter((todo) => todo.completed).length);
-  const highPriorityCount = $derived(todos.filter((todo) => todo.priority === 'high').length);
-  const progress = $derived(todos.length ? Math.round(completedCount / todos.length * 100) : 0);
+  const completedCount = $derived(boardTodos.filter((todo) => todo.completed).length);
+  const highPriorityCount = $derived(boardTodos.filter((todo) => todo.priority === 'high').length);
+  const progress = $derived(boardTodos.length ? Math.round(completedCount / boardTodos.length * 100) : 0);
   const priorityGroups = $derived(['high', 'medium', 'low'].map((priority) => ({
     priority,
-    count: todos.filter((todo) => todo.priority === priority).length,
+    count: boardTodos.filter((todo) => todo.priority === priority).length,
   })));
-  const todayTasks = $derived(todos.filter((todo) => todo.dueDate <= '2026-06-14' && !todo.completed).length);
-  const upcomingTasks = $derived(todos.filter((todo) => todo.dueDate > '2026-06-14' && !todo.completed).length);
+  const todayTasks = $derived(boardTodos.filter((todo) => todo.dueDate <= '2026-06-14' && !todo.completed).length);
+  const upcomingTasks = $derived(boardTodos.filter((todo) => todo.dueDate > '2026-06-14' && !todo.completed).length);
   const taskLists = $derived([
-    { key: 'all', label: isZh ? '全部任务 / All Tasks' : 'All Tasks', count: todos.length, href: '#/todos', Icon: ListTodo },
+    { key: 'all', label: isZh ? '全部任务 / All Tasks' : 'All Tasks', count: boardTodos.length, href: '#/todos', Icon: ListTodo },
     { key: 'today', label: isZh ? '今日' : 'Today', count: todayTasks, href: '#/todos?view=today', Icon: CalendarDays },
     { key: 'upcoming', label: isZh ? '即将到来' : 'Upcoming', count: upcomingTasks, href: '#/todos?view=upcoming', Icon: CalendarDays },
     { key: 'priority', label: isZh ? '优先级' : 'Priority', count: highPriorityCount, href: '#/todos?view=priority', Icon: Flag },
     { key: 'completed', label: isZh ? '已完成' : 'Completed', count: completedCount, href: '#/todos?view=completed', Icon: CheckCircle2 },
   ]);
   const tags = $derived([
-    { label: isZh ? '工作' : 'Work', count: todos.length },
+    { label: isZh ? '工作' : 'Work', count: boardTodos.length },
     { label: isZh ? '个人' : 'Personal', count: 1 },
-    { label: isZh ? '团队' : 'Team', count: usersFallback(todos.length) },
+    { label: isZh ? '团队' : 'Team', count: usersFallback(boardTodos.length) },
     { label: isZh ? '目标' : 'Goals', count: highPriorityCount },
   ]);
   const normalizedView = $derived(['today', 'upcoming', 'priority', 'completed', 'tags'].includes(activeView) ? activeView : 'all');
@@ -94,11 +101,11 @@
     return copies[normalizedView as keyof typeof copies];
   });
   const focusedTodos = $derived.by(() => {
-    if (normalizedView === 'today') return todos.filter((todo) => todo.dueDate <= '2026-06-14' && !todo.completed);
-    if (normalizedView === 'upcoming') return todos.filter((todo) => todo.dueDate > '2026-06-14' && !todo.completed);
-    if (normalizedView === 'priority') return todos.filter((todo) => todo.priority === 'high');
-    if (normalizedView === 'completed') return todos.filter((todo) => todo.completed);
-    return todos;
+    if (normalizedView === 'today') return boardTodos.filter((todo) => todo.dueDate <= '2026-06-14' && !todo.completed);
+    if (normalizedView === 'upcoming') return boardTodos.filter((todo) => todo.dueDate > '2026-06-14' && !todo.completed);
+    if (normalizedView === 'priority') return boardTodos.filter((todo) => todo.priority === 'high');
+    if (normalizedView === 'completed') return boardTodos.filter((todo) => todo.completed);
+    return boardTodos;
   });
 
   function usersFallback(count: number): number {
@@ -116,6 +123,21 @@
     if (priority === 'low') return '低';
     return priority;
   }
+
+  function moveTodo(todoId: number, status: string): void {
+    statusOverrides = { ...statusOverrides, [todoId]: status };
+  }
+
+  function nextStatus(status: string): string {
+    if (status === 'open') return 'in_progress';
+    if (status === 'in_progress') return 'done';
+    if (status === 'blocked') return 'in_progress';
+    return 'done';
+  }
+
+  function laneTodos(status: string): Todo[] {
+    return boardTodos.filter((todo) => todo.status === status || (status === 'done' && todo.completed));
+  }
 </script>
 
 <svelte:window onhashchange={syncView} onpopstate={syncView} />
@@ -129,7 +151,7 @@
         <Card.Description>{viewCopy.description}</Card.Description>
       </Card.Header>
       <Card.Content class="space-y-4 p-5">
-        <div class="flex items-end justify-between gap-4"><p class="text-4xl font-semibold">{progress}%</p><p class="text-sm text-muted-foreground">{completedCount}/{todos.length} {isZh ? '已完成' : 'completed'}</p></div>
+        <div class="flex items-end justify-between gap-4"><p class="text-4xl font-semibold">{progress}%</p><p class="text-sm text-muted-foreground">{completedCount}/{boardTodos.length} {isZh ? '已完成' : 'completed'}</p></div>
         <div class="h-2 rounded-full bg-muted"><div class="h-2 rounded-full bg-primary" style:width={`${progress}%`}></div></div>
       </Card.Content>
     </Card.Root>
@@ -164,19 +186,58 @@
     <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       {#each lanes as lane (lane.key)}
         <Card.Root class="overflow-hidden">
-          <Card.Header class="border-b px-4 py-3"><Card.Title class="text-sm">{lane.title}</Card.Title></Card.Header>
-          <Card.Content class="space-y-3 p-3">
-            {#each todos.filter((todo) => todo.status === lane.key || (lane.key === 'done' && todo.completed)) as todo (todo.id)}
-              <article class="rounded-xl border bg-card p-3 shadow-sm">
+          <Card.Header class="border-b px-4 py-3">
+            <div class="flex items-center justify-between gap-3">
+              <Card.Title class="text-sm">{lane.title}</Card.Title>
+              <Badge variant="outline">{laneTodos(lane.key).length}</Badge>
+            </div>
+          </Card.Header>
+          <Card.Content
+            class={`min-h-48 space-y-3 p-3 transition ${draggedTodoId ? 'bg-primary/5' : ''}`}
+            ondragover={(event) => event.preventDefault()}
+            ondrop={(event) => {
+              event.preventDefault();
+              if (draggedTodoId) moveTodo(draggedTodoId, lane.key);
+              draggedTodoId = null;
+            }}
+          >
+            {#each laneTodos(lane.key) as todo (todo.id)}
+              <article
+                class="rounded-xl border bg-card p-3 shadow-sm transition hover:border-primary/40 hover:shadow-md"
+                draggable="true"
+                ondragstart={() => draggedTodoId = todo.id}
+                ondragend={() => draggedTodoId = null}
+              >
                 <div class="flex items-start gap-2">
-                  {#if todo.completed}<CheckCircle2 class="mt-0.5 h-4 w-4 text-success" />{:else}<Circle class="mt-0.5 h-4 w-4 text-muted-foreground" />{/if}
+                  <button
+                    class="mt-0.5 rounded-full outline-none focus:ring-2 focus:ring-primary/25"
+                    aria-label={todo.completed ? (isZh ? '重新打开任务' : 'Reopen task') : (isZh ? '完成任务' : 'Complete task')}
+                    onclick={() => moveTodo(todo.id, todo.completed ? 'open' : 'done')}
+                  >
+                    {#if todo.completed}<CheckCircle2 class="h-4 w-4 text-success" />{:else}<Circle class="h-4 w-4 text-muted-foreground" />{/if}
+                  </button>
                   <div class="min-w-0 flex-1">
                     <p class="text-sm font-semibold">{todo.title}</p>
                     <p class="mt-1 line-clamp-2 text-xs text-muted-foreground">{todo.notes}</p>
-                    <div class="mt-3 flex items-center justify-between gap-2"><Badge variant="outline">{priorityLabel(todo.priority)}</Badge><span class="text-xs text-primary">{todo.dueDate}</span></div>
+                    <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+                      <Badge variant="outline">{priorityLabel(todo.priority)}</Badge>
+                      <span class="text-xs text-primary">{todo.dueDate}</span>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      {#if todo.status !== 'done'}
+                        <Button size="sm" variant="outline" onclick={() => moveTodo(todo.id, nextStatus(todo.status))}>{isZh ? '推进' : 'Move next'}</Button>
+                      {/if}
+                      {#if todo.status !== 'blocked' && todo.status !== 'done'}
+                        <Button size="sm" variant="outline" onclick={() => moveTodo(todo.id, 'blocked')}>{isZh ? '标记阻塞' : 'Block'}</Button>
+                      {/if}
+                    </div>
                   </div>
                 </div>
               </article>
+            {:else}
+              <div class="rounded-xl border border-dashed p-4 text-center text-xs text-muted-foreground">
+                {isZh ? '拖动任务到这里' : 'Drop tasks here'}
+              </div>
             {/each}
           </Card.Content>
         </Card.Root>
@@ -189,13 +250,13 @@
         <div class="rounded-2xl border bg-background p-4">
           <p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{isZh ? '专注进度' : 'Focus progress'}</p>
           <div class="mt-3 flex items-end justify-between gap-3">
-            <p class="text-2xl font-semibold">{completedCount + highPriorityCount} / {todos.length + highPriorityCount}</p>
+            <p class="text-2xl font-semibold">{completedCount} / {boardTodos.length}</p>
             <Badge variant="outline">{isZh ? '今日节奏' : 'today pace'}</Badge>
           </div>
-          <div class="mt-3 h-2 rounded-full bg-muted"><div class="h-2 rounded-full bg-primary" style:width={`${Math.min(100, progress + 18)}%`}></div></div>
+          <div class="mt-3 h-2 rounded-full bg-muted"><div class="h-2 rounded-full bg-primary" style:width={`${progress}%`}></div></div>
         </div>
         <p class="rounded-2xl rounded-tl-sm border bg-muted/25 p-4 text-sm text-muted-foreground">{isZh ? '建议先处理高优先级库存告警，再确认供应商到货窗口。' : 'Start with high-priority stock alerts, then confirm supplier delivery windows.'}</p>
-        <Button class="w-full">{isZh ? '生成今日计划' : 'Generate day plan'}</Button>
+        <Button class="w-full" onclick={() => activeView = 'priority'}>{isZh ? '生成今日计划' : 'Generate day plan'}</Button>
       </Card.Content>
     </Card.Root>
   </section>

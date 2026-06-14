@@ -20,6 +20,7 @@
 
   let { resourceName = 'mail_inbox' } = $props<{ resourceName?: string }>();
   let activeView = $state(readHashView('folder'));
+  let selectedMessageId = $state<number | null>(null);
 
   const locale = $derived(getLocale());
   const isZh = $derived(locale === 'zh-CN');
@@ -40,7 +41,7 @@
     return inboxQuery;
   });
   const messages = $derived((query.data?.data ?? []) as unknown as MailMessage[]);
-  const selected = $derived(messages[0]);
+  const selected = $derived(messages.find((message) => message.id === selectedMessageId) ?? messages[0]);
   const unread = $derived(messages.filter((message) => message.unread).length);
   const labels = $derived([
     { name: isZh ? '运营' : 'Operations', count: inboxQuery.data?.total ?? 0 },
@@ -160,7 +161,10 @@
       <Card.Content class="p-0">
         <div class="divide-y">
           {#each messages as message (message.id)}
-            <button class="block w-full px-4 py-3 text-left transition hover:bg-muted/40">
+            <button
+              class={`block w-full px-4 py-3 text-left transition ${selected?.id === message.id ? 'bg-primary/5' : 'hover:bg-muted/40'}`}
+              onclick={() => selectedMessageId = message.id}
+            >
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                   <p class="truncate text-sm font-semibold">{message.subject}</p>
