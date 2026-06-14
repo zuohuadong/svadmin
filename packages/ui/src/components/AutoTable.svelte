@@ -484,17 +484,13 @@
   }
 </script>
 
-<div class="space-y-5" data-svadmin-list>
+<div class="space-y-4">
   <!-- Header -->
-  <div class="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-sm shadow-slate-900/[0.03] backdrop-blur" data-svadmin-list-header>
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <div class="min-w-0">
-        <h1 class="truncate text-2xl font-semibold tracking-tight text-foreground">{resource.label}</h1>
-        <p class="mt-1 text-sm text-muted-foreground">{t('common.list')}</p>
-      </div>
-      <div class="flex flex-wrap items-center gap-2" data-svadmin-list-actions>
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <h1 class="text-lg sm:text-xl font-semibold text-foreground">{resource.label}</h1>
+    <div class="flex flex-wrap items-center gap-2">
       {#if canExport}
-        <Button variant="outline" size="sm" class="h-10 rounded-xl" onclick={exportCSV}>
+        <Button variant="outline" size="sm" onclick={exportCSV}>
           <Download class="h-4 w-4" data-icon="inline-start" /> {t('common.export')}
         </Button>
       {/if}
@@ -517,8 +513,8 @@
       <DropdownMenu.Root>
         <DropdownMenu.Trigger>
           {#snippet child({ props })}
-            <Button variant="outline" size="sm" class="h-10 rounded-xl" {...props}>
-              <SlidersHorizontal class="h-4 w-4" data-icon="inline-start" /> {t('common.columns')}
+            <Button variant="outline" size="sm" {...props}>
+              <SlidersHorizontal class="h-4 w-4" data-icon="inline-start" /> {t('common.columns') || 'Columns'}
             </Button>
           {/snippet}
         </DropdownMenu.Trigger>
@@ -537,16 +533,15 @@
         {@render headerActions()}
       {/if}
       {#if canCreate}
-        <Button class="h-10 rounded-xl px-4 shadow-sm shadow-primary/15" onclick={() => navigate(`/${resourceName}/create`)}>
+        <Button onclick={() => navigate(`/${resourceName}/create`)}>
           <Plus class="h-4 w-4" data-icon="inline-start" /> {t('common.create')}
         </Button>
       {/if}
-      </div>
     </div>
   </div>
 
   <!-- Search and Advanced Filters -->
-  <div class="flex flex-wrap items-center gap-3 rounded-3xl border border-border/70 bg-card/80 p-3 shadow-sm shadow-slate-900/[0.02] backdrop-blur" data-svadmin-table-toolbar>
+  <div class="flex flex-wrap items-center gap-2">
     {#if searchableFields.length > 0}
       <div class="relative max-w-sm flex-1 sm:min-w-[250px]">
         <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -555,7 +550,7 @@
           bind:value={searchText}
           oninput={() => { pagination = { ...pagination, current: 1 }; }}
           placeholder={t('common.search')}
-          class="h-10 rounded-xl border-border/70 bg-background/85 pl-10"
+          class="pl-10 h-9"
         />
       </div>
     {/if}
@@ -564,7 +559,7 @@
       <Popover.Root>
         <Popover.Trigger>
           {#snippet child({ props })}
-            <Button variant="outline" size="sm" class="h-10 rounded-xl px-3" {...props}>
+            <Button variant="outline" size="sm" class="h-9 px-3" {...props}>
               <FilterIcon class="h-4 w-4" data-icon="inline-start" />
               {t('common.filter')}
               {#if activeFilterCount > 0}
@@ -582,7 +577,7 @@
                 {#if field.type === 'select' && field.options}
                   <select
                     id="filter-{field.key}"
-                    class="flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm font-normal ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    class="h-9 text-sm w-full font-normal flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     value={filterValues[field.key] ?? ''}
                     onchange={(e) => filterValues[field.key] = (e.currentTarget as HTMLSelectElement).value}
                   >
@@ -598,7 +593,7 @@
                     value={filterValues[field.key] ?? ''}
                     oninput={(e) => filterValues[field.key] = (e.currentTarget as HTMLInputElement).value}
                     placeholder={field.label}
-                    class="h-10 rounded-xl text-sm"
+                    class="h-9 text-sm"
                   />
                 {/if}
               </div>
@@ -621,7 +616,7 @@
   </div>
 
   <!-- Table (TanStack-powered) -->
-  <div class="overflow-hidden rounded-3xl border border-border/70 bg-card/95 shadow-sm shadow-slate-900/[0.03] backdrop-blur" data-svadmin-table-card role="region" aria-label="{resource.label} {t('common.list')}">
+  <div class="rounded-[24px] bg-card/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden ring-1 ring-border/30" role="region" aria-label="{resource.label} {t('common.list')}">
     {#if query.isLoading}
       <div class="p-4 space-y-3">
         <div class="flex gap-4 mb-2">
@@ -645,8 +640,8 @@
       <div in:fade={{ duration: 150 }}>
         <!-- Desktop Table (hidden on mobile) -->
         <div class="hidden md:block">
-        <Table.Root class="svadmin-data-table" data-svadmin-datatable>
-          <Table.Header data-svadmin-table-head>
+        <Table.Root>
+          <Table.Header>
             {#each table_getHeaderGroups(tbl) as headerGroup, _i (_i)}
               <DraggableHeader
                 columns={headerGroup.headers.map((h: any) => ({ id: h.column.id, header: h }))}
@@ -657,7 +652,7 @@
                   {@const header = col.header as typeof headerGroup.headers[0]}
                   <Table.Head
                     {...dragProps}
-                    class={cn("border-b border-border/50 bg-muted/35 px-4 py-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/75 hover:bg-muted/45", dragProps.class)}
+                    class={cn("bg-transparent hover:bg-muted/10 border-b border-border/20 uppercase tracking-[0.12em] text-[10px] text-muted-foreground/70 font-semibold py-4", dragProps.class)}
                     style={header_getSize(header) != null && header_getSize(header) !== 150 ? `width:${header_getSize(header)}px` : undefined}
                   >
                     {#if header.id === '_select'}
@@ -699,9 +694,9 @@
               <ContextMenu.Root>
                 <ContextMenu.Trigger>
                   {#snippet child({ props })}
-                    <Table.Row {...props} data-svadmin-table-row class="border-b border-border/30 transition-colors duration-200 {row_getIsSelected(row) ? 'bg-primary/5' : 'hover:bg-muted/25'}">
+                    <Table.Row {...props} class="transition-all duration-300 border-b border-border/10 {row_getIsSelected(row) ? 'bg-primary/5' : 'hover:bg-muted/20'}">
                       {#each row_getVisibleCells(row) as cell, _i (_i)}
-                        <Table.Cell class="px-4 py-3.5">
+                        <Table.Cell>
                           {#if cell.column.id === '_select'}
                             <Checkbox
                               checked={row_getIsSelected(row)}
@@ -760,9 +755,9 @@
                                 onSave={() => listResult.refetch()}
                               />
                             {:else if field?.key === primaryKey}
-                              <span class="font-mono text-xs">{cell_getValue(cell) ?? '—'}</span>
+                              <span class="block truncate font-mono text-xs" title={String(cell_getValue(cell) ?? '—')}>{cell_getValue(cell) ?? '—'}</span>
                             {:else}
-                              {cell_getValue(cell) ?? '—'}
+                              <span class="block truncate" title={String(cell_getValue(cell) ?? '—')}>{cell_getValue(cell) ?? '—'}</span>
                             {/if}
                           {/if}
                         </Table.Cell>
@@ -808,7 +803,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                       </svg>
                       <p class="text-sm font-medium text-muted-foreground mb-1">{t('common.noData')}</p>
-                      <p class="text-xs text-muted-foreground/60 mb-4">{t('common.noDataHint')}</p>
+                      <p class="text-xs text-muted-foreground/60 mb-4">{t('common.noDataHint') || 'Get started by creating your first record.'}</p>
                       {#if canCreate}
                         <Button variant="outline" size="sm" class="gap-2" onclick={() => navigate(`/${resourceName}/create`)}>
                           <Plus class="h-3.5 w-3.5" />
@@ -830,7 +825,7 @@
             {@const record = row.original}
             {@const id = record[primaryKey] as string | number}
             <div
-              class="rounded-3xl border border-border/60 bg-card p-5 shadow-sm shadow-slate-900/[0.03] transition-all {row_getIsSelected(row) ? 'border-primary/35 bg-primary/5 ring-2 ring-primary/20' : ''}"
+              class="rounded-[20px] shadow-[0_4px_20px_rgb(0,0,0,0.03)] ring-1 ring-border/20 bg-card p-5 transition-all {row_getIsSelected(row) ? 'ring-2 ring-primary/50 bg-primary/5' : ''}"
             >
               <!-- Card header: ID + select + actions -->
               <div class="flex items-center justify-between mb-3">
@@ -911,11 +906,11 @@
 
   <!-- Pagination (shadcn) -->
   {#if totalPages > 0}
-  <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground" data-svadmin-pagination>
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
     <div class="flex items-center gap-2">
       <span>{t('common.total', { total: query.data?.total ?? 0 })}</span>
       <select
-        class="h-8 w-[70px] px-2 rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        class="h-8 w-[70px] px-1 py-1 flex items-center justify-between rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         value={String(pagination.pageSize ?? 10)}
         onchange={(e) => {
           const size = Number((e.target as HTMLSelectElement).value);
@@ -930,7 +925,7 @@
         <option value="100">100</option>
       </select>
     </div>
-    <PaginationUI.Root class="sm:w-auto sm:justify-end sm:mx-0">
+    <PaginationUI.Root>
       <PaginationUI.Content>
         <PaginationUI.Item>
           <PaginationUI.Previous

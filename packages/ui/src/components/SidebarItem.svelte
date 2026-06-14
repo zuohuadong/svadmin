@@ -6,8 +6,8 @@
   import {
     LayoutDashboard, FileText, Users, Settings, Home,
     ChevronDown, Folder, ExternalLink, Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle,
-    Barcode, FolderTree, Building2, Warehouse, BriefcaseBusiness, Handshake, UserRoundCheck,
-    CalendarCheck, KeyRound, MapPinned,
+    Mail, Send, ShoppingBag, Briefcase, Building2, Calendar, Bell, Clock, Trash2, Palette, Layout,
+    Download, ListTodo, TrendingUp, Sparkles, Images, Bot, Key, KeyRound, CreditCard, BookOpen, Wrench, Shield,
   } from '@lucide/svelte';
 
   import { formatLink } from '@svadmin/core/router';
@@ -22,6 +22,7 @@
   const iconMap: Record<string, typeof LayoutDashboard> = {
     dashboard: LayoutDashboard,
     posts: FileText,
+    file: FileText,
     users: Users,
     settings: Settings,
     home: Home,
@@ -30,21 +31,34 @@
     'clipboard-check': ClipboardCheck,
     'sliders-horizontal': SlidersHorizontal,
     'alert-triangle': AlertTriangle,
-    'barcode': Barcode,
-    'folder-tree': FolderTree,
-    'building-2': Building2,
-    'warehouse': Warehouse,
-    'briefcase-business': BriefcaseBusiness,
-    handshake: Handshake,
-    'user-round-check': UserRoundCheck,
-    'calendar-check': CalendarCheck,
+    mail: Mail,
+    send: Send,
+    'shopping-bag': ShoppingBag,
+    briefcase: Briefcase,
+    building: Building2,
+    calendar: Calendar,
+    bell: Bell,
+    clock: Clock,
+    trash: Trash2,
+    palette: Palette,
+    layout: Layout,
+    download: Download,
+    'list-todo': ListTodo,
+    'trending-up': TrendingUp,
+    sparkles: Sparkles,
+    images: Images,
+    bot: Bot,
+    key: Key,
     'key-round': KeyRound,
-    'map-pinned': MapPinned,
+    'credit-card': CreditCard,
+    'book-open': BookOpen,
+    wrench: Wrench,
+    shield: Shield,
   };
 
-  function getIcon(name?: string | typeof LayoutDashboard): typeof LayoutDashboard {
+  function getIcon(name?: unknown): typeof LayoutDashboard {
     if (!name) return depth === 0 ? Settings : Folder;
-    if (typeof name !== 'string') return name; // if it's already a component
+    if (typeof name !== 'string') return name as typeof LayoutDashboard;
     return iconMap[name] ?? Settings;
   }
 
@@ -64,41 +78,16 @@
     return menuItem.children?.some((c: MenuItem) => hasActiveChild(c)) ?? false;
   }
 
-  function getItemBadge(menuItem: MenuItem): string | undefined {
-    const meta = menuItem.meta as (MenuItem['meta'] & { badge?: unknown }) | undefined;
-    return typeof meta?.badge === 'string' ? meta.badge : undefined;
-  }
-
-  function aggregateBadges(menuItems: MenuItem[] | undefined): string | undefined {
-    const total = menuItems?.reduce((sum, menuItem) => {
-      const ownBadge = Number(getItemBadge(menuItem));
-      const childBadge = Number(aggregateBadges(menuItem.children));
-      return sum + (Number.isFinite(ownBadge) ? ownBadge : 0) + (Number.isFinite(childBadge) ? childBadge : 0);
-    }, 0) ?? 0;
-
-    return total > 0 ? String(total) : undefined;
-  }
-
   const hasChildren = $derived(item.children && item.children.length > 0);
   const active = $derived(isActive(item.href));
   const childActive = $derived(hasActiveChild(item));
   const isExternal = $derived(item.target === '_blank' || item.href?.startsWith('http'));
-  const badge = $derived(getItemBadge(item));
-  const childrenBadge = $derived(aggregateBadges(item.children));
 
   const finalHref = $derived(isExternal ? item.href : (item.href ? formatLink(item.href) : undefined));
-  // Auto-open the active branch once, then respect manual collapse/expand.
+
+  // Track open state — auto-open if a child is active
   let isOpen = $state(false);
-  let touchedOpen = $state(false);
-
-  function setOpen(nextOpen: boolean) {
-    touchedOpen = true;
-    isOpen = nextOpen;
-  }
-
-  $effect(() => {
-    if (childActive && !touchedOpen && !isOpen) isOpen = true;
-  });
+  $effect(() => { if (childActive) isOpen = true; });
 
   const Icon = $derived(getIcon(item.icon));
   const label = $derived(getLabel(item));
@@ -108,33 +97,22 @@
   <!-- hidden item, render nothing -->
 {:else if hasChildren && !collapsed}
   <!-- Parent node with children: render as collapsible group -->
-  <Collapsible.Root open={isOpen} onOpenChange={setOpen}>
+  <Collapsible.Root bind:open={isOpen}>
     <Collapsible.Trigger
-      class="flex w-full items-center justify-between rounded-xl px-3 {depth === 1 ? 'py-1.5' : 'py-2'} text-sm font-medium transition-all duration-200
+      class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200
       {childActive
-        ? 'text-primary font-semibold'
-        : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/45 hover:text-sidebar-foreground'}"
-      style="padding-left: {depth === 0 ? 12 : 4 + (depth - 1) * 12}px"
-      data-sidebar={depth === 0 ? "menu-button" : "menu-sub-button"}
-      data-active={childActive ? "true" : "false"}
+        ? 'text-sidebar-foreground bg-sidebar-accent/30'
+        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
+      style="padding-left: {12 + depth * 12}px"
     >
       <span class="flex items-center gap-3">
         <Icon class="h-4 w-4 flex-shrink-0" />
         <span>{label}</span>
       </span>
-      <span class="ml-2 flex items-center gap-2">
-        {#if childrenBadge}
-          <span class="rounded-full {childActive ? 'bg-primary/12 text-primary' : 'bg-sidebar-accent text-sidebar-foreground/60'} px-2 py-0.5 text-[10px] font-semibold">{childrenBadge}</span>
-        {/if}
-        <ChevronDown class="h-3.5 w-3.5 transition-transform duration-200 {isOpen ? 'rotate-180' : ''}" />
-      </span>
+      <ChevronDown class="h-3.5 w-3.5 transition-transform duration-200 {isOpen ? 'rotate-180' : ''}" />
     </Collapsible.Trigger>
     <Collapsible.Content>
-      <div
-        class="mt-0.5 {depth >= 1 ? 'divide-y divide-border/45' : 'space-y-0'}"
-        style="padding-left: {depth > 0 ? 0 : 0}px"
-        data-sidebar="menu-sub"
-      >
+      <div class="mt-0.5 space-y-0.5" style="padding-left: {depth > 0 ? 0 : 0}px">
         {#each item.children as child, _i (_i)}
           <SidebarItem item={child} {currentPath} {collapsed} depth={depth + 1} />
         {/each}
@@ -151,12 +129,10 @@
           href={finalHref}
           target={isExternal ? '_blank' : undefined}
           rel={isExternal ? 'noopener noreferrer' : undefined}
-          class="mx-auto flex h-10 w-10 items-center justify-center text-sm font-medium transition-colors duration-200
+          class="flex items-center justify-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200
           {active
-            ? 'text-primary'
-            : 'text-sidebar-foreground/68 hover:text-sidebar-foreground'}"
-          data-sidebar={depth === 0 ? "menu-button" : "menu-sub-button"}
-          data-active={active ? "true" : "false"}
+            ? 'bg-card text-sidebar-primary shadow-sm ring-1 ring-foreground/5'
+            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
         >
           <Icon class="h-4 w-4 flex-shrink-0" />
         </a>
@@ -172,21 +148,16 @@
     href={finalHref}
     target={isExternal ? '_blank' : undefined}
     rel={isExternal ? 'noopener noreferrer' : undefined}
-    class="relative flex items-center gap-3 px-3 {depth === 1 ? 'py-1.5' : 'py-2'} text-sm font-medium transition-all duration-200 {depth >= 2 ? 'first:rounded-t-xl last:rounded-b-xl' : 'rounded-xl'}
+    class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200
     {active
-      ? 'text-primary font-semibold'
-      : 'text-sidebar-foreground/68 hover:bg-sidebar-accent/45 hover:text-sidebar-foreground'}"
+      ? 'bg-card text-sidebar-primary shadow-sm ring-1 ring-foreground/5 font-semibold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:bg-primary before:rounded-r-md overflow-hidden relative'
+      : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
     style="padding-left: {12 + depth * 12}px"
-    data-sidebar={depth === 0 ? "menu-button" : "menu-sub-button"}
-    data-active={active ? "true" : "false"}
   >
     <Icon class="h-4 w-4 flex-shrink-0" />
     <span class="flex-1">{label}</span>
     {#if isExternal}
       <ExternalLink class="h-3 w-3 opacity-50" />
-    {/if}
-    {#if badge}
-      <span class="rounded-full {active ? 'bg-primary/12 text-primary' : 'bg-sidebar-accent text-sidebar-foreground/60'} px-2 py-0.5 text-[10px] font-semibold">{badge}</span>
     {/if}
   </a>
 {/if}

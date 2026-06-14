@@ -1,9 +1,9 @@
 /* Typography — Inter font for clean, modern look */
 
-/* @svadmin/ui — Design Tokens (Elygate-inspired)
+/* @svadmin/ui — Design Tokens (clean admin shell)
  * Auto-imported by AdminApp. Can be overridden by consumer's CSS.
  *
- * Based on Elygate dashboard style: Indigo primary, light glassmorphism,
+ * Clean dashboard style: indigo primary, light glassmorphism,
  * professional admin aesthetic with subtle depth.
  */
 
@@ -253,7 +253,7 @@
     --chart-1: oklch(0.541 0.281 293.009);
   }
 
-  /* Stripe-inspired Soft Shadows — premium, multi-layered depth */
+  /* Soft shadows — premium, multi-layered depth */
   [data-slot="button"],
   [data-slot="input"],
   [data-slot="select-trigger"],
@@ -263,7 +263,7 @@
     box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 0 0 1px rgb(0 0 0 / 0.02);
   }
 
-  /* Stripe-style: form inputs use card background instead of transparent */
+  /* Form inputs use card background instead of transparent */
   [data-slot="input"],
   [data-slot="textarea"],
   [data-slot="select"] {
@@ -271,7 +271,7 @@
   }
   
   [data-slot="card"] {
-    /* Classic Stripe soft shadow: faint ambient + directional drop */
+    /* Classic soft shadow: faint ambient + directional drop */
     box-shadow: 0 2px 5px -1px rgb(0 0 0 / 0.04), 0 1px 1px -1px rgb(0 0 0 / 0.04), 0 0 0 1px rgb(0 0 0 / 0.02);
   }
 
@@ -333,7 +333,7 @@ button:active:not(:disabled) {
 .dark ::-webkit-scrollbar-thumb { background: oklch(0.35 0 0); }
 .dark ::-webkit-scrollbar-thumb:hover { background: oklch(0.45 0 0); }
 
-/* ① Card Hover Elevation Lift — Stripe-style float on hover */
+/* Card Hover Elevation Lift — subtle float on hover */
 [data-slot="card"] {
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
@@ -1245,16 +1245,16 @@ main {
   }
 
   .layout-clean-flat main [data-slot="card"] {
-    border-left: 0 !important;
-    border-right: 0 !important;
-    border-radius: 0 !important;
+    border-left: 1px solid color-mix(in oklch, var(--border) 72%, transparent) !important;
+    border-right: 1px solid color-mix(in oklch, var(--border) 72%, transparent) !important;
+    border-radius: 0.5rem !important;
   }
 
   .layout-clean-flat main [data-slot="card-header"],
   .layout-clean-flat main [data-slot="card-content"],
   .layout-clean-flat main [data-slot="card-footer"] {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
 
   .layout-clean-flat main > div[class*="space-y"] > section:first-child {
@@ -1274,6 +1274,24 @@ main {
 
   .layout-clean-flat [data-svadmin-form-actions] {
     width: 100% !important;
+  }
+
+  .layout-clean-flat [data-svadmin-table-card],
+  .layout-clean-flat [data-svadmin-show-card],
+  .layout-clean-flat [data-svadmin-form-card] {
+    border-left: 1px solid color-mix(in oklch, var(--border) 72%, transparent) !important;
+    border-right: 1px solid color-mix(in oklch, var(--border) 72%, transparent) !important;
+    border-radius: 0.5rem !important;
+  }
+
+  .layout-clean-flat [data-svadmin-table-card] [data-slot="card-header"],
+  .layout-clean-flat [data-svadmin-table-card] [data-slot="card-content"],
+  .layout-clean-flat [data-svadmin-show-card] [data-slot="card-header"],
+  .layout-clean-flat [data-svadmin-show-card] [data-slot="card-content"],
+  .layout-clean-flat [data-svadmin-form-card] [data-slot="card-header"],
+  .layout-clean-flat [data-svadmin-form-card] [data-slot="card-content"] {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
 }
 
@@ -1375,15 +1393,15 @@ main {
   }
 
   .layout-clean-flat [data-svadmin-content-page] [data-slot="card"] {
-    border-left: 0 !important;
-    border-right: 0 !important;
-    border-radius: 0 !important;
+    border-left: 1px solid var(--svadmin-content-border) !important;
+    border-right: 1px solid var(--svadmin-content-border) !important;
+    border-radius: 0.5rem !important;
   }
 
   .layout-clean-flat [data-svadmin-content-page] [data-slot="card-content"],
   .layout-clean-flat [data-svadmin-content-page] [data-slot="card-header"] {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
 
   .layout-clean-flat [data-svadmin-content-page] [class*="grid-cols-3"] {

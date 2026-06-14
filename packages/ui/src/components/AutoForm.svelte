@@ -44,17 +44,14 @@
   const hasGroups = $derived(formFields.some(f => f.group));
   const groups = $derived((() => {
     if (!hasGroups) return [];
-    const result: Array<{ name: string; fields: FieldDefinition[] }> = [];
+    const order: string[] = [];
+    const map = new Map<string, FieldDefinition[]>();
     for (const f of formFields) {
       const g = f.group ?? '';
-      let group = result.find(item => item.name === g);
-      if (!group) {
-        group = { name: g, fields: [] };
-        result.push(group);
-      }
-      group.fields.push(f);
+      if (!map.has(g)) { order.push(g); map.set(g, []); }
+      (map.get(g) ?? []).push(f);
     }
-    return result;
+    return order.map(g => ({ name: g, fields: map.get(g) ?? [] }));
   })());
 
   // ─── Default values from field metadata ───────────────────────────
@@ -135,37 +132,26 @@
   }
 </script>
 
-<div class="space-y-6" data-svadmin-form-shell>
-  <div class="border-b border-border/60 pb-5" data-svadmin-form-header>
-    <div class="flex flex-wrap items-center gap-4">
-      <TooltipButton
-        tooltip={t('common.back')}
-        onclick={() => guardNavigate(() => navigate(`/${resourceName}`))}
-        class="h-10 w-10"
-      >
-        <ArrowLeft class="h-5 w-5" />
-      </TooltipButton>
-      <div class="min-w-0 flex-1">
-        <h1 class="truncate text-2xl font-semibold tracking-tight text-foreground">{pageTitle}</h1>
-        <div class="mt-2 flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-semibold">
-            {mode === 'create' ? t('common.create') : mode === 'show' ? t('common.detail') : t('common.edit')}
-          </Badge>
-          <p class="text-sm text-muted-foreground">{resource.label}</p>
-        </div>
-      </div>
-      {#if headerContent}
-        {@render headerContent()}
-      {/if}
-      {#if form.isTainted()}
-        <Badge variant="outline" class="border-warning/30 bg-warning/10 text-warning-foreground">{t('common.unsaved')}</Badge>
-      {/if}
-    </div>
+<div class="space-y-6">
+  <div class="flex items-center gap-4">
+    <TooltipButton
+      tooltip={t('common.back')}
+      onclick={() => guardNavigate(() => navigate(`/${resourceName}`))}
+    >
+      <ArrowLeft class="h-5 w-5" />
+    </TooltipButton>
+    <h1 class="text-xl font-semibold text-foreground">{pageTitle}</h1>
+    {#if headerContent}
+      {@render headerContent()}
+    {/if}
+    {#if form.isTainted()}
+      <Badge variant="outline" class="border-warning/30 bg-warning/10 text-warning-foreground">{t('common.unsaved')}</Badge>
+    {/if}
   </div>
 
   {#if form.loading}
-    <div class="max-w-4xl space-y-6">
-      <div class="space-y-5 border-y border-border/60 py-6">
+    <div class="max-w-3xl space-y-6">
+      <div class="rounded-lg shadow-sm ring-1 ring-border/10 p-6 space-y-5">
         {#each Array(4) as _, _i (_i)}
           <div class="space-y-2">
             <Skeleton class="h-4 w-24" />
@@ -175,7 +161,7 @@
       </div>
     </div>
   {:else}
-    <form onsubmit={(e: Event) => { e.preventDefault(); handleSubmit(); }} class="max-w-5xl space-y-6" data-svadmin-form-settings>
+    <form onsubmit={(e: Event) => { e.preventDefault(); handleSubmit(); }} class="max-w-3xl space-y-6">
       {#if submitError}
         <div transition:slide={{ duration: 300, axis: 'y' }} class="svadmin-shake">
           <Alert.Root variant="destructive">
@@ -187,15 +173,15 @@
 
       {#if hasGroups}
         {#each groups as group, _i (_i)}
-          <Card.Root class="border-border/60 bg-card shadow-none" data-svadmin-form-card>
+          <Card.Root class="border-border/40 shadow-sm">
             {#if group.name}
               <Card.Header>
-                <Card.Title class="text-base font-semibold">{group.name}</Card.Title>
+                <Card.Title class="text-lg">{group.name}</Card.Title>
               </Card.Header>
             {/if}
-            <Card.Content class="px-4 py-0 sm:px-6" data-svadmin-form-content>
+            <Card.Content class="space-y-5 px-4 sm:px-6 pb-4 sm:pb-6 pt-0">
               {#each group.fields as field (field.key)}
-                <div data-svadmin-form-row class:border-destructive={!!form.errors[field.key]}>
+                <div class:border-destructive={!!form.errors[field.key]}>
                   {#if fieldRenderer}
                     {@render fieldRenderer({ field, value: form.values[field.key], onchange: (val: unknown) => form.setFieldValue(field.key, val) })}
                   {:else}
@@ -215,10 +201,10 @@
           </Card.Root>
         {/each}
       {:else}
-        <Card.Root class="border-border/60 bg-card shadow-none" data-svadmin-form-card>
-          <Card.Content class="px-4 py-0 sm:px-6" data-svadmin-form-content>
+        <Card.Root class="border-border/40 shadow-sm">
+          <Card.Content class="space-y-5 px-4 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-6">
             {#each formFields as field (field.key)}
-              <div data-svadmin-form-row class:border-destructive={!!form.errors[field.key]}>
+              <div class:border-destructive={!!form.errors[field.key]}>
                 {#if fieldRenderer}
                   {@render fieldRenderer({ field, value: form.values[field.key], onchange: (val: unknown) => form.setFieldValue(field.key, val) })}
                 {:else}
@@ -238,11 +224,11 @@
         </Card.Root>
       {/if}
 
-      <div class="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 border-t border-border/60 bg-background/95 p-3 backdrop-blur" data-svadmin-form-actions>
+      <div class="flex items-center gap-3">
         {#if formActions}
           {@render formActions({ isLoading: form.submitting, onSubmit: handleSubmit })}
         {:else if !isReadonly}
-          <Button type="submit" disabled={form.submitting} class="h-10 px-5">
+          <Button type="submit" disabled={form.submitting}>
             {#if form.submitting}
               <Loader2 class="h-4 w-4 animate-spin" data-icon="inline-start" />
             {:else}
@@ -253,7 +239,6 @@
           <Button
             type="button"
             variant="outline"
-            class="h-10 rounded-xl"
             onclick={() => guardNavigate(() => navigate(`/${resourceName}`))}
           >
             {t('common.cancel')}

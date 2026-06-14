@@ -8,15 +8,16 @@ const intelligenceGroup = 'Intelligence';
 const communicationGroup = 'Notifications';
 const customerGroup = 'Customer Operations';
 const propertyGroup = 'Property Operations';
+const mailGroup = 'Mail Operations';
+const storeGroup = 'Store Operations';
 
 export const resources: ResourceDefinition[] = [
   {
     name: 'products',
     label: 'Products',
-    icon: 'package',
+    icon: 'folder',
     group: inventoryGroup,
     menuOrder: 10,
-    meta: { badge: '4' },
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
       { key: 'name', label: 'Name', type: 'text', required: true, searchable: true },
@@ -33,7 +34,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'skus',
     label: 'SKUs',
-    icon: 'barcode',
+    icon: 'folder',
     group: inventoryGroup,
     menuOrder: 20,
     fields: [
@@ -59,7 +60,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'categories',
     label: 'Categories',
-    icon: 'folder-tree',
+    icon: 'folder',
     group: inventoryGroup,
     menuOrder: 30,
     fields: [
@@ -73,7 +74,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'suppliers',
     label: 'Suppliers',
-    icon: 'building-2',
+    icon: 'users',
     group: inventoryGroup,
     menuOrder: 40,
     fields: [
@@ -89,7 +90,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'warehouses',
     label: 'Warehouses',
-    icon: 'warehouse',
+    icon: 'home',
     group: inventoryGroup,
     menuOrder: 50,
     fields: [
@@ -135,7 +136,6 @@ export const resources: ResourceDefinition[] = [
     icon: 'download',
     group: operationsGroup,
     menuOrder: 100,
-    meta: { badge: '3' },
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
       { key: 'orderNumber', label: 'Order Number', type: 'text', required: true, searchable: true },
@@ -164,7 +164,6 @@ export const resources: ResourceDefinition[] = [
     icon: 'credit-card',
     group: operationsGroup,
     menuOrder: 110,
-    meta: { badge: '2' },
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
       { key: 'orderNumber', label: 'Order Number', type: 'text', required: true, searchable: true },
@@ -500,7 +499,6 @@ export const resources: ResourceDefinition[] = [
     icon: 'bell',
     group: communicationGroup,
     menuOrder: 140,
-    meta: { badge: '3' },
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
       { key: 'title', label: 'Title', type: 'text', required: true, searchable: true },
@@ -537,7 +535,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'crm_accounts',
     label: 'Customer Accounts',
-    icon: 'briefcase-business',
+    icon: 'briefcase',
     group: customerGroup,
     menuOrder: 150,
     fields: [
@@ -575,7 +573,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'crm_contacts',
     label: 'Customer Contacts',
-    icon: 'user-round-check',
+    icon: 'users',
     group: customerGroup,
     menuOrder: 160,
     fields: [
@@ -613,10 +611,9 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'crm_deals',
     label: 'Revenue Opportunities',
-    icon: 'handshake',
+    icon: 'folder',
     group: customerGroup,
     menuOrder: 170,
-    meta: { badge: '3' },
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
       { key: 'dealName', label: 'Opportunity Name', type: 'text', required: true, searchable: true },
@@ -646,7 +643,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'crm_activities',
     label: 'Customer Activities',
-    icon: 'calendar-check',
+    icon: 'calendar',
     group: customerGroup,
     menuOrder: 180,
     fields: [
@@ -685,7 +682,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'properties',
     label: 'Property Portfolio',
-    icon: 'building-2',
+    icon: 'home',
     group: propertyGroup,
     menuOrder: 190,
     fields: [
@@ -715,10 +712,9 @@ export const resources: ResourceDefinition[] = [
           { label: 'Under Contract', value: 'under_contract' },
         ],
       },
-      { key: 'managerId', label: 'Manager', type: 'relation', resource: 'property_agents', optionLabel: 'name', optionValue: 'id' },
-      { key: 'units', label: 'Units', type: 'number', width: '90px' },
+      { key: 'units', label: 'Units', type: 'number', width: '100px' },
       { key: 'occupancy', label: 'Occupancy %', type: 'number', width: '130px' },
-      { key: 'askingPrice', label: 'Asking Price', type: 'number' },
+      { key: 'askingPrice', label: 'Asking Price', type: 'number', required: true },
       { key: 'notes', label: 'Notes', type: 'textarea', showInList: false },
     ],
     defaultSort: { field: 'propertyName', order: 'asc' },
@@ -726,7 +722,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'property_agents',
     label: 'Property Advisors',
-    icon: 'key-round',
+    icon: 'users',
     group: propertyGroup,
     menuOrder: 200,
     fields: [
@@ -742,26 +738,23 @@ export const resources: ResourceDefinition[] = [
         options: [
           { label: 'Active', value: 'active' },
           { label: 'On Leave', value: 'on_leave' },
-          { label: 'Paused', value: 'paused' },
         ],
       },
       { key: 'capacityScore', label: 'Capacity Score', type: 'number', width: '140px' },
-      { key: 'notes', label: 'Notes', type: 'textarea', showInList: false },
     ],
     defaultSort: { field: 'name', order: 'asc' },
   },
   {
     name: 'property_leads',
     label: 'Property Leads',
-    icon: 'map-pinned',
+    icon: 'trending-up',
     group: propertyGroup,
     menuOrder: 210,
-    meta: { badge: '4' },
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
       { key: 'leadName', label: 'Lead Name', type: 'text', required: true, searchable: true },
       { key: 'propertyId', label: 'Property', type: 'relation', resource: 'properties', optionLabel: 'propertyName', optionValue: 'id' },
-      { key: 'agentId', label: 'Advisor', type: 'relation', resource: 'property_agents', optionLabel: 'name', optionValue: 'id' },
+      { key: 'advisorId', label: 'Advisor', type: 'relation', resource: 'property_agents', optionLabel: 'name', optionValue: 'id' },
       {
         key: 'source',
         label: 'Source',
@@ -770,10 +763,8 @@ export const resources: ResourceDefinition[] = [
           { label: 'Referral', value: 'referral' },
           { label: 'Portal', value: 'portal' },
           { label: 'Walk In', value: 'walk_in' },
-          { label: 'Partner', value: 'partner' },
         ],
       },
-      { key: 'budget', label: 'Budget', type: 'number' },
       {
         key: 'status',
         label: 'Status',
@@ -786,6 +777,7 @@ export const resources: ResourceDefinition[] = [
           { label: 'Dormant', value: 'dormant' },
         ],
       },
+      { key: 'budget', label: 'Budget', type: 'number', required: true },
       { key: 'targetMoveDate', label: 'Target Move Date', type: 'date' },
       { key: 'notes', label: 'Notes', type: 'textarea', showInList: false },
     ],
@@ -794,7 +786,7 @@ export const resources: ResourceDefinition[] = [
   {
     name: 'property_showings',
     label: 'Tour Schedule',
-    icon: 'calendar-check',
+    icon: 'calendar',
     group: propertyGroup,
     menuOrder: 220,
     fields: [
@@ -820,6 +812,159 @@ export const resources: ResourceDefinition[] = [
     ],
     defaultSort: { field: 'scheduledDate', order: 'asc' },
   },
+  // Simulation for Mail Center
+  {
+    name: 'mail_inbox',
+    label: 'Mail Inbox',
+    icon: 'mail',
+    group: mailGroup,
+    menuOrder: 230,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'sender', label: 'Sender', type: 'text', required: true, searchable: true },
+      { key: 'subject', label: 'Subject', type: 'text', required: true, searchable: true },
+      { key: 'body', label: 'Body', type: 'textarea', showInList: false },
+      { key: 'date', label: 'Date', type: 'date', required: true },
+      { key: 'unread', label: 'Unread', type: 'boolean', width: '90px' },
+    ],
+    defaultSort: { field: 'date', order: 'desc' },
+  },
+  {
+    name: 'mail_draft',
+    label: 'Mail Drafts',
+    icon: 'file',
+    group: mailGroup,
+    menuOrder: 240,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'to', label: 'To', type: 'text', required: true, searchable: true },
+      { key: 'subject', label: 'Subject', type: 'text', required: true, searchable: true },
+      { key: 'body', label: 'Body', type: 'textarea', showInList: false },
+      { key: 'updatedAt', label: 'Updated', type: 'date', required: true },
+    ],
+    defaultSort: { field: 'updatedAt', order: 'desc' },
+  },
+  {
+    name: 'mail_sent',
+    label: 'Mail Sent',
+    icon: 'send',
+    group: mailGroup,
+    menuOrder: 250,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'to', label: 'To', type: 'text', required: true, searchable: true },
+      { key: 'subject', label: 'Subject', type: 'text', required: true, searchable: true },
+      { key: 'body', label: 'Body', type: 'textarea', showInList: false },
+      { key: 'sentAt', label: 'Sent', type: 'date', required: true },
+    ],
+    defaultSort: { field: 'sentAt', order: 'desc' },
+  },
+  {
+    name: 'mail_archive',
+    label: 'Mail Archive',
+    icon: 'folder',
+    group: mailGroup,
+    menuOrder: 252,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'sender', label: 'Sender', type: 'text', required: true, searchable: true },
+      { key: 'subject', label: 'Subject', type: 'text', required: true, searchable: true },
+      { key: 'body', label: 'Body', type: 'textarea', showInList: false },
+      { key: 'date', label: 'Date', type: 'date', required: true },
+      { key: 'unread', label: 'Unread', type: 'boolean', width: '90px' },
+    ],
+    defaultSort: { field: 'date', order: 'desc' },
+  },
+  {
+    name: 'mail_snoozed',
+    label: 'Mail Snoozed',
+    icon: 'clock',
+    group: mailGroup,
+    menuOrder: 254,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'sender', label: 'Sender', type: 'text', required: true, searchable: true },
+      { key: 'subject', label: 'Subject', type: 'text', required: true, searchable: true },
+      { key: 'body', label: 'Body', type: 'textarea', showInList: false },
+      { key: 'date', label: 'Date', type: 'date', required: true },
+      { key: 'unread', label: 'Unread', type: 'boolean', width: '90px' },
+    ],
+    defaultSort: { field: 'date', order: 'desc' },
+  },
+  {
+    name: 'mail_spam',
+    label: 'Mail Spam',
+    icon: 'alert-triangle',
+    group: mailGroup,
+    menuOrder: 256,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'sender', label: 'Sender', type: 'text', required: true, searchable: true },
+      { key: 'subject', label: 'Subject', type: 'text', required: true, searchable: true },
+      { key: 'body', label: 'Body', type: 'textarea', showInList: false },
+      { key: 'date', label: 'Date', type: 'date', required: true },
+      { key: 'unread', label: 'Unread', type: 'boolean', width: '90px' },
+    ],
+    defaultSort: { field: 'date', order: 'desc' },
+  },
+  {
+    name: 'mail_trash',
+    label: 'Mail Trash',
+    icon: 'trash',
+    group: mailGroup,
+    menuOrder: 258,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'sender', label: 'Sender', type: 'text', required: true, searchable: true },
+      { key: 'subject', label: 'Subject', type: 'text', required: true, searchable: true },
+      { key: 'body', label: 'Body', type: 'textarea', showInList: false },
+      { key: 'date', label: 'Date', type: 'date', required: true },
+      { key: 'unread', label: 'Unread', type: 'boolean', width: '90px' },
+    ],
+    defaultSort: { field: 'date', order: 'desc' },
+  },
+  // Simulation for Store Client
+  {
+    name: 'store_client_products',
+    label: 'Store Products',
+    icon: 'shopping-bag',
+    group: storeGroup,
+    menuOrder: 260,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'name', label: 'Product Name', type: 'text', required: true, searchable: true },
+      { key: 'price', label: 'Price', type: 'number', required: true, width: '110px' },
+      { key: 'category', label: 'Category', type: 'text', searchable: true },
+      { key: 'rating', label: 'Rating', type: 'number', width: '100px' },
+      { key: 'stock', label: 'Stock', type: 'number', width: '100px' },
+    ],
+    defaultSort: { field: 'name', order: 'asc' },
+  },
+  {
+    name: 'store_client_orders',
+    label: 'Store Orders',
+    icon: 'credit-card',
+    group: storeGroup,
+    menuOrder: 270,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'orderNumber', label: 'Order Number', type: 'text', required: true, searchable: true },
+      { key: 'totalAmount', label: 'Total Amount', type: 'number', required: true },
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Processing', value: 'processing' },
+          { label: 'Shipped', value: 'shipped' },
+          { label: 'Delivered', value: 'delivered' },
+        ],
+      },
+      { key: 'orderDate', label: 'Order Date', type: 'date', required: true },
+    ],
+    defaultSort: { field: 'orderDate', order: 'desc' },
+  },
 ];
 
 const zhGroupLabels: Record<string, string> = {
@@ -831,6 +976,8 @@ const zhGroupLabels: Record<string, string> = {
   Notifications: '消息通知',
   'Customer Operations': '客户经营',
   'Property Operations': '资产运营',
+  'Mail Operations': '邮件中心',
+  'Store Operations': '商城应用',
 };
 
 const zhResourceLabels: Record<string, string> = {
@@ -840,16 +987,16 @@ const zhResourceLabels: Record<string, string> = {
   Suppliers: '供应商',
   Warehouses: '仓库',
   'Stock Movements': '库存流水',
-  'Purchase Orders': '采购订单',
-  'Sales Orders': '销售订单',
-  Todo: '待办事项',
   'Stock Transfers': '库存调拨',
   'Cycle Counts': '循环盘点',
   'Inventory Adjustments': '库存调整',
   'Reorder Rules': '补货规则',
-  Users: '用户',
-  Roles: '角色',
-  Calendar: '日程',
+  'Purchase Orders': '采购订单',
+  'Sales Orders': '销售订单',
+  Todo: '待办事项',
+  Users: '用户列表',
+  Roles: '角色管理',
+  Calendar: '日程管理',
   'AI Chat': 'AI 对话',
   'Notification Center': '通知中心',
   'Customer Accounts': '客户账户',
@@ -860,6 +1007,15 @@ const zhResourceLabels: Record<string, string> = {
   'Property Advisors': '资产顾问',
   'Property Leads': '资产线索',
   'Tour Schedule': '看房安排',
+  'Mail Inbox': '收件箱',
+  'Mail Drafts': '草稿箱',
+  'Mail Sent': '已发送',
+  'Mail Archive': '归档邮件',
+  'Mail Snoozed': '稍后提醒',
+  'Mail Spam': '垃圾邮件',
+  'Mail Trash': '废纸篓',
+  'Store Products': '商城商品',
+  'Store Orders': '商城订单',
 };
 
 const zhFieldLabels: Record<string, string> = {
@@ -872,26 +1028,26 @@ const zhFieldLabels: Record<string, string> = {
   Stock: '库存',
   'Min Stock': '最低库存',
   Description: '描述',
+  Product: '商品',
   Barcode: '条码',
-  Variant: '规格',
+  Variant: '规格规格',
   Status: '状态',
   Code: '编码',
   'Contact Name': '联系人',
-  Email: '邮箱',
-  Phone: '电话',
+  Email: '电子邮箱',
+  Phone: '联系电话',
   Address: '地址',
+  Warehouse: '仓库',
   Location: '位置',
   Capacity: '容量',
   'Utilization %': '利用率 %',
-  Product: '商品',
-  Warehouse: '仓库',
   Quantity: '数量',
   Type: '类型',
   Note: '备注',
   Date: '日期',
   'Order Number': '订单号',
   'Total Amount': '总金额',
-  'Order Date': '下单日期',
+  'Order Date': '订单日期',
   'Delivery Date': '交付日期',
   'Customer Name': '客户名称',
   'Shipping Date': '发货日期',
@@ -899,11 +1055,11 @@ const zhFieldLabels: Record<string, string> = {
   Assignee: '负责人',
   'Due Date': '截止日期',
   Priority: '优先级',
-  Done: '完成',
-  Notes: '备注',
+  Completed: '完成',
+  Notes: '说明',
   'Transfer Number': '调拨单号',
-  'From Warehouse': '调出仓',
-  'To Warehouse': '调入仓',
+  'From Warehouse': '源仓库',
+  'To Warehouse': '目的仓库',
   'Requested By': '申请人',
   'Requested Date': '申请日期',
   'Expected Date': '预计日期',
@@ -975,6 +1131,12 @@ const zhFieldLabels: Record<string, string> = {
   Lead: '线索',
   'Tour Number': '看房编号',
   'Feedback Score': '反馈评分',
+  Sender: '发件人',
+  Unread: '未读',
+  To: '收件人',
+  Sent: '发送时间',
+  'Product Name': '商品名称',
+  Rating: '评分',
 };
 
 const zhOptionLabels: Record<string, string> = {

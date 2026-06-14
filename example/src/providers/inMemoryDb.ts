@@ -54,7 +54,16 @@ type ResourceName =
   | 'properties'
   | 'property_agents'
   | 'property_leads'
-  | 'property_showings';
+  | 'property_showings'
+  | 'mail_inbox'
+  | 'mail_draft'
+  | 'mail_sent'
+  | 'mail_archive'
+  | 'mail_snoozed'
+  | 'mail_spam'
+  | 'mail_trash'
+  | 'store_client_products'
+  | 'store_client_orders';
 
 type DbState = Record<ResourceName, BaseRecord[]>;
 
@@ -795,6 +804,41 @@ const initialDbState: DbState = {
       feedbackScore: 9,
       notes: 'Lead requested updated operating expense packet.',
     },
+  ],
+  mail_inbox: [
+    { id: 1, sender: 'ops@example.test', subject: 'Low stock review', body: 'Please review the replenishment queue before noon.', date: '2026-06-12', unread: true },
+    { id: 2, sender: 'finance@example.test', subject: 'June order reconciliation', body: 'The order receipt packet is ready for review.', date: '2026-06-11', unread: false },
+    { id: 3, sender: 'partner@example.test', subject: 'New warehouse onboarding', body: 'The West Hub onboarding checklist has been updated.', date: '2026-06-10', unread: true },
+  ],
+  mail_draft: [
+    { id: 1, to: 'supplier@example.test', subject: 'PO delivery window', body: 'Can you confirm the expected delivery slot?', updatedAt: '2026-06-12' },
+    { id: 2, to: 'team@example.test', subject: 'Weekly operating summary', body: 'Drafting highlights for the Monday standup.', updatedAt: '2026-06-11' },
+  ],
+  mail_sent: [
+    { id: 1, to: 'warehouse@example.test', subject: 'Cycle count packet', body: 'Attached are the count sheets for this week.', sentAt: '2026-06-10' },
+    { id: 2, to: 'lead@example.test', subject: 'Tour confirmation', body: 'Your property tour is confirmed for Friday.', sentAt: '2026-06-09' },
+  ],
+  mail_archive: [
+    { id: 1, sender: 'audit@example.test', subject: 'Completed access review', body: 'Quarterly access review has been archived.', date: '2026-05-28', unread: false },
+  ],
+  mail_snoozed: [
+    { id: 1, sender: 'calendar@example.test', subject: 'Follow up on showings', body: 'Reminder scheduled for tomorrow morning.', date: '2026-06-13', unread: true },
+  ],
+  mail_spam: [
+    { id: 1, sender: 'unknown@example.test', subject: 'Unverified vendor offer', body: 'This message was flagged by the demo policy.', date: '2026-06-08', unread: false },
+  ],
+  mail_trash: [
+    { id: 1, sender: 'noreply@example.test', subject: 'Expired notification', body: 'This message was removed from the main inbox.', date: '2026-06-01', unread: false },
+  ],
+  store_client_products: [
+    { id: 1, name: 'Field Laptop Bundle', price: 1499, category: 'Electronics', rating: 4.8, stock: 24 },
+    { id: 2, name: 'Ergonomic Work Kit', price: 389, category: 'Furniture', rating: 4.6, stock: 18 },
+    { id: 3, name: 'Packing Starter Pack', price: 42, category: 'Office Supplies', rating: 4.3, stock: 72 },
+  ],
+  store_client_orders: [
+    { id: 1, orderNumber: 'WEB-2026-1001', totalAmount: 1499, status: 'processing', orderDate: '2026-06-12' },
+    { id: 2, orderNumber: 'WEB-2026-1002', totalAmount: 389, status: 'shipped', orderDate: '2026-06-10' },
+    { id: 3, orderNumber: 'WEB-2026-1003', totalAmount: 84, status: 'delivered', orderDate: '2026-06-08' },
   ],
 };
 

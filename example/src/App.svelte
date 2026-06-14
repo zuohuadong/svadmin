@@ -6,60 +6,61 @@
   import { inMemoryDataProvider } from './providers/inMemoryDb';
   import { createInventoryChatProvider } from './providers/inventoryAssistant';
   import { createResources } from './resources';
+  import { createExampleMenu, registerExampleMenuTranslations } from './exampleMenuCatalog';
   import { mockAuthProvider } from './providers/mockAuth';
   import Dashboard from './pages/Dashboard.svelte';
-  import ProductsPage from './pages/ProductsPage.svelte';
-  import OrdersPage from './pages/OrdersPage.svelte';
-  import PeoplePage from './pages/PeoplePage.svelte';
-  import CalendarPage from './pages/CalendarPage.svelte';
-  import MessagesPage from './pages/MessagesPage.svelte';
-  import InventoryDirectoryPage from './pages/InventoryDirectoryPage.svelte';
-  import OperationsPage from './pages/OperationsPage.svelte';
-  import CrmOperationsPage from './pages/CrmOperationsPage.svelte';
-  import PropertyOperationsPage from './pages/PropertyOperationsPage.svelte';
+  import ExampleResourcePage from './pages/ExampleResourcePage.svelte';
 
   // Register the optional Rich Text Editor plugin globally
+  registerExampleMenuTranslations();
   setRichTextEditor(Editor);
 
-  const initialLocale = getLocale();
   const currentLocale = $derived(getLocale());
-  let resources = $state.raw(createResources(initialLocale));
-  const appTitle = $derived(currentLocale === 'zh-CN' ? '库存运营平台' : 'Inventory Platform');
-  const loginHint = $derived(currentLocale === 'zh-CN' ? '已预填演示账号，方便快速测试登录。' : 'Demo credentials are prefilled for quick testing.');
+  const resources = $derived.by(() => createResources(currentLocale));
+  const menu = $derived.by(() => createExampleMenu(currentLocale));
+  const appTitle = $derived(currentLocale === 'zh-CN' ? '运营示例平台' : 'Example Operations');
+  const loginHint = $derived(currentLocale === 'zh-CN' ? '已预填演示账号，方便快速测试。' : 'Demo credentials are prefilled for quick testing.');
 
   $effect(() => {
-    const nextResources = createResources(currentLocale);
-    resources = nextResources;
-    setChatProvider(createInventoryChatProvider(inMemoryDataProvider, nextResources));
+    setChatProvider(createInventoryChatProvider(inMemoryDataProvider, resources));
   });
 
   const resourcePages = {
-    products: { list: ProductsPage },
-    skus: { list: InventoryDirectoryPage },
-    categories: { list: InventoryDirectoryPage },
-    suppliers: { list: InventoryDirectoryPage },
-    warehouses: { list: InventoryDirectoryPage },
-    stock_movements: { list: OperationsPage },
-    stock_transfers: { list: OperationsPage },
-    cycle_counts: { list: OperationsPage },
-    inventory_adjustments: { list: OperationsPage },
-    reorder_rules: { list: OperationsPage },
-    purchase_orders: { list: OrdersPage },
-    sales_orders: { list: OrdersPage },
-    todos: { list: OperationsPage },
-    users: { list: PeoplePage },
-    roles: { list: PeoplePage },
-    calendar_events: { list: CalendarPage },
-    notifications: { list: MessagesPage },
-    ai_conversations: { list: MessagesPage },
-    crm_accounts: { list: CrmOperationsPage },
-    crm_contacts: { list: CrmOperationsPage },
-    crm_deals: { list: CrmOperationsPage },
-    crm_activities: { list: CrmOperationsPage },
-    properties: { list: PropertyOperationsPage },
-    property_agents: { list: PropertyOperationsPage },
-    property_leads: { list: PropertyOperationsPage },
-    property_showings: { list: PropertyOperationsPage },
+    products: { list: ExampleResourcePage },
+    skus: { list: ExampleResourcePage },
+    categories: { list: ExampleResourcePage },
+    suppliers: { list: ExampleResourcePage },
+    warehouses: { list: ExampleResourcePage },
+    stock_movements: { list: ExampleResourcePage },
+    stock_transfers: { list: ExampleResourcePage },
+    cycle_counts: { list: ExampleResourcePage },
+    inventory_adjustments: { list: ExampleResourcePage },
+    reorder_rules: { list: ExampleResourcePage },
+    purchase_orders: { list: ExampleResourcePage },
+    sales_orders: { list: ExampleResourcePage },
+    todos: { list: ExampleResourcePage },
+    users: { list: ExampleResourcePage },
+    roles: { list: ExampleResourcePage },
+    calendar_events: { list: ExampleResourcePage },
+    notifications: { list: ExampleResourcePage },
+    ai_conversations: { list: ExampleResourcePage },
+    mail_inbox: { list: ExampleResourcePage },
+    mail_draft: { list: ExampleResourcePage },
+    mail_sent: { list: ExampleResourcePage },
+    mail_archive: { list: ExampleResourcePage },
+    mail_snoozed: { list: ExampleResourcePage },
+    mail_spam: { list: ExampleResourcePage },
+    mail_trash: { list: ExampleResourcePage },
+    store_client_products: { list: ExampleResourcePage },
+    store_client_orders: { list: ExampleResourcePage },
+    crm_accounts: { list: ExampleResourcePage },
+    crm_contacts: { list: ExampleResourcePage },
+    crm_deals: { list: ExampleResourcePage },
+    crm_activities: { list: ExampleResourcePage },
+    properties: { list: ExampleResourcePage },
+    property_agents: { list: ExampleResourcePage },
+    property_leads: { list: ExampleResourcePage },
+    property_showings: { list: ExampleResourcePage },
   };
 </script>
 
@@ -68,6 +69,7 @@
   {resources}
   authProvider={mockAuthProvider}
   {resourcePages}
+  {menu}
   title={appTitle}
   locale={currentLocale}
   themeConfig={{ layoutPreset: 'clean-flat' }}
