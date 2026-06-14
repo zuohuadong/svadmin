@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.0](https://github.com/zuohuadong/svadmin/compare/core-v0.29.0...core-v0.30.0) (2026-06-14)
+
+
+### 🚀 Features
+
+* **example:** refine admin demo shell ([e8070d2](https://github.com/zuohuadong/svadmin/commit/e8070d2f492627166dd5b0a1845d0f12f483aa8b))
+
 ## [0.29.0](https://github.com/zuohuadong/svadmin/compare/core-v0.28.0...core-v0.29.0) (2026-06-12)
 
 
