@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
   import { getLocale } from '@svadmin/core/i18n';
-  import { AutoTable, Badge } from '@svadmin/ui';
+  import { Badge } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { BarChart3, BriefcaseBusiness, Building2, CircleDollarSign, ClipboardList, FileText, PhoneCall, Star, TrendingUp, Users } from '@lucide/svelte';
   import { readHashView } from '../utils/hashView';
@@ -118,7 +118,7 @@
 
 <svelte:window onhashchange={syncView} onpopstate={syncView} />
 
-<div class="space-y-6" data-app-page="crm-dashboard" data-crm-view={normalizedView}>
+<div class="space-y-6" data-app-page="crm-dashboard" data-crm-view={normalizedView} data-resource-name={resourceName}>
   <section class="grid gap-4 xl:grid-cols-[1fr_0.38fr]">
     <Card.Root class="overflow-hidden border-primary/20">
       <Card.Header class="border-b">
@@ -263,6 +263,4 @@
       </Card.Content>
     </Card.Root>
   </section>
-
-  <AutoTable {resourceName} />
 </div>

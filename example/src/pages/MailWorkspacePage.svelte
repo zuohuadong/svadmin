@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
   import { getLocale } from '@svadmin/core/i18n';
-  import { AutoTable, Badge, Button } from '@svadmin/ui';
+  import { Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { Archive, Clock, FileText, Inbox, Mail, Paperclip, Plus, Send, ShieldAlert, Tag, Trash2 } from '@lucide/svelte';
   import { readHashView } from '../utils/hashView';
@@ -220,6 +220,4 @@
       </Card.Content>
     </Card.Root>
   </section>
-
-  <AutoTable {resourceName} />
 </div>

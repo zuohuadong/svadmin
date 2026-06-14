@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
   import { getLocale } from '@svadmin/core/i18n';
-  import { AutoTable, Badge, Button } from '@svadmin/ui';
+  import { Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { BarChart3, Bot, CalendarDays, CheckCircle2, Circle, Flag, ListTodo, Tag } from '@lucide/svelte';
   import { readHashView } from '../utils/hashView';
@@ -142,7 +142,7 @@
 
 <svelte:window onhashchange={syncView} onpopstate={syncView} />
 
-<div class="space-y-6" data-app-page="todo-workspace" data-todo-view={normalizedView}>
+<div class="space-y-6" data-app-page="todo-workspace" data-todo-view={normalizedView} data-resource-name={resourceName}>
   <section class="grid gap-4 lg:grid-cols-[1fr_0.78fr_0.78fr]">
     <Card.Root class="overflow-hidden border-primary/20">
       <Card.Header class="border-b">
@@ -299,6 +299,4 @@
       {/if}
     </Card.Content>
   </Card.Root>
-
-  <AutoTable {resourceName} />
 </div>

@@ -73,8 +73,10 @@
 
   function isActive(itemHref: string | undefined): boolean {
     if (!itemHref) return false;
-    if (itemHref === '/') return currentPath === '/';
-    return currentPath.startsWith(itemHref) && (currentPath.length === itemHref.length || currentPath[itemHref.length] === '/');
+    const baseHref = itemHref.replace(/^#/, '').split(/[?#]/)[0] || '/';
+    const baseCurrentPath = currentPath.replace(/^#/, '').split(/[?#]/)[0] || '/';
+    if (baseHref === '/') return baseCurrentPath === '/';
+    return baseCurrentPath.startsWith(baseHref) && (baseCurrentPath.length === baseHref.length || baseCurrentPath[baseHref.length] === '/');
   }
 
   /** Check if any child (recursively) is active — used to auto-open parent groups */

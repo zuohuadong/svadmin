@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
   import { getLocale } from '@svadmin/core/i18n';
-  import { AutoTable, Badge, Button } from '@svadmin/ui';
+  import { Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { Bot, Boxes, BrainCircuit, BriefcaseBusiness, Code2, GraduationCap, Heart, History, MessageSquare, Palette, Pin, Send, Settings, Share2, Sparkles, Trash2 } from '@lucide/svelte';
   import { readHashView } from '../utils/hashView';
@@ -167,7 +167,7 @@
 
 <svelte:window onhashchange={syncView} onpopstate={syncView} />
 
-<div class="space-y-6" data-app-page="ai-workspace" data-ai-view={normalizedView}>
+<div class="space-y-6" data-app-page="ai-workspace" data-ai-view={normalizedView} data-resource-name={resourceName}>
   <section class="rounded-2xl border bg-card p-5 shadow-sm">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -415,6 +415,4 @@
       </Card.Content>
     </Card.Root>
   </section>
-
-  <AutoTable {resourceName} />
 </div>

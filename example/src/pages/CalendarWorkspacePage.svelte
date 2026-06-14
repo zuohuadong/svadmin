@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
   import { getLocale } from '@svadmin/core/i18n';
-  import { AutoTable, Badge, Button } from '@svadmin/ui';
+  import { Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { CalendarDays, ChevronLeft, ChevronRight, Clock, Filter, ListChecks, Plus } from '@lucide/svelte';
 
@@ -83,7 +83,7 @@
   }
 </script>
 
-<div class="space-y-6" data-app-page="calendar-workspace">
+<div class="space-y-6" data-app-page="calendar-workspace" data-resource-name={resourceName}>
   <section class="grid gap-4 xl:grid-cols-[1fr_0.72fr]">
     <Card.Root class="overflow-hidden border-primary/20">
       <Card.Header class="border-b">
@@ -216,6 +216,4 @@
       </Card.Root>
     </div>
   </section>
-
-  <AutoTable {resourceName} />
 </div>

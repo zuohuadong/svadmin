@@ -26,7 +26,7 @@ import type {
   UpdateResult,
 } from '@svadmin/core';
 
-const STORAGE_KEY = 'svadmin_inventory_demo_db_v4';
+const STORAGE_KEY = 'svadmin_inventory_demo_db_v5';
 
 type ResourceName =
   | 'products'
@@ -257,6 +257,12 @@ const initialDbState: DbState = {
     { id: 2, name: 'Warehouse Manager', slug: 'warehouse-manager', scope: 'Warehouse operations', level: 'manager', description: 'Can manage stock, movements, orders, and cycle counts.' },
     { id: 3, name: 'Operations Analyst', slug: 'operations-analyst', scope: 'Planning and reporting', level: 'operator', description: 'Can review dashboards, tasks, calendar events, and AI recommendations.' },
     { id: 4, name: 'Read Only Auditor', slug: 'read-only-auditor', scope: 'Audit review', level: 'viewer', description: 'Can inspect records without changing operational data.' },
+    { id: 5, name: 'Purchasing Lead', slug: 'purchasing-lead', scope: 'Supplier and purchase orders', level: 'manager', description: 'Can coordinate suppliers, approvals, and incoming orders.' },
+    { id: 6, name: 'Sales Coordinator', slug: 'sales-coordinator', scope: 'Sales orders and customers', level: 'operator', description: 'Can manage sales order follow-up and customer coordination.' },
+    { id: 7, name: 'Support Agent', slug: 'support-agent', scope: 'Mail, notifications, and feedback', level: 'operator', description: 'Can triage support conversations and notification queues.' },
+    { id: 8, name: 'CRM Manager', slug: 'crm-manager', scope: 'Accounts, contacts, and deals', level: 'manager', description: 'Can manage CRM accounts, pipeline, notes, and reports.' },
+    { id: 9, name: 'Property Advisor', slug: 'property-advisor', scope: 'Real estate listings and tours', level: 'operator', description: 'Can manage property leads, saved searches, and showings.' },
+    { id: 10, name: 'AI Reviewer', slug: 'ai-reviewer', scope: 'AI prompts and assistant governance', level: 'viewer', description: 'Can inspect AI conversations, templates, and prompt policy.' },
   ],
   users: [
     {
@@ -323,6 +329,60 @@ const initialDbState: DbState = {
       effect: 'allow',
       updatedAt: '2026-06-08',
       notes: 'Auditors can export read-only compliance snapshots.',
+    },
+    {
+      id: 4,
+      module: 'Suppliers',
+      action: 'approve',
+      roleId: 5,
+      effect: 'allow',
+      updatedAt: '2026-06-08',
+      notes: 'Purchasing leads can approve vendor and purchase order changes.',
+    },
+    {
+      id: 5,
+      module: 'Sales',
+      action: 'manage',
+      roleId: 6,
+      effect: 'allow',
+      updatedAt: '2026-06-07',
+      notes: 'Sales coordinators can update customer orders and fulfillment notes.',
+    },
+    {
+      id: 6,
+      module: 'Support',
+      action: 'triage',
+      roleId: 7,
+      effect: 'review',
+      updatedAt: '2026-06-07',
+      notes: 'Support replies require review before changing customer status.',
+    },
+    {
+      id: 7,
+      module: 'CRM',
+      action: 'manage',
+      roleId: 8,
+      effect: 'allow',
+      updatedAt: '2026-06-06',
+      notes: 'CRM managers can update accounts, deals, activities, and reports.',
+    },
+    {
+      id: 8,
+      module: 'Properties',
+      action: 'schedule',
+      roleId: 9,
+      effect: 'allow',
+      updatedAt: '2026-06-06',
+      notes: 'Property advisors can schedule tours and maintain lead notes.',
+    },
+    {
+      id: 9,
+      module: 'AI',
+      action: 'review',
+      roleId: 10,
+      effect: 'review',
+      updatedAt: '2026-06-05',
+      notes: 'AI reviewers can inspect conversations and approve prompt templates.',
     },
   ],
   user_accounts: [

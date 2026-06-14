@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
   import { getLocale } from '@svadmin/core/i18n';
-  import { AutoTable, Badge, Button } from '@svadmin/ui';
+  import { Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { Building2, CalendarClock, Heart, MapPin, Search, SlidersHorizontal, UserRoundCheck } from '@lucide/svelte';
   import { readHashView } from '../utils/hashView';
@@ -120,7 +120,7 @@
 
 <svelte:window onhashchange={syncView} onpopstate={syncView} />
 
-<div class="space-y-6" data-app-page="real-estate-workspace" data-property-view={normalizedView}>
+<div class="space-y-6" data-app-page="real-estate-workspace" data-property-view={normalizedView} data-resource-name={resourceName}>
   <section class="overflow-hidden rounded-xl border bg-card">
     <div class="grid gap-4 border-b p-5 xl:grid-cols-[1fr_0.42fr]">
       <div>
@@ -210,6 +210,4 @@
       </Card.Content>
     </Card.Root>
   </section>
-
-  <AutoTable {resourceName} />
 </div>
