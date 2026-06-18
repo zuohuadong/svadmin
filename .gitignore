@@ -41,3 +41,6 @@ CLAUDE.md
 .goosehints
 AGENTS.md
 AGENTS.md
+tasks.md
+.agents/automations/
+.agents/goal-forge/runs/

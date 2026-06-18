@@ -16,11 +16,37 @@ description: 全流程开发 — 分析、实现、测试、验证
 - Check existing tests and documentation
 - Gather codebase facts BEFORE asking the user (don't ask what you can discover)
 
+## 1.5 Stack Discovery Gate
+If the task creates, expands, or materially depends on a technical stack, fullstack web framework, database, or deployment target, record a Stack/Fullstack/Database/Deployment Profile before implementation:
+- Priority: user instruction > project docs (`AGENTS.md`, `GEMINI.md`, `README.md`, ADRs, `docs/`) > existing code/package/lock/config evidence > project overlay > recommended fallback > blocked.
+- Load `stack-profile-selector` and the concrete stack skills from `references/skills/INDEX.md`.
+- For hosting/deployment choices, also load `deployment-target-selector` and the concrete platform skill.
+- Recommended fallbacks apply only to greenfield work with no conflicting evidence.
+- Never migrate frameworks, rewrite build tooling, or change hosting provider unless the user explicitly asks for it.
+- Block and ask when the user says only "app" or "miniapp", when existing project evidence conflicts with the fallback, or when desktop/mobile/native/Mpx/deployment boundaries are unclear.
+
 ## 2. Plan Changes
 - Create implementation plan (use task_boundary PLANNING mode)
 - Break task into small, independent sub-tasks
-- If task is complex, use browser_subagent for parallel research
+- If task is complex, assign focused subagents for independent exploration, critique, or verification
 - For high-risk changes (auth, data migration, production): consider `/deep-review` first
+
+## 2.5 Delegation Gate
+Use subagents when the task is medium/high risk, spans multiple subsystems, touches architecture/API/data/state/security/production behavior, needs independent research, or requires review of your own completion claim.
+
+Default model mapping:
+- Use `gpt-5.3-codex` for implementation and normal explorer/critic/verifier sidecars.
+- Use `gpt-5.5` only for arbitration, high-risk review, and unresolved reviewer disagreement; record `escalation_reason`.
+
+Useful roles:
+- `explorer`: read-only codebase or external-source research
+- `critic`: challenge the plan before implementation
+- `verifier`: independently check the implemented result and evidence
+- `browser`: visual/runtime verification for UI work
+
+Skip subagents for low-risk single-file fixes, simple commands, or cases where secrets/destructive operations require staying in the current session. Record the skip reason.
+
+Subagent requests must include role, exact scope, read/write ownership, allowed files/directories, verification command, output schema, and whether the result must be persisted in `.mailbox/`. Do not run multiple writers unless file ownership is explicitly disjoint.
 
 ## 3. Implement
 - Make changes following the plan
@@ -32,7 +58,7 @@ description: 全流程开发 — 分析、实现、测试、验证
 - Run existing tests: `npm test` or `bun test`
 - Run type check: `npx tsc --noEmit` or `bun run typecheck`
 - Run linter: `npm run lint` or `bun run lint`
-- If UI changes, use browser_subagent to verify visually
+- If UI changes, use browser verification or a verifier subagent to check the actual rendered behavior
 - Capture fresh verification output as evidence
 
 ## 5. Completion Checklist
@@ -42,6 +68,7 @@ Before declaring the task done, confirm ALL applicable items:
 - [ ] Related tests pass
 - [ ] Build succeeds
 - [ ] No debug/temporary code left behind
+- [ ] Delegation Gate was satisfied or safely skipped with a reason
 - [ ] Fresh verification evidence included in response
 
 ## 6. Commit
@@ -50,7 +77,7 @@ Before declaring the task done, confirm ALL applicable items:
 - Add `Rejected:` trailer when you abandoned an alternative approach
 
 ## Notes
-- For complex tasks: decompose into sub-tasks, use browser_subagent for parallel work
+- For complex tasks: decompose into sub-tasks and use focused subagents for independent work
 - For simple tasks: just do it directly, don't over-engineer the process
 - Always check `progress.md` at project root if working in multi-agent mode
 - Apply Reasoning Effort tiers: LOW for simple lookups, STANDARD for features, HIGH for architecture
