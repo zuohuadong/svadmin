@@ -9,7 +9,6 @@
   import { createExampleMenu, registerExampleMenuTranslations } from './exampleMenuCatalog';
   import { mockAuthProvider } from './providers/mockAuth';
   import Dashboard from './pages/Dashboard.svelte';
-  import AppPreviewPage from './pages/AppPreviewPage.svelte';
   import AiWorkspacePage from './pages/AiWorkspacePage.svelte';
   import CalendarWorkspacePage from './pages/CalendarWorkspacePage.svelte';
   import CrmDashboardPage from './pages/CrmDashboardPage.svelte';
@@ -73,12 +72,18 @@
     property_agents: { list: RealEstateWorkspacePage },
     property_leads: { list: RealEstateWorkspacePage },
     property_showings: { list: RealEstateWorkspacePage },
-    project_planning: { list: AppPreviewPage },
-    store_admin: { list: AppPreviewPage },
-    store_services: { list: AppPreviewPage },
-    ai_prompt: { list: AppPreviewPage },
-    invoice_generator: { list: AppPreviewPage },
-  };
+    project_planning: { list: ExampleResourcePage },
+    store_admin: { list: ExampleResourcePage },
+    store_services: { list: ExampleResourcePage },
+    ai_prompt: { list: ExampleResourcePage },
+    invoice_generator: { list: ExampleResourcePage },
+    billing_plans: { list: ExampleResourcePage },
+    billing_invoices: { list: ExampleResourcePage },
+    billing_subscriptions: { list: ExampleResourcePage },
+    security_sessions: { list: ExampleResourcePage },
+    security_devices: { list: ExampleResourcePage },
+    security_allowed_ips: { list: ExampleResourcePage },
+    referral_invites: { list: ExampleResourcePage },  };
 </script>
 
 <AdminApp

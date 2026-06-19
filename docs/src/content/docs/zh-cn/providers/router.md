@@ -58,7 +58,12 @@ export const svelteKitRouter: RouterProvider = {
 ## `useParsed` Hook
 
 ```typescript
-const { resource, action, id, params } = useParsed();
+const { resource, action, id, params, parentParams } = useParsed();
 // /#/posts/edit/42?tab=details
-// → { resource: 'posts', action: 'edit', id: '42', params: { tab: 'details' } }
+// -> { resource: 'posts', action: 'edit', id: '42', params: { tab: 'details' }, parentParams: {} }
+
+// /#/teams/123/users?tenantId=1
+// -> { resource: 'users', action: 'list', params: { tenantId: '1' }, parentParams: { teamId: '123' } }
 ```
+
+`params` 只包含 query string 参数。嵌套路由中的 parent path 参数会通过 `parentParams` 暴露，`useList` 的 parent filter 自动注入也只读取 `parentParams`。因此普通 query string（例如 `?tenantId=1`）不会被静默转换成列表过滤条件。

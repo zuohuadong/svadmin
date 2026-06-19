@@ -1,6 +1,10 @@
 import { getDataProviderForResource } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 import type { Sort, Filter, BaseRecord } from './types';
+import { downloadData } from './export-format';
+import type { ExportFormat } from './export-format';
+export { downloadData, toCsv, toJson, toXlsx, escapeCsvField } from './export-format';
+export type { ExportFormat } from './export-format';
 
 export interface UseExportOptions<TData extends BaseRecord = BaseRecord> {
   resource?: string;
@@ -10,13 +14,15 @@ export interface UseExportOptions<TData extends BaseRecord = BaseRecord> {
   maxItemCount?: number;
   pageSize?: number;
   download?: boolean;
+  /** 导出格式，默认 csv（兼容旧版） */
+  format?: ExportFormat;
   meta?: Record<string, unknown>;
   dataProviderName?: string;
   onError?: (error: Error) => void;
 }
 
 /**
- * useExport — export records from a resource as CSV download
+ * useExport — export records from a resource as CSV/JSON/XLSX download
  * Supports mapData, sorters, filters, maxItemCount, pageSize
  */
 export function useExport<TData extends BaseRecord = BaseRecord>(options: UseExportOptions<TData> = {}) {
@@ -57,29 +63,7 @@ export function useExport<TData extends BaseRecord = BaseRecord>(options: UseExp
         : allRecords.map(r => r as unknown as Record<string, unknown>);
 
       if (options.download !== false && typeof document !== 'undefined') {
-        const fields = Object.keys(mapped[0]);
-        const escapeCsvField = (s: string) => {
-          let val = s;
-          if (/^[=+@\t\r]/.test(val)) val = "'" + val;
-          return val.includes(',') || val.includes('"') || val.includes('\n') || val.includes('\r') ? `"${val.replace(/"/g, '""')}"` : val;
-        };
-        const header = fields.map(escapeCsvField).join(',');
-        const rows = mapped.map(record =>
-          fields.map(f => {
-            const val = record[f];
-            const str = val === null || val === undefined ? '' : typeof val === 'object' ? JSON.stringify(val) : String(val);
-            return escapeCsvField(str);
-          }).join(',')
-        );
-
-        const csv = [header, ...rows].join('\n');
-        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${exportResource}_export.csv`;
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        downloadData(mapped, exportResource, options.format ?? 'csv');
       }
 
       return allRecords;
@@ -99,6 +83,8 @@ export function useExport<TData extends BaseRecord = BaseRecord>(options: UseExp
 
 export interface UseImportOptions<TData = Record<string, unknown>> {
   resource?: string;
+  /** 指定导入文件格式；默认 auto = 根据文件扩展名推断。注意：import 仅支持 csv 和 json，不支持 xlsx 解析 */
+  format?: 'auto' | 'csv' | 'json';
   mapData?: (item: Record<string, unknown>) => TData;
   batchSize?: number;
   onFinish?: (result: { succeeded: unknown[]; errored: { request: unknown; error: unknown }[] }) => void;
@@ -131,21 +117,40 @@ export function useImport<TData = Record<string, unknown>>(options: UseImportOpt
         text = text.slice(1);
       }
 
-      const rows = parseCSV(text);
-      if (rows.length < 2) {
-        mutationResult = { succeeded: [], errored: [] };
-        options.onFinish?.({ succeeded: [], errored: [] });
-        return;
-      }
+      // 自动检测或使用指定格式
+      const format = options.format ?? 'auto';
+      const isJson = format === 'json' || (format === 'auto' && info.file.name.toLowerCase().endsWith('.json'));
 
-      const headers = rows[0];
-      const records: Record<string, unknown>[] = [];
+      let records: Record<string, unknown>[];
 
-      for (let i = 1; i < rows.length; i++) {
-        const values = rows[i];
-        const record: Record<string, unknown> = {};
-        headers.forEach((h, idx) => { record[h] = values[idx] ?? ''; });
-        records.push(options.mapData ? (options.mapData(record) as unknown as Record<string, unknown>) : record);
+      if (isJson) {
+        // JSON 格式：期望数组对象
+        const parsed = JSON.parse(text);
+        if (!Array.isArray(parsed)) {
+          mutationResult = { succeeded: [], errored: [{ request: null, error: new Error('JSON import requires an array of objects') }] };
+          options.onFinish?.(mutationResult);
+          return;
+        }
+        records = parsed.map((item: unknown) =>
+          options.mapData ? (options.mapData(item as Record<string, unknown>) as unknown as Record<string, unknown>) : (item as Record<string, unknown>)
+        );
+      } else {
+        // CSV 格式
+        const rows = parseCSV(text);
+        if (rows.length < 2) {
+          mutationResult = { succeeded: [], errored: [] };
+          options.onFinish?.({ succeeded: [], errored: [] });
+          return;
+        }
+
+        const headers = rows[0];
+        records = [];
+        for (let i = 1; i < rows.length; i++) {
+          const values = rows[i];
+          const record: Record<string, unknown> = {};
+          headers.forEach((h, idx) => { record[h] = values[idx] ?? ''; });
+          records.push(options.mapData ? (options.mapData(record) as unknown as Record<string, unknown>) : record);
+        }
       }
 
       const batchSize = options.batchSize ?? 1;
@@ -198,12 +203,15 @@ export function useImport<TData = Record<string, unknown>>(options: UseImportOpt
   }
 
   return {
-    inputProps: { type: 'file' as const, accept: '.csv' },
+    inputProps: { type: 'file' as const, accept: '.csv,.json' },
     handleChange,
     get isLoading() { return isLoading; },
     get mutationResult() { return mutationResult; },
   };
 }
+
+
+// ─── 解析工具 ────────────────────────────────────────────────────
 
 /** Parse full CSV text respecting quoted multi-line fields */
 function parseCSV(text: string): string[][] {

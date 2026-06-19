@@ -9,6 +9,7 @@
     ChevronDown, Folder, ExternalLink, Repeat, ClipboardCheck, SlidersHorizontal, AlertTriangle,
     Mail, Map as MapIcon, MessageSquare, Send, ShoppingBag, Star, Briefcase, Building2, Calendar, Bell, Clock, Tag, Trash2, Palette, Layout,
     Download, ListTodo, TrendingUp, Sparkles, Images, Bot, Key, KeyRound, CreditCard, BookOpen, Wrench, Shield,
+    Circle,
   } from '@lucide/svelte';
 
   import { formatLink } from '@svadmin/core/router';
@@ -62,7 +63,7 @@
   };
 
   function getIcon(name?: unknown): typeof LayoutDashboard {
-    if (!name) return depth === 0 ? Settings : Folder;
+    if (!name) return depth === 0 ? Settings : Circle;
     if (typeof name !== 'string') return name as typeof LayoutDashboard;
     return iconMap[name] ?? Settings;
   }
@@ -79,7 +80,6 @@
     return baseCurrentPath.startsWith(baseHref) && (baseCurrentPath.length === baseHref.length || baseCurrentPath[baseHref.length] === '/');
   }
 
-  /** Check if any child (recursively) is active — used to auto-open parent groups */
   function hasActiveChild(menuItem: MenuItem): boolean {
     if (isActive(menuItem.href)) return true;
     return menuItem.children?.some((c: MenuItem) => hasActiveChild(c)) ?? false;
@@ -92,43 +92,73 @@
 
   const finalHref = $derived(isExternal ? item.href : (item.href ? formatLink(item.href) : undefined));
 
-  // Track open state — auto-open if a child is active
   let isOpen = $state(false);
   $effect(() => { if (childActive) isOpen = true; });
 
   const Icon = $derived(getIcon(item.icon));
   const label = $derived(getLabel(item));
   const soon = $derived(Boolean((item.meta as { soon?: boolean } | undefined)?.soon));
+
+  const isTopLevel = $derived(depth === 0);
+  const indentPx = $derived(isTopLevel ? 10 : 10 + depth * 16);
 </script>
 
 {#if item.meta?.hidden}
-  <!-- hidden item, render nothing -->
+  <!-- hidden -->
 {:else if hasChildren && !collapsed}
-  <!-- Parent node with children: render as collapsible group -->
-  <Collapsible.Root bind:open={isOpen}>
-    <Collapsible.Trigger
-      class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200
-      {childActive
-        ? 'text-sidebar-foreground bg-sidebar-accent/30'
-        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
-      style="padding-left: {12 + depth * 12}px"
-    >
-      <span class="flex items-center gap-3">
-        <Icon class="h-4 w-4 flex-shrink-0" />
-        <span>{label}</span>
-      </span>
-      <ChevronDown class="h-3.5 w-3.5 transition-transform duration-200 {isOpen ? 'rotate-180' : ''}" />
-    </Collapsible.Trigger>
-    <Collapsible.Content>
-      <div class="mt-0.5 space-y-0.5" style="padding-left: {depth > 0 ? 0 : 0}px">
-        {#each item.children as child, _i (_i)}
-          <SidebarItem item={child} {currentPath} {collapsed} depth={depth + 1} />
-        {/each}
-      </div>
-    </Collapsible.Content>
-  </Collapsible.Root>
+  {#if isTopLevel}
+    <div class="mt-3 first:mt-0">
+      <Collapsible.Root bind:open={isOpen}>
+        <Collapsible.Trigger
+          class="sidebar-menu-item flex w-full items-center justify-between rounded-md py-[7px] text-[13px] font-medium transition-colors duration-150
+          {childActive
+            ? 'text-sidebar-foreground'
+            : 'text-sidebar-foreground/70 hover:text-sidebar-foreground'}"
+          style="padding-left: {indentPx}px; padding-right: 10px"
+        >
+          <span class="flex items-center gap-2.5">
+            <Icon class="h-[18px] w-[18px] flex-shrink-0 {childActive ? 'text-primary' : 'text-sidebar-foreground/50'}" />
+            <span>{label}</span>
+          </span>
+          <ChevronDown class="h-3.5 w-3.5 text-sidebar-foreground/40 transition-transform duration-200 {isOpen ? 'rotate-180' : ''}" />
+        </Collapsible.Trigger>
+        <Collapsible.Content>
+          <div class="relative mt-[2px]">
+            <div class="absolute left-[19px] top-0 bottom-0 w-px bg-border/60"></div>
+            <div class="space-y-[1px]">
+              {#each item.children as child, _i (_i)}
+                <SidebarItem item={child} {currentPath} {collapsed} depth={depth + 1} />
+              {/each}
+            </div>
+          </div>
+        </Collapsible.Content>
+      </Collapsible.Root>
+    </div>
+  {:else}
+    <Collapsible.Root bind:open={isOpen}>
+      <Collapsible.Trigger
+        class="sidebar-menu-item flex w-full items-center justify-between rounded-md py-[6px] text-[13px] font-normal transition-colors duration-150
+        {childActive
+          ? 'text-primary font-medium'
+          : 'text-sidebar-foreground/65 hover:text-sidebar-foreground'}"
+        style="padding-left: {indentPx}px; padding-right: 10px"
+      >
+        <span class="flex items-center gap-2.5">
+          <Circle class="h-[5px] w-[5px] flex-shrink-0 {childActive ? 'fill-primary text-primary' : 'fill-sidebar-foreground/30 text-sidebar-foreground/30'}" />
+          <span>{label}</span>
+        </span>
+        <ChevronDown class="h-3 w-3 text-sidebar-foreground/35 transition-transform duration-200 {isOpen ? 'rotate-180' : ''}" />
+      </Collapsible.Trigger>
+      <Collapsible.Content>
+        <div class="space-y-[1px] mt-[1px]">
+          {#each item.children as child, _i (_i)}
+            <SidebarItem item={child} {currentPath} {collapsed} depth={depth + 1} />
+          {/each}
+        </div>
+      </Collapsible.Content>
+    </Collapsible.Root>
+  {/if}
 {:else if collapsed}
-  <!-- Collapsed sidebar: icon-only with tooltip -->
   <Tooltip.Root>
     <Tooltip.Trigger>
       {#snippet child({ props }: { props: Record<string, unknown> })}
@@ -137,12 +167,12 @@
           href={finalHref}
           target={isExternal ? '_blank' : undefined}
           rel={isExternal ? 'noopener noreferrer' : undefined}
-          class="flex items-center justify-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200
+          class="sidebar-menu-item flex items-center justify-center rounded-md px-2 py-[7px] transition-colors duration-150
           {active
-            ? 'bg-card text-sidebar-primary shadow-sm ring-1 ring-foreground/5'
-            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
+            ? 'sidebar-menu-item-active bg-sidebar-accent text-primary'
+            : 'text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
         >
-          <Icon class="h-4 w-4 flex-shrink-0" />
+          <Icon class="h-[18px] w-[18px] flex-shrink-0" />
         </a>
       {/snippet}
     </Tooltip.Trigger>
@@ -151,24 +181,45 @@
     </Tooltip.Content>
   </Tooltip.Root>
 {:else}
-  <!-- Leaf node: render as a link -->
-  <a
-    href={finalHref}
-    target={isExternal ? '_blank' : undefined}
-    rel={isExternal ? 'noopener noreferrer' : undefined}
-    class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200
-    {active
-      ? 'bg-card text-sidebar-primary shadow-sm ring-1 ring-foreground/5 font-semibold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:bg-primary before:rounded-r-md overflow-hidden relative'
-      : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
-    style="padding-left: {12 + depth * 12}px"
-  >
-    <Icon class="h-4 w-4 flex-shrink-0" />
-    <span class="flex-1">{label}</span>
-    {#if soon}
-      <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">Soon</Badge>
-    {/if}
-    {#if isExternal}
-      <ExternalLink class="h-3 w-3 opacity-50" />
-    {/if}
-  </a>
+  {#if isTopLevel}
+    <a
+      href={finalHref}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
+      class="sidebar-menu-item flex items-center gap-2.5 rounded-md py-[7px] text-[13px] font-medium transition-colors duration-150
+      {active
+        ? 'sidebar-menu-item-active text-primary bg-sidebar-accent'
+        : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'}"
+      style="padding-left: {indentPx}px; padding-right: 10px"
+    >
+      <Icon class="h-[18px] w-[18px] flex-shrink-0 {active ? 'text-primary' : 'text-sidebar-foreground/50'}" />
+      <span class="flex-1">{label}</span>
+      {#if soon}
+        <Badge variant="secondary" class="h-[18px] px-1.5 text-[10px] font-medium">Soon</Badge>
+      {/if}
+      {#if isExternal}
+        <ExternalLink class="h-3 w-3 opacity-40" />
+      {/if}
+    </a>
+  {:else}
+    <a
+      href={finalHref}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
+      class="sidebar-menu-item flex items-center gap-2.5 rounded-md py-[6px] text-[13px] font-normal transition-colors duration-150
+      {active
+        ? 'sidebar-menu-item-active text-primary font-medium'
+        : 'text-sidebar-foreground/65 hover:text-sidebar-foreground'}"
+      style="padding-left: {indentPx}px; padding-right: 10px"
+    >
+      <Circle class="h-[5px] w-[5px] flex-shrink-0 {active ? 'fill-primary text-primary' : 'fill-sidebar-foreground/30 text-sidebar-foreground/30'}" />
+      <span class="flex-1">{label}</span>
+      {#if soon}
+        <Badge variant="secondary" class="h-[18px] px-1.5 text-[10px] font-medium">Soon</Badge>
+      {/if}
+      {#if isExternal}
+        <ExternalLink class="h-3 w-3 opacity-40" />
+      {/if}
+    </a>
+  {/if}
 {/if}

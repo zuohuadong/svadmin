@@ -99,6 +99,15 @@ export function useResource(resourceName?: string) {
     get resource() { return resolvedResource; },
     get resources() { return getResources(); },
     get identifier() { return resolvedResource?.identifier ?? resolvedResource?.name; },
+    /** 当前 URL 解析出的 parent 资源信息（嵌套资源路由） */
+    get parent() {
+      const parentParams: Record<string, string> = {};
+      // 只取路径解析出的 parent params，排除 query params 的误判
+      for (const [k, v] of Object.entries(parsed.parentParams)) {
+        if (v) parentParams[k] = v;
+      }
+      return Object.keys(parentParams).length > 0 ? parentParams : undefined;
+    },
     /** Resolve a resource by name — useful for dynamic lookups inside callbacks */
     select: (name: string) => {
       try {

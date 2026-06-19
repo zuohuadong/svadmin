@@ -10,7 +10,10 @@ interface ParsedRoute {
   resourcePath?: string;
   action?: 'list' | 'create' | 'edit' | 'show' | 'clone';
   id?: string;
+  /** Query params parsed from the URL search string (e.g. ?page=2). */
   params: Record<string, string>;
+  /** Parent path params derived from nested routes (e.g. /teams/123/users -> teamId). */
+  parentParams: Record<string, string>;
 }
 
 let globalPath = $state('/');
@@ -21,6 +24,16 @@ export function resetGlobalPath(): void {
 export function syncGlobalPath(): void {
   if (typeof window !== 'undefined') globalPath = currentPath();
 }
+
+/** 简单的英文名词单数化，处理常见复数模式（-ies, -ses, -es, -s） */
+function singularize(word: string): string {
+  if (word.endsWith('ies') && word.length > 3) return word.slice(0, -3) + 'y';
+  if (word.endsWith('ses') && word.length > 3) return word.slice(0, -2);
+  if (word.endsWith('es') && word.length > 2) return word.slice(0, -2);
+  if (word.endsWith('s') && word.length > 1) return word.slice(0, -1);
+  return word;
+}
+
 registerRouterSync(syncGlobalPath);
 
 if (typeof window !== 'undefined') {
@@ -41,13 +54,15 @@ if (typeof window !== 'undefined') {
  *   // parsed.resource === 'posts'
  *   // parsed.action === 'edit'
  *   // parsed.id === '123'
+ *   // parsed.params contains query params only
+ *   // parsed.parentParams contains nested route params such as teamId
  */
 export function useParsed(): ParsedRoute {
   const resources = $derived((() => { try { return getResources(); } catch { return []; } })());
 
   const parsed = $derived.by(() => {
     const p = globalPath;
-    const result: ParsedRoute = { params: {} };
+    const result: ParsedRoute = { params: {}, parentParams: {} };
 
     // Parse query params from hash
     const [pathname, queryString] = p.split('?');
@@ -75,12 +90,15 @@ export function useParsed(): ParsedRoute {
       result.resource = segments[resourceIndex];
       result.resourcePath = segments.slice(0, resourceIndex + 1).join('/');
 
-      // Add parent path params based on `<parentResource>/<parentId>` structure
+      // Add parent path params based on `<parentResource>/<parentId>` structure.
+      // These are kept separate from query params so that downstream filter
+      // injection only applies to path-derived parent params, never to
+      // arbitrary query params like ?tenantId=1.
       for (let i = 0; i < resourceIndex; i += 2) {
         if (segments[i] && segments[i + 1]) {
           const parentName = segments[i];
-          const singular = parentName.endsWith('s') ? parentName.slice(0, -1) : parentName;
-          result.params[`${singular}Id`] = segments[i + 1];
+          const singular = singularize(parentName);
+          result.parentParams[`${singular}Id`] = segments[i + 1];
         }
       }
 
@@ -136,5 +154,6 @@ export function useParsed(): ParsedRoute {
     get action() { return parsed.action; },
     get id() { return parsed.id; },
     get params() { return parsed.params; },
+    get parentParams() { return parsed.parentParams; },
   };
 }

@@ -29,7 +29,6 @@
     onToggle: () => void;
     onLogout: () => void;
     menu?: MenuItem[];
-    /** 'hash' for SPA hash routing, 'path' for SvelteKit/filesystem routing, 'auto' to detect */
     routeMode?: 'hash' | 'path' | 'auto';
   } = $props();
 
@@ -91,11 +90,10 @@
   }
 
   interface NavGroup {
-    name: string | null; // null = ungrouped
+    name: string | null;
     items: NavItem[];
   }
 
-  // Use effect to build nav items, taking access control into account
   let navItems = $state.raw<NavItem[]>([]);
 
   $effect(() => {
@@ -129,7 +127,6 @@
     return () => { cancelled = true; };
   });
 
-  /** Toggle between available locales */
   function toggleLocale() {
     const locales = getAvailableLocales();
     const current = getLocale();
@@ -138,10 +135,8 @@
     setLocale(next);
   }
 
-  /** Short display label for current locale */
   const localeLabel = $derived(getLocale() === 'zh-CN' ? '中' : 'EN');
 
-  // Track current hash for active state
   const path = $derived(getPath());
 
   function isActive(itemPath: string): boolean {
@@ -149,7 +144,6 @@
     return path === itemPath || path.startsWith(itemPath + "/");
   }
 
-  // Group nav items by group field (null = ungrouped)
   const navGroups = $derived.by((): NavGroup[] => {
     const groups: NavGroup[] = [];
     const groupMap = new Map<string | null, NavItem[]>();
@@ -166,13 +160,11 @@
     return groups;
   });
 
-  // Track which groups are open
   let openGroups = $state<Set<string>>(new Set());
   let colorPickerOpen = $state(false);
   let colorPickerRef = $state<HTMLDivElement | null>(null);
   let colorPickerOpenedAt = 0;
 
-  // Density state
   let density = $state<'compact' | 'standard'>('standard');
   
   $effect(() => {
@@ -189,15 +181,12 @@
     }
   });
 
-  const pyClass = $derived(density === 'compact' ? 'py-1.5' : 'py-2.5');
-  const pyClassGroupItem = $derived(density === 'compact' ? 'py-1.5' : 'py-2');
-  const footerIconClass = 'h-9 w-9 rounded-lg text-sidebar-foreground/60 transition-all duration-200 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground';
+  const pyClass = $derived(density === 'compact' ? 'py-1' : 'py-[7px]');
+  const pyClassGroupItem = $derived(density === 'compact' ? 'py-1' : 'py-[6px]');
 
-  // Click-outside to close color picker
   $effect(() => {
     if (!colorPickerOpen) return;
     function handleMouseDown(e: MouseEvent) {
-      // Ignore if opened within last 200ms (same interaction)
       if (Date.now() - colorPickerOpenedAt < 200) return;
       if (colorPickerRef && !colorPickerRef.contains(e.target as Node)) {
         colorPickerOpen = false;
@@ -214,68 +203,59 @@
 
 <aside
   aria-label="Sidebar navigation"
-  class="fixed inset-y-0 left-0 z-30 flex flex-col backdrop-blur-xl transition-all duration-300"
+  class="fixed inset-y-0 left-0 z-30 flex flex-col border-r border-border/40 transition-all duration-300"
   style="background-color: var(--sidebar);"
-  class:w-64={!collapsed}
-  class:w-16={collapsed}
+  class:w-[252px]={!collapsed}
+  class:w-[70px]={collapsed}
 >
-  <!-- Logo -->
-  <div class="flex h-16 items-center justify-between px-4">
+  <div class="flex h-[70px] items-center shrink-0" class:px-5={!collapsed} class:justify-center={collapsed}>
     {#if !collapsed}
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-purple-500 shrink-0" style="box-shadow: 0 4px 12px oklch(0.488 0.243 264.376 / 20%);"></div>
-        <span class="font-semibold text-lg tracking-tight text-sidebar-foreground">{title}</span>
-      </div>
+      <a href="#/" class="flex items-center gap-2.5 group" onclick={(e) => { e.preventDefault(); navigate('/'); }}>
+        <div class="w-[34px] h-[34px] rounded-lg bg-gradient-to-tr from-primary to-purple-500 shrink-0 transition-transform group-hover:scale-105" style="box-shadow: 0 4px 12px oklch(0.488 0.243 264.376 / 20%);"></div>
+        <span class="font-semibold text-[15px] tracking-[-0.01em] text-sidebar-foreground">{title}</span>
+      </a>
     {:else}
-      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-purple-500 shrink-0 mx-auto" style="box-shadow: 0 4px 12px oklch(0.488 0.243 264.376 / 20%);"></div>
-    {/if}
-    {#if !collapsed}
-      <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle}>
-        <ChevronLeft class="h-4 w-4" />
-      </TooltipButton>
-    {:else}
-      <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle} class="mx-auto mt-2 mb-2 block">
-        <ChevronRight class="h-4 w-4" />
-      </TooltipButton>
+      <a href="#/" class="group" aria-label={title} onclick={(e) => { e.preventDefault(); navigate('/'); }}>
+        <div class="w-[34px] h-[34px] rounded-lg bg-gradient-to-tr from-primary to-purple-500 shrink-0 transition-transform group-hover:scale-105" style="box-shadow: 0 4px 12px oklch(0.488 0.243 264.376 / 20%);"></div>
+      </a>
     {/if}
   </div>
 
-  <ScrollArea class="flex-1">
-  <nav aria-label="Main menu" class="py-4 px-3 space-y-1">
+  <ScrollArea class="flex-1 sidebar-scroll">
+  <nav aria-label="Main menu" class="pb-4" class:px-[10px]={!collapsed} class:px-2={collapsed}>
     {#if menu && menu.length > 0}
-      <!-- Custom multi-level menu -->
-      {#each menu as item, _i (_i)}
-        <SidebarItem {item} currentPath={path} {collapsed} depth={0} />
-      {/each}
+      <div class="space-y-[2px]">
+        {#each menu as item, _i (_i)}
+          <SidebarItem {item} currentPath={path} {collapsed} depth={0} />
+        {/each}
+      </div>
     {:else}
-    <!-- Auto-generated menu from resources (fallback) -->
     {#each navGroups as group, _i (_i)}
       {#if group.name && !collapsed}
-        <!-- Grouped section with Collapsible -->
         <Collapsible.Root open={openGroups.has(group.name)} onOpenChange={(isOpen) => {
           const next = new Set(openGroups);
           if (isOpen) next.add(group.name as string); else next.delete(group.name as string);
           openGroups = next;
         }}>
           <Collapsible.Trigger
-            class="flex w-full items-center justify-between px-3 py-1.5 text-sm font-semibold tracking-wider text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
+            class="flex w-full items-center justify-between px-[10px] py-[6px] mt-4 mb-[2px] text-[10.5px] font-semibold tracking-[0.06em] uppercase text-sidebar-foreground/45 hover:text-sidebar-foreground/70 transition-colors"
           >
             <span>{group.name}</span>
-            <ChevronDown class="h-3 w-3 transition-transform {openGroups.has(group.name) ? 'rotate-180' : ''}" />
+            <ChevronDown class="h-3 w-3 transition-transform duration-200 {openGroups.has(group.name) ? 'rotate-180' : ''}" />
           </Collapsible.Trigger>
           <Collapsible.Content>
-            <div class="mt-1 space-y-1">
+            <div class="space-y-[2px]">
               {#each group.items as item, _i (_i)}
                 {@const active = isActive(item.path)}
                 <a
                   href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
                   onclick={(e) => { e.preventDefault(); navigate(item.path); }}
-                  class="flex items-center gap-3 rounded-xl px-3 {pyClassGroupItem} text-sm font-medium transition-all duration-300
+                  class="sidebar-menu-item flex items-center gap-2.5 rounded-md px-[10px] {pyClassGroupItem} text-[13px] font-medium transition-colors duration-150
                   {active
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground sidebar-nav-active shadow-[0_2px_12px_rgb(0,0,0,0.08)] ring-1 ring-border/20 translate-x-1'
-                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
+                    ? 'sidebar-menu-item-active bg-sidebar-accent text-primary'
+                    : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'}"
                 >
-                  <item.Icon class="h-4 w-4 flex-shrink-0" />
+                  <item.Icon class="h-[18px] w-[18px] flex-shrink-0 {active ? 'text-primary' : 'text-sidebar-foreground/50'}" />
                   <span>{item.label}</span>
                 </a>
               {/each}
@@ -283,7 +263,6 @@
           </Collapsible.Content>
         </Collapsible.Root>
       {:else}
-        <!-- Ungrouped items (flat) -->
         {#each group.items as item, _i (_i)}
           {@const active = isActive(item.path)}
           {#if collapsed}
@@ -294,12 +273,12 @@
                     {...props}
                     href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
                     onclick={(e) => { e.preventDefault(); navigate(item.path); }}
-                    class="flex items-center justify-center gap-3 rounded-xl px-3 {pyClass} text-sm font-medium transition-all duration-300
+                    class="sidebar-menu-item flex items-center justify-center rounded-md px-2 {pyClass} transition-colors duration-150
                     {active
-                      ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_2px_12px_rgb(0,0,0,0.08)] ring-1 ring-border/20'
-                      : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground'}"
+                      ? 'sidebar-menu-item-active bg-sidebar-accent text-primary'
+                      : 'text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
                   >
-                    <item.Icon class="h-4 w-4 flex-shrink-0" />
+                    <item.Icon class="h-[18px] w-[18px] flex-shrink-0" />
                   </a>
                 {/snippet}
               </Tooltip.Trigger>
@@ -311,12 +290,12 @@
             <a
               href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
               onclick={(e) => { e.preventDefault(); navigate(item.path); }}
-              class="flex items-center gap-3 rounded-xl px-3 {pyClass} text-sm font-medium transition-all duration-300
+              class="sidebar-menu-item flex items-center gap-2.5 rounded-md px-[10px] {pyClass} text-[13px] font-medium transition-colors duration-150
               {active
-                ? 'bg-sidebar-accent text-sidebar-accent-foreground sidebar-nav-active shadow-[0_2px_12px_rgb(0,0,0,0.08)] ring-1 ring-border/20 translate-x-1'
+                ? 'sidebar-menu-item-active bg-sidebar-accent text-primary'
                 : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}"
             >
-              <item.Icon class="h-4 w-4 flex-shrink-0" />
+              <item.Icon class="h-[18px] w-[18px] flex-shrink-0 {active ? 'text-primary' : 'text-sidebar-foreground/50'}" />
               <span>{item.label}</span>
             </a>
           {/if}
@@ -327,24 +306,21 @@
   </nav>
   </ScrollArea>
 
-  <!-- Footer -->
-  <div>
-    <!-- Color theme picker -->
+  <div class="shrink-0 border-t border-border/40">
     {#if !collapsed}
       <div class="px-3 pt-3 pb-1">
         <div class="relative" bind:this={colorPickerRef}>
-          <Button
-            variant="ghost"
-            class="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors h-auto justify-start"
+          <button
+            class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[12px] text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
             onclick={() => { if (!colorPickerOpen) colorPickerOpenedAt = Date.now(); colorPickerOpen = !colorPickerOpen; }}
           >
-            <Palette class="h-4 w-4" />
-            <span class="flex-1 text-left text-xs">{t('common.toggleTheme')}</span>
+            <Palette class="h-3.5 w-3.5" />
+            <span class="flex-1 text-left">{t('common.toggleTheme')}</span>
             <span
-              class="h-3.5 w-3.5 rounded-full ring-1 ring-offset-1 ring-offset-sidebar"
+              class="h-3 w-3 rounded-full ring-1 ring-offset-1 ring-offset-sidebar"
               style="background-color: {getColorThemes().find(c => c.id === getColorTheme())?.color ?? '#6366f1'}; --tw-ring-color: {getColorThemes().find(c => c.id === getColorTheme())?.color ?? '#6366f1'}"
             ></span>
-          </Button>
+          </button>
           {#if colorPickerOpen}
             <div class="absolute bottom-full left-0 mb-1 z-50 w-40 rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg animate-in fade-in-0 zoom-in-95">
               {#each getColorThemes() as ct, _i (_i)}
@@ -353,7 +329,7 @@
                   onclick={() => { setColorTheme(ct.id as typeof ct.id & import('@svadmin/core').ColorTheme); colorPickerOpen = false; }}
                 >
                   <span
-                    class="h-3.5 w-3.5 rounded-full {getColorTheme() === ct.id ? 'ring-2 ring-offset-1 scale-110' : 'opacity-70'}"
+                    class="h-3 w-3 rounded-full {getColorTheme() === ct.id ? 'ring-2 ring-offset-1 scale-110' : 'opacity-70'}"
                     style="background-color: {ct.color}; {getColorTheme() === ct.id ? `--tw-ring-color: ${ct.color}` : ''}"
                   ></span>
                   <span class="text-xs">{ct.label}</span>
@@ -365,10 +341,9 @@
       </div>
     {/if}
 
-    <!-- User info -->
     {#if !collapsed && identity}
-      <div class="px-3 pb-3 pt-1 transition-all duration-200">
-        <div class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-sidebar-accent/50">
+      <div class="px-3 pb-3 pt-1">
+        <div class="flex items-center gap-2.5 rounded-lg p-2 transition-colors hover:bg-sidebar-accent/40 cursor-pointer">
           <Avatar
             src={(identity as Record<string, unknown>).avatar as string | undefined}
             alt={identity.name ?? 'User'}
@@ -376,36 +351,44 @@
             size="sm"
           />
           <div class="flex-1 min-w-0">
-            <p class="truncate text-sm font-medium text-sidebar-foreground">{identity.name}</p>
-            <p class="truncate text-[10px] text-sidebar-foreground/50">{((identity as Record<string, unknown>).role || (identity as Record<string, unknown>).roleName) ?? 'User'}</p>
+            <p class="truncate text-[13px] font-medium text-sidebar-foreground">{identity.name}</p>
+            <p class="truncate text-[11px] text-sidebar-foreground/45">{((identity as Record<string, unknown>).role || (identity as Record<string, unknown>).roleName) ?? 'User'}</p>
           </div>
+          <button
+            class="h-7 w-7 flex items-center justify-center rounded-md text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-colors"
+            onclick={onLogout}
+          >
+            <LogOut class="h-3.5 w-3.5" />
+          </button>
         </div>
-        <div class="mt-1 grid grid-cols-4 place-items-center gap-1 px-1">
-          <TooltipButton tooltip={t('common.switchLanguage')} variant="ghost" size="icon-sm" onclick={toggleLocale} class={footerIconClass}>
-            <span class="text-xs font-bold">{localeLabel}</span>
-          </TooltipButton>
-          <TooltipButton tooltip={t('common.toggleTheme')} variant="ghost" size="icon-sm" onclick={toggleTheme} class={footerIconClass}>
-            {#if getResolvedTheme() === 'dark'}
-              <Sun class="h-4 w-4" />
-            {:else}
-              <Moon class="h-4 w-4" />
-            {/if}
-          </TooltipButton>
-          <TooltipButton tooltip={t('settings.title')} variant="ghost" size="icon-sm" onclick={() => navigate('/settings')} class={footerIconClass}>
-            <Settings class="h-4 w-4" />
-          </TooltipButton>
-          <TooltipButton tooltip={t('common.logout')} variant="ghost" size="icon-sm" onclick={onLogout} class="{footerIconClass} hover:text-destructive">
-            <LogOut class="h-4 w-4" />
+        <div class="mt-1 flex items-center justify-between px-1">
+          <div class="flex items-center gap-0.5">
+            <TooltipButton tooltip={t('common.switchLanguage')} variant="ghost" size="icon-sm" onclick={toggleLocale} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+              <span class="text-[11px] font-semibold">{localeLabel}</span>
+            </TooltipButton>
+            <TooltipButton tooltip={t('common.toggleTheme')} variant="ghost" size="icon-sm" onclick={toggleTheme} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+              {#if getResolvedTheme() === 'dark'}
+                <Sun class="h-3.5 w-3.5" />
+              {:else}
+                <Moon class="h-3.5 w-3.5" />
+              {/if}
+            </TooltipButton>
+            <TooltipButton tooltip={t('settings.title')} variant="ghost" size="icon-sm" onclick={() => navigate('/settings')} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+              <Settings class="h-3.5 w-3.5" />
+            </TooltipButton>
+          </div>
+          <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+            <ChevronLeft class="h-3.5 w-3.5" />
           </TooltipButton>
         </div>
       </div>
     {:else if collapsed}
-      <div class="flex flex-col items-center gap-1 px-3 py-3 transition-all duration-200">
+      <div class="flex flex-col items-center gap-0.5 px-2 py-3">
         <Tooltip.Root>
           <Tooltip.Trigger>
             {#snippet child({ props }: { props: Record<string, unknown> })}
-              <Button {...props} variant="ghost" size="icon" onclick={toggleLocale} class={footerIconClass}>
-                <span class="text-xs font-bold">{localeLabel}</span>
+              <Button {...props} variant="ghost" size="icon" onclick={toggleLocale} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+                <span class="text-[11px] font-semibold">{localeLabel}</span>
               </Button>
             {/snippet}
           </Tooltip.Trigger>
@@ -414,11 +397,11 @@
         <Tooltip.Root>
           <Tooltip.Trigger>
             {#snippet child({ props }: { props: Record<string, unknown> })}
-              <Button {...props} variant="ghost" size="icon" onclick={toggleTheme} class={footerIconClass}>
+              <Button {...props} variant="ghost" size="icon" onclick={toggleTheme} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
                 {#if getResolvedTheme() === 'dark'}
-                  <Sun class="h-4 w-4" />
+                  <Sun class="h-3.5 w-3.5" />
                 {:else}
-                  <Moon class="h-4 w-4" />
+                  <Moon class="h-3.5 w-3.5" />
                 {/if}
               </Button>
             {/snippet}
@@ -428,8 +411,18 @@
         <Tooltip.Root>
           <Tooltip.Trigger>
             {#snippet child({ props }: { props: Record<string, unknown> })}
-              <Button {...props} variant="ghost" size="icon" onclick={onLogout} class="{footerIconClass} hover:text-destructive">
-                <LogOut class="h-4 w-4" />
+              <Button {...props} variant="ghost" size="icon" onclick={onToggle} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+                <ChevronRight class="h-3.5 w-3.5" />
+              </Button>
+            {/snippet}
+          </Tooltip.Trigger>
+          <Tooltip.Content side="right">{t('common.toggleSidebar')}</Tooltip.Content>
+        </Tooltip.Root>
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            {#snippet child({ props }: { props: Record<string, unknown> })}
+              <Button {...props} variant="ghost" size="icon" onclick={onLogout} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-destructive">
+                <LogOut class="h-3.5 w-3.5" />
               </Button>
             {/snippet}
           </Tooltip.Trigger>
@@ -437,15 +430,15 @@
         </Tooltip.Root>
       </div>
     {:else}
-      <div class="flex justify-center gap-2 p-3 transition-all duration-200">
-        <TooltipButton tooltip={t('common.switchLanguage')} variant="ghost" size="icon" onclick={toggleLocale} class={footerIconClass}>
-          <span class="text-xs font-bold">{localeLabel}</span>
+      <div class="flex justify-center gap-1 p-3">
+        <TooltipButton tooltip={t('common.switchLanguage')} variant="ghost" size="icon" onclick={toggleLocale} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+          <span class="text-[11px] font-semibold">{localeLabel}</span>
         </TooltipButton>
-        <TooltipButton tooltip={t('common.toggleTheme')} variant="ghost" size="icon" onclick={toggleTheme} class={footerIconClass}>
+        <TooltipButton tooltip={t('common.toggleTheme')} variant="ghost" size="icon" onclick={toggleTheme} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
           {#if getResolvedTheme() === 'dark'}
-            <Sun class="h-4 w-4" />
+            <Sun class="h-3.5 w-3.5" />
           {:else}
-            <Moon class="h-4 w-4" />
+            <Moon class="h-3.5 w-3.5" />
           {/if}
         </TooltipButton>
       </div>

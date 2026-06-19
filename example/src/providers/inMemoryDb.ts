@@ -72,8 +72,14 @@ type ResourceName =
   | 'store_admin'
   | 'store_services'
   | 'ai_prompt'
-  | 'invoice_generator';
-
+  | 'invoice_generator'
+  | 'billing_plans'
+  | 'billing_invoices'
+  | 'billing_subscriptions'
+  | 'security_sessions'
+  | 'security_devices'
+  | 'security_allowed_ips'
+  | 'referral_invites';
 type DbState = Record<ResourceName, BaseRecord[]>;
 
 const initialDbState: DbState = {
@@ -1043,6 +1049,43 @@ const initialDbState: DbState = {
     { id: 1, templateName: 'Order invoice packet', channel: 'order', status: 'in_progress', nextRunAt: '2026-06-18', notes: 'Generate buyer-facing invoice with shipment detail.' },
     { id: 2, templateName: 'Monthly account statement', channel: 'email', status: 'planned', nextRunAt: '2026-07-01', notes: 'Attach statement summary and open balance snapshot.' },
     { id: 3, templateName: 'System credit memo', channel: 'system', status: 'review', nextRunAt: '2026-06-22', notes: 'Route adjustment approvals before issuing credit memo.' },
+  ],
+  billing_plans: [
+    { id: 1, planName: 'Starter', tier: 'starter', priceMonthly: 19, seatsIncluded: 3, status: 'active', description: 'For small teams getting started with inventory.' },
+    { id: 2, planName: 'Pro', tier: 'pro', priceMonthly: 49, seatsIncluded: 10, status: 'active', description: 'Advanced operations, automation, and reporting.' },
+    { id: 3, planName: 'Enterprise', tier: 'enterprise', priceMonthly: 149, seatsIncluded: 50, status: 'active', description: 'SSO, audit logs, and dedicated support.' },
+    { id: 4, planName: 'Legacy Basic', tier: 'starter', priceMonthly: 9, seatsIncluded: 1, status: 'deprecated', description: 'Grandfathered plan, no longer available.' },
+  ],
+  billing_invoices: [
+    { id: 1, invoiceNumber: 'INV-2026-0001', amount: 49, status: 'paid', issuedDate: '2026-06-01', periodStart: '2026-06-01', periodEnd: '2026-06-30' },
+    { id: 2, invoiceNumber: 'INV-2026-0002', amount: 149, status: 'paid', issuedDate: '2026-06-01', periodStart: '2026-06-01', periodEnd: '2026-06-30' },
+    { id: 3, invoiceNumber: 'INV-2026-0003', amount: 19, status: 'pending', issuedDate: '2026-06-15', periodStart: '2026-06-15', periodEnd: '2026-07-14' },
+    { id: 4, invoiceNumber: 'INV-2026-0004', amount: 49, status: 'failed', issuedDate: '2026-06-10', periodStart: '2026-06-10', periodEnd: '2026-07-09' },
+  ],
+  billing_subscriptions: [
+    { id: 1, subscriber: 'Operations Team', planId: 2, billingCycle: 'monthly', status: 'active', renewsOn: '2026-07-01', notes: 'Primary workspace subscription.' },
+    { id: 2, subscriber: 'Warehouse Crew', planId: 1, billingCycle: 'annual', status: 'trialing', renewsOn: '2026-06-25', notes: 'Trial ends before renewal.' },
+    { id: 3, subscriber: 'Finance Dept', planId: 3, billingCycle: 'annual', status: 'past_due', renewsOn: '2026-06-05', notes: 'Payment retry scheduled.' },
+  ],
+  security_sessions: [
+    { id: 1, device: 'MacBook Pro', ipAddress: '10.0.1.24', location: 'Shanghai', lastActive: '2026-06-18', status: 'active' },
+    { id: 2, device: 'iPhone 15', ipAddress: '114.88.20.3', location: 'Shanghai', lastActive: '2026-06-18', status: 'idle' },
+    { id: 3, device: 'Chrome on Windows', ipAddress: '203.0.113.7', location: 'Beijing', lastActive: '2026-06-15', status: 'revoked' },
+  ],
+  security_devices: [
+    { id: 1, deviceName: 'Jordan MacBook', ownerId: 1, platform: 'macos', status: 'trusted', enrolledAt: '2026-01-12', notes: 'Primary work laptop.' },
+    { id: 2, deviceName: 'Priya iPhone', ownerId: 2, platform: 'ios', status: 'trusted', enrolledAt: '2026-02-03', notes: 'Authenticator enrolled.' },
+    { id: 3, deviceName: 'Unknown Android', ownerId: 4, platform: 'android', status: 'pending', enrolledAt: '2026-06-10', notes: 'Awaiting admin approval.' },
+  ],
+  security_allowed_ips: [
+    { id: 1, cidr: '10.0.0.0/16', label: 'Office HQ', status: 'allowed', addedAt: '2026-01-01', notes: 'Corporate network range.' },
+    { id: 2, cidr: '203.0.113.0/24', label: 'VPN egress', status: 'allowed', addedAt: '2026-02-15', notes: 'Remote access VPN pool.' },
+    { id: 3, cidr: '198.51.100.42', label: 'Legacy printer', status: 'restricted', addedAt: '2026-03-20', notes: 'Allow only during business hours.' },
+  ],
+  referral_invites: [
+    { id: 1, inviteeEmail: 'mateo@example.com', inviterId: 1, code: 'OPS-2026-A', status: 'accepted', sentAt: '2026-05-10', acceptedAt: '2026-05-12' },
+    { id: 2, inviteeEmail: 'evelyn@example.com', inviterId: 2, code: 'OPS-2026-B', status: 'sent', sentAt: '2026-06-01', acceptedAt: '' },
+    { id: 3, inviteeEmail: 'carlos@example.com', inviterId: 3, code: 'OPS-2026-C', status: 'expired', sentAt: '2026-04-01', acceptedAt: '' },
   ],
 };
 

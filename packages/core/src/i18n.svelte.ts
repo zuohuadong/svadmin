@@ -981,19 +981,56 @@ function detectLocale(): string {
 
 let currentLocale = $state(detectLocale());
 
+/**
+ * I18nProvider — pluggable translation boundary.
+ * When set, all t/getLocale/getAvailableLocales delegates to it first,
+ * falling back to the built-in locale tables. This lets apps integrate
+ * existing i18n systems (svelte-i18n, paraglide, etc.) without rewriting callsites.
+ */
+export interface I18nProvider {
+  translate: (key: string, params?: Record<string, string | number>) => string;
+  getLocale: () => string;
+  setLocale: (locale: string) => void;
+  getAvailableLocales?: () => string[];
+}
+
+let i18nProvider: I18nProvider | undefined;
+
+export function setI18nProvider(provider: I18nProvider | undefined): void {
+  i18nProvider = provider;
+}
+
+export function getI18nProvider(): I18nProvider | undefined {
+  return i18nProvider;
+}
+
 export function setLocale(locale: string): void {
+  if (i18nProvider) {
+    i18nProvider.setLocale(locale);
+  }
+  // 同步更新 local state，确保 Svelte $state 依赖追踪触发模板刷新
   currentLocale = locale;
 }
 
 export function getLocale(): string {
+  // 读取 currentLocale 以保持 Svelte $state 响应式追踪
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  currentLocale;
+  if (i18nProvider) return i18nProvider.getLocale();
   return currentLocale;
 }
 
 export function getAvailableLocales(): string[] {
+  if (i18nProvider?.getAvailableLocales) return i18nProvider.getAvailableLocales();
   return Object.keys(locales);
 }
 
 export function t(key: string, params?: Record<string, string | number>): string {
+  // 读取 currentLocale 以建立 Svelte $state 依赖追踪，
+  // 确保无论是否使用 provider，语言切换都能触发模板刷新。
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  currentLocale;
+  if (i18nProvider) return i18nProvider.translate(key, params);
   const locale = locales[currentLocale];
   let text = locale?.[key] ?? locales['en']?.[key] ?? key;
 
@@ -1012,6 +1049,7 @@ export function addTranslations(locale: string, translations: Record<string, str
 export function resetI18n(): void {
   currentLocale = detectLocale();
   locales = initialLocales;
+  i18nProvider = undefined;
 }
 
 /**
@@ -1023,9 +1061,9 @@ export function useTranslation() {
     return t(key, params);
   };
   
-  return { 
+  return {
     get t() { return translate; },
-    get locale() { return currentLocale; },
+    get locale() { return getLocale(); },
     setLocale,
     getAvailableLocales
   };

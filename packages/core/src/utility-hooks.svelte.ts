@@ -8,6 +8,8 @@ import { t } from './i18n.svelte';
 import type { BaseRecord, HttpError, Filter, KnownResources, ResourceDefinition } from './types';
 import { useList, type UseListOptions } from './query-hooks.svelte';
 import { toast } from './toast.svelte';
+import type { UseSelectOptions } from './hooks.svelte';
+import { useSelect as useSelectImpl } from './hooks.svelte';
 
 // ─── useModal ─────────────────────────────────────────────────
 export function useModal(options?: { defaultVisible?: boolean }) {
@@ -180,4 +182,113 @@ export function useRelation<TData extends BaseRecord = BaseRecord, TError = Http
 // ─── useNotification ────────────────────────────────────────
 export function useNotification() {
   return { open: toast.info, success: toast.success, error: toast.error, warning: toast.warning };
+}
+
+// ─── Field-specific hooks (refine-compatible) ─────────────────────
+// useCheckboxGroup / useRadioGroup / useAutocomplete are convenience
+// wrappers around useSelect for common form field patterns.
+
+export interface UseCheckboxGroupOptions<TData extends BaseRecord = BaseRecord> extends Omit<UseSelectOptions<TData>, 'optionLabel' | 'optionValue' | 'defaultValue'> {
+  /** Field on the record used as the option label (default: 'title') */
+  optionLabel?: string | ((item: TData) => string);
+  /** Field on the record used as the checkbox value (default: 'id') */
+  optionValue?: string | ((item: TData) => string | number);
+  /** Currently selected values — controlled mode */
+  defaultValue?: (string | number)[];
+}
+
+/**
+ * useCheckboxGroup — multi-select field state backed by a resource query.
+ * Provides a list of checkbox options plus helpers to toggle individual values.
+ */
+export function useCheckboxGroup<TData extends BaseRecord = BaseRecord>(options: UseCheckboxGroupOptions<TData>) {
+  const select = useSelectImpl<TData>(options);
+  let selected = $state<(string | number)[]>(options.defaultValue ?? []);
+
+  function toggle(value: string | number) {
+    const idx = selected.findIndex(v => String(v) === String(value));
+    if (idx >= 0) {
+      selected = selected.filter(v => String(v) !== String(value));
+    } else {
+      selected = [...selected, value];
+    }
+  }
+
+  function isSelected(value: string | number): boolean {
+    return selected.some(v => String(v) === String(value));
+  }
+
+  return {
+    query: select.query,
+    get options() { return select.options; },
+    onSearchChange: select.onSearchChange,
+    get selected() { return selected; },
+    toggle,
+    isSelected,
+    setSelected: (values: (string | number)[]) => { selected = values; },
+  };
+}
+
+export interface UseRadioGroupOptions<TData extends BaseRecord = BaseRecord> extends Omit<UseSelectOptions<TData>, 'optionLabel' | 'optionValue' | 'defaultValue'> {
+  optionLabel?: string | ((item: TData) => string);
+  optionValue?: string | ((item: TData) => string | number);
+  defaultValue?: string | number;
+}
+
+/**
+ * useRadioGroup — single-select field state backed by a resource query.
+ * Provides a list of radio options plus a setter for the currently selected value.
+ */
+export function useRadioGroup<TData extends BaseRecord = BaseRecord>(options: UseRadioGroupOptions<TData>) {
+  const { defaultValue: _dv, ...selectOpts } = options;
+  // useSelect 的 defaultValue 是数组类型；透传单值以便远程选项回填当前已选值
+  const select = useSelectImpl<TData>({
+    ...selectOpts,
+    defaultValue: _dv !== undefined ? [_dv] : [],
+  });
+  let value = $state<string | number | undefined>(_dv);
+
+  return {
+    query: select.query,
+    get options() { return select.options; },
+    onSearchChange: select.onSearchChange,
+    get value() { return value; },
+    setValue: (v: string | number) => { value = v; },
+  };
+}
+
+export interface UseAutocompleteOptions<TData extends BaseRecord = BaseRecord> extends Omit<UseSelectOptions<TData>, 'onSearch' | 'defaultValue'> {
+  optionLabel?: string | ((item: TData) => string);
+  optionValue?: string | ((item: TData) => string | number);
+  /** Field name to search against (default: optionLabel) */
+  searchField?: string;
+  defaultValue?: string | number;
+}
+
+/**
+ * useAutocomplete — typeahead search field backed by a resource query.
+ * Builds a 'contains' filter on the search field and debounces input.
+ */
+export function useAutocomplete<TData extends BaseRecord = BaseRecord>(options: UseAutocompleteOptions<TData>) {
+  const { searchField, defaultValue: _dv, ...selectOpts } = options;
+  const labelField = typeof options.optionLabel === 'string' ? options.optionLabel : 'title';
+
+  const select = useSelectImpl<TData>({
+    ...selectOpts,
+    defaultValue: _dv !== undefined ? [_dv] : [],
+    onSearch: (term) => [{
+      field: searchField ?? labelField,
+      operator: 'contains' as const,
+      value: term,
+    }],
+  });
+  let value = $state<string | number | undefined>(_dv);
+
+  return {
+    query: select.query,
+    get options() { return select.options; },
+    onSearchChange: select.onSearchChange,
+    get value() { return value; },
+    setValue: (v: string | number) => { value = v; },
+  };
 }

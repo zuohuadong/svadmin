@@ -105,7 +105,7 @@
 />
 {#if loading}
   <div class="flex h-screen" in:fade={{ duration: 150 }}>
-    <div class="hidden md:block w-64 bg-sidebar/80 p-4 space-y-4">
+    <div class="hidden md:block w-[252px] bg-sidebar/80 p-4 space-y-4">
       <Skeleton class="h-8 w-32" />
       <div class="space-y-2 mt-6">
         {#each Array(5) as _, _i (_i)}
@@ -138,8 +138,10 @@
 
     <div
       class="flex-1 flex flex-col overflow-hidden transition-all duration-300"
-      class:md:ml-64={!collapsed}
-      class:md:ml-16={collapsed}
+      class:md:ml-[252px]={!collapsed}
+      class:sidebar-content-expanded={!collapsed}
+      class:md:ml-[70px]={collapsed}
+      class:sidebar-content-collapsed={collapsed}
     >
       <!-- Header with mobile hamburger -->
       <Header
@@ -171,7 +173,7 @@
       </Header>
 
       <!-- Content area -->
-      <main class="flex-1 overflow-y-auto p-6 md:p-8">
+      <main class="flex-1 overflow-y-auto p-5 md:p-7 bg-muted/30">
         {#key getPath()}
           <div in:fly={{ x: 20, duration: 150 }} out:fade={{ duration: 80 }}>
             {@render children()}

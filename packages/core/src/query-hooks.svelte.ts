@@ -87,9 +87,26 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
     const queryOptions = opts.queryOptions;
     const pagination = cloneQueryKeyPart(opts.pagination);
     const sorters = cloneQueryKeyPart(opts.sorters);
-    const filters = cloneQueryKeyPart(opts.filters);
+    const explicitFilters = cloneQueryKeyPart(opts.filters);
     const meta = cloneQueryKeyPart(opts.meta);
-    
+
+    // 自动注入嵌套资源 parent filter
+    // 仅消费路径解析出的 parentParams（如 /teams/123/users 的 teamId），
+    // 不再从 query params 中误取，避免 ?tenantId=1 等被静默转成 filter。
+    //
+    // 安全边界：仅在 useList 未显式指定 resource（回退到 parsed.resource），
+    // 或显式 resource 与当前路由资源一致时注入。
+    const parentFilters: typeof explicitFilters = [];
+    const injectParent = !opts.resource || opts.resource === parsed.resource;
+    if (injectParent && parsed.parentParams) {
+      for (const [paramKey, paramVal] of Object.entries(parsed.parentParams)) {
+        if (paramKey.endsWith('Id') && paramVal) {
+          parentFilters.push({ field: paramKey, operator: 'eq' as const, value: paramVal });
+        }
+      }
+    }
+    const filters = [...parentFilters, ...(explicitFilters ?? [])];
+
     return {
       queryKey: [opts.dataProviderName, resource, 'list', pagination, sorters, filters, meta],
       queryFn: async () => provider.getList<TData>({

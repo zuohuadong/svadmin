@@ -23,7 +23,7 @@ export {
   useNavigation, useGo, useBack,
   useGetToPath, useLink,
   useResource,
-  useModalForm, useDrawerForm, useModal,
+  useModalForm, useDrawerForm, useModal, useCheckboxGroup, useRadioGroup, useAutocomplete,
   useOvertime, useRelation,
   useNotification, useDataProvider,
   useMenu, useBreadcrumb, useThemedLayoutContext,
@@ -36,7 +36,8 @@ export { setAccessControlProvider, getAccessControlProvider, getAccessControlOpt
 export { useLive, useSubscription, usePublish } from './live.svelte';
 export { toast, getToastQueue, consumeToastQueue, getPromiseQueue, consumePromiseQueue, resetToast } from './toast.svelte';
 export { notify, closeNotification, setNotificationProvider, getNotificationProvider } from './notification.svelte';
-export { t, setLocale, getLocale, getAvailableLocales, addTranslations, useTranslation } from './i18n.svelte';
+export { t, setLocale, getLocale, getAvailableLocales, addTranslations, useTranslation, setI18nProvider, getI18nProvider, resetI18n } from './i18n.svelte';
+export type { I18nProvider } from './i18n.svelte';
 export { audit, setAuditHandler, setAuditLogProvider, getAuditLogProvider } from './audit';
 export type { AuditLogProvider } from './audit';
 export { setChatProvider, getChatProvider, setChatContext, getChatContext, setAgentProvider, getAgentProvider, registerApproval, resolveApproval, hasPendingApprovals, resetChatProvider } from './chatProvider.svelte';
@@ -79,8 +80,8 @@ export type { UseCanOptions, UseCanResult } from './useCan';
 export { createCaslAccessControl } from './adapters/casl';
 export { createCasbinAccessControl } from './adapters/casbin';
 export type { CasbinAdapterOptions } from './adapters/casbin';
-export { useExport, useImport } from './data-transfer.svelte';
-export type { UseExportOptions, UseImportOptions } from './data-transfer.svelte';
+export { useExport, useImport, downloadData } from './data-transfer.svelte';
+export type { UseExportOptions, UseImportOptions, ExportFormat } from './data-transfer.svelte';
 export {
   useLogin, useLogout,
   useRegister, useForgotPassword, useUpdatePassword,

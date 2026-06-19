@@ -10,8 +10,9 @@ const customerGroup = 'Customer Operations';
 const propertyGroup = 'Property Operations';
 const mailGroup = 'Mail Operations';
 const storeGroup = 'Store Operations';
-const previewGroup = 'Preview Applications';
-
+const billingGroup = 'Billing';
+const securityOpsGroup = 'Security Operations';
+const referralGroup = 'Referrals';
 export const resources: ResourceDefinition[] = [
   {
     name: 'products',
@@ -1087,7 +1088,7 @@ export const resources: ResourceDefinition[] = [
     name: 'project_planning',
     label: 'Project Planning',
     icon: 'calendar',
-    group: previewGroup,
+    group: planningGroup,
     menuOrder: 280,
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
@@ -1115,7 +1116,7 @@ export const resources: ResourceDefinition[] = [
     name: 'store_admin',
     label: 'Store Admin',
     icon: 'settings',
-    group: previewGroup,
+    group: storeGroup,
     menuOrder: 282,
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
@@ -1141,7 +1142,7 @@ export const resources: ResourceDefinition[] = [
     name: 'store_services',
     label: 'Store Services',
     icon: 'wrench',
-    group: previewGroup,
+    group: storeGroup,
     menuOrder: 284,
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
@@ -1177,7 +1178,7 @@ export const resources: ResourceDefinition[] = [
     name: 'ai_prompt',
     label: 'AI Prompt',
     icon: 'sparkles',
-    group: previewGroup,
+    group: intelligenceGroup,
     menuOrder: 286,
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
@@ -1214,7 +1215,7 @@ export const resources: ResourceDefinition[] = [
     name: 'invoice_generator',
     label: 'Invoice Generator',
     icon: 'file',
-    group: previewGroup,
+    group: operationsGroup,
     menuOrder: 288,
     fields: [
       { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
@@ -1246,6 +1247,226 @@ export const resources: ResourceDefinition[] = [
     ],
     defaultSort: { field: 'nextRunAt', order: 'asc' },
   },
+  {
+    name: 'billing_plans',
+    label: 'Plans',
+    icon: 'credit-card',
+    group: billingGroup,
+    menuOrder: 300,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'planName', label: 'Plan', type: 'text', required: true, searchable: true },
+      {
+        key: 'tier',
+        label: 'Tier',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Starter', value: 'starter' },
+          { label: 'Pro', value: 'pro' },
+          { label: 'Enterprise', value: 'enterprise' },
+        ],
+      },
+      { key: 'priceMonthly', label: 'Monthly Price', type: 'number', required: true, width: '140px' },
+      { key: 'seatsIncluded', label: 'Seats', type: 'number', width: '100px' },
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Active', value: 'active' },
+          { label: 'Deprecated', value: 'deprecated' },
+          { label: 'Draft', value: 'draft' },
+        ],
+      },
+      { key: 'description', label: 'Description', type: 'textarea', showInList: false },
+    ],
+    defaultSort: { field: 'priceMonthly', order: 'asc' },
+  },
+  {
+    name: 'billing_invoices',
+    label: 'Billing History',
+    icon: 'file',
+    group: billingGroup,
+    menuOrder: 302,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'invoiceNumber', label: 'Invoice', type: 'text', required: true, searchable: true },
+      { key: 'amount', label: 'Amount', type: 'number', required: true, width: '120px' },
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Paid', value: 'paid' },
+          { label: 'Pending', value: 'pending' },
+          { label: 'Failed', value: 'failed' },
+          { label: 'Refunded', value: 'refunded' },
+        ],
+      },
+      { key: 'issuedDate', label: 'Issued', type: 'date', required: true },
+      { key: 'periodStart', label: 'Period Start', type: 'date', showInList: false },
+      { key: 'periodEnd', label: 'Period End', type: 'date', showInList: false },
+    ],
+    defaultSort: { field: 'issuedDate', order: 'desc' },
+  },
+  {
+    name: 'billing_subscriptions',
+    label: 'Subscriptions',
+    icon: 'repeat',
+    group: billingGroup,
+    menuOrder: 304,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'subscriber', label: 'Subscriber', type: 'text', required: true, searchable: true },
+      { key: 'planId', label: 'Plan', type: 'relation', resource: 'billing_plans', optionLabel: 'planName', optionValue: 'id', required: true },
+      {
+        key: 'billingCycle',
+        label: 'Cycle',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Monthly', value: 'monthly' },
+          { label: 'Annual', value: 'annual' },
+        ],
+      },
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Active', value: 'active' },
+          { label: 'Trialing', value: 'trialing' },
+          { label: 'Canceled', value: 'canceled' },
+          { label: 'Past Due', value: 'past_due' },
+        ],
+      },
+      { key: 'renewsOn', label: 'Renews On', type: 'date' },
+      { key: 'notes', label: 'Notes', type: 'textarea', showInList: false },
+    ],
+    defaultSort: { field: 'renewsOn', order: 'asc' },
+  },
+  {
+    name: 'security_sessions',
+    label: 'Current Sessions',
+    icon: 'monitor',
+    group: securityOpsGroup,
+    menuOrder: 310,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'device', label: 'Device', type: 'text', required: true, searchable: true },
+      { key: 'ipAddress', label: 'IP Address', type: 'text', required: true, searchable: true, width: '140px' },
+      { key: 'location', label: 'Location', type: 'text', searchable: true },
+      { key: 'lastActive', label: 'Last Active', type: 'date', required: true },
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Active', value: 'active' },
+          { label: 'Idle', value: 'idle' },
+          { label: 'Revoked', value: 'revoked' },
+        ],
+      },
+    ],
+    defaultSort: { field: 'lastActive', order: 'desc' },
+  },
+  {
+    name: 'security_devices',
+    label: 'Device Management',
+    icon: 'smartphone',
+    group: securityOpsGroup,
+    menuOrder: 312,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'deviceName', label: 'Device Name', type: 'text', required: true, searchable: true },
+      { key: 'ownerId', label: 'Owner', type: 'relation', resource: 'users', optionLabel: 'name', optionValue: 'id' },
+      {
+        key: 'platform',
+        label: 'Platform',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'iOS', value: 'ios' },
+          { label: 'Android', value: 'android' },
+          { label: 'macOS', value: 'macos' },
+          { label: 'Windows', value: 'windows' },
+          { label: 'Web', value: 'web' },
+        ],
+      },
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Trusted', value: 'trusted' },
+          { label: 'Pending', value: 'pending' },
+          { label: 'Blocked', value: 'blocked' },
+        ],
+      },
+      { key: 'enrolledAt', label: 'Enrolled', type: 'date' },
+      { key: 'notes', label: 'Notes', type: 'textarea', showInList: false },
+    ],
+    defaultSort: { field: 'enrolledAt', order: 'desc' },
+  },
+  {
+    name: 'security_allowed_ips',
+    label: 'Allowed IPs',
+    icon: 'shield',
+    group: securityOpsGroup,
+    menuOrder: 314,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'cidr', label: 'IP / CIDR', type: 'text', required: true, searchable: true },
+      { key: 'label', label: 'Label', type: 'text', searchable: true },
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Allowed', value: 'allowed' },
+          { label: 'Restricted', value: 'restricted' },
+          { label: 'Disabled', value: 'disabled' },
+        ],
+      },
+      { key: 'addedAt', label: 'Added', type: 'date', required: true },
+      { key: 'notes', label: 'Notes', type: 'textarea', showInList: false },
+    ],
+    defaultSort: { field: 'addedAt', order: 'desc' },
+  },
+  {
+    name: 'referral_invites',
+    label: 'Invite a Friend',
+    icon: 'user-plus',
+    group: referralGroup,
+    menuOrder: 320,
+    fields: [
+      { key: 'id', label: 'ID', type: 'number', showInForm: false, width: '72px' },
+      { key: 'inviteeEmail', label: 'Invitee Email', type: 'text', required: true, searchable: true },
+      { key: 'inviterId', label: 'Inviter', type: 'relation', resource: 'users', optionLabel: 'name', optionValue: 'id' },
+      { key: 'code', label: 'Invite Code', type: 'text', searchable: true, width: '140px' },
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Sent', value: 'sent' },
+          { label: 'Accepted', value: 'accepted' },
+          { label: 'Expired', value: 'expired' },
+        ],
+      },
+      { key: 'sentAt', label: 'Sent', type: 'date', required: true },
+      { key: 'acceptedAt', label: 'Accepted', type: 'date', showInList: false },
+    ],
+    defaultSort: { field: 'sentAt', order: 'desc' },
+  },
 ];
 
 const zhGroupLabels: Record<string, string> = {
@@ -1259,7 +1480,9 @@ const zhGroupLabels: Record<string, string> = {
   'Property Operations': '资产运营',
   'Mail Operations': '邮件中心',
   'Store Operations': '商城应用',
-  'Preview Applications': '预览应用',
+  Billing: '账单',
+  'Security Operations': '安全运营',
+  Referrals: '推荐邀请',
 };
 
 const zhResourceLabels: Record<string, string> = {
@@ -1307,6 +1530,13 @@ const zhResourceLabels: Record<string, string> = {
   'Store Services': '商城服务端',
   'AI Prompt': 'AI 提示词',
   'Invoice Generator': '发票生成器',
+  Plans: '套餐方案',
+  'Billing History': '账单历史',
+  Subscriptions: '订阅',
+  'Current Sessions': '当前会话',
+  'Device Management': '设备管理',
+  'Allowed IPs': '允许的 IP',
+  'Invite a Friend': '邀请好友',
 };
 
 const zhFieldLabels: Record<string, string> = {
@@ -1451,6 +1681,28 @@ const zhFieldLabels: Record<string, string> = {
   Content: '内容',
   'Template Name': '模板名称',
   'Next Run': '下次运行',
+  Plan: '套餐',
+  Tier: '等级',
+  'Monthly Price': '月费',
+  Seats: '席位',
+  Invoice: '发票号',
+  Issued: '开票日',
+  'Period Start': '账期开始',
+  'Period End': '账期结束',
+  Subscriber: '订阅者',
+  Cycle: '周期',
+  'Renews On': '续费日',
+  Device: '设备',
+  'Device Name': '设备名称',
+  Platform: '平台',
+  Enrolled: '登记日',
+  'IP / CIDR': 'IP / CIDR',
+  Label: '标签',
+  Added: '添加日',
+  'Invitee Email': '被邀邮箱',
+  Inviter: '邀请人',
+  'Invite Code': '邀请码',
+  Accepted: '接受日',
 };
 
 const zhOptionLabels: Record<string, string> = {
@@ -1559,6 +1811,31 @@ const zhOptionLabels: Record<string, string> = {
   Educator: '教育',
   Creative: '创意',
   Delivered: '已送达',
+  'Starter': '入门',
+  'Pro': '专业',
+  'Enterprise': '企业',
+  'Deprecated': '已弃用',
+  'Paid': '已支付',
+  'Failed': '失败',
+  'Refunded': '已退款',
+  'Monthly': '按月',
+  'Annual': '按年',
+  'Trialing': '试用中',
+  'Canceled': '已取消',
+  'Past Due': '逾期',
+  'Idle': '空闲',
+  'Revoked': '已撤销',
+  'iOS': 'iOS',
+  'Android': 'Android',
+  'macOS': 'macOS',
+  'Windows': 'Windows',
+  'Web': '网页',
+  'Trusted': '受信任',
+  'Allowed': '允许',
+  'Restricted': '受限',
+  'Sent': '已发送',
+  'Accepted': '已接受',
+  'Expired': '已过期',
 };
 
 function localizeLabel(label: string, labels: Record<string, string>, locale: string): string {

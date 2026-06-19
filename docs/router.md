@@ -92,7 +92,12 @@ Parse the current URL into structured route information:
 ```typescript
 import { useParsed } from '@svadmin/core';
 
-const { resource, action, id, params } = useParsed();
+const { resource, action, id, params, parentParams } = useParsed();
 // /#/posts/edit/42?tab=details
-// → { resource: 'posts', action: 'edit', id: '42', params: { tab: 'details' } }
+// -> { resource: 'posts', action: 'edit', id: '42', params: { tab: 'details' }, parentParams: {} }
+
+// /#/teams/123/users?tenantId=1
+// -> { resource: 'users', action: 'list', params: { tenantId: '1' }, parentParams: { teamId: '123' } }
 ```
+
+`params` only contains query string values. Nested route parameters are exposed through `parentParams`, and `useList` only uses `parentParams` for automatic parent filters. This means a regular query string such as `?tenantId=1` will not be silently converted into a list filter.

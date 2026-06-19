@@ -28,6 +28,7 @@ progress.md
 .agent
 .mailbox/
 playwright-report/
+.playwright-cli/
 test-results/
 
 servers.local.md

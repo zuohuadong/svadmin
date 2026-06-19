@@ -33,6 +33,11 @@ export { default as UpdatePasswordPage } from './components/UpdatePasswordPage.s
 export { default as ProfilePage } from './components/ProfilePage.svelte';
 export { default as ConfigErrorScreen } from './components/ConfigErrorScreen.svelte';
 export { default as InferencerPanel } from './components/InferencerPanel.svelte';
+export { default as ListInferencer } from './components/ListInferencer.svelte';
+export { default as CreateInferencer } from './components/CreateInferencer.svelte';
+export { default as EditInferencer } from './components/EditInferencer.svelte';
+export { default as ShowInferencer } from './components/ShowInferencer.svelte';
+export { default as ResourceInferencer } from './components/ResourceInferencer.svelte';
 export { default as LiveIndicator } from './components/LiveIndicator.svelte';
 export { default as ListPage } from './components/ListPage.svelte';
 export { default as CreatePage } from './components/CreatePage.svelte';

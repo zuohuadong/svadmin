@@ -12,7 +12,7 @@
   import CloneButton from './buttons/CloneButton.svelte';
   import RefreshButton from './buttons/RefreshButton.svelte';
 
-  let { resourceName, id } = $props<{ resourceName: string; id: string | number }>();
+  let { resourceName, id, class: className = '' } = $props<{ resourceName: string; id: string | number; class?: string }>();
 
   const resource = $derived(getResource(resourceName));
   const showFields = $derived(resource.fields.filter(f => f.showInShow !== false));
@@ -20,7 +20,7 @@
   const query = useShow({ get resource() { return resourceName; }, get id() { return id; } });
 </script>
 
-<div class="space-y-6">
+<div class="space-y-6 {className}">
   <PageHeader title="{resource.label} {t('common.detail')}">
     {#snippet actions()}
       <ListButton resource={resourceName} hideText />

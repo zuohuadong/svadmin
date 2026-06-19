@@ -48,11 +48,11 @@
     --warning-foreground: oklch(0.3 0.08 60);
     --info: oklch(0.6 0.15 250);
     --info-foreground: oklch(0.985 0 0);
-    --sidebar: oklch(1 0 0 / 80%);
-    --sidebar-foreground: oklch(0.13 0.02 265);
+    --sidebar: oklch(0.985 0.002 264);
+    --sidebar-foreground: oklch(0.23 0.02 265);
     --sidebar-primary: oklch(0.488 0.243 264.376);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.94 0.025 264);
+    --sidebar-accent: oklch(0.955 0.012 264);
     --sidebar-accent-foreground: oklch(0.33 0.17 264);
     --sidebar-border: oklch(0.935 0.005 264);
     --sidebar-ring: oklch(0.488 0.243 264.376);
@@ -89,11 +89,11 @@
     --warning-foreground: oklch(0.25 0.05 60);
     --info: oklch(0.65 0.15 250);
     --info-foreground: oklch(0.985 0 0);
-    --sidebar: oklch(0.16 0.015 265 / 80%);
-    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar: oklch(0.17 0.015 265);
+    --sidebar-foreground: oklch(0.92 0.005 264);
     --sidebar-primary: oklch(0.585 0.233 264);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.488 0.243 264.376 / 10%);
+    --sidebar-accent: oklch(0.488 0.243 264.376 / 12%);
     --sidebar-accent-foreground: oklch(0.7 0.15 264);
     --sidebar-border: oklch(0.27 0.02 265);
     --sidebar-ring: oklch(0.55 0.18 264);
@@ -521,13 +521,30 @@ main {
   right: 0;
 }
 /* Mirror sidebar margins for RTL */
-[dir="rtl"] .md\:ml-64 {
+[dir="rtl"] .sidebar-content-expanded {
   margin-left: 0;
-  margin-right: 16rem;
+  margin-right: 252px;
 }
-[dir="rtl"] .md\:ml-16 {
+[dir="rtl"] .sidebar-content-collapsed {
   margin-left: 0;
-  margin-right: 4rem;
+  margin-right: 70px;
+}
+
+/* ── Sidebar Menu Item Styles ── */
+.sidebar-menu-item {
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sidebar-menu-item-active {
+  position: relative;
+}
+
+.sidebar-scroll [data-radix-scroll-area-viewport] > div {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ⑰ Accessibility Minimum Touch Target — Apple HIG 44px minimum */
@@ -711,115 +728,52 @@ main {
   background-color: rgba(43, 43, 64, 0.3) !important;
 }
 
-/* Sidebar layout adjustments */
-.layout-clean-flat [data-sidebar="sidebar"] {
-  background: #ffffff !important;
+/* Sidebar layout adjustments for clean-flat theme */
+.layout-clean-flat aside {
+  background: #fafbfc !important;
   color: #181c32 !important;
-  border-right: 1px solid #f1f3f7 !important;
+  border-right-color: #f1f3f7 !important;
   box-shadow: none !important;
 }
-.dark.layout-clean-flat [data-sidebar="sidebar"],
-.dark .layout-clean-flat [data-sidebar="sidebar"] {
+.dark.layout-clean-flat aside,
+.dark .layout-clean-flat aside {
   background: #1e1e2d !important;
   color: #a1a5b7 !important;
-  border-right: 1px solid #2b2b40 !important;
+  border-right-color: #2b2b40 !important;
 }
 
-.layout-clean-flat [data-sidebar="group-label"] {
-  font-size: 0.9375rem !important;
-  font-weight: 650 !important;
-  text-transform: none;
-  letter-spacing: 0;
-  color: #a1a5b7 !important;
-  padding: 0.5rem 0.5rem 0.375rem !important;
-}
-
-.layout-clean-flat [data-sidebar="menu-button"] {
+.layout-clean-flat .sidebar-menu-item {
   color: #5e6278 !important;
   border-radius: 0.5rem !important;
   transition: color 0.15s ease, background-color 0.15s ease !important;
-  font-weight: 500 !important;
   box-shadow: none !important;
 }
 
-.layout-clean-flat [data-sidebar="menu-button"]:hover {
+.layout-clean-flat .sidebar-menu-item:hover {
   background: transparent !important;
   color: #181c32 !important;
 }
-.dark.layout-clean-flat [data-sidebar="menu-button"]:hover,
-.dark .layout-clean-flat [data-sidebar="menu-button"]:hover {
+.dark.layout-clean-flat .sidebar-menu-item:hover,
+.dark .layout-clean-flat .sidebar-menu-item:hover {
   background: transparent !important;
   color: #f1f6ff !important;
 }
 
-.layout-clean-flat [data-sidebar="menu-button"]:hover > svg {
-  opacity: 0.85 !important;
-}
-
-.layout-clean-flat [data-sidebar="menu-button"][data-active="true"] {
+.layout-clean-flat .sidebar-menu-item-active {
   background: transparent !important;
   color: #3e97ff !important;
   font-weight: 600 !important;
   box-shadow: none !important;
-  outline: none !important;
 }
-.dark.layout-clean-flat [data-sidebar="menu-button"][data-active="true"],
-.dark .layout-clean-flat [data-sidebar="menu-button"][data-active="true"] {
+.dark.layout-clean-flat .sidebar-menu-item-active,
+.dark .layout-clean-flat .sidebar-menu-item-active {
   background: transparent !important;
   color: #3e97ff !important;
 }
 
-.layout-clean-flat [data-sidebar="menu-button"][data-active="true"] svg {
+.layout-clean-flat .sidebar-menu-item-active svg {
   color: #3e97ff !important;
   opacity: 1 !important;
-}
-
-.layout-clean-flat [data-sidebar="menu-button"] [data-sidebar="menu-icon"],
-.layout-clean-flat [data-sidebar="menu-sub-button"] [data-sidebar="menu-icon"],
-.layout-clean-flat [data-sidebar="menu-button"][data-active="true"] [data-sidebar="menu-icon"],
-.layout-clean-flat [data-sidebar="menu-sub-button"][data-active="true"] [data-sidebar="menu-icon"] {
-  background: transparent !important;
-  color: inherit !important;
-  box-shadow: none !important;
-  outline: none !important;
-}
-
-.layout-clean-flat [data-sidebar="menu-sub"] {
-  margin-left: 0 !important;
-  padding-left: 0 !important;
-  border-left: 0 !important;
-}
-
-.layout-clean-flat [data-sidebar="menu-sub-button"] {
-  color: #5e6278 !important;
-  border-radius: 0.5rem !important;
-  font-size: 0.8125rem !important;
-  font-weight: 400 !important;
-  transition: color 0.15s ease, background-color 0.15s ease !important;
-  box-shadow: none !important;
-}
-
-.layout-clean-flat [data-sidebar="menu-sub-button"]:hover {
-  background: transparent !important;
-  color: #181c32 !important;
-}
-.dark.layout-clean-flat [data-sidebar="menu-sub-button"]:hover,
-.dark .layout-clean-flat [data-sidebar="menu-sub-button"]:hover {
-  background: transparent !important;
-  color: #f1f6ff !important;
-}
-
-.layout-clean-flat [data-sidebar="menu-sub-button"][data-active="true"] {
-  background: transparent !important;
-  color: #3e97ff !important;
-  font-weight: 500 !important;
-  box-shadow: none !important;
-  outline: none !important;
-}
-.dark.layout-clean-flat [data-sidebar="menu-sub-button"][data-active="true"],
-.dark .layout-clean-flat [data-sidebar="menu-sub-button"][data-active="true"] {
-  background: transparent !important;
-  color: #3e97ff !important;
 }
 
 /* Button & input styles override under clean-flat layout */

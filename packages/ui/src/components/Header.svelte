@@ -35,7 +35,7 @@
   const CustomNotificationPanel = registry.NotificationPanel;
 </script>
 
-<header class="sticky top-0 z-30 flex h-14 w-full shrink-0 items-center justify-between bg-card/60 backdrop-blur-md px-4 md:px-6">
+<header class="sticky top-0 z-30 flex h-[70px] w-full shrink-0 items-center justify-between border-b border-border/40 bg-background/95 backdrop-blur-sm px-4 md:px-6">
   <div class="flex items-center gap-4">
     {#if children}
       {@render children()}
@@ -64,10 +64,10 @@
     {/if}
 
     {#if showSearch && onSearchClick}
-      <Button variant="outline" size="sm" onclick={onSearchClick} class="gap-2 text-muted-foreground h-8 px-3">
+      <Button variant="outline" size="sm" onclick={onSearchClick} class="gap-2 text-muted-foreground h-9 px-3 rounded-lg border-border/60">
         <Search class="h-3.5 w-3.5" />
-        <span class="hidden sm:inline text-xs">Search...</span>
-        <kbd class="hidden sm:inline-flex items-center gap-0.5 rounded border bg-muted px-1.5 py-0.5 text-[10px] font-medium font-mono text-muted-foreground">
+        <span class="hidden sm:inline text-xs">{t('common.search')}...</span>
+        <kbd class="hidden sm:inline-flex items-center gap-0.5 rounded border bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium font-mono text-muted-foreground">
           <span class="text-xs">⌘</span>K
         </kbd>
       </Button>
