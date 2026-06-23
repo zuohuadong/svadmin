@@ -72,6 +72,7 @@ export interface GetListParams {
 export interface GetListResult<TData extends BaseRecord = BaseRecord> {
   data: TData[];
   total: number;
+  [key: string]: unknown;
 }
 
 export interface GetOneParams {
@@ -315,6 +316,8 @@ export interface AuthProvider {
   register?: (params: Record<string, unknown>) => Promise<AuthActionResult>;
   forgotPassword?: (params: Record<string, unknown>) => Promise<AuthActionResult>;
   updatePassword?: (params: Record<string, unknown>) => Promise<AuthActionResult>;
+  /** Update current user's identity fields such as name or email. */
+  updateIdentity?: (params: Partial<Identity> & Record<string, unknown>) => Promise<AuthActionResult>;
   /** Update user profile (name, avatar, etc.) */
   updateProfile?: (params: { name?: string; avatar?: string | File; [key: string]: unknown }) => Promise<AuthActionResult>;
   /** Get list of system roles for RBAC mapping */

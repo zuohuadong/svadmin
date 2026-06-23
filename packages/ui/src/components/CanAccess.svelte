@@ -3,15 +3,16 @@
   import { useCan } from '@svadmin/core';
   import type { Action } from '@svadmin/core';
 
-  let { resource, action, params, children, fallback } = $props<{
+  let { resource, action, params, meta, children, fallback } = $props<{
     resource: string;
     action: Action;
     params?: Record<string, unknown>;
+    meta?: Record<string, unknown>;
     children: Snippet;
     fallback?: Snippet;
   }>();
 
-  const can = useCan(() => ({ resource, action, params }));
+  const can = useCan(() => ({ resource, action, params, meta }));
 </script>
 
 {#if can.isLoading}

@@ -60,6 +60,26 @@ describe('permissions', () => {
     expect((result as CanResult).reason).toBe('Record locked');
   });
 
+  test('params and meta are available to access control providers', async () => {
+    const provider: AccessControlProvider = {
+      can: async (p) => {
+        const request = p as CanParams;
+        expect(request.params).toEqual({ id: 42, tenantId: 'tenant-1' });
+        expect(request.meta).toEqual({ scope: 'row-action', source: 'DeleteButton' });
+        return { can: true };
+      },
+    };
+
+    const result = await provider.can({
+      resource: 'orders',
+      action: 'delete',
+      params: { id: 42, tenantId: 'tenant-1' },
+      meta: { scope: 'row-action', source: 'DeleteButton' },
+    });
+
+    expect(result).toEqual({ can: true });
+  });
+
   test('extended action types work', async () => {
     const provider: AccessControlProvider = {
       can: async (p) => {

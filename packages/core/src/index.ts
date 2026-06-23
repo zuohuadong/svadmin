@@ -85,6 +85,7 @@ export type { UseExportOptions, UseImportOptions, ExportFormat } from './data-tr
 export {
   useLogin, useLogout,
   useRegister, useForgotPassword, useUpdatePassword,
+  useUpdateIdentity, useUpdateProfile,
   useGetIdentity, useIsAuthenticated,
   useOnError, usePermissions,
   getLogoutVersion, resetLogoutVersion,

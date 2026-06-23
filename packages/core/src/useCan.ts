@@ -8,6 +8,7 @@ export interface UseCanOptions {
   resource: string;
   action: Action;
   params?: Record<string, unknown>;
+  meta?: Record<string, unknown>;
   queryOptions?: {
     enabled?: boolean;
     staleTime?: number;
@@ -34,8 +35,8 @@ export function useCan(options: () => UseCanOptions): UseCanResult {
   const query = createQuery<CanResult>(() => {
     const opts = options();
     return {
-      queryKey: ['useCan', opts.resource, opts.action, opts.params] as const,
-      queryFn: () => canAccessAsync(opts.resource, opts.action, opts.params),
+      queryKey: ['useCan', opts.resource, opts.action, opts.params, opts.meta] as const,
+      queryFn: () => canAccessAsync(opts.resource, opts.action, opts.params, opts.meta),
       enabled: opts.queryOptions?.enabled ?? true,
       staleTime: opts.queryOptions?.staleTime ?? 5 * 60 * 1000,
     };

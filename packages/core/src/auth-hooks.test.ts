@@ -18,6 +18,8 @@ function createMockAuthProvider(overrides: Partial<AuthProvider> = {}): AuthProv
     register: mock(async () => ({ success: true } as AuthActionResult)),
     forgotPassword: mock(async () => ({ success: true } as AuthActionResult)),
     updatePassword: mock(async () => ({ success: true } as AuthActionResult)),
+    updateIdentity: mock(async () => ({ success: true } as AuthActionResult)),
+    updateProfile: mock(async () => ({ success: true } as AuthActionResult)),
     onError: mock(async () => ({ logout: false })),
     getPermissions: mock(async () => ['admin', 'editor']),
     ...overrides,
@@ -97,6 +99,18 @@ describe('AuthProvider mock interface', () => {
   test('updatePassword returns success', async () => {
     const provider = createMockAuthProvider();
     const result = await provider.updatePassword!({ password: 'newpass', confirmPassword: 'newpass' });
+    expect(result.success).toBe(true);
+  });
+
+  test('updateIdentity returns success', async () => {
+    const provider = createMockAuthProvider();
+    const result = await provider.updateIdentity!({ name: 'New Admin', email: 'new@test.com' });
+    expect(result.success).toBe(true);
+  });
+
+  test('updateProfile returns success', async () => {
+    const provider = createMockAuthProvider();
+    const result = await provider.updateProfile!({ name: 'Profile Admin', title: 'Operations' });
     expect(result.success).toBe(true);
   });
 

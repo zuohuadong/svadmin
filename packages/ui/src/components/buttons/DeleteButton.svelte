@@ -2,6 +2,8 @@
   import { useDelete, useCan, t } from '@svadmin/core';
   import { Button } from '../ui/button/index.js';
   import { Trash2 } from '@lucide/svelte';
+  import type { ButtonAccessControl } from './access-control';
+  import { withRecordId } from './access-control';
 
   let {
     resource, recordItemId, hideText = false,
@@ -10,14 +12,20 @@
     resource: string;
     recordItemId: string | number;
     hideText?: boolean;
-    accessControl?: { enabled?: boolean; hideIfUnauthorized?: boolean };
+    accessControl?: ButtonAccessControl;
     onSuccess?: () => void;
     undoable?: boolean;
     class?: string;
   }>();
 
   const deleteMut = useDelete({ get resource() { return resource; }, get mutationMode() { return undoable ? 'undoable' as const : 'pessimistic' as const; } });
-  const can = useCan(() => ({ resource, action: 'delete', queryOptions: { enabled: accessControl?.enabled ?? true } }));
+  const can = useCan(() => ({
+    resource,
+    action: 'delete',
+    params: withRecordId(accessControl?.params, recordItemId),
+    meta: accessControl?.meta,
+    queryOptions: { enabled: accessControl?.enabled ?? true }
+  }));
   const hidden = $derived(accessControl?.hideIfUnauthorized && !can.allowed);
   let confirming = $state(false);
 

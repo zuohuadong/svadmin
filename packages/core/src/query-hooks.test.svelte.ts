@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi } from 'vitest';
 import { useList, useOne } from './query-hooks.svelte';
+import type { GetListResult } from './types';
 import { flushSync } from 'svelte';
 import { QueryClient } from '@tanstack/svelte-query';
 
@@ -45,6 +46,7 @@ describe('useList & useOne - Headless Svelte 5 Compatibility', () => {
     
     expect(listQuery!.data).toBeDefined();
     expect(listQuery!.data!.data[0].title).toBe('One');
+    expect((listQuery!.data as GetListResult & { title?: string }).title).toBe('One');
     expect(listQuery!.isPending).toBe(false);
 
     cleanup();

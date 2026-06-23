@@ -114,6 +114,24 @@ export function useUpdatePassword() {
   });
 }
 
+// ─── useUpdateIdentity / useUpdateProfile ────────────────────
+
+export function useUpdateIdentity() {
+  return createAuthMutation({
+    method: 'updateIdentity',
+    successMessage: t('common.operationSuccess'),
+    onSuccess: (result) => { if (result.redirectTo) navigate(result.redirectTo); }
+  });
+}
+
+export function useUpdateProfile() {
+  return createAuthMutation({
+    method: 'updateProfile',
+    successMessage: t('common.operationSuccess'),
+    onSuccess: (result) => { if (result.redirectTo) navigate(result.redirectTo); }
+  });
+}
+
 // ─── useGetIdentity ──────────────────────────────────────────
 
 export function useGetIdentity() {
@@ -297,4 +315,3 @@ export function usePermissions<T = unknown>() {
     can: (resource: string, action: string): boolean => hasFn(`${resource}:${action}`),
   };
 }
-

@@ -2,17 +2,25 @@
   import { useNavigation, useCan, t } from '@svadmin/core';
   import { Button } from '../ui/button/index.js';
   import { Pencil } from '@lucide/svelte';
+  import type { ButtonAccessControl } from './access-control';
+  import { withRecordId } from './access-control';
 
   let { resource, recordItemId, hideText = false, accessControl = { enabled: true, hideIfUnauthorized: true }, class: className = '' } = $props<{
     resource: string;
     recordItemId: string | number;
     hideText?: boolean;
-    accessControl?: { enabled?: boolean; hideIfUnauthorized?: boolean };
+    accessControl?: ButtonAccessControl;
     class?: string;
   }>();
 
   const nav = useNavigation();
-  const can = useCan(() => ({ resource, action: 'edit', queryOptions: { enabled: accessControl?.enabled ?? true } }));
+  const can = useCan(() => ({
+    resource,
+    action: 'edit',
+    params: withRecordId(accessControl?.params, recordItemId),
+    meta: accessControl?.meta,
+    queryOptions: { enabled: accessControl?.enabled ?? true }
+  }));
   const hidden = $derived(accessControl?.hideIfUnauthorized && !can.allowed);
 </script>
 

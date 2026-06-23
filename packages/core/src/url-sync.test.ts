@@ -1,0 +1,90 @@
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import type { RouterProvider } from './router-provider';
+import { createHashRouterProvider } from './router-provider';
+import type { Filter } from './types';
+
+let routerProvider: RouterProvider | undefined;
+
+mock.module('./context.svelte', () => ({
+  getRouterProvider: () => routerProvider,
+}));
+
+mock.module('./options.svelte', () => ({
+  getAdminOptions: () => ({ defaultPageSize: 10 }),
+}));
+
+const { readURLState, writeURLState } = await import('./url-sync');
+
+function installMockWindow() {
+  let href = 'http://localhost/#/posts';
+  const location = {
+    get href() { return href; },
+    set href(value: string) { href = value; },
+    get hash() { return new URL(href).hash; },
+    set hash(value: string) {
+      const url = new URL(href);
+      url.hash = value;
+      href = url.href;
+    },
+  };
+
+  const history = {
+    replaceState: (_state: unknown, _title: string, value: string) => { href = value; },
+  };
+
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    value: {
+      location,
+      history,
+      dispatchEvent: () => true,
+    },
+  });
+  Object.defineProperty(globalThis, 'history', { configurable: true, value: history });
+  Object.defineProperty(globalThis, 'HashChangeEvent', {
+    configurable: true,
+    value: class HashChangeEvent extends Event {},
+  });
+
+  return {
+    setHash(hash: string) { location.hash = hash; },
+    getHash() { return location.hash; },
+  };
+}
+
+describe('url-sync', () => {
+  let mockWindow: ReturnType<typeof installMockWindow>;
+
+  beforeEach(() => {
+    mockWindow = installMockWindow();
+    routerProvider = createHashRouterProvider();
+  });
+
+  test('round-trips deeply nested logical filters', () => {
+    const filters: Filter[] = [
+      {
+        operator: 'or',
+        value: [
+          {
+            operator: 'and',
+            value: [
+              { field: 'status', operator: 'eq', value: 'open' },
+              { field: 'priority', operator: 'gte', value: 3 },
+            ],
+          },
+          { field: 'assignee.email', operator: 'contains', value: '@example.com' },
+        ],
+      },
+    ];
+
+    writeURLState({ filters });
+
+    expect(mockWindow.getHash()).toContain('filters=');
+    expect(readURLState().filters).toEqual(filters);
+  });
+
+  test('ignores invalid serialized filters', () => {
+    mockWindow.setHash('#/posts?filters=%7Bbad-json');
+    expect(readURLState().filters).toBeUndefined();
+  });
+});

@@ -9,6 +9,7 @@ export interface CanParams {
   resource: string;
   action: Action;
   params?: { id?: string | number; [key: string]: unknown };
+  meta?: Record<string, unknown>;
 }
 
 export interface CanResult {
@@ -81,8 +82,8 @@ export function getAccessControlOptions() {
  * Supports both single capability requests or an array of batched checks.
  */
 export async function canAccessAsync(params: CanParams[]): Promise<CanResult[]>;
-export async function canAccessAsync(resource: string, action: Action, params?: Record<string, unknown>): Promise<CanResult>;
-export async function canAccessAsync(resourceOrBatch: string | CanParams[], action?: Action, params?: Record<string, unknown>): Promise<CanResult | CanResult[]> {
+export async function canAccessAsync(resource: string, action: Action, params?: Record<string, unknown>, meta?: Record<string, unknown>): Promise<CanResult>;
+export async function canAccessAsync(resourceOrBatch: string | CanParams[], action?: Action, params?: Record<string, unknown>, meta?: Record<string, unknown>): Promise<CanResult | CanResult[]> {
   if (!provider) {
     return Array.isArray(resourceOrBatch)
       ? resourceOrBatch.map(() => ({ can: true }))
@@ -93,7 +94,7 @@ export async function canAccessAsync(resourceOrBatch: string | CanParams[], acti
     return provider.can(resourceOrBatch);
   }
   
-  return provider.can({ resource: resourceOrBatch, action: action as string, params }) as Promise<CanResult>;
+  return provider.can({ resource: resourceOrBatch, action: action as string, params, meta }) as Promise<CanResult>;
 }
 
 // ─── Feature Gate ─────────────────────────────────────────────
