@@ -38,8 +38,8 @@
       "default": "./src/i18n.svelte.ts"
     },
     "./permissions": {
-      "types": "./src/permissions.ts",
-      "default": "./src/permissions.ts"
+      "types": "./src/permissions.svelte.ts",
+      "default": "./src/permissions.svelte.ts"
     },
     "./toast": {
       "types": "./src/toast.svelte.ts",
