@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.38.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.37.0...ui-v0.38.0) (2026-06-23)
+
+
+### 🚀 Features
+
+* **core:** align refinedev auth and access edge cases ([a3df3e1](https://github.com/zuohuadong/svadmin/commit/a3df3e15607599aa4acb3b4dc90b6cfdc494cc21))
+* **example:** complete menu coverage and metronic high-value modules ([84384f2](https://github.com/zuohuadong/svadmin/commit/84384f299553c4962fbfc805a2af57478df675b6))
+* **example:** expand reference app pages ([39ae832](https://github.com/zuohuadong/svadmin/commit/39ae8320e8a07297cd77fc0ba669cd590b3a300c))
+* **example:** refine app menu and role pages ([7b72a9a](https://github.com/zuohuadong/svadmin/commit/7b72a9a91df341e97c766601ea2fb8e709f0a45c))
+
 ## [0.37.0](https://github.com/zuohuadong/svadmin/compare/ui-v0.36.0...ui-v0.37.0) (2026-06-14)
 
 

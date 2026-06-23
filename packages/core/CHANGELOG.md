@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.31.0](https://github.com/zuohuadong/svadmin/compare/core-v0.30.0...core-v0.31.0) (2026-06-23)
+
+
+### 🚀 Features
+
+* **core:** align refinedev auth and access edge cases ([a3df3e1](https://github.com/zuohuadong/svadmin/commit/a3df3e15607599aa4acb3b4dc90b6cfdc494cc21))
+* **example:** complete menu coverage and metronic high-value modules ([84384f2](https://github.com/zuohuadong/svadmin/commit/84384f299553c4962fbfc805a2af57478df675b6))
+* **example:** expand reference app pages ([39ae832](https://github.com/zuohuadong/svadmin/commit/39ae8320e8a07297cd77fc0ba669cd590b3a300c))
+
+
+### 🐛 Bug Fixes
+
+* point permissions export to Svelte source ([#176](https://github.com/zuohuadong/svadmin/issues/176)) ([e18824c](https://github.com/zuohuadong/svadmin/commit/e18824ca6aa189ff8086b3ce08c55cb9f8f10a04))
+
 ## [0.30.0](https://github.com/zuohuadong/svadmin/compare/core-v0.29.0...core-v0.30.0) (2026-06-14)
 
 
