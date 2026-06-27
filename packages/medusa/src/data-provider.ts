@@ -11,8 +11,6 @@ import { createRefineAdapter } from '@svadmin/refine-adapter';
  * @returns A fully compatible svadmin DataProvider
  */
 export async function createMedusaDataProvider(...args: any[]): Promise<DataProvider> {
- 
-  // @ts-expect-error -- refine type mismatch
   const pkg = await import('@refinedev/medusa');
   const init = (pkg as any).default || (pkg as any).dataProvider || (pkg as any).DataProvider;
   const refineProvider = init(...args);

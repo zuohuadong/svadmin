@@ -13,6 +13,7 @@ dist/
 # Build artifacts
 .svelte-kit/
 .astro/
+packages/ui/svelte-check-output.txt
 
 # Editor
 .idea/

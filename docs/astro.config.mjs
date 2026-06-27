@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import starlight from '@astrojs/starlight';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightImageZoom from 'starlight-image-zoom';
@@ -7,6 +8,12 @@ import svelte from '@astrojs/svelte';
 
 export default defineConfig({
   site: 'https://svadmin.nestjs.cn',
+  markdown: {
+    processor: unified({
+      gfm: true,
+      smartypants: true,
+    }),
+  },
   integrations: [
     svelte(),
     starlight({
@@ -92,7 +99,7 @@ export default defineConfig({
         {
           label: 'Reference',
           translations: { 'zh-CN': '参考' },
-          autogenerate: { directory: 'reference' },
+          items: [{ autogenerate: { directory: 'reference' } }],
         },
       ],
     }),

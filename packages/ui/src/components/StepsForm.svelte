@@ -54,6 +54,7 @@
   })());
 
   const validator = $derived(deriveValidator(flatStepsFields));
+  const stepsCount = $derived(steps.length);
 
   // ─── useStepsForm: form state + step navigation ──────────────────
   const form = useStepsForm({
@@ -61,7 +62,7 @@
     get action() { return mode; },
     get id() { return id; },
     get defaultValues() { return defaults; },
-    stepsCount: steps.length,
+    get stepsCount() { return stepsCount; },
     redirect: 'list',
     warnWhenUnsavedChanges: true,
     get validate() { return validator; },

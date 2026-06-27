@@ -100,7 +100,7 @@ svadmin is a compile-time admin framework — no virtual DOM, no runtime diffing
 | Command palette AI mode | ✅ ⌘K natural language query | ❌ | ❌ |
 | Field inference | ✅ Sample data + OpenAPI dual-engine | ✅ Sample data | ❌ |
 | Agent-ready scaffolding | ✅ `AGENTS.md` built-in | ❌ | ❌ |
-| MCP data gateway | 🟡 Planned `@svadmin/mcp` | ❌ | ❌ |
+| MCP data gateway | ✅ `@svadmin/mcp` | ❌ | ❌ |
 | AI code generation | ❌ | ✅ Refine AI Agent (commercial) | ❌ |
 
 > **Positioning**: Refine focuses on “AI writes your Admin” (dev-time AI); svadmin focuses on “AI built into your Admin” (runtime AI). Both are valid, but runtime AI delivers direct value to end users.

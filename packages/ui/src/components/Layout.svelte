@@ -172,13 +172,16 @@
         {/snippet}
       </Header>
 
-      <!-- Content area -->
-      <main class="flex-1 overflow-y-auto p-5 md:p-7 bg-muted/30">
-        {#key getPath()}
-          <div in:fly={{ x: 20, duration: 150 }} out:fade={{ duration: 80 }}>
-            {@render children()}
-          </div>
-        {/key}
+      <!-- Content area: responsive padding + centered max-width container
+           so wide screens don't stretch content indefinitely (avoids sparse layouts) -->
+      <main class="flex-1 overflow-y-auto bg-muted/30 px-4 py-5 sm:px-5 md:px-7.5 md:py-7">
+        <div class="mx-auto w-full max-w-[1600px]">
+          {#key getPath()}
+            <div in:fly={{ x: 20, duration: 150 }} out:fade={{ duration: 80 }}>
+              {@render children()}
+            </div>
+          {/key}
+        </div>
       </main>
     </div>
   </div>

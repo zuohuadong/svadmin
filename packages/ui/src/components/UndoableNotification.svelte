@@ -12,10 +12,11 @@
     onTimeout: () => void;
   }>();
 
-  let remaining = $state(duration);
+  let remaining = $state(0);
   let dismissed = $state(false);
 
   $effect(() => {
+    remaining = duration;
     const startTime = Date.now();
     const totalMs = duration;
     const interval = setInterval(() => {

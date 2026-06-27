@@ -1,17 +1,58 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { DataProvider as SvadminDataProvider } from '@svadmin/core';
+
+type RequiredRefineDataProvider = Pick<
+  SvadminDataProvider,
+  'getList' | 'getOne' | 'create' | 'update' | 'deleteOne'
+>;
+
+type OptionalRefineDataProvider = Partial<
+  Pick<SvadminDataProvider, 'getApiUrl' | 'getMany' | 'createMany' | 'updateMany' | 'deleteMany' | 'custom'>
+>;
+
+export type RefineDataProviderLike = RequiredRefineDataProvider & OptionalRefineDataProvider;
+
+const requiredMethods = [
+  'getList',
+  'getOne',
+  'create',
+  'update',
+  'deleteOne',
+] as const satisfies readonly (keyof RequiredRefineDataProvider)[];
+
+const optionalMethods = [
+  'getMany',
+  'createMany',
+  'updateMany',
+  'deleteMany',
+  'custom',
+] as const satisfies readonly (keyof OptionalRefineDataProvider)[];
+
+function isObjectLike(value: unknown): value is Record<PropertyKey, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function assertRefineDataProvider(value: unknown): asserts value is RefineDataProviderLike {
+  if (!isObjectLike(value)) {
+    throw new Error('[svadmin] createRefineAdapter: expected a valid Refine DataProvider object, got ' + String(value));
+  }
+
+  for (const method of requiredMethods) {
+    if (typeof value[method] !== 'function') {
+      throw new Error(`[svadmin] createRefineAdapter: missing required Refine DataProvider method "${method}"`);
+    }
+  }
+}
 
 /**
  * Adapter to consume an official @refinedev/* data provider in SvelteAdmin.
  * Refine's DataProvider interface directly matches the core interface 
  * definition of @svadmin/core.
  */
-export function createRefineAdapter(refineProvider: any): SvadminDataProvider {
-  if (!refineProvider || typeof refineProvider !== 'object') {
-    throw new Error('[svadmin] createRefineAdapter: expected a valid Refine DataProvider object, got ' + String(refineProvider));
-  }
+export function createRefineAdapter(refineProvider: unknown): SvadminDataProvider {
+  assertRefineDataProvider(refineProvider);
+
   const adapter: SvadminDataProvider = {
-    getApiUrl: () => refineProvider.getApiUrl(),
+    getApiUrl: () => refineProvider.getApiUrl?.() ?? '',
     getList: refineProvider.getList.bind(refineProvider),
     getOne: refineProvider.getOne.bind(refineProvider),
     create: refineProvider.create.bind(refineProvider),
@@ -20,11 +61,12 @@ export function createRefineAdapter(refineProvider: any): SvadminDataProvider {
   };
 
   // Only attach optional methods if they actually exist
-  if (refineProvider.getMany) adapter.getMany = refineProvider.getMany.bind(refineProvider);
-  if (refineProvider.createMany) adapter.createMany = refineProvider.createMany.bind(refineProvider);
-  if (refineProvider.updateMany) adapter.updateMany = refineProvider.updateMany.bind(refineProvider);
-  if (refineProvider.deleteMany) adapter.deleteMany = refineProvider.deleteMany.bind(refineProvider);
-  if (refineProvider.custom) adapter.custom = refineProvider.custom.bind(refineProvider);
+  for (const method of optionalMethods) {
+    const handler = refineProvider[method];
+    if (typeof handler === 'function') {
+      adapter[method] = handler.bind(refineProvider) as never;
+    }
+  }
 
   return adapter;
 }

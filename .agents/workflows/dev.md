@@ -71,6 +71,19 @@ Before declaring the task done, confirm ALL applicable items:
 - [ ] Delegation Gate was satisfied or safely skipped with a reason
 - [ ] Fresh verification evidence included in response
 
+## 5.5. Scope Discipline (Anti-Overengineering)
+
+高能力模型倾向过度分析、过度重构和加不必要抽象。完成前必须自检：
+
+- 是否只改了请求范围内的文件，没有附带无关重构
+- 是否引入了当前任务不需要的抽象层、配置项或扩展点
+- 是否为了"未来可能需要"而提前设计
+- 是否把简单问题复杂化（能用 3 行代码解决的是否写了 30 行框架）
+- 是否把内部实现细节暴露到公开 API
+- diff 是否最小且可读，能否再删一行
+
+critic/verifier 子智能体应把以上作为标准审查项。发现过度设计时标记 `blocking_findings`，要求 executor 回退到最小实现。
+
 ## 6. Commit
 - Use Conventional Commits format: `feat:`, `fix:`, `refactor:`, etc.
 - Include relevant issue/ticket numbers

@@ -131,11 +131,11 @@ async function init(): Promise<void> {
       check: 'svelte-check --tsconfig ./tsconfig.json'
     },
     dependencies: {
-      '@svadmin/core': '^0.25.3',
-      '@svadmin/ui': '^0.34.6',
-      '@tanstack/svelte-query': '^6.1.13',
+      '@svadmin/core': '^0.31.0',
+      '@svadmin/ui': '^0.38.0',
+      '@tanstack/svelte-query': '^6.1.29',
       'highlight.js': '^11.11.1',
-      '@lucide/svelte': '^1.7.0',
+      '@lucide/svelte': '^1.17.0',
     },
     devDependencies: {
       '@sveltejs/vite-plugin-svelte': '^7.0.0',
@@ -151,9 +151,9 @@ async function init(): Promise<void> {
 
   // Add data provider dependency
   const dpMap: Record<string, Record<string, string>> = {
-    'simple-rest': { '@svadmin/simple-rest': '^0.9.7', '@refinedev/simple-rest': '^5.0.0' },
-    'supabase': { '@svadmin/supabase': '^0.11.2', '@supabase/supabase-js': '^2.101.1' },
-    'graphql': { '@svadmin/graphql': '^0.9.8', 'graphql-request': '^7.1.0', 'graphql': '^16.8.0' },
+    'simple-rest': { '@svadmin/simple-rest': '^0.9.8', '@refinedev/simple-rest': '^5.0.0' },
+    'supabase': { '@svadmin/supabase': '^0.11.3', '@supabase/supabase-js': '^2.101.1' },
+    'graphql': { '@svadmin/graphql': '^0.9.9', 'graphql-request': '^7.4.0', 'graphql': '^16.8.0' },
   };
   if (dpMap[response.dataProvider]) {
     Object.assign(packageJson.dependencies, dpMap[response.dataProvider]);
@@ -161,11 +161,11 @@ async function init(): Promise<void> {
 
   // Add auth provider dependency
   if (response.authProvider === 'supabase' && response.dataProvider !== 'supabase') {
-    packageJson.dependencies['@svadmin/supabase'] = '^0.11.2';
+    packageJson.dependencies['@svadmin/supabase'] = '^0.11.3';
     packageJson.dependencies['@supabase/supabase-js'] = '^2.101.1';
   }
   if (response.authProvider === 'jwt' && response.dataProvider !== 'simple-rest') {
-    packageJson.dependencies['@svadmin/simple-rest'] = '^0.9.7';
+    packageJson.dependencies['@svadmin/simple-rest'] = '^0.9.8';
     packageJson.dependencies['@refinedev/simple-rest'] = '^5.0.0';
   }
 

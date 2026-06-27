@@ -13,15 +13,22 @@
     class: className = '',
     size = 'default'
   }: Props = $props();
+
+  function refreshPage() {
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  }
 </script>
 
-<a
-  href=""
+<button
+  type="button"
   class="lite-btn {size === 'sm' ? 'lite-btn-sm' : ''} {className}"
   title={t('common.refresh') || 'Refresh'}
+  onclick={refreshPage}
 >
   <RefreshCw class="h-4 w-4" />
   {#if !hideText}
     <span style="marginLeft: 4px">{t('common.refresh') || 'Refresh'}</span>
   {/if}
-</a>
+</button>

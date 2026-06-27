@@ -117,27 +117,16 @@
     Skeleton: Skeleton as unknown as ComponentRegistry['Skeleton'],
   };
 
-  // Merge and keep a local reference — setContext is only visible to *children*,
-  // so we must use the local variable for lookups within this component.
-  const mergedComponents: ComponentRegistry = { ...defaultComponents, ...userComponents };
-  setComponentRegistry(mergedComponents);
-
   // Resolve router provider (default to hash)
+  const mergedComponents = $derived.by((): ComponentRegistry => ({ ...defaultComponents, ...userComponents }));
   const resolvedRouter = $derived(routerProvider ?? createHashRouterProvider());
   const resolvedRouteMode = $derived(routeMode ?? (routerProvider ? 'auto' : 'hash'));
 
-  // Set up initial context synchronously so children can access resources immediately during first render
-  setDataProvider(dataProvider);
-  if (authProvider) setAuthProvider(authProvider);
-  if (taskProvider) setTaskProvider(taskProvider);
-  setResources(resources);
-  setRouterProvider(resolvedRouter);
-  if (locale) setLocale(locale);
-  if (userThemeConfig) configureTheme(userThemeConfig);
-  if (defaultTheme) setTheme(defaultTheme);
+  function syncComponentRegistry() {
+    setComponentRegistry(mergedComponents);
+  }
 
-  // Set up context — use $effect so prop changes are tracked
-  $effect.pre(() => {
+  function syncAppContext() {
     setDataProvider(dataProvider);
     if (authProvider) setAuthProvider(authProvider);
     if (taskProvider) setTaskProvider(taskProvider);
@@ -146,7 +135,15 @@
     if (locale) setLocale(locale);
     if (userThemeConfig) configureTheme(userThemeConfig);
     if (defaultTheme) setTheme(defaultTheme);
-  });
+  }
+
+  // Set up initial context synchronously so children can access resources immediately during first render.
+  syncComponentRegistry();
+  syncAppContext();
+
+  // Set up context — use $effect so prop changes are tracked
+  $effect.pre(syncComponentRegistry);
+  $effect.pre(syncAppContext);
 
   const queryClient = $derived(providedQueryClient ?? new QueryClient({
     defaultOptions: {
@@ -155,11 +152,13 @@
     },
   }));
 
-  // Initialize router with provider synchronously
-  initRouter(resolvedRouter);
-  $effect.pre(() => {
+  function syncRouter() {
     initRouter(resolvedRouter);
-  });
+  }
+
+  // Initialize router with provider synchronously
+  syncRouter();
+  $effect.pre(syncRouter);
 
   // Reactive getters for route state
   const route = $derived(getRoute());
