@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.7](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.6...lite-v0.3.7) (2026-06-27)
+
+
+### 🐛 Bug Fixes
+
+* **adapters:** harden providers and ui runtime ([e11b2ec](https://github.com/zuohuadong/svadmin/commit/e11b2ec4f0ce5b51e2b9ffccb2542fa4bfbbf0d7))
+
 ## [0.3.6](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.5...lite-v0.3.6) (2026-06-04)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.9](https://github.com/zuohuadong/svadmin/compare/medusa-v0.9.8...medusa-v0.9.9) (2026-06-27)
+
+
+### 🐛 Bug Fixes
+
+* **adapters:** harden providers and ui runtime ([e11b2ec](https://github.com/zuohuadong/svadmin/commit/e11b2ec4f0ce5b51e2b9ffccb2542fa4bfbbf0d7))
+
 ## [0.9.8](https://github.com/zuohuadong/svadmin/compare/medusa-v0.9.7...medusa-v0.9.8) (2026-06-04)
 
 
