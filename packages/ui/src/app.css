@@ -566,8 +566,10 @@ main {
   }
 }
 
-/* Tailwind CSS v4 — Map design tokens to utility classes */
-@theme {
+/* Runtime token aliases. Keep these as standard CSS so packaged app.css can be
+   consumed by Vite/Rolldown without requiring the Tailwind compiler. */
+:root,
+.svadmin-theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
