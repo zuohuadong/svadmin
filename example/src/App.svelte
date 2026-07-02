@@ -2,7 +2,7 @@
   import { getLocale, setChatProvider } from '@svadmin/core';
   import { AdminApp, setRichTextEditor } from '@svadmin/ui';
   import { Editor } from '@svadmin/editor';
-  import '@svadmin/ui/app.css';
+  import '@svadmin/ui/app.theme.css';
   import { inMemoryDataProvider } from './providers/inMemoryDb';
   import { createInventoryChatProvider } from './providers/inventoryAssistant';
   import { createResources } from './resources';
