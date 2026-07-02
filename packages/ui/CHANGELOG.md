@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.38.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.38.1...ui-v0.38.2) (2026-07-02)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** publish app css without Tailwind-only theme at-rule ([#179](https://github.com/zuohuadong/svadmin/issues/179)) ([3367d09](https://github.com/zuohuadong/svadmin/commit/3367d098bd1c9927df247ad2b14e89bde96f4965))
+
 ## [0.38.1](https://github.com/zuohuadong/svadmin/compare/ui-v0.38.0...ui-v0.38.1) (2026-06-27)
 
 
