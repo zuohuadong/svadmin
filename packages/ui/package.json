@@ -1,7 +1,7 @@
 {
   "name": "@svadmin/ui",
   "version": "0.38.1",
-  "description": "Pre-built admin UI components — AdminApp, AutoTable, AutoForm, Sidebar, Layout",
+  "description": "Pre-built admin UI components \u2014 AdminApp, AutoTable, AutoForm, Sidebar, Layout",
   "type": "module",
   "sideEffects": [
     "./dist/app.css"
@@ -24,6 +24,10 @@
       "import": "./dist/app.css",
       "style": "./dist/app.css",
       "default": "./dist/app.css"
+    },
+    "./app.theme.css": {
+      "style": "./dist/app.theme.css",
+      "default": "./dist/app.theme.css"
     },
     "./components/*.svelte": {
       "types": "./dist/components/*.svelte.d.ts",
@@ -99,7 +103,7 @@
     "vitest": "^4.1.8"
   },
   "scripts": {
-    "build": "svelte-package -i src -o dist",
+    "build": "svelte-package -i src -o dist && node scripts/postbuild-css.mjs",
     "test": "vitest run --config ./vitest.config.ts"
   }
 }

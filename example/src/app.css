@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 
 /* Base New York styles & mappings from UI package */
-@import "@svadmin/ui/app.css";
+@import "@svadmin/ui/app.theme.css";
 
 /* Scan workspace-linked packages — Tailwind v4 skips node_modules by default */
 @source "../node_modules/@svadmin/ui";
