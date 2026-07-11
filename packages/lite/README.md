@@ -2,12 +2,13 @@
 
 **Lightweight, SSR-compatible admin UI for [@svadmin](https://github.com/zuohuadong/svadmin).**
 
-Zero client-side JavaScript required. Works in IE11 and all modern browsers.
+Core server-driven CRUD flows can run without hydration. An optional `enhance.js` asset adds progressive client-side conveniences.
+
+The bundled CSS follows an IE11-oriented baseline, but Svelte 5, SvelteKit, Tailwind-based companion packages, and each consumer's transpilation target determine the final browser support. This package therefore does not make a blanket IE11 compatibility guarantee.
 
 ## Why?
 
-The main `@svadmin/ui` package delivers a premium SPA experience using Svelte 5, Tailwind CSS v4, and TanStack.  
-However, some enterprise/government environments require IE11 compatibility.
+The main `@svadmin/ui` package delivers a premium SPA experience using Svelte 5, Tailwind CSS v4, and TanStack. Those tools target modern browsers. Some enterprise/government environments instead prefer server-driven navigation, native forms, and a smaller client-side runtime.
 
 `@svadmin/lite` provides a server-rendered fallback that **shares the same DataProvider, AuthProvider, and Resource definitions** — only the rendering layer is different.
 
@@ -23,7 +24,7 @@ However, some enterprise/government environments require IE11 compatibility.
 | **Pagination** | Pure `<a>` page links |
 | **Login/Logout** | Cookie-based auth via SvelteKit Form Actions |
 | **Auth Guard** | Server hook redirects unauthenticated users |
-| **UA Detection** | Auto-redirect IE11 users to `/lite/` routes |
+| **UA Detection** | Optional legacy-browser detection hook redirects users to `/lite/` routes |
 | **i18n** | Uses `@svadmin/core` `t()` translations |
 | **Multi-level Menu** | Config-driven 2/3 level menus via `MenuItem[]` |
 | **Print** | `@media print` optimized styles |
@@ -49,13 +50,16 @@ export const load = createListLoader(dataProvider, postsResource);
 export const actions = createCrudActions(dataProvider, postsResource);
 ```
 
+```typescript
+// src/routes/lite/posts/+page.ts
+export const csr = false;
+```
+
 ```svelte
 <!-- src/routes/lite/posts/+page.svelte -->
 <script lang="ts">
-  export const csr = false; // ← Critical: disable client-side rendering
-
   import { LiteLayout, LiteTable, LitePagination, LiteSearch, LiteAlert } from '@svadmin/lite';
-  import '@svadmin/lite/src/lite.css';
+  import '@svadmin/lite/lite.css';
   import { resources } from '$lib/admin';
 
   let { data, form } = $props();
@@ -121,7 +125,7 @@ Pass a `menu` prop to `LiteLayout` to replace the auto-generated flat resource l
 </LiteLayout>
 ```
 
-### 3. Auto-redirect legacy browsers
+### 3. Optionally route legacy browsers to Lite pages
 
 ```typescript
 // src/hooks.server.ts
@@ -130,7 +134,7 @@ import { createLegacyRedirectHook } from '@svadmin/lite';
 export const handle = createLegacyRedirectHook('/lite');
 ```
 
-### 4. Add the `<meta>` tags for dual-core browsers
+### 4. Optional legacy-browser metadata
 
 ```html
 <!-- src/app.html -->
@@ -168,8 +172,8 @@ export const handle = createLegacyRedirectHook('/lite');
 
 ## CSS
 
-Import `@svadmin/lite/src/lite.css` in your layout. It's fully self-contained:
-- IE11+ baseline (standard flexbox, no CSS variables)
+Import `@svadmin/lite/lite.css` in your layout. It's fully self-contained:
+- IE11-oriented CSS baseline (standard flexbox, no CSS variables)
 - Custom-styled checkboxes, radios, and selects (no `appearance: none` needed)
 - Indigo/Slate color system aligned with `@svadmin/ui`
 - Modern focus rings (`box-shadow` based)
@@ -178,14 +182,16 @@ Import `@svadmin/lite/src/lite.css` in your layout. It's fully self-contained:
 - Print-optimized styles
 - ~500 lines, ~14KB unminified
 
+This CSS baseline helps older browsers, but the generated Svelte/SvelteKit application and any Tailwind v4 UI used alongside Lite still require the browser targets configured by those tools (Tailwind v4 itself targets modern browsers).
+
 ## Optional: Progressive Enhancement
 
-Copy `packages/lite/static/enhance.js` to your static folder. This ES5 script adds:
+Copy the exported `@svadmin/lite/enhance.js` asset to your application's static folder. This ES5 script adds:
 - Auto-close delete confirmation when clicking outside
 - Auto-focus first form input
 - Unsaved changes warning
 
-**100% optional** — everything works without it.
+The asset is optional for core server-rendered navigation and form submission; the conveniences listed above require it.
 
 ## License
 

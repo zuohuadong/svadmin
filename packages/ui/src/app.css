@@ -382,7 +382,7 @@ button:active:not(:disabled) {
   animation: svadmin-page-enter 0.25s ease-out;
 }
 
-/* ⑥ Toast slide-in refinement (sonner-svelte) — tighter timing */
+/* ⑥ Toast slide-in refinement (svelte-sonner) — tighter timing */
 [data-sonner-toaster] [data-sonner-toast] {
   transition-duration: 200ms !important;
   transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;

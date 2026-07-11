@@ -1,6 +1,7 @@
 import { useParsed } from './useParsed.svelte';
 import { useList } from './query-hooks.svelte';
 import { readURLState, writeURLState } from './url-sync';
+import { captureAdminContext } from './context.svelte';
 import { getAdminOptions } from './options.svelte';
 import type { Pagination, Sort, Filter, BaseRecord, HttpError, KnownResources, GetListResult } from './types';
 import type { UseListOptions, MaybeGetter } from './query-hooks.svelte';
@@ -29,6 +30,7 @@ export function useTable<
   TError = HttpError,
   TSearchVariables = Record<string, unknown>
 >(optionsOrGetter: MaybeGetter<UseTableOptions<TQueryFnData, TError, TSearchVariables>> = {}) {
+  const adminContext = captureAdminContext();
   const getOptions = () => typeof optionsOrGetter === 'function' ? optionsOrGetter() : optionsOrGetter;
   const parsed = useParsed();
   
@@ -50,7 +52,7 @@ export function useTable<
   let initFilters = initialOpts.filters?.initial ?? [];
 
   if (syncWithLocation && typeof window !== 'undefined') {
-    const urlState = readURLState();
+    const urlState = readURLState(adminContext);
     if (urlState.page || urlState.pageSize) {
       initPagination = {
         current: urlState.page ?? initPagination.current,
@@ -128,12 +130,12 @@ export function useTable<
         sortField: currentSorters[0]?.field,
         sortOrder: currentSorters[0]?.order,
         filters: currentFilters,
-      });
+      }, adminContext);
     });
 
     $effect(() => {
       const handler = () => {
-        const urlState = readURLState();
+        const urlState = readURLState(adminContext);
         const newPage = urlState.page ?? 1;
         if (newPage !== pagination.current) {
           pagination = { ...pagination, current: newPage };

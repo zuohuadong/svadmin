@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { useNavigation, useCan, t } from '@svadmin/core';
+  import { useNavigation, useCan, useTranslation } from '@svadmin/core';
   import { Button } from '../ui/button/index.js';
   import { Plus } from '@lucide/svelte';
   import type { ButtonAccessControl } from './access-control';
+
+  const i18n = useTranslation();
 
   let { resource, hideText = false, accessControl = { enabled: true, hideIfUnauthorized: true }, class: className = '' } = $props<{
     resource: string;
@@ -31,6 +33,6 @@
     onclick={() => nav.create(resource)}
   >
     <Plus class="h-4 w-4" />
-    {#if !hideText}<span class="ml-1">{t('common.create')}</span>{/if}
+    {#if !hideText}<span class="ml-1">{i18n.t('common.create')}</span>{/if}
   </Button>
 {/if}

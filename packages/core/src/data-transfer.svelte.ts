@@ -1,4 +1,4 @@
-import { getDataProviderForResource } from './context.svelte';
+import { captureAdminContext } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 import type { Sort, Filter, BaseRecord } from './types';
 import { downloadData } from './export-format';
@@ -26,6 +26,7 @@ export interface UseExportOptions<TData extends BaseRecord = BaseRecord> {
  * Supports mapData, sorters, filters, maxItemCount, pageSize
  */
 export function useExport<TData extends BaseRecord = BaseRecord>(options: UseExportOptions<TData> = {}) {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
   const resource = $derived(options.resource ?? parsed.resource ?? '');
   let isLoading = $state(false);
@@ -35,7 +36,7 @@ export function useExport<TData extends BaseRecord = BaseRecord>(options: UseExp
     isLoading = true;
 
     try {
-      const provider = getDataProviderForResource(exportResource, options.dataProviderName);
+      const provider = adminContext.getDataProviderForResource(exportResource, options.dataProviderName);
       const batchSize = options.pageSize ?? 20;
       const maxItems = options.maxItemCount ?? Infinity;
       let allRecords: TData[] = [];
@@ -98,6 +99,7 @@ export interface UseImportOptions<TData = Record<string, unknown>> {
  * Supports mapData, batchSize, onFinish, onProgress, meta
  */
 export function useImport<TData = Record<string, unknown>>(options: UseImportOptions<TData> = {}) {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
   const resource = $derived(options.resource ?? parsed.resource ?? '');
   let isLoading = $state(false);
@@ -110,7 +112,7 @@ export function useImport<TData = Record<string, unknown>>(options: UseImportOpt
     const errored: { request: unknown; error: unknown }[] = [];
 
     try {
-      const provider = getDataProviderForResource(importResource, options.dataProviderName);
+      const provider = adminContext.getDataProviderForResource(importResource, options.dataProviderName);
       let text = await info.file.text();
       // Strip BOM
       if (text.charCodeAt(0) === 0xFEFF) {

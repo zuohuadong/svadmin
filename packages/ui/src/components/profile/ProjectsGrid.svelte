@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '../ui/card/index.js';
   import { Badge } from '../ui/badge/index.js';
   import { Button } from '../ui/button/index.js';
   import { Users, CheckCircle2, ArrowRight } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   interface Project {
     id: string;
@@ -38,14 +40,14 @@
 <div class="space-y-4">
   <div class="flex items-center justify-between">
     <h3 class="text-lg font-semibold text-foreground">
-      {columns === 2 ? t('publicProfile.projects2Col') : t('publicProfile.projects3Col')}
+      {columns === 2 ? i18n.t('publicProfile.projects2Col') : i18n.t('publicProfile.projects3Col')}
     </h3>
     <Badge variant="secondary">{projects.length}</Badge>
   </div>
 
   {#if projects.length === 0}
     <div class="rounded-xl border border-dashed border-border/60 p-8 text-center">
-      <p class="text-sm text-muted-foreground">{t('publicProfile.noProjects')}</p>
+      <p class="text-sm text-muted-foreground">{i18n.t('publicProfile.noProjects')}</p>
     </div>
   {:else}
     <div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2 {gridCols}">
@@ -76,8 +78,8 @@
 
             <div class="flex items-center justify-between pt-2 border-t">
               <div class="flex items-center gap-3 text-xs text-muted-foreground">
-                <span class="flex items-center gap-1"><Users class="h-3 w-3" />{t('publicProfile.projectMembers', { count: project.members })}</span>
-                <span class="flex items-center gap-1"><CheckCircle2 class="h-3 w-3" />{t('publicProfile.projectTasks', { count: project.tasks })}</span>
+                <span class="flex items-center gap-1"><Users class="h-3 w-3" />{i18n.t('publicProfile.projectMembers', { count: project.members })}</span>
+                <span class="flex items-center gap-1"><CheckCircle2 class="h-3 w-3" />{i18n.t('publicProfile.projectTasks', { count: project.tasks })}</span>
               </div>
               <Button variant="ghost" size="icon-sm">
                 <ArrowRight class="h-3.5 w-3.5" />

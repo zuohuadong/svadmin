@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Dialog from './ui/dialog/index.js';
+
+  const i18n = useTranslation();
 
   let { open = $bindable(false) }: { open?: boolean } = $props();
 
@@ -36,7 +38,7 @@
 <Dialog.Root bind:open>
   <Dialog.Content class="max-w-md">
     <Dialog.Header>
-      <Dialog.Title>{t('common.keyboardShortcuts') || 'Keyboard Shortcuts'}</Dialog.Title>
+      <Dialog.Title>{i18n.t('common.keyboardShortcuts') || 'Keyboard Shortcuts'}</Dialog.Title>
     </Dialog.Header>
     <div class="space-y-4 py-2">
       {#each shortcuts as group, _i (_i)}

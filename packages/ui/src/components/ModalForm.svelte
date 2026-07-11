@@ -1,8 +1,10 @@
 <script lang="ts">
   import { getResource } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Dialog from './ui/dialog/index.js';
   import AutoForm from './AutoForm.svelte';
+
+  const i18n = useTranslation();
 
   let { resourceName, mode = 'create', id, open = $bindable(false), onSuccess } = $props<{
     resourceName: string;
@@ -27,7 +29,7 @@
     <Dialog.DialogContent class="{dialogWidth} max-h-[85vh] overflow-y-auto">
       <Dialog.DialogHeader>
         <Dialog.DialogTitle>
-          {mode === 'create' ? `${t('common.create')}${resource.label}` : `${t('common.edit')}${resource.label}`}
+          {mode === 'create' ? `${i18n.t('common.create')}${resource.label}` : `${i18n.t('common.edit')}${resource.label}`}
         </Dialog.DialogTitle>
       </Dialog.DialogHeader>
       <AutoForm {resourceName} {mode} {id} onSuccess={handleSuccess} />

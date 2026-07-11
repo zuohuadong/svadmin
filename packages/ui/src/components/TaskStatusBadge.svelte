@@ -1,8 +1,11 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { Ban, Clock3, Loader2, CheckCircle2, AlertTriangle, CircleDashed } from '@lucide/svelte';
   import { Badge } from './ui/badge/index.js';
   import { normalizeTaskStatus } from './task-utils.js';
+
+  const i18n = useTranslation();
 
   let {
     status = 'pending',
@@ -19,7 +22,7 @@
 
   function translateStatus(value: string) {
     const key = `task.status.${value}`;
-    const translated = t(key);
+    const translated = i18n.t(key);
     if (translated !== key) return translated;
     return value.charAt(0).toUpperCase() + value.slice(1);
   }

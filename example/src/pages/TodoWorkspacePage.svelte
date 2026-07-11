@@ -1,10 +1,12 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
-  import { getLocale } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { BarChart3, Bot, CalendarDays, CheckCircle2, Circle, Flag, ListTodo, Tag } from '@lucide/svelte';
   import { readHashView } from '../utils/hashView';
+
+  const i18n = useTranslation();
 
   interface Todo {
     id: number;
@@ -21,7 +23,7 @@
   let statusOverrides = $state<Record<number, string>>({});
   let draggedTodoId = $state<number | null>(null);
 
-  const locale = $derived(getLocale());
+  const locale = $derived(i18n.locale);
   const isZh = $derived(locale === 'zh-CN');
   const query = useList({ resource: 'todos', pagination: { mode: 'off' }, sorters: [{ field: 'dueDate', order: 'asc' }] });
   const todos = $derived((query.data?.data ?? []) as unknown as Todo[]);

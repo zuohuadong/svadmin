@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '../ui/card/index.js';
   import { Button } from '../ui/button/index.js';
   import { Input } from '../ui/input/index.js';
   import { Search, Download, UserPlus, MoreHorizontal, CheckCircle2, Clock, XCircle } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   interface CrewMember {
     id: string;
@@ -37,9 +39,9 @@
   );
 
   const statusConfig = {
-    'active': { icon: CheckCircle2, color: 'text-green-500', dot: 'bg-green-500', label: t('account.active') },
-    'away': { icon: Clock, color: 'text-amber-500', dot: 'bg-amber-500', label: t('account.invited') },
-    'offline': { icon: XCircle, color: 'text-muted-foreground', dot: 'bg-muted-foreground', label: t('account.inactive') },
+    'active': { icon: CheckCircle2, color: 'text-green-500', dot: 'bg-green-500', label: i18n.t('account.active') },
+    'away': { icon: Clock, color: 'text-amber-500', dot: 'bg-amber-500', label: i18n.t('account.invited') },
+    'offline': { icon: XCircle, color: 'text-muted-foreground', dot: 'bg-muted-foreground', label: i18n.t('account.inactive') },
   };
 
   const initials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -48,22 +50,22 @@
 <div class="space-y-6" data-svadmin-content-page="network">
   <div class="flex items-start justify-between gap-4">
     <div>
-      <h2 class="text-xl font-semibold text-foreground">{t('network.teamCrew')}</h2>
-      <p class="mt-1 text-sm text-muted-foreground">{t('network.teamCrewDescription')}</p>
+      <h2 class="text-xl font-semibold text-foreground">{i18n.t('network.teamCrew')}</h2>
+      <p class="mt-1 text-sm text-muted-foreground">{i18n.t('network.teamCrewDescription')}</p>
     </div>
     <div class="flex gap-2">
       <Button variant="outline" size="sm">
-        <Download class="h-3.5 w-3.5 mr-1" />{t('common.export')}
+        <Download class="h-3.5 w-3.5 mr-1" />{i18n.t('common.export')}
       </Button>
       <Button size="sm">
-        <UserPlus class="h-3.5 w-3.5 mr-1" />{t('account.inviteMember')}
+        <UserPlus class="h-3.5 w-3.5 mr-1" />{i18n.t('account.inviteMember')}
       </Button>
     </div>
   </div>
 
   <div class="relative">
     <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-    <Input placeholder={t('common.search')} bind:value={searchQuery} class="pl-9" />
+    <Input placeholder={i18n.t('common.search')} bind:value={searchQuery} class="pl-9" />
   </div>
 
   <!-- Table -->
@@ -73,12 +75,12 @@
         <table class="w-full">
           <thead>
             <tr class="border-b bg-muted/30">
-              <th class="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{t('account.member')}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{t('account.role')}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{i18n.t('account.member')}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{i18n.t('account.role')}</th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">Department</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{t('account.status')}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{t('publicProfile.projects')}</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{t('account.joined')}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{i18n.t('account.status')}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{i18n.t('publicProfile.projects')}</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{i18n.t('account.joined')}</th>
               <th class="px-4 py-3 w-12"></th>
             </tr>
           </thead>
@@ -144,8 +146,8 @@
               <div class="flex items-center gap-1 {sc.color}">
                 <sc.icon class="h-3 w-3" />{sc.label}
               </div>
-              <div>{t('publicProfile.projects')}: <span class="font-medium text-foreground">{member.projects}</span></div>
-              <div>{t('account.joined')}: <span class="font-medium text-foreground">{member.joinedAt}</span></div>
+              <div>{i18n.t('publicProfile.projects')}: <span class="font-medium text-foreground">{member.projects}</span></div>
+              <div>{i18n.t('account.joined')}: <span class="font-medium text-foreground">{member.joinedAt}</span></div>
             </div>
           </div>
         {/each}

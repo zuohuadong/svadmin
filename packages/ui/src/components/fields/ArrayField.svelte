@@ -1,10 +1,12 @@
 <script lang="ts">
   import type { FieldDefinition } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Button } from '../ui/button/index.js';
   import { Plus, Trash2 } from '@lucide/svelte';
   import TooltipButton from '../TooltipButton.svelte';
   import FieldRenderer from '../FieldRenderer.svelte';
+
+  const i18n = useTranslation();
 
   let { field, value, onchange } = $props<{
     field: FieldDefinition;
@@ -54,7 +56,7 @@
       {/if}
     </div>
     <Button variant="outline" size="sm" type="button" onclick={handleAdd}>
-      <Plus class="h-3.5 w-3.5 mr-1" /> {t('common.add') || 'Add'}
+      <Plus class="h-3.5 w-3.5 mr-1" /> {i18n.t('common.add') || 'Add'}
     </Button>
   </div>
   
@@ -62,7 +64,7 @@
     {#each arrayVal as item, i (i)}
       <div class="relative rounded-md border bg-card p-4 pt-6 shadow-sm">
         <div class="absolute right-2 top-2">
-          <TooltipButton tooltip={t('common.remove') || 'Remove'} variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleRemove(i)}>
+          <TooltipButton tooltip={i18n.t('common.remove') || 'Remove'} variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleRemove(i)}>
             <Trash2 class="h-4 w-4" />
           </TooltipButton>
         </div>
@@ -79,7 +81,7 @@
     {/each}
     {#if arrayVal.length === 0}
       <div class="flex flex-col items-center justify-center py-6 text-sm text-muted-foreground bg-muted/10 rounded-md">
-        <span>{t('common.noData') || 'No items added yet.'}</span>
+        <span>{i18n.t('common.noData') || 'No items added yet.'}</span>
       </div>
     {/if}
   </div>

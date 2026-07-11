@@ -1,11 +1,10 @@
 <script lang="ts">
-/* eslint-disable @typescript-eslint/no-explicit-any */
   /**
    * LiteLayout — Minimal server-rendered sidebar + main layout.
-   * No client-side JS required. Uses only IE11-safe CSS classes.
-   * Supports multi-level menus via <details>/<summary> (pure HTML).
+   * No client-side JS required. Supports multi-level menus via native HTML.
    */
   import type { ResourceDefinition, MenuItem } from '@svadmin/core';
+  import type { Snippet } from 'svelte';
 
   interface Props {
     resources: ResourceDefinition[];
@@ -15,7 +14,7 @@
     basePath?: string;
     /** Optional multi-level menu configuration */
     menu?: MenuItem[];
-    children: any;
+    children: Snippet;
   }
 
   let {
@@ -31,6 +30,26 @@
   const menuResources = $derived(
     resources.filter((r: ResourceDefinition) => r.showInMenu !== false)
   );
+
+  const mobileItems = $derived.by(() => {
+    if (!menu?.length) {
+      return menuResources.map((resource): MenuItem => ({
+        name: resource.name,
+        label: resource.label,
+        href: `${basePath}/${resource.name}`,
+      }));
+    }
+
+    const result: MenuItem[] = [];
+    const visit = (items: MenuItem[]) => {
+      for (const item of items) {
+        if (item.href || !item.children?.length) result.push(item);
+        if (item.children?.length) visit(item.children);
+      }
+    };
+    visit(menu);
+    return result;
+  });
 
   function isActive(href: string | undefined): boolean {
     if (!href) return false;
@@ -98,9 +117,31 @@
     {/if}
   </nav>
 
+  <nav class="lite-mobile-nav" aria-label="Mobile navigation">
+    <details>
+      <summary>{brandName}</summary>
+      <div class="lite-mobile-nav-links">
+        {#each mobileItems as item (item.name)}
+          <a
+            href={item.href ?? `${basePath}/${item.name}`}
+            class={isActive(item.href ?? `${basePath}/${item.name}`) ? 'active' : ''}
+            target={item.target === '_blank' ? '_blank' : undefined}
+          >{item.label ?? item.name}</a>
+        {/each}
+        {#if userName}
+          <div class="lite-mobile-user">
+            <span>{userName}</span>
+            <form method="POST" action={`${basePath}/login?/logout`}>
+              <button type="submit" class="lite-btn lite-btn-sm">Logout</button>
+            </form>
+          </div>
+        {/if}
+      </div>
+    </details>
+  </nav>
+
   <!-- Main Content -->
   <main class="lite-main">
     {@render children()}
   </main>
 </div>
-

@@ -1,12 +1,13 @@
 <script lang="ts">
   /**
    * LiteForm — Server-rendered form driven by FieldDefinitions.
-   * Uses native <form> with method="POST" for IE11 compatibility.
+   * Uses a native <form> with method="POST" for no-JavaScript submission.
    * Integrates with sveltekit-superforms for server-side validation.
    */
   import type { FieldDefinition, ResourceDefinition } from '@svadmin/core';
   import { t } from '@svadmin/core/i18n';
   import { fieldToInputType, fieldToPlaceholder } from '../schema-generator';
+  import LiteArrayField from './LiteArrayField.svelte';
 
   interface Props {
     fields: FieldDefinition[];
@@ -45,6 +46,15 @@
       return true;
     })
   );
+
+  function hasExistingUpload(value: unknown): boolean {
+    if (typeof value === 'string') return value.trim().length > 0;
+    if (Array.isArray(value)) return value.some(hasExistingUpload);
+    return typeof File !== 'undefined'
+      && value instanceof File
+      && value.size > 0
+      && value.name !== '';
+  }
 </script>
 
 <form method="POST" action={action || undefined} class="lite-card" enctype="multipart/form-data">
@@ -63,7 +73,15 @@
     {@const hasError = fieldErrors && fieldErrors.length > 0}
 
     <div class="lite-form-group">
-      {#if inputType === 'checkbox'}
+      {#if field.type === 'array'}
+        <LiteArrayField
+          {field}
+          {mode}
+          values={Array.isArray(value)
+            ? value.filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null)
+            : []}
+        />
+      {:else if inputType === 'checkbox'}
         <div class="lite-checkbox-group">
           <input
             type="checkbox"
@@ -107,6 +125,15 @@
               {/each}
             {/if}
           </select>
+        {:else if inputType === 'file'}
+          <input
+            type="file"
+            name={field.key}
+            id={field.key}
+            class="lite-input {hasError ? 'lite-input-error' : ''}"
+            required={field.required && (mode === 'create' || !hasExistingUpload(value))}
+            multiple={field.type === 'images'}
+          />
         {:else}
           <input
             type={inputType}
@@ -116,15 +143,15 @@
             class="lite-input {hasError ? 'lite-input-error' : ''}"
             placeholder={placeholder}
             {... field.required ? { required: true } : {}}
-            {... field.type === 'images' ? { multiple: true } : {}}
           />
         {/if}
 
-        {#if hasError}
-          {#each fieldErrors as err, _i (_i)}
-            <div class="lite-error-text">{err}</div>
-          {/each}
-        {/if}
+      {/if}
+
+      {#if hasError}
+        {#each fieldErrors as err (err)}
+          <div class="lite-error-text">{err}</div>
+        {/each}
       {/if}
     </div>
   {/each}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { FieldDefinition } from '@svadmin/core';
+  import { toSafeHref, toSafeText } from '../../security';
 
   interface Props {
     field: FieldDefinition;
@@ -10,12 +11,23 @@
 
   let { field, value, error = [], mode = 'show' }: Props = $props();
   let hasError = $derived(error.length > 0);
+  let displayValue = $derived(toSafeText(value));
+  let safeHref = $derived(toSafeHref(value));
+  const placeholder = $derived(
+    'placeholder' in field && typeof field.placeholder === 'string'
+      ? field.placeholder
+      : field.label
+  );
 </script>
 
 {#if mode === 'show'}
   <span>
-    {#if value}
-      <a href="{String(value)}" target="_blank" rel="noopener noreferrer">{value}</a>
+    {#if displayValue}
+      {#if safeHref}
+        <a href={safeHref} target="_blank" rel="noopener noreferrer">{displayValue}</a>
+      {:else}
+        {displayValue}
+      {/if}
     {:else}
       —
     {/if}
@@ -28,7 +40,7 @@
       id={field.key}
       value={String(value ?? '')}
       class="lite-input {hasError ? 'lite-input-error' : ''}"
-      placeholder={(field as any).placeholder ?? field.label}
+      {placeholder}
       {...field.required ? { required: true } : {}}
     />
     {#if hasError}

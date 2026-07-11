@@ -1,5 +1,4 @@
 <script lang="ts">
-/* eslint-disable svelte/prefer-svelte-reactivity */
   /**
    * LiteTable — Pure HTML table with <a> sort links.
    * No JavaScript required — sorting and pagination are URL-driven.

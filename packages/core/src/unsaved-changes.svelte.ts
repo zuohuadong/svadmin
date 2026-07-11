@@ -1,8 +1,7 @@
-/* eslint-disable svelte/prefer-svelte-reactivity */
 // UnsavedChangesNotifier — guards against accidental navigation with dirty forms
 // Supports: browser tab close, hash-based SPA routing, and framework router interception
 
-import { t } from './i18n.svelte';
+import { useTranslation } from './i18n.svelte';
 import { syncGlobalPath } from './useParsed.svelte';
 
 let dirty = $state(false);
@@ -15,44 +14,10 @@ export function resetUnsavedChanges(): void {
   dirty = false;
   _unsavedChangesCleanup?.();
   _unsavedChangesCleanup = null;
-  __navigationGuard = null;
 }
 
 export function getUnsavedChanges(): boolean {
   return dirty;
-}
-
-/**
- * Navigation interceptor callback type.
- * Frameworks like SvelteKit can register a cancel function here.
- * Return `true` to allow navigation, `false` to block it.
- */
-interface NavigationGuard {
-  (opts: { cancel: () => void }): void;
-}
-
-let __navigationGuard: NavigationGuard | null = null;
-
-/**
- * Register a framework-level navigation guard.
- * 
- * In SvelteKit, call this from your root layout:
- * ```ts
- * import { beforeNavigate } from '$app/navigation';
- * import { registerNavigationGuard } from '@svadmin/core';
- * 
- * registerNavigationGuard(({ cancel }) => {
- *   beforeNavigate(({ cancel: kitCancel }) => {
- *     cancel = kitCancel;
- *   });
- * });
- * ```
- * 
- * Or more idiomatically, use the built-in `initUnsavedChangesNotifier` 
- * and pass a `beforeNavigate` callback.
- */
-export function registerNavigationGuard(guard: NavigationGuard): void {
-  __navigationGuard = guard;
 }
 
 /**
@@ -82,6 +47,7 @@ export function initUnsavedChangesNotifier(options?: {
   beforeNavigate?: (callback: (nav: { cancel: () => void }) => void) => void;
 }) {
   if (typeof window === 'undefined') return;
+  const i18n = useTranslation();
   _unsavedChangesCleanup?.();
 
   const onBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -94,7 +60,7 @@ export function initUnsavedChangesNotifier(options?: {
   if (options?.beforeNavigate) {
     options.beforeNavigate(({ cancel }) => {
       if (dirty) {
-        if (!confirm(t('common.unsavedChanges'))) {
+        if (!confirm(i18n.t('common.unsavedChanges'))) {
           cancel();
         } else {
           dirty = false;
@@ -105,7 +71,7 @@ export function initUnsavedChangesNotifier(options?: {
 
   const onHashChange = (e: HashChangeEvent) => {
     if (!dirty) return;
-    if (!confirm(t('common.unsavedChanges'))) {
+    if (!confirm(i18n.t('common.unsavedChanges'))) {
       if (e.oldURL) {
         history.replaceState(null, '', new URL(e.oldURL).hash || '#');
         syncGlobalPath();

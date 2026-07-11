@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useGetIdentity, useUpdatePassword, getAuthProvider } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Button } from './ui/button/index.js';
   import { Label } from './ui/label/index.js';
   import { Input } from './ui/input/index.js';
@@ -8,6 +8,8 @@
   import * as Alert from './ui/alert/index.js';
   import PasswordInput from './PasswordInput.svelte';
   import { User, Mail, Lock, Loader2, AlertCircle, CheckCircle, Camera } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   const identity = useGetIdentity();
   const updatePw = useUpdatePassword();
@@ -42,7 +44,7 @@
         editingProfile = false;
         identity.refetch();
       } else {
-        profileError = result.error?.message ?? t('common.operationFailed');
+        profileError = result.error?.message ?? i18n.t('common.operationFailed');
       }
     } catch (e) {
       profileError = (e as Error).message;
@@ -79,8 +81,8 @@
     pwError = '';
     pwSuccess = false;
 
-    if (!newPassword) { pwError = t('auth.passwordRequired'); return; }
-    if (newPassword !== confirmPassword) { pwError = t('auth.passwordMismatch'); return; }
+    if (!newPassword) { pwError = i18n.t('auth.passwordRequired'); return; }
+    if (newPassword !== confirmPassword) { pwError = i18n.t('auth.passwordMismatch'); return; }
 
     const result = await updatePw.mutate({
       password: newPassword,
@@ -93,7 +95,7 @@
       newPassword = '';
       confirmPassword = '';
     } else {
-      pwError = result.error?.message ?? t('common.operationFailed');
+      pwError = result.error?.message ?? i18n.t('common.operationFailed');
     }
   }
 
@@ -107,7 +109,7 @@
 
 <div class="space-y-6">
   <div>
-    <h2 class="text-xl font-semibold text-foreground">{t('profile.title')}</h2>
+    <h2 class="text-xl font-semibold text-foreground">{i18n.t('profile.title')}</h2>
   </div>
 
   <!-- Profile Info -->
@@ -115,20 +117,20 @@
     <Card.CardHeader>
       <Card.CardTitle class="flex items-center gap-2 text-base">
         <User class="h-4 w-4 text-muted-foreground" />
-        {t('profile.title')}
+        {i18n.t('profile.title')}
       </Card.CardTitle>
     </Card.CardHeader>
     <Card.CardContent>
       {#if identity.isLoading}
         <div class="flex items-center gap-2 text-muted-foreground">
           <Loader2 class="h-4 w-4 animate-spin" />
-          {t('common.loading')}
+          {i18n.t('common.loading')}
         </div>
       {:else if identity.data}
         {#if profileSuccess}
           <Alert.Root class="border-success/30 bg-success/5 text-success mb-4">
             <CheckCircle class="h-4 w-4" />
-            <Alert.Description>{t('common.updateSuccess')}</Alert.Description>
+            <Alert.Description>{i18n.t('common.updateSuccess')}</Alert.Description>
           </Alert.Root>
         {/if}
 
@@ -173,7 +175,7 @@
             {#if editingProfile}
               <div class="space-y-3 max-w-sm">
                 <div>
-                  <Label for="edit-name" class="text-xs text-muted-foreground">{t('profile.name')}</Label>
+                  <Label for="edit-name" class="text-xs text-muted-foreground">{i18n.t('profile.name')}</Label>
                   <Input id="edit-name" bind:value={editName} class="mt-1" />
                 </div>
                 {#if profileError}
@@ -182,16 +184,16 @@
                 <div class="flex gap-2">
                   <Button size="sm" onclick={saveProfile} disabled={profileSaving}>
                     {#if profileSaving}<Loader2 class="h-3 w-3 animate-spin mr-1" />{/if}
-                    {t('common.save')}
+                    {i18n.t('common.save')}
                   </Button>
                   <Button size="sm" variant="outline" onclick={() => { editingProfile = false; }}>
-                    {t('common.cancel')}
+                    {i18n.t('common.cancel')}
                   </Button>
                 </div>
               </div>
             {:else}
               <div>
-                <Label class="text-xs text-muted-foreground">{t('profile.name')}</Label>
+                <Label class="text-xs text-muted-foreground">{i18n.t('profile.name')}</Label>
                 <p class="text-lg font-semibold truncate">{identity.data.name ?? '—'}</p>
               </div>
 
@@ -214,14 +216,14 @@
 
               {#if canUpdateProfile}
                 <Button size="sm" variant="outline" onclick={startEditProfile}>
-                  {t('common.edit')}
+                  {i18n.t('common.edit')}
                 </Button>
               {/if}
             {/if}
           </div>
         </div>
       {:else}
-        <p class="text-sm text-muted-foreground">{t('profile.notAvailable')}</p>
+        <p class="text-sm text-muted-foreground">{i18n.t('profile.notAvailable')}</p>
       {/if}
     </Card.CardContent>
   </Card.Card>
@@ -231,7 +233,7 @@
     <Card.CardHeader>
       <Card.CardTitle class="flex items-center gap-2 text-base">
         <Lock class="h-4 w-4 text-muted-foreground" />
-        {t('profile.changePassword')}
+        {i18n.t('profile.changePassword')}
       </Card.CardTitle>
     </Card.CardHeader>
     <Card.CardContent>
@@ -246,20 +248,20 @@
         {#if pwSuccess}
           <Alert.Root class="border-success/30 bg-success/5 text-success">
             <CheckCircle class="h-4 w-4" />
-            <Alert.Description>{t('profile.passwordChanged')}</Alert.Description>
+            <Alert.Description>{i18n.t('profile.passwordChanged')}</Alert.Description>
           </Alert.Root>
         {/if}
 
         <PasswordInput
           id="current-password"
-          label={t('profile.currentPassword')}
+          label={i18n.t('profile.currentPassword')}
           bind:value={currentPassword}
           autocomplete="current-password"
         />
 
         <PasswordInput
           id="new-password"
-          label={t('auth.password')}
+          label={i18n.t('auth.password')}
           bind:value={newPassword}
           autocomplete="new-password"
           showStrength
@@ -267,7 +269,7 @@
 
         <PasswordInput
           id="confirm-new-password"
-          label={t('auth.confirmPassword')}
+          label={i18n.t('auth.confirmPassword')}
           bind:value={confirmPassword}
           autocomplete="new-password"
         />
@@ -276,7 +278,7 @@
           {#if updatePw.isLoading}
             <Loader2 class="h-4 w-4 animate-spin mr-2" />
           {/if}
-          {t('profile.updatePassword')}
+          {i18n.t('profile.updatePassword')}
         </Button>
       </form>
     </Card.CardContent>

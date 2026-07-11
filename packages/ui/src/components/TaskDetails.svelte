@@ -1,6 +1,7 @@
 <script lang="ts">
   import { useTask, getTaskProvider } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import type { TaskProvider, TaskRecord } from '@svadmin/core';
   import { Loader2 } from '@lucide/svelte';
   import * as Card from './ui/card/index.js';
@@ -20,6 +21,8 @@
     resolveTaskTitle,
     resolveTaskUpdatedAt,
   } from './task-utils.js';
+
+  const i18n = useTranslation();
 
   let {
     task,
@@ -57,7 +60,7 @@
   });
 
   const resolvedTask = $derived(task ?? query.data);
-  const resolvedTitle = $derived(title ?? t('task.detailsTitle'));
+  const resolvedTitle = $derived(title ?? i18n.t('task.detailsTitle'));
 
   function formatDate(value: unknown) {
     if (!value) return '—';
@@ -82,7 +85,7 @@
       {#if resolvedTask}
         {resolveTaskTitle(resolvedTask)}
       {:else}
-        {t('task.detailsSummary')}
+        {i18n.t('task.detailsSummary')}
       {/if}
     </Card.Description>
   </Card.Header>
@@ -90,7 +93,7 @@
     {#if useProviderData && taskProvider && query.isLoading}
       <div class="flex h-40 items-center justify-center text-muted-foreground">
         <Loader2 class="mr-2 h-4 w-4 animate-spin" />
-        {t('task.loadingDetail')}
+        {i18n.t('task.loadingDetail')}
       </div>
     {:else if resolvedTask}
       <div class="flex flex-wrap items-center gap-2">
@@ -104,38 +107,38 @@
 
       <div class="grid gap-4 md:grid-cols-2">
         <div class="space-y-1">
-          <div class="text-xs uppercase tracking-wide text-muted-foreground">{t('task.createdLabel')}</div>
+          <div class="text-xs uppercase tracking-wide text-muted-foreground">{i18n.t('task.createdLabel')}</div>
           <div class="text-sm">{formatDate(resolveTaskCreatedAt(resolvedTask))}</div>
         </div>
         <div class="space-y-1">
-          <div class="text-xs uppercase tracking-wide text-muted-foreground">{t('task.updatedLabel')}</div>
+          <div class="text-xs uppercase tracking-wide text-muted-foreground">{i18n.t('task.updatedLabel')}</div>
           <div class="text-sm">{formatDate(resolveTaskUpdatedAt(resolvedTask))}</div>
         </div>
       </div>
 
       {#if resolveTaskMessage(resolvedTask)}
         <div class="space-y-1">
-          <div class="text-xs uppercase tracking-wide text-muted-foreground">{t('task.messageLabel')}</div>
+          <div class="text-xs uppercase tracking-wide text-muted-foreground">{i18n.t('task.messageLabel')}</div>
           <div class="rounded-md border border-border/60 bg-muted/30 p-3 text-sm">{resolveTaskMessage(resolvedTask)}</div>
         </div>
       {/if}
 
       {#if resolveTaskError(resolvedTask)}
         <div class="space-y-1">
-          <div class="text-xs uppercase tracking-wide text-destructive">{t('task.errorLabel')}</div>
+          <div class="text-xs uppercase tracking-wide text-destructive">{i18n.t('task.errorLabel')}</div>
           <pre class="overflow-auto rounded-md border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">{toPrettyJson(resolveTaskError(resolvedTask))}</pre>
         </div>
       {/if}
 
       {#if resolveTaskResult(resolvedTask) !== undefined}
         <div class="space-y-1">
-          <div class="text-xs uppercase tracking-wide text-muted-foreground">{t('task.resultLabel')}</div>
+          <div class="text-xs uppercase tracking-wide text-muted-foreground">{i18n.t('task.resultLabel')}</div>
           <pre class="overflow-auto rounded-md border border-border/60 bg-muted/20 p-3 text-xs">{toPrettyJson(resolveTaskResult(resolvedTask))}</pre>
         </div>
       {/if}
 
       <div class="space-y-1">
-        <div class="text-xs uppercase tracking-wide text-muted-foreground">{t('task.payloadLabel')}</div>
+        <div class="text-xs uppercase tracking-wide text-muted-foreground">{i18n.t('task.payloadLabel')}</div>
         <pre class="overflow-auto rounded-md border border-border/60 bg-muted/20 p-3 text-xs">{toPrettyJson(resolvedTask.payload ?? resolvedTask)}</pre>
       </div>
 
@@ -151,7 +154,7 @@
       {/if}
     {:else}
       <div class="flex h-32 items-center justify-center text-sm text-muted-foreground">
-        {t('task.noSelection')}
+        {i18n.t('task.noSelection')}
       </div>
     {/if}
   </Card.Content>

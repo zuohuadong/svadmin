@@ -1,16 +1,18 @@
 <script lang="ts">
   import { fly } from 'svelte/transition';
-  import { useStepsForm, deriveValidator } from '@svadmin/core';
+  import { captureAdminContext, useStepsForm, deriveValidator } from '@svadmin/core';
   import type { FieldDefinition } from '@svadmin/core';
   import { getResource } from '@svadmin/core';
-  import { navigate } from '@svadmin/core/router';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { Button } from './ui/button/index.js';
   import * as Card from './ui/card/index.js';
   import { Badge } from './ui/badge/index.js';
   import { Progress } from './ui/progress/index.js';
   import { Save, ArrowLeft, ArrowRight, Check, Loader2 } from '@lucide/svelte';
   import FieldRenderer from './FieldRenderer.svelte';
+
+  const i18n = useTranslation();
 
   interface StepDef {
     title: string;
@@ -25,6 +27,7 @@
   }
 
   let { resourceName, id, mode = 'create', steps }: Props = $props();
+  const adminContext = captureAdminContext();
 
   const resource = $derived(getResource(resourceName));
   const primaryKey = $derived(resource.primaryKey ?? 'id');
@@ -53,7 +56,7 @@
     return d;
   })());
 
-  const validator = $derived(deriveValidator(flatStepsFields));
+  const validator = $derived(deriveValidator(flatStepsFields, { translate: i18n.t }));
   const stepsCount = $derived(steps.length);
 
   // ─── useStepsForm: form state + step navigation ──────────────────
@@ -147,7 +150,7 @@
     <Card.CardHeader>
       <Card.CardTitle>{steps[form.steps.currentStep]?.title ?? ''}</Card.CardTitle>
       <Badge variant="outline" class="w-fit">
-        {t('common.step')} {form.steps.currentStep + 1} / {totalSteps}
+        {i18n.t('common.step')} {form.steps.currentStep + 1} / {totalSteps}
       </Badge>
     </Card.CardHeader>
     <Card.CardContent>
@@ -168,10 +171,10 @@
           <Button
             type="button"
             variant="outline"
-            onclick={() => form.steps.currentStep === 0 ? navigate(`/${resourceName}`) : form.steps.prevStep()}
+            onclick={() => form.steps.currentStep === 0 ? adminContext.navigate(`/${resourceName}`) : form.steps.prevStep()}
           >
             <ArrowLeft class="h-4 w-4" data-icon="inline-start" />
-            {form.steps.currentStep === 0 ? t('common.cancel') : t('common.back')}
+            {form.steps.currentStep === 0 ? i18n.t('common.cancel') : i18n.t('common.back')}
           </Button>
 
           <Button type="submit" disabled={form.submitting}>
@@ -182,7 +185,7 @@
             {:else}
               <ArrowRight class="h-4 w-4" data-icon="inline-start" />
             {/if}
-            {isLastStep ? t('common.save') : t('common.next')}
+            {isLastStep ? i18n.t('common.save') : i18n.t('common.next')}
           </Button>
         </div>
       </form>

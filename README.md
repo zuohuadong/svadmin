@@ -70,7 +70,7 @@
 | `@svadmin/create`        | CLI scaffolding tool / CLI 脚手架工具                        |
 | `@svadmin/refine-adapter`| Bridge any @refinedev/* data provider to svadmin / 桥接 Refine 生态数据源 |
 | `@svadmin/sveltekit`     | SvelteKit router integration / SvelteKit 路由集成            |
-| `@svadmin/lite`          | SSR-only variant (no client JS) / 纯 SSR 变体               |
+| `@svadmin/lite`          | SSR-first variant with optional progressive enhancement / SSR 优先，可选渐进增强 |
 | `@svadmin/sso`           | OIDC/OAuth2 SSO plugin / 单点登录插件                        |
 | `@svadmin/editor`        | Rich-text editor component / 富文本编辑器组件                |
 | `@svadmin/mcp`           | MCP (Model Context Protocol) integration / AI 工具集成       |
@@ -270,17 +270,17 @@ const dataProvider = createElysiaDataProvider<App>("http://localhost:3000");
 ```css
 /* app.css */
 @import "tailwindcss";
+@import "@svadmin/ui/app.theme.css";
 
-/* Required: tell Tailwind v4 to scan svadmin component sources */
-@source "../node_modules/@svadmin/ui/src";
-@source "../node_modules/@svadmin/core/src";
+/* Required: load svadmin theme tokens and scan the published package (including dist) */
+@source "../node_modules/@svadmin/ui";
 ```
 
 **2. Configure Vite `optimizeDeps` / 配置 Vite `optimizeDeps`:**
 
-Since `@svadmin/ui` ships raw `.svelte` source files (not pre-built), exclude the svadmin packages from pre-bundling and explicitly include their CJS peer dependencies. If you use `@svadmin/supabase` in a Vite app, make sure it is also listed in `optimizeDeps.exclude`, otherwise Vite may pre-bundle it and throw dev-time optional-peer/export errors such as `createRefineAdapter` not being found:
+`@svadmin/ui` ships a pre-built `dist` package containing its distributable `.svelte` components and CSS. Most Vite apps do not need an `optimizeDeps` override. If your monorepo or optional-peer setup does require exclusions, use the current package names below. When using `@svadmin/supabase`, keep it in `optimizeDeps.exclude` to avoid optional-peer/export pre-bundling issues:
 
-由于 `@svadmin/ui` 提供的是原始 `.svelte` 源码文件（非预构建），需要将 svadmin 包排除在预打包之外，并显式包含其 CJS 对等依赖。如果你的 Vite 项目使用了 `@svadmin/supabase`，也必须把它加入 `optimizeDeps.exclude`；否则 Vite 可能错误预打包它，并在开发环境里抛出 `createRefineAdapter` 找不到之类的 optional-peer/export 异常：
+`@svadmin/ui` 发布的是预构建 `dist`，其中包含可分发的 `.svelte` 组件与 CSS。大多数 Vite 项目无需配置 `optimizeDeps`；如果 monorepo 或可选 peer 场景确实需要排除，请使用下面的当前包名。使用 `@svadmin/supabase` 时可继续将其放入 `optimizeDeps.exclude`，避免可选 peer/export 的预打包问题：
 
 ```typescript
 // vite.config.ts
@@ -290,8 +290,6 @@ export default defineConfig({
     include: [
       "@svadmin/core > @tanstack/svelte-query",
       "@svadmin/ui > svelte-sonner",
-      "@svadmin/ui > vaul-svelte",
-      "@svadmin/ui > cmdk-sv",
       "@svadmin/ui > bits-ui",
       "@svadmin/ui > @tanstack/svelte-table",
       "@svadmin/ui > @lucide/svelte",
@@ -315,7 +313,8 @@ export default defineConfig({
 | `title`          | `string`                        | —        | `'Admin'`  | App title / 应用标题                          |
 | `defaultTheme`   | `'light' \| 'dark' \| 'system'` | —        | `'system'` | Initial theme / 初始主题                      |
 | `themeConfig`    | `ThemeConfig`                   | —        | —          | Theme config (strategy, overrides) / 主题配置 |
-| `locale`         | `string`                        | —        | auto       | Override locale / 覆盖语言                    |
+| `locale`         | `string`                        | —        | provider locale, otherwise browser auto-detect (`en` during SSR) | Bindable tree-local locale / 可绑定的树级语言 |
+| `i18nProvider`   | `I18nProvider`                  | —        | —          | Tree-local translation provider; explicit `locale` takes priority / 树级翻译提供者；显式 `locale` 优先 |
 | `dashboard`      | `Snippet`                       | —        | —          | Custom dashboard / 自定义仪表盘               |
 | `loginPage`      | `Snippet`                       | —        | —          | Custom login page / 自定义登录页              |
 | `loginDefaults`  | `{ identifier?: string; password?: string; hint?: string }` | — | — | Prefill default login credentials / 预填默认登录凭据 |

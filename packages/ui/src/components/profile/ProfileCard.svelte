@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Button } from '../ui/button/index.js';
   import { Badge } from '../ui/badge/index.js';
   import * as Card from '../ui/card/index.js';
   import { Avatar } from '../ui/avatar/index.js';
   import { MapPin, Link, Calendar, Users, Star, Trophy, Building2, Gamepad2 } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   interface ProfileStats {
     label: string;
@@ -93,9 +95,9 @@
         <div class="flex items-center gap-2">
           <h3 class="text-lg font-semibold text-foreground truncate">{name}</h3>
           {#if variant === 'company'}
-            <Badge variant="secondary" class="shrink-0"><Building2 class="h-3 w-3 mr-1" />{t('profile.company')}</Badge>
+            <Badge variant="secondary" class="shrink-0"><Building2 class="h-3 w-3 mr-1" />{i18n.t('profile.company')}</Badge>
           {:else if variant === 'gamer'}
-            <Badge variant="secondary" class="shrink-0"><Gamepad2 class="h-3 w-3 mr-1" />{t('profile.gamer')}</Badge>
+            <Badge variant="secondary" class="shrink-0"><Gamepad2 class="h-3 w-3 mr-1" />{i18n.t('profile.gamer')}</Badge>
           {/if}
         </div>
         {#if tagline}
@@ -116,13 +118,13 @@
         {#if employees}
           <div class="flex items-center gap-2 text-muted-foreground">
             <Users class="h-3.5 w-3.5" />
-            <span>{employees} {t('profile.employees')}</span>
+            <span>{employees} {i18n.t('profile.employees')}</span>
           </div>
         {/if}
         {#if founded}
           <div class="flex items-center gap-2 text-muted-foreground">
             <Calendar class="h-3.5 w-3.5" />
-            <span>{t('profile.founded')} {founded}</span>
+            <span>{i18n.t('profile.founded')} {founded}</span>
           </div>
         {/if}
         {#if website}
@@ -143,7 +145,7 @@
         {#if level}
           <div class="flex items-center gap-2 text-muted-foreground">
             <Star class="h-3.5 w-3.5" />
-            <span>{t('profile.level')} {level}</span>
+            <span>{i18n.t('profile.level')} {level}</span>
           </div>
         {/if}
         {#if rank}
@@ -163,7 +165,7 @@
           <div class="flex items-center gap-1.5"><Link class="h-3.5 w-3.5" /><span class="truncate">{website}</span></div>
         {/if}
         {#if joinedDate}
-          <div class="flex items-center gap-1.5"><Calendar class="h-3.5 w-3.5" /><span>{t('publicProfile.joinedDate', { date: joinedDate })}</span></div>
+          <div class="flex items-center gap-1.5"><Calendar class="h-3.5 w-3.5" /><span>{i18n.t('publicProfile.joinedDate', { date: joinedDate })}</span></div>
         {/if}
       </div>
     {/if}
@@ -193,10 +195,10 @@
     {#if followers > 0 || following > 0}
       <div class="flex gap-4 text-sm border-t pt-3">
         {#if followers > 0}
-          <span><strong class="text-foreground">{followers}</strong> <span class="text-muted-foreground">{t('publicProfile.followers')}</span></span>
+          <span><strong class="text-foreground">{followers}</strong> <span class="text-muted-foreground">{i18n.t('publicProfile.followers')}</span></span>
         {/if}
         {#if following > 0}
-          <span><strong class="text-foreground">{following}</strong> <span class="text-muted-foreground">{t('publicProfile.following')}</span></span>
+          <span><strong class="text-foreground">{following}</strong> <span class="text-muted-foreground">{i18n.t('publicProfile.following')}</span></span>
         {/if}
       </div>
     {/if}
@@ -208,9 +210,9 @@
         variant={isConnected ? 'outline' : 'default'}
         onclick={toggleConnect}
       >
-        {isConnected ? t('network.connected') : t('network.connect')}
+        {isConnected ? i18n.t('network.connected') : i18n.t('network.connect')}
       </Button>
-      <Button size="sm" variant="outline">{t('publicProfile.sendMessage')}</Button>
+      <Button size="sm" variant="outline">{i18n.t('publicProfile.sendMessage')}</Button>
     </div>
   </Card.CardContent>
 </Card.Card>

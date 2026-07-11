@@ -1,10 +1,12 @@
 <script lang="ts">
   import { getResource } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import type { Snippet } from 'svelte';
   import PageHeader from './PageHeader.svelte';
   import AutoForm from './AutoForm.svelte';
   import ListButton from './buttons/ListButton.svelte';
+
+  const i18n = useTranslation();
 
   interface Props {
     resourceName: string;
@@ -21,7 +23,7 @@
   }: Props = $props();
 
   const resource = $derived(getResource(resourceName));
-  const pageTitle = $derived(title ?? `${t('common.create')}${resource.label}`);
+  const pageTitle = $derived(title ?? `${i18n.t('common.create')}${resource.label}`);
 </script>
 
 <div class="space-y-6 {className}">

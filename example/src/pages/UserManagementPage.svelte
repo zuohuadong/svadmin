@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
-  import { getLocale } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { AutoTable, Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import {
@@ -17,6 +17,8 @@
     Users,
   } from '@lucide/svelte';
   import { readHashParam, readHashView } from '../utils/hashView';
+
+  const i18n = useTranslation();
 
   interface User {
     id: number;
@@ -84,7 +86,7 @@
   let roleSearch = $state('');
   let selectedRoleId = $state<number | null>(null);
 
-  const locale = $derived(getLocale());
+  const locale = $derived(i18n.locale);
   const isZh = $derived(locale === 'zh-CN');
   const activeResource = $derived((['users', 'roles', 'permissions', 'user_accounts', 'user_logs', 'user_settings'].includes(resourceName) ? resourceName : 'users') as UserManagementResource);
 

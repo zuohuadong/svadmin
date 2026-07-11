@@ -1,9 +1,8 @@
-/* eslint-disable svelte/prefer-svelte-reactivity */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // useParsed — parse current URL hash into structured route info
 
-import { currentPath, registerRouterSync } from './router';
-import { getResources } from './context.svelte';
+import { registerRouterSync } from './router';
+import { captureAdminContext } from './context.svelte';
 
 interface ParsedRoute {
   resource?: string;
@@ -16,13 +15,13 @@ interface ParsedRoute {
   parentParams: Record<string, string>;
 }
 
-let globalPath = $state('/');
+let routeVersion = $state(0);
 
 export function resetGlobalPath(): void {
-  globalPath = typeof window !== 'undefined' ? currentPath() : '/';
+  routeVersion++;
 }
 export function syncGlobalPath(): void {
-  if (typeof window !== 'undefined') globalPath = currentPath();
+  routeVersion++;
 }
 
 /** 简单的英文名词单数化，处理常见复数模式（-ies, -ses, -es, -s） */
@@ -37,11 +36,10 @@ function singularize(word: string): string {
 registerRouterSync(syncGlobalPath);
 
 if (typeof window !== 'undefined') {
-  globalPath = currentPath();
   if (!(window as any).__svadminParsedInit) {
     (window as any).__svadminParsedInit = true;
-    window.addEventListener('hashchange', () => { globalPath = currentPath(); });
-    window.addEventListener('popstate', () => { globalPath = currentPath(); });
+    window.addEventListener('hashchange', syncGlobalPath);
+    window.addEventListener('popstate', syncGlobalPath);
   }
 }
 
@@ -58,10 +56,17 @@ if (typeof window !== 'undefined') {
  *   // parsed.parentParams contains nested route params such as teamId
  */
 export function useParsed(): ParsedRoute {
-  const resources = $derived((() => { try { return getResources(); } catch { return []; } })());
+  const adminContext = captureAdminContext();
+  const resources = $derived(adminContext.resources);
+  const activePath = $derived.by(() => {
+    // Any router navigation increments routeVersion. Each tree then asks its
+    // captured provider for its own path instead of consuming a global router.
+    void routeVersion;
+    return adminContext.currentPath();
+  });
 
   const parsed = $derived.by(() => {
-    const p = globalPath;
+    const p = activePath;
     const result: ParsedRoute = { params: {}, parentParams: {} };
 
     // Parse query params from hash

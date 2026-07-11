@@ -5,7 +5,7 @@
 
 <script lang="ts">
   import type { FieldDefinition } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Input } from './ui/input/index.js';
   import { Textarea } from './ui/textarea/index.js';
   import { Switch } from './ui/switch/index.js';
@@ -20,6 +20,8 @@
   import { Plus, X } from '@lucide/svelte';
   import type { Snippet } from 'svelte';
   import { getRichTextEditor } from '../editor-config.svelte.js';
+
+  const i18n = useTranslation();
 
   let { field, value, onchange, disabled, children } = $props<{
     field: FieldDefinition;
@@ -107,7 +109,7 @@
       oninput={(e) => onchange((e.target as HTMLInputElement).value)}
       required={field.required}
       {disabled}
-      placeholder={t('field.enterValue', { label: field.label })}
+      placeholder={i18n.t('field.enterValue', { label: field.label })}
     />
 
   {:else if field.type === 'email'}
@@ -188,7 +190,7 @@
       <EditorComp
         id={field.key}
         value={strVal}
-        placeholder={t('field.enterValue', { label: field.label })}
+        placeholder={i18n.t('field.enterValue', { label: field.label })}
         preset="full"
         onchange={(html: string) => onchange(html)}
         {disabled}
@@ -201,7 +203,7 @@
         required={field.required}
         {disabled}
         rows={10}
-        placeholder={t('field.enterValue', { label: field.label })}
+        placeholder={i18n.t('field.enterValue', { label: field.label })}
         class="resize-y"
       />
     {/if}
@@ -214,7 +216,7 @@
       required={field.required}
       {disabled}
       rows={4}
-      placeholder={t('field.enterValue', { label: field.label })}
+      placeholder={i18n.t('field.enterValue', { label: field.label })}
       class="resize-y"
     />
 
@@ -226,7 +228,7 @@
       onchange={(v) => onchange(v)}
       optionLabel={field.optionLabel ?? 'title'}
       optionValue={field.optionValue ?? 'id'}
-      placeholder={t('field.selectPlaceholder')}
+      placeholder={i18n.t('field.selectPlaceholder')}
       {disabled}
     />
 
@@ -240,7 +242,7 @@
         required={field.required}
         disabled={disabled}
       >
-        <option value="">{t('field.selectPlaceholder')}</option>
+        <option value="">{i18n.t('field.selectPlaceholder')}</option>
         {#each field.options ?? [] as opt, _i (_i)}
           <option value={opt.value}>{opt.label}</option>
         {/each}
@@ -252,7 +254,7 @@
         onchange={(e) => onchange((e.target as HTMLSelectElement).value)}
         required={field.required}
         {disabled}
-        placeholder={t('field.selectPlaceholder')}
+        placeholder={i18n.t('field.selectPlaceholder')}
       >
         {#each field.options ?? [] as opt, _i (_i)}
           <option value={opt.value}>{opt.label}</option>
@@ -278,7 +280,7 @@
         </label>
       {/each}
       {#if !(field.options?.length)}
-        <p class="text-xs text-muted-foreground">{t('field.noOptions')}</p>
+        <p class="text-xs text-muted-foreground">{i18n.t('field.noOptions')}</p>
       {/if}
     </div>
     {#if multiVal.length > 0}
@@ -287,7 +289,7 @@
           {@const label = field.options?.find((o: { label: string; value: string | number }) => o.value === v)?.label ?? String(v)}
           <Badge variant="secondary" class="gap-1">
             {label}
-            <button type="button" onclick={() => toggleMulti(v)} class="ml-0.5 rounded-sm hover:text-destructive hover:bg-destructive/10 transition-colors" aria-label={t('common.clear')}>×</button>
+            <button type="button" onclick={() => toggleMulti(v)} class="ml-0.5 rounded-sm hover:text-destructive hover:bg-destructive/10 transition-colors" aria-label={i18n.t('common.clear')}>×</button>
           </Badge>
         {/each}
       </div>
@@ -301,7 +303,7 @@
         onCheckedChange={(v) => onchange(v)}
         disabled={disabled}
       />
-      <span class="text-sm text-muted-foreground">{boolVal ? t('common.yes') : t('common.no')}</span>
+      <span class="text-sm text-muted-foreground">{boolVal ? i18n.t('common.yes') : i18n.t('common.no')}</span>
     </div>
 
   {:else if field.type === 'tags'}
@@ -314,7 +316,7 @@
               type="button"
               onclick={() => removeTag(i)}
               class="ml-0.5 rounded-sm hover:text-destructive hover:bg-destructive/10 transition-colors"
-              aria-label={t('common.clear')}
+              aria-label={i18n.t('common.clear')}
             >×</button>
           </Badge>
         {/each}
@@ -322,7 +324,7 @@
       <Input
         id={field.key}
         type="text"
-        placeholder={t('field.tagsPlaceholder')}
+        placeholder={i18n.t('field.tagsPlaceholder')}
         onkeydown={handleTagKeydown}
         {disabled}
       />
@@ -354,13 +356,13 @@
           {#if url}
             <img src={url} alt="preview" class="h-9 w-9 rounded object-cover border" />
           {/if}
-          <TooltipButton tooltip={t('common.removeImage')} variant="ghost" size="icon" class="h-8 w-8 shrink-0" onclick={() => removeImage(i)}>
+          <TooltipButton tooltip={i18n.t('common.removeImage')} variant="ghost" size="icon" class="h-8 w-8 shrink-0" onclick={() => removeImage(i)}>
             <X class="h-3.5 w-3.5" />
           </TooltipButton>
         </div>
       {/each}
       <Button variant="outline" size="sm" type="button" onclick={addImage}>
-        <Plus class="h-3.5 w-3.5 mr-1" /> {t('field.addImage')}
+        <Plus class="h-3.5 w-3.5 mr-1" /> {i18n.t('field.addImage')}
       </Button>
     </div>
 

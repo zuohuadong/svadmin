@@ -1,13 +1,15 @@
 <script lang="ts">
-  import { getResource } from '@svadmin/core';
-  import { navigate } from '@svadmin/core/router';
-  import { t } from '@svadmin/core/i18n';
+  import { captureAdminContext, getResource } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import type { Snippet } from 'svelte';
   import type { FieldDefinition } from '@svadmin/core';
   import PageHeader from './PageHeader.svelte';
   import AutoTable from './AutoTable.svelte';
   import { Button } from './ui/button/index.js';
   import { Plus } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   interface Props {
     resourceName: string;
@@ -40,6 +42,7 @@
     expandedRowRender,
     class: className = '',
   }: Props = $props();
+  const adminContext = captureAdminContext();
 
   const resource = $derived(getResource(resourceName));
   const pageTitle = $derived(title ?? resource.label);
@@ -50,8 +53,8 @@
   <PageHeader title={pageTitle}>
     {#snippet actions()}
       {#if showCreate}
-        <Button onclick={() => navigate(`/${resourceName}/create`)}>
-          <Plus class="h-4 w-4" data-icon="inline-start" /> {t('common.create')}
+        <Button onclick={() => adminContext.navigate(`/${resourceName}/create`)}>
+          <Plus class="h-4 w-4" data-icon="inline-start" /> {i18n.t('common.create')}
         </Button>
       {/if}
       {#if headerActions}

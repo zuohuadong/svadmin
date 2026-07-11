@@ -4,7 +4,9 @@
   import TooltipButton from './TooltipButton.svelte';
   import { Label } from './ui/label/index.js';
   import { Lock, Eye, EyeOff } from '@lucide/svelte';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
+  const i18n = useTranslation();
 
   interface Props {
     id: string;
@@ -66,7 +68,7 @@
       autocomplete={autocomplete as any}
     />
     <TooltipButton
-      tooltip={showPassword ? t('common.hidePassword') : t('common.showPassword')}
+      tooltip={showPassword ? i18n.t('common.hidePassword') : i18n.t('common.showPassword')}
       variant="ghost"
       size="icon"
       type="button"

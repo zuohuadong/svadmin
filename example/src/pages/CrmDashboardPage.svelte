@@ -1,10 +1,12 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
-  import { getLocale } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Badge } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { BarChart3, BriefcaseBusiness, Building2, CircleDollarSign, ClipboardList, FileText, PhoneCall, Star, TrendingUp, Users } from '@lucide/svelte';
   import { readHashView } from '../utils/hashView';
+
+  const i18n = useTranslation();
 
   interface Account { id: number; accountName: string; health: string; ownerId: number; nextStep: string; }
   interface Contact { id: number; fullName: string; roleTitle: string; influence: string; status: string; lastTouchDate: string; notes: string; }
@@ -14,7 +16,7 @@
   let { resourceName = 'crm_accounts' } = $props<{ resourceName?: string }>();
   let activeView = $state(readHashView('default'));
 
-  const locale = $derived(getLocale());
+  const locale = $derived(i18n.locale);
   const isZh = $derived(locale === 'zh-CN');
   const accountsQuery = useList({ resource: 'crm_accounts', pagination: { mode: 'off' } });
   const contactsQuery = useList({ resource: 'crm_contacts', pagination: { mode: 'off' }, sorters: [{ field: 'lastTouchDate', order: 'desc' }] });

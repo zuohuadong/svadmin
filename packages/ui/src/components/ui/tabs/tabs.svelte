@@ -1,7 +1,7 @@
 <script lang="ts">
-/* eslint-disable no-useless-assignment */
 	import { cn, type WithElementRef } from "../../../utils.js";
 	import type { HTMLAttributes } from "svelte/elements";
+	import { setTabsContext } from "./tabs-context.svelte.js";
 
 	type Props = WithElementRef<HTMLAttributes<HTMLDivElement>> & {
 		value?: string;
@@ -16,6 +16,17 @@
 		children,
 		...restProps
 	}: Props = $props();
+
+	setTabsContext({
+		get value() {
+			return value;
+		},
+		select(nextValue) {
+			if (nextValue === value) return;
+			value = nextValue;
+			onValueChange?.(nextValue);
+		},
+	});
 </script>
 
 <div

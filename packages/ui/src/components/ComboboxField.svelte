@@ -1,13 +1,15 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { useSelect } from '@svadmin/core';
   import type { Filter } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
-  import { Command } from 'cmdk-sv';
+  import { Command } from './ui/command/index.js';
   import { Skeleton } from './ui/skeleton/index.js';
   import { ChevronsUpDown, Check, X, Search } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   function clickOutside(node: HTMLElement) {
     const handler = (e: MouseEvent) => {
@@ -89,7 +91,7 @@
   >
     {#if selectedLabel}
       <span class="truncate">{selectedLabel}</span>
-      <TooltipButton tooltip={t('common.clear')} size="icon-sm" class="h-5 w-5 ml-1" onclick={handleClear}>
+      <TooltipButton tooltip={i18n.t('common.clear')} size="icon-sm" class="h-5 w-5 ml-1" onclick={handleClear}>
         <X class="h-3 w-3" />
       </TooltipButton>
     {:else}
@@ -125,7 +127,7 @@
               <Command.Item
                 value={opt.label}
                 onSelect={() => handleSelect(opt.value)}
-                class="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground"
+                class="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[selected]:bg-accent data-[selected]:text-accent-foreground"
               >
                 <Check class="mr-2 h-3.5 w-3.5 {value === opt.value ? 'opacity-100' : 'opacity-0'}" />
                 {opt.label}

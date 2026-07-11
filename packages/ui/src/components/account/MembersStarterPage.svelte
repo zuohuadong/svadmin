@@ -1,11 +1,13 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '../ui/card/index.js';
   import { Button } from '../ui/button/index.js';
   import { Badge } from '../ui/badge/index.js';
   import { Avatar } from '../ui/avatar/index.js';
   import { Input } from '../ui/input/index.js';
   import { Search, UserPlus, MoreHorizontal, Clock, CheckCircle2, XCircle } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   interface Member {
     id: string;
@@ -35,9 +37,9 @@
   );
 
   const statusConfig = {
-    'active': { icon: CheckCircle2, color: 'text-green-500', label: t('account.active') },
-    'invited': { icon: Clock, color: 'text-amber-500', label: t('account.invited') },
-    'inactive': { icon: XCircle, color: 'text-muted-foreground', label: t('account.inactive') },
+    'active': { icon: CheckCircle2, color: 'text-green-500', label: i18n.t('account.active') },
+    'invited': { icon: Clock, color: 'text-amber-500', label: i18n.t('account.invited') },
+    'inactive': { icon: XCircle, color: 'text-muted-foreground', label: i18n.t('account.inactive') },
   };
 
   const initials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -46,11 +48,11 @@
 <div class="space-y-6" data-svadmin-content-page="account">
   <div class="flex items-start justify-between gap-4">
     <div>
-      <h2 class="text-xl font-semibold text-foreground">{t('account.membersStarter')}</h2>
-      <p class="mt-1 text-sm text-muted-foreground">{t('account.membersStarterDescription')}</p>
+      <h2 class="text-xl font-semibold text-foreground">{i18n.t('account.membersStarter')}</h2>
+      <p class="mt-1 text-sm text-muted-foreground">{i18n.t('account.membersStarterDescription')}</p>
     </div>
     <Button size="sm">
-      <UserPlus class="h-4 w-4 mr-1" />{t('account.inviteMember')}
+      <UserPlus class="h-4 w-4 mr-1" />{i18n.t('account.inviteMember')}
     </Button>
   </div>
 
@@ -58,7 +60,7 @@
   <div class="relative">
     <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
     <Input
-      placeholder={t('common.search')}
+      placeholder={i18n.t('common.search')}
       bind:value={searchQuery}
       class="pl-9"
     />

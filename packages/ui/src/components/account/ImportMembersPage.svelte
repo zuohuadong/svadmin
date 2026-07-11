@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '../ui/card/index.js';
   import { Button } from '../ui/button/index.js';
   import { Upload, Download, FileText, CheckCircle2, Loader2 } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   let isDragging = $state(false);
   let fileName = $state('');
@@ -61,8 +63,8 @@
 
 <div class="space-y-6" data-svadmin-content-page="account">
   <div>
-    <h2 class="text-xl font-semibold text-foreground">{t('account.importMembers')}</h2>
-    <p class="mt-1 text-sm text-muted-foreground">{t('account.importMembersDescription')}</p>
+    <h2 class="text-xl font-semibold text-foreground">{i18n.t('account.importMembers')}</h2>
+    <p class="mt-1 text-sm text-muted-foreground">{i18n.t('account.importMembersDescription')}</p>
   </div>
 
   {#if importState === 'complete'}
@@ -72,10 +74,10 @@
           <CheckCircle2 class="h-7 w-7" />
         </div>
         <div class="text-center">
-          <h3 class="text-lg font-semibold text-success">{t('account.importComplete')}</h3>
-          <p class="text-sm text-success/70 mt-1">{t('account.imported', { count: importCount })}</p>
+          <h3 class="text-lg font-semibold text-success">{i18n.t('account.importComplete')}</h3>
+          <p class="text-sm text-success/70 mt-1">{i18n.t('account.imported', { count: importCount })}</p>
         </div>
-        <Button variant="outline" onclick={resetImport}>{t('common.back')}</Button>
+        <Button variant="outline" onclick={resetImport}>{i18n.t('common.back')}</Button>
       </Card.CardContent>
     </Card.Card>
   {:else}
@@ -92,11 +94,11 @@
         >
           {#if importState === 'idle'}
             <Upload class="mx-auto h-10 w-10 text-muted-foreground" />
-            <p class="mt-3 text-sm font-medium text-foreground">{t('account.dragOrClick')}</p>
-            <p class="mt-1 text-xs text-muted-foreground">{t('account.supportedFormats')}</p>
+            <p class="mt-3 text-sm font-medium text-foreground">{i18n.t('account.dragOrClick')}</p>
+            <p class="mt-1 text-xs text-muted-foreground">{i18n.t('account.supportedFormats')}</p>
             <div class="mt-4">
               <span class="inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground">
-                {t('common.upload')}
+                {i18n.t('common.upload')}
               </span>
               <input id="file-input" type="file" accept=".csv,.xlsx" class="sr-only" onchange={handleFileSelect} />
             </div>
@@ -114,7 +116,7 @@
                 <div class="h-full rounded-full bg-primary transition-all duration-300" style="width: {progress}%"></div>
               </div>
               <p class="text-xs text-muted-foreground">
-                {importState === 'uploading' ? t('account.importProgress') : t('account.startImport')}...
+                {importState === 'uploading' ? i18n.t('account.importProgress') : i18n.t('account.startImport')}...
               </p>
             </div>
           {/if}
@@ -130,12 +132,12 @@
             <FileText class="h-4 w-4" />
           </div>
           <div>
-            <p class="text-sm font-medium text-foreground">{t('account.downloadTemplate')}</p>
+            <p class="text-sm font-medium text-foreground">{i18n.t('account.downloadTemplate')}</p>
             <p class="text-xs text-muted-foreground">CSV template.csv</p>
           </div>
         </div>
         <Button variant="outline" size="sm">
-          <Download class="h-3.5 w-3.5 mr-1" />{t('account.downloadTemplate')}
+          <Download class="h-3.5 w-3.5 mr-1" />{i18n.t('account.downloadTemplate')}
         </Button>
       </Card.CardContent>
     </Card.Card>

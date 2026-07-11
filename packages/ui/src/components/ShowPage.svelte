@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { useShow, getResource } from '@svadmin/core';
-  import { navigate } from '@svadmin/core/router';
-  import { t } from '@svadmin/core/i18n';
+  import { captureAdminContext, useShow, getResource } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from './ui/card/index.js';
   import { Skeleton } from './ui/skeleton/index.js';
   import PageHeader from './PageHeader.svelte';
@@ -12,7 +11,10 @@
   import CloneButton from './buttons/CloneButton.svelte';
   import RefreshButton from './buttons/RefreshButton.svelte';
 
+  const i18n = useTranslation();
+
   let { resourceName, id, class: className = '' } = $props<{ resourceName: string; id: string | number; class?: string }>();
+  const adminContext = captureAdminContext();
 
   const resource = $derived(getResource(resourceName));
   const showFields = $derived(resource.fields.filter(f => f.showInShow !== false));
@@ -21,7 +23,7 @@
 </script>
 
 <div class="space-y-6 {className}">
-  <PageHeader title="{resource.label} {t('common.detail')}">
+  <PageHeader title="{resource.label} {i18n.t('common.detail')}">
     {#snippet actions()}
       <ListButton resource={resourceName} hideText />
       {#if resource.canEdit !== false}
@@ -31,7 +33,7 @@
         <CloneButton resource={resourceName} recordItemId={id} hideText />
       {/if}
       {#if resource.canDelete !== false}
-        <DeleteButton resource={resourceName} recordItemId={id} hideText onSuccess={() => navigate(`/${resourceName}`)} />
+        <DeleteButton resource={resourceName} recordItemId={id} hideText onSuccess={() => adminContext.navigate(`/${resourceName}`)} />
       {/if}
       <RefreshButton resource={resourceName} hideText />
     {/snippet}
@@ -74,9 +76,9 @@
   {:else}
     <Card.Root class="overflow-hidden border-border/40 shadow-sm">
       <Card.Content class="p-8 text-center">
-        <p class="text-muted-foreground">{t('common.noData')}</p>
+        <p class="text-muted-foreground">{i18n.t('common.noData')}</p>
         {#if query.isError}
-          <p class="text-sm text-destructive mt-2">{(query.error as Error)?.message ?? t('common.operationFailed')}</p>
+          <p class="text-sm text-destructive mt-2">{(query.error as Error)?.message ?? i18n.t('common.operationFailed')}</p>
         {/if}
       </Card.Content>
     </Card.Root>

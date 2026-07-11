@@ -51,6 +51,7 @@ The provider expects standard RESTful routes:
 | Pagination | `_page`, `_limit` | `?_page=1&_limit=10` |
 | Sorting | `_sort`, `_order` | `?_sort=name&_order=asc` |
 | Filtering | `field_operator` | `?status_eq=active&name_contains=foo` |
+| Logical filtering | `_filters` JSON | `?_filters=[{"operator":"or",...}]` |
 
 ### Filter Operators
 
@@ -62,6 +63,11 @@ Filters are appended as query params using `field_operator=value` format:
 ?name_contains=widget    → name LIKE '%widget%'
 ?category_in=1,2,3       → category IN (1, 2, 3)
 ```
+
+Flat filters keep the compact query format above. When a filter contains a
+nested `and`/`or` group, the provider additionally sends the complete filter
+tree as JSON in `_filters`; the Elysia endpoint should parse and validate that
+parameter before applying it.
 
 ## End-to-End Type Safety
 
@@ -130,11 +136,17 @@ interface ElysiaDataProviderOptions {
 
 The provider also supports batch operations:
 
-- `getMany` — fetches multiple records by ID via `?ids=1,2,3`
+- `getMany` — fetches multiple records by repeating the ID parameter, e.g. `?id=1&id=2&id=3`
 - `createMany` — sequential POST calls
 - `updateMany` — sequential PATCH calls
 - `deleteMany` — sequential DELETE calls
 - `custom` — arbitrary HTTP requests
+
+`custom` also accepts `query`, `sorters`, and `filters`. Provider-level auth
+headers and `credentials: include` are inherited only for same-origin URLs.
+For cross-origin URLs, sensitive default headers are removed; pass an explicit
+header only when that destination is intentionally trusted. Delete endpoints
+may return `204`, `205`, `Content-Length: 0`, or an otherwise empty body.
 
 ## Comparison with Simple REST
 

@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '../ui/card/index.js';
   import { Button } from '../ui/button/index.js';
   import { Input } from '../ui/input/index.js';
   import { Search, UserPlus, MoreHorizontal } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   interface TeamMember {
     id: string;
@@ -48,26 +50,26 @@
   const initials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   function statusLabel(status: TeamMember['status']) {
-    if (status === 'active') return t('account.active');
-    if (status === 'invited') return t('account.invited');
-    return t('account.inactive');
+    if (status === 'active') return i18n.t('account.active');
+    if (status === 'invited') return i18n.t('account.invited');
+    return i18n.t('account.inactive');
   }
 </script>
 
 <div class="space-y-6" data-svadmin-content-page="account">
   <div class="flex items-start justify-between gap-4">
     <div>
-      <h2 class="text-xl font-semibold text-foreground">{t('account.teamMembers')}</h2>
-      <p class="mt-1 text-sm text-muted-foreground">{t('account.teamMembersDescription')}</p>
+      <h2 class="text-xl font-semibold text-foreground">{i18n.t('account.teamMembers')}</h2>
+      <p class="mt-1 text-sm text-muted-foreground">{i18n.t('account.teamMembersDescription')}</p>
     </div>
     <Button size="sm">
-      <UserPlus class="h-4 w-4 mr-1" />{t('account.inviteMember')}
+      <UserPlus class="h-4 w-4 mr-1" />{i18n.t('account.inviteMember')}
     </Button>
   </div>
 
   <div class="relative">
     <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-    <Input placeholder={t('common.search')} bind:value={searchQuery} class="pl-9" />
+    <Input placeholder={i18n.t('common.search')} bind:value={searchQuery} class="pl-9" />
   </div>
 
   <!-- Members grid -->

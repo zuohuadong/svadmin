@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { AlertTriangle, Copy, CheckCircle } from '@lucide/svelte';
   import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
   import * as Card from './ui/card/index.js';
+
+  const i18n = useTranslation();
 
   let { title, missingVars = [], envTemplate = '' } = $props<{
     title?: string;
@@ -11,7 +13,7 @@
     envTemplate?: string;
   }>();
 
-  const displayTitle = $derived(title ?? t('config.missingEnvTitle'));
+  const displayTitle = $derived(title ?? i18n.t('config.missingEnvTitle'));
 
   let copied = $state<Record<string, boolean>>({});
   let copyTimers = $state<Record<string, ReturnType<typeof setTimeout>>>({});
@@ -57,7 +59,7 @@
         </div>
         <Card.CardTitle class="text-xl">{displayTitle}</Card.CardTitle>
         <p class="text-sm text-muted-foreground">
-          {t('config.missingEnvDescription')}
+          {i18n.t('config.missingEnvDescription')}
         </p>
       </Card.CardHeader>
       <Card.CardContent class="space-y-4">
@@ -72,7 +74,7 @@
                   {/if}
                 </div>
                 <TooltipButton
-                  tooltip={t('common.copy')}
+                  tooltip={i18n.t('common.copy')}
                   variant="ghost"
                   size="icon"
                   class="h-7 w-7 shrink-0"
@@ -92,9 +94,9 @@
         {#if envTemplate}
           <div class="rounded-lg border overflow-hidden">
             <div class="flex items-center justify-between px-3 py-2 bg-muted/50 border-b border-border/50">
-              <span class="text-xs font-medium text-muted-foreground">{t('config.envFilePath')}</span>
+              <span class="text-xs font-medium text-muted-foreground">{i18n.t('config.envFilePath')}</span>
               <TooltipButton
-                tooltip={t('common.copyAll')}
+                tooltip={i18n.t('common.copyAll')}
                 variant="ghost"
                 size="sm"
                 class="h-7 gap-1"
@@ -102,10 +104,10 @@
               >
                 {#if copied['__all__']}
                   <CheckCircle class="h-3.5 w-3.5 text-green-500" />
-                  <span class="text-xs">{t('common.copied')}</span>
+                  <span class="text-xs">{i18n.t('common.copied')}</span>
                 {:else}
                   <Copy class="h-3.5 w-3.5" />
-                  <span class="text-xs">{t('common.copyAll')}</span>
+                  <span class="text-xs">{i18n.t('common.copyAll')}</span>
                 {/if}
               </TooltipButton>
             </div>
@@ -114,11 +116,11 @@
         {/if}
 
         <p class="text-xs text-muted-foreground text-center mt-4">
-          {t('config.reload')}
+          {i18n.t('config.reload')}
         </p>
 
         <Button variant="outline" class="w-full" onclick={() => window.location.reload()}>
-          {t('config.reloadButton')}
+          {i18n.t('config.reloadButton')}
         </Button>
       </Card.CardContent>
     </Card.Card>

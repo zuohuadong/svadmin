@@ -20,7 +20,7 @@
 </script>
 
 <a
-  href="?action=export"
+  href={`${basePath}/${resource}?action=export`}
   class="lite-btn {size === 'sm' ? 'lite-btn-sm' : ''} {className}"
   title={t('common.export') || 'Export'}
 >

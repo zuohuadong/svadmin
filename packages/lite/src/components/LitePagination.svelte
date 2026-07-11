@@ -1,5 +1,4 @@
 <script lang="ts">
-/* eslint-disable svelte/prefer-svelte-reactivity */
   /**
    * LitePagination — Pure <a> tag pagination for SSR.
    * No JavaScript. All page transitions are full page navigations.

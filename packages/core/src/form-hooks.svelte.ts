@@ -1,13 +1,11 @@
-/* eslint-disable svelte/prefer-svelte-reactivity */
 import { useQueryClient } from '@tanstack/svelte-query';
 import { useParsed } from './useParsed.svelte';
 import { getAdminOptions } from './options.svelte';
-import { getDataProviderForResource, getResource, getLiveProvider } from './context.svelte';
+import { captureAdminContext } from './context.svelte';
 import { createQuery, createMutation } from '@tanstack/svelte-query';
 import { notify } from './notification.svelte';
-import { t } from './i18n.svelte';
+import { useTranslation } from './i18n.svelte';
 import { audit } from './audit';
-import { navigate, currentPath } from './router';
 import { HttpError, UndoError } from './types';
 import type { BaseRecord, MutationMode, KnownResources } from './types';
 import { checkError } from './hook-utils.svelte';
@@ -136,6 +134,13 @@ export interface UseFormReturn<
   readonly mutation: unknown;
 }
 
+interface FormRecordIdentity {
+  generation: number;
+  resource: string;
+  action: 'create' | 'edit' | 'clone' | 'show';
+  id: string | number | undefined;
+}
+
 // ─── Implementation ──────────────────────────────────────────────────
 
 export function useForm<
@@ -143,6 +148,8 @@ export function useForm<
   TData extends BaseRecord = BaseRecord,
   TError = HttpError,
 >(options: UseFormOptions<TVariables, TData, TError> = {} as UseFormOptions<TVariables, TData, TError>): UseFormReturn<TVariables, TData> {
+  const adminContext = captureAdminContext();
+  const i18n = useTranslation();
   const queryClient = useQueryClient();
   const parsed = useParsed();
   const adminOptions = getAdminOptions();
@@ -170,16 +177,58 @@ export function useForm<
   // updates when `action` changes at runtime (e.g., via `setAction`).
   const redirectDefault = $derived(redirectOption ?? defaultRedirectOpt ?? 'list');
 
-  const provider = $derived(getDataProviderForResource(resource, dataProviderName));
+  const provider = $derived(adminContext.getDataProviderForResource(resource, dataProviderName));
   const queryMeta = $derived({ ...useParsed().params, ...hookMeta, ...hookQueryMeta });
   const mutationMeta = $derived({ ...useParsed().params, ...hookMeta, ...hookMutationMeta });
 
-  function setId(newId: string | number | undefined) { currentId = newId; }
-  function setAction(newAction: 'create' | 'edit' | 'clone' | 'show') { action = newAction; }
+  let recordGeneration = 0;
+  let formDestroyed = false;
+
+  function captureRecordIdentity(): FormRecordIdentity {
+    return { generation: recordGeneration, resource, action, id: currentId };
+  }
+
+  function isRecordIdentityCurrent(identity: FormRecordIdentity): boolean {
+    return !formDestroyed
+      && identity.generation === recordGeneration
+      && identity.resource === resource
+      && identity.action === action;
+  }
+
+  function invalidateRecordIdentity() {
+    recordGeneration += 1;
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = null;
+    }
+    if (autoSaveStatusTimer) {
+      clearTimeout(autoSaveStatusTimer);
+      autoSaveStatusTimer = null;
+    }
+    autoSaveDirty = false;
+    autoSaveStatus = 'idle';
+    lastAutoSaveData = null;
+    lastAutoSaveError = null;
+    tainted = {};
+    clearErrors();
+  }
+
+  function setId(newId: string | number | undefined) {
+    if (Object.is(currentId, newId)) return;
+    invalidateRecordIdentity();
+    currentId = newId;
+  }
+
+  function setAction(newAction: 'create' | 'edit' | 'clone' | 'show') {
+    if (action === newAction) return;
+    invalidateRecordIdentity();
+    action = newAction;
+  }
 
   // ─── Form values (single source of truth) ───────────────────────
-  let values = $state<TVariables>((options.defaultValues ?? {}) as TVariables);
-  let initialValues = $state<TVariables>((options.defaultValues ?? {}) as TVariables);
+  const defaultValuesSource = (options.defaultValues ?? {}) as TVariables;
+  let values = $state<TVariables>(createPersistenceSnapshot(defaultValuesSource));
+  let initialValues = createPersistenceSnapshot(defaultValuesSource);
 
   function setFieldValue(field: string, value: unknown, opts?: { taint?: boolean }) {
     values = { ...values, [field]: value } as TVariables;
@@ -188,6 +237,7 @@ export function useForm<
     // Clear field error on change
     if (errors[field]) clearFieldError(field);
     onChangeFn?.({ field, value, values });
+    triggerAutoSave();
   }
 
   function setValues(newValues: Partial<TVariables>, opts?: { taint?: boolean }) {
@@ -198,6 +248,7 @@ export function useForm<
       for (const key of Object.keys(newValues)) newTainted[key] = true;
       tainted = newTainted;
     }
+    triggerAutoSave();
   }
 
   // ─── Tainted (dirty) state ──────────────────────────────────────
@@ -206,6 +257,138 @@ export function useForm<
   function isTainted(field?: string): boolean {
     if (field !== undefined) return !!tainted[field];
     return Object.values(tainted).some(Boolean);
+  }
+
+  function isPlainObject(value: object): boolean {
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === Object.prototype || prototype === null;
+  }
+
+  function isFormData(value: object): value is FormData {
+    return typeof FormData !== 'undefined' && value instanceof FormData;
+  }
+
+  function readOwnValue(value: object, key: PropertyKey): unknown {
+    const descriptor = Reflect.getOwnPropertyDescriptor(value, key);
+    if (descriptor === undefined) return undefined;
+    return 'value' in descriptor ? descriptor.value : Reflect.get(value, key);
+  }
+
+  function snapshotPersistenceValue(value: unknown, seen: WeakMap<object, unknown>): unknown {
+    if (value === null || typeof value !== 'object') return value;
+
+    const existing = seen.get(value);
+    if (existing !== undefined) return existing;
+
+    if (value instanceof Date) {
+      const snapshot = new Date(value.getTime());
+      seen.set(value, snapshot);
+      return snapshot;
+    }
+
+    if (isFormData(value)) {
+      const snapshot = new FormData();
+      seen.set(value, snapshot);
+      for (const [key, entry] of value.entries()) snapshot.append(key, entry);
+      return snapshot;
+    }
+
+    if (Array.isArray(value)) {
+      const snapshot = new Array<unknown>(value.length);
+      seen.set(value, snapshot);
+      for (let index = 0; index < value.length; index += 1) {
+        if (index in value) snapshot[index] = snapshotPersistenceValue(readOwnValue(value, String(index)), seen);
+      }
+      return snapshot;
+    }
+
+    if (!isPlainObject(value)) return value;
+
+    const snapshot = Object.create(Object.getPrototypeOf(value)) as Record<PropertyKey, unknown>;
+    seen.set(value, snapshot);
+    for (const key of Reflect.ownKeys(value)) {
+      if (!Object.prototype.propertyIsEnumerable.call(value, key)) continue;
+      snapshot[key] = snapshotPersistenceValue(readOwnValue(value, key), seen);
+    }
+    return snapshot;
+  }
+
+  function createPersistenceSnapshot(source: TVariables): TVariables {
+    return snapshotPersistenceValue(source, new WeakMap<object, unknown>()) as TVariables;
+  }
+
+  function enumerableOwnKeys(value: object): PropertyKey[] {
+    return Reflect.ownKeys(value).filter((key) => Object.prototype.propertyIsEnumerable.call(value, key));
+  }
+
+  function persistenceValuesEqual(
+    left: unknown,
+    right: unknown,
+    leftToRight: WeakMap<object, object> = new WeakMap<object, object>(),
+    rightToLeft: WeakMap<object, object> = new WeakMap<object, object>(),
+  ): boolean {
+    if (Object.is(left, right)) return true;
+    if (left === null || right === null || typeof left !== 'object' || typeof right !== 'object') return false;
+
+    const leftIsDate = left instanceof Date;
+    if (leftIsDate || right instanceof Date) {
+      return leftIsDate && right instanceof Date && Object.is(left.getTime(), right.getTime());
+    }
+
+    const leftIsFormData = isFormData(left);
+    if (leftIsFormData || isFormData(right)) {
+      if (!leftIsFormData || !isFormData(right)) return false;
+      const leftEntries = Array.from(left.entries());
+      const rightEntries = Array.from(right.entries());
+      if (leftEntries.length !== rightEntries.length) return false;
+      return leftEntries.every(([leftKey, leftValue], index) => {
+        const rightEntry = rightEntries[index];
+        return rightEntry !== undefined
+          && leftKey === rightEntry[0]
+          && persistenceValuesEqual(leftValue, rightEntry[1], leftToRight, rightToLeft);
+      });
+    }
+
+    const leftIsArray = Array.isArray(left);
+    if (leftIsArray !== Array.isArray(right)) return false;
+    if (!leftIsArray && (!isPlainObject(left) || !isPlainObject(right))) return false;
+    if (Object.getPrototypeOf(left) !== Object.getPrototypeOf(right)) return false;
+
+    const previousRight = leftToRight.get(left);
+    if (previousRight !== undefined) return previousRight === right;
+    const previousLeft = rightToLeft.get(right);
+    if (previousLeft !== undefined) return previousLeft === left;
+    leftToRight.set(left, right);
+    rightToLeft.set(right, left);
+
+    if (leftIsArray && left.length !== (right as unknown[]).length) return false;
+
+    const leftKeys = enumerableOwnKeys(left);
+    const rightKeys = enumerableOwnKeys(right);
+    if (leftKeys.length !== rightKeys.length) return false;
+
+    for (const key of leftKeys) {
+      if (!Object.prototype.hasOwnProperty.call(right, key)) return false;
+      if (!persistenceValuesEqual(readOwnValue(left, key), readOwnValue(right, key), leftToRight, rightToLeft)) return false;
+    }
+    return true;
+  }
+
+  function reconcilePersistedSnapshot(sourceSnapshot: TVariables, persistedSnapshot: TVariables = sourceSnapshot) {
+    const nextInitialValues = createPersistenceSnapshot(persistedSnapshot);
+    let nextTainted = { ...tainted };
+
+    for (const field of Object.keys(sourceSnapshot)) {
+      if (persistenceValuesEqual(readOwnValue(values, field), readOwnValue(sourceSnapshot, field))) {
+        const { [field]: _persistedField, ...remainingTainted } = nextTainted;
+        nextTainted = remainingTainted;
+      } else {
+        nextTainted[field] = true;
+      }
+    }
+
+    initialValues = nextInitialValues;
+    tainted = nextTainted;
   }
 
   // ─── Errors ─────────────────────────────────────────────────────
@@ -243,7 +426,7 @@ export function useForm<
 
   // ─── Reset ──────────────────────────────────────────────────────
   function reset() {
-    values = { ...initialValues } as TVariables;
+    values = createPersistenceSnapshot(initialValues);
     tainted = {};
     clearErrors();
     queryInitializedId = currentId;
@@ -252,15 +435,15 @@ export function useForm<
   // ─── Server error handling ──────────────────────────────────────
 
   function handleHttpError(error: Error) {
-    checkError(error);
+    checkError(error, adminContext);
     if (error instanceof HttpError && error.errors && !disableServerSideValidation) {
       for (const [field, messages] of Object.entries(error.errors)) {
         const msg = Array.isArray(messages) ? messages[0] : messages;
         setFieldError(field, msg);
       }
-      if (errorNotification !== false) notify({ type: 'error', message: typeof errorNotification === 'string' ? errorNotification : (error.message || t('common.operationFailed')) });
+      if (errorNotification !== false) notify({ type: 'error', message: typeof errorNotification === 'string' ? errorNotification : (error.message || i18n.t('common.operationFailed')) });
     } else {
-      if (errorNotification !== false) notify({ type: 'error', message: typeof errorNotification === 'string' ? errorNotification : (t('common.operationFailed') + ': ' + error.message) });
+      if (errorNotification !== false) notify({ type: 'error', message: typeof errorNotification === 'string' ? errorNotification : (i18n.t('common.operationFailed') + ': ' + error.message) });
     }
   }
 
@@ -285,15 +468,15 @@ export function useForm<
       if (action === 'create' && queryInitializedId !== undefined) {
         queryInitializedId = undefined;
         const def = (options.defaultValues ?? {}) as TVariables;
-        values = { ...def };
-        initialValues = { ...def };
+        values = createPersistenceSnapshot(def);
+        initialValues = createPersistenceSnapshot(def);
         tainted = {};
         clearErrors();
         return;
       }
       if (queryInitializedId === currentId) return;
       const record = (query.data as { data: Record<string, unknown> } | undefined)?.data;
-      const pk = getResource(resource).primaryKey ?? 'id';
+      const pk = adminContext.getResource(resource).primaryKey ?? 'id';
       if (record && String(record[pk]) === String(currentId)) {
         const cloneStripKeys = new Set(['id', '_id', pk, 'createdAt', 'updatedAt', 'created_at', 'updated_at', 'createdBy', 'updated_by', 'created_by', 'updatedBy']);
         const targetData = action === 'clone' 
@@ -301,8 +484,10 @@ export function useForm<
           : record;
         // Merge: defaultValues < query data
         const merged = { ...(options.defaultValues ?? {}), ...targetData } as TVariables;
-        values = merged;
-        initialValues = { ...merged } as TVariables;
+        values = createPersistenceSnapshot(merged);
+        initialValues = createPersistenceSnapshot(merged);
+        tainted = {};
+        clearErrors();
         queryInitializedId = currentId;
       }
     });
@@ -310,6 +495,15 @@ export function useForm<
 
   // ─── Mutations ──────────────────────────────────────────────────
   let redirectOverride: 'list' | 'edit' | 'show' | false | undefined;
+  let manualSubmitInProgress = false;
+  let manualSubmitIdentity: FormRecordIdentity | null = null;
+
+  function isManualSubmitIdentityCurrent(): boolean {
+    if (formDestroyed) return false;
+    return !manualSubmitInProgress
+      || manualSubmitIdentity == null
+      || isRecordIdentityCurrent(manualSubmitIdentity);
+  }
 
   const createMut = createMutation(() => ({
     ...options.createMutationOptions,
@@ -325,21 +519,28 @@ export function useForm<
       const ctx = context as { targetResource?: string } | undefined;
       const res = ctx?.targetResource ?? resource;
       invalidateByScopes(queryClient, res, invalidateScopes, ['list', 'many'], undefined, options.dataProviderName);
-      if (successNotification !== false) notify({ type: 'success', message: typeof successNotification === 'string' ? successNotification : t('common.createSuccess') });
-      const pk = getResource(res).primaryKey ?? 'id';
+      if (!isManualSubmitIdentityCurrent()) return;
+      if (successNotification !== false) notify({ type: 'success', message: typeof successNotification === 'string' ? successNotification : i18n.t('common.createSuccess') });
+      const pk = adminContext.getResource(res).primaryKey ?? 'id';
       const newId = (data.data as Record<string, unknown>)[pk];
       audit({ action: 'create', resource: res, recordId: String(newId) });
       try {
-        const lp = getLiveProvider();
+        const lp = adminContext.liveProvider;
         if (lp?.publish) lp.publish({ type: 'INSERT', resource: res, payload: { ids: newId != null ? [newId as string | number] : [] } });
       } catch { /* no live provider */ }
       onMutationSuccess?.(data);
-      if (redirectOverride !== false) {
+      if (!manualSubmitInProgress && redirectOverride !== false) {
         if (newId != null) currentId = newId as string | number;
         doRedirect(redirectOverride ?? redirectDefault);
+      } else if (manualSubmitInProgress && redirectOverride !== false && newId != null) {
+        currentId = newId as string | number;
       }
     },
-    onError: (error: Error) => { handleHttpError(error); onMutationError?.(error); },
+    onError: (error: Error) => {
+      if (!isManualSubmitIdentityCurrent()) return;
+      handleHttpError(error);
+      onMutationError?.(error);
+    },
   }));
 
   const updateMut = createMutation<{ data: TData }, unknown, TVariables>(() => ({
@@ -350,7 +551,7 @@ export function useForm<
       const targetMeta = mutationMeta;
       if (mutationMode === 'undoable') {
         await new Promise<void>((resolve, reject) => {
-          toast.undoable(t('common.actionCanBeUndone'), undoableTimeout, () => {
+          toast.undoable(i18n.t('common.actionCanBeUndone'), undoableTimeout, () => {
             reject(new UndoError());
           }, resolve);
         });
@@ -369,7 +570,7 @@ export function useForm<
         queryClient.setQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resource && q.queryKey[2] === 'list' }, (old: unknown) => {
           if (!old || typeof old !== 'object' || !('data' in old)) return old;
           const o = old as { data: Record<string, unknown>[] };
-          const pk = getResource(resource).primaryKey ?? 'id';
+          const pk = adminContext.getResource(resource).primaryKey ?? 'id';
           return { ...o, data: o.data.map((item) => String(item[pk]) === String(targetId) ? deepMerge(item, variables) : item) };
         });
       }
@@ -382,14 +583,15 @@ export function useForm<
       const ctx = context as { targetId?: string | number; targetResource?: string } | undefined;
       const targetId = ctx?.targetId ?? currentId;
       const res = ctx?.targetResource ?? resource;
-      if (successNotification !== false) notify({ type: 'success', message: typeof successNotification === 'string' ? successNotification : t('common.updateSuccess') });
+      if (!isManualSubmitIdentityCurrent()) return;
+      if (successNotification !== false) notify({ type: 'success', message: typeof successNotification === 'string' ? successNotification : i18n.t('common.updateSuccess') });
       audit({ action: 'update', resource: res, recordId: String(targetId) });
       try {
-        const lp = getLiveProvider();
+        const lp = adminContext.liveProvider;
         if (lp?.publish) lp.publish({ type: 'UPDATE', resource: res, payload: { ids: targetId != null ? [targetId] : [] } });
       } catch { /* no live provider */ }
       onMutationSuccess?.(data);
-      if (redirectOverride !== false) doRedirect(redirectOverride ?? redirectDefault);
+      if (!manualSubmitInProgress && redirectOverride !== false) doRedirect(redirectOverride ?? redirectDefault);
     },
     onSettled: (_data: unknown, error: unknown, _vars: unknown, context: unknown) => {
       if (error instanceof UndoError) return;
@@ -406,44 +608,65 @@ export function useForm<
         }
       }
       if (error instanceof UndoError) return;
+      if (!isManualSubmitIdentityCurrent()) return;
       handleHttpError(error as Error);
       onMutationError?.(error as Error);
     },
   }));
 
   function doRedirect(to: 'list' | 'edit' | 'show' | false) {
-    const path = currentPath().split('?')[0];
+    const path = adminContext.currentPath().split('?')[0];
     const parts = path.split('/');
     const resIdx = parts.lastIndexOf(String(resource));
     const base = resIdx >= 0 ? parts.slice(0, resIdx + 1).join('/') : `/${resource}`;
 
-    if (to === 'list') navigate(base);
-    else if (to === 'edit' && currentId) navigate(`${base}/edit/${currentId}`);
-    else if (to === 'show' && currentId) navigate(`${base}/show/${currentId}`);
+    if (to === 'list') void adminContext.navigate(base);
+    else if (to === 'edit' && currentId) void adminContext.navigate(`${base}/edit/${currentId}`);
+    else if (to === 'show' && currentId) void adminContext.navigate(`${base}/show/${currentId}`);
   }
 
   // ─── Submit ─────────────────────────────────────────────────────
   async function submit(overrides?: { redirect?: 'list' | 'edit' | 'show' | false }) {
+    if (formDestroyed) return;
+    const submitIdentity = captureRecordIdentity();
     if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
     while (autoSaveInProgress) {
       await new Promise(r => setTimeout(r, 50));
+      if (formDestroyed) return;
     }
+    if (!isRecordIdentityCurrent(submitIdentity)) return;
     if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
     autoSaveDirty = false;
-    if (onSubmitFn) {
-      let cancelled = false;
-      const result = await onSubmitFn({ values, action, cancel: () => { cancelled = true; } });
-      if (result === false || cancelled) return;
-    }
-
-    if (!runValidation()) { notify({ type: 'warning', message: t('validation.required') }); return; }
+    manualSubmitInProgress = true;
+    manualSubmitIdentity = submitIdentity;
     redirectOverride = overrides?.redirect;
     try {
-      if (action === 'create' || action === 'clone') await createMut.mutateAsync(values);
-      else await updateMut.mutateAsync(values);
-      tainted = {};
+      if (onSubmitFn) {
+        let cancelled = false;
+        const result = await onSubmitFn({ values, action, cancel: () => { cancelled = true; } });
+        if (result === false || cancelled) return;
+      }
+
+      if (!isRecordIdentityCurrent(submitIdentity)) return;
+
+      if (!runValidation()) { notify({ type: 'warning', message: i18n.t('validation.required') }); return; }
+
+      const submittedValues = createPersistenceSnapshot(values);
+      if (action === 'create' || action === 'clone') await createMut.mutateAsync(submittedValues);
+      else await updateMut.mutateAsync(submittedValues);
+
+      if (!isRecordIdentityCurrent(submitIdentity)) return;
+      reconcilePersistedSnapshot(submittedValues);
+      if (!isTainted() && redirectOverride !== false) doRedirect(redirectOverride ?? redirectDefault);
     } catch {
       // Errors already handled by mutation's onError callback
+    } finally {
+      manualSubmitInProgress = false;
+      manualSubmitIdentity = null;
+      redirectOverride = undefined;
+      const shouldAutoSave = !formDestroyed && autoSaveDirty && isTainted();
+      autoSaveDirty = false;
+      if (shouldAutoSave) deferAutoSaveTrigger();
     }
   }
 
@@ -458,47 +681,88 @@ export function useForm<
 
   $effect(() => {
     return () => {
-      if (autoSaveTimer) clearTimeout(autoSaveTimer);
-      if (autoSaveStatusTimer) clearTimeout(autoSaveStatusTimer);
+      formDestroyed = true;
+      autoSaveDirty = false;
+      if (autoSaveTimer) {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = null;
+      }
+      if (autoSaveStatusTimer) {
+        clearTimeout(autoSaveStatusTimer);
+        autoSaveStatusTimer = null;
+      }
     };
   });
 
+  function deferAutoSaveTrigger() {
+    if (formDestroyed) return;
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+      autoSaveTimer = null;
+      if (formDestroyed) return;
+      triggerAutoSave();
+    }, 0);
+  }
+
   function triggerAutoSave() {
+    if (formDestroyed) return;
     const currentAction = action;
     if (!autoSaveOpts?.enabled || currentAction === 'create' || currentAction === 'clone' || currentId == null) return;
-    if (createMut.isPending || updateMut.isPending) return;
+    if (autoSaveInProgress || manualSubmitInProgress || createMut.isPending || updateMut.isPending) {
+      autoSaveDirty = true;
+      return;
+    }
     if (autoSaveTimer) clearTimeout(autoSaveTimer);
 
-    const safeId = currentId;
-    const safeResource = resource;
+    const scheduledIdentity = captureRecordIdentity();
+    const currentSnapshot = createPersistenceSnapshot(values);
+    const safeId = scheduledIdentity.id;
+    const safeResource = scheduledIdentity.resource;
     const safeMeta = mutationMeta;
     autoSaveTimer = setTimeout(async () => {
-      if (autoSaveInProgress || createMut.isPending || updateMut.isPending) {
+      autoSaveTimer = null;
+      if (formDestroyed) return;
+      if (!isRecordIdentityCurrent(scheduledIdentity)) return;
+      if (autoSaveInProgress || manualSubmitInProgress || createMut.isPending || updateMut.isPending) {
         autoSaveDirty = true;
         return;
       }
-      const finalValues = autoSaveOpts.onFinish ? autoSaveOpts.onFinish(values) : values;
+      const finishedValues = autoSaveOpts.onFinish ? autoSaveOpts.onFinish(currentSnapshot) : currentSnapshot;
+      const submittedValues = createPersistenceSnapshot(finishedValues);
+      if (autoSaveStatusTimer) {
+        clearTimeout(autoSaveStatusTimer);
+        autoSaveStatusTimer = null;
+      }
       autoSaveStatus = 'saving';
       autoSaveInProgress = true;
       autoSaveDirty = false;
       try {
-        await provider.update<TData, TVariables>({ resource: safeResource, id: safeId as string | number, variables: finalValues, meta: safeMeta });
+        await provider.update<TData, TVariables>({ resource: safeResource, id: safeId as string | number, variables: submittedValues, meta: safeMeta });
+        if (formDestroyed) return;
         const scopes = autoSaveOpts.invalidates ?? ['resourceAll'];
         invalidateByScopes(queryClient, safeResource, scopes, ['resourceAll'], safeId ?? undefined, options.dataProviderName);
+        if (!isRecordIdentityCurrent(scheduledIdentity)) return;
         autoSaveStatus = 'saved';
-        lastAutoSaveData = finalValues;
+        lastAutoSaveData = submittedValues;
         lastAutoSaveError = null;
-        initialValues = { ...finalValues } as TVariables;
-        tainted = {};
-        if (autoSaveStatusTimer) clearTimeout(autoSaveStatusTimer);
-        autoSaveStatusTimer = setTimeout(() => { autoSaveStatus = 'idle'; autoSaveStatusTimer = null; }, 2000);
+        reconcilePersistedSnapshot(currentSnapshot, submittedValues);
+        autoSaveStatusTimer = setTimeout(() => {
+          autoSaveStatusTimer = null;
+          if (formDestroyed) return;
+          autoSaveStatus = 'idle';
+        }, 2000);
       } catch (e) {
+        if (!isRecordIdentityCurrent(scheduledIdentity)) return;
         autoSaveStatus = 'error';
         lastAutoSaveError = e;
-        checkError(e);
+        checkError(e, adminContext);
       } finally {
-        autoSaveInProgress = false;
-        if (autoSaveDirty) triggerAutoSave();
+        if (!formDestroyed) {
+          autoSaveInProgress = false;
+          const shouldAutoSave = autoSaveDirty && isTainted();
+          autoSaveDirty = false;
+          if (shouldAutoSave) triggerAutoSave();
+        }
       }
     }, autoSaveOpts.debounce ?? 1000);
   }

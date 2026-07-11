@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { FieldDefinition } from '@svadmin/core';
+  import { toSafeHref } from '../../security';
 
   interface Props {
     field: FieldDefinition;
@@ -23,7 +24,12 @@
   {@const files = getFiles(value)}
   <div style="display:flex; flex-direction: column; gap: 4px;">
     {#each files as f, _i (_i)}
-      <a href={f} target="_blank" rel="noopener noreferrer">{f.split('/').pop() || 'Download'}</a>
+      {@const href = toSafeHref(f)}
+      {#if href}
+        <a {href} target="_blank" rel="noopener noreferrer">{f.split('/').pop() || 'Download'}</a>
+      {:else}
+        <span>{f}</span>
+      {/if}
     {:else}
       <span>—</span>
     {/each}

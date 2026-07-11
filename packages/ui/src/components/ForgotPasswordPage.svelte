@@ -1,17 +1,20 @@
 <script lang="ts">
-  import { useForgotPassword } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
-  import { navigate } from '@svadmin/core/router';
+  import { captureAdminContext, useForgotPassword } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
   import { Label } from './ui/label/index.js';
   import * as Alert from './ui/alert/index.js';
   import { User, ArrowLeft, CheckCircle, Loader2, AlertCircle, Shield } from '@lucide/svelte';
 
+  const i18n = useTranslation();
+
   let { title = 'Admin' } = $props<{
     title?: string;
   }>();
 
+  const adminContext = captureAdminContext();
   const forgot = useForgotPassword();
 
   let identifier = $state('');
@@ -22,13 +25,13 @@
     e.preventDefault();
     error = '';
 
-    if (!identifier) { error = t('auth.usernameOrEmailRequired'); return; }
+    if (!identifier) { error = i18n.t('auth.usernameOrEmailRequired'); return; }
 
     const result = await forgot.mutate({ email: identifier, username: identifier });
     if (result.success) {
       sent = true;
     } else {
-      error = result.error?.message ?? t('common.operationFailed');
+      error = result.error?.message ?? i18n.t('common.operationFailed');
     }
   }
 </script>
@@ -54,10 +57,10 @@
 
       <div class="space-y-4">
         <h2 class="text-3xl xl:text-4xl font-bold text-white leading-tight">
-          {t('auth.forgotPassword')}
+          {i18n.t('auth.forgotPassword')}
         </h2>
         <p class="text-base text-white/70 leading-relaxed max-w-[320px]">
-          {t('auth.forgotPasswordDescription')}
+          {i18n.t('auth.forgotPasswordDescription')}
         </p>
       </div>
 
@@ -82,16 +85,16 @@
       <div class="space-y-1 mb-8">
         <h1 class="text-2xl font-semibold tracking-tight">
           {#if sent}
-            {t('auth.resetLinkSent')}
+            {i18n.t('auth.resetLinkSent')}
           {:else}
-            {t('auth.forgotPassword')}
+            {i18n.t('auth.forgotPassword')}
           {/if}
         </h1>
         <p class="text-sm text-muted-foreground">
           {#if sent}
-            {t('auth.resetLinkSent')}
+            {i18n.t('auth.resetLinkSent')}
           {:else}
-            {t('auth.forgotPasswordDescription')}
+            {i18n.t('auth.forgotPasswordDescription')}
           {/if}
         </p>
       </div>
@@ -100,11 +103,11 @@
         <div class="space-y-4">
           <div class="flex items-center gap-3 rounded-lg border bg-muted/50 p-4">
             <CheckCircle class="h-5 w-5 text-primary shrink-0" />
-            <p class="text-sm text-muted-foreground">{t('auth.resetLinkSent')}</p>
+            <p class="text-sm text-muted-foreground">{i18n.t('auth.resetLinkSent')}</p>
           </div>
-          <Button variant="outline" class="w-full" onclick={() => navigate('/login')}>
+          <Button variant="outline" class="w-full" onclick={() => adminContext.navigate('/login')}>
             <ArrowLeft class="h-4 w-4 mr-2" />
-            {t('auth.backToLogin')}
+            {i18n.t('auth.backToLogin')}
           </Button>
         </div>
       {:else}
@@ -117,13 +120,13 @@
           {/if}
 
           <div class="space-y-2">
-            <Label for="forgot-identifier">{t('auth.usernameOrEmail')}</Label>
+            <Label for="forgot-identifier">{i18n.t('auth.usernameOrEmail')}</Label>
             <div class="relative">
               <User class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-[1]" />
               <Input
                 id="forgot-identifier"
                 type="text"
-                placeholder={t('auth.identifierPlaceholder')}
+                placeholder={i18n.t('auth.identifierPlaceholder')}
                 bind:value={identifier}
                 class="pl-9"
                 autocomplete="username"
@@ -135,14 +138,14 @@
             {#if forgot.isLoading}
               <Loader2 class="h-4 w-4 animate-spin mr-2" />
             {/if}
-            {t('auth.sendResetLink')}
+            {i18n.t('auth.sendResetLink')}
           </Button>
         </form>
 
         <div class="flex items-center justify-center mt-8 pt-6 border-t">
-          <Button variant="link" class="text-sm h-auto p-0 font-medium inline-flex items-center gap-1" onclick={() => navigate('/login')}>
+          <Button variant="link" class="text-sm h-auto p-0 font-medium inline-flex items-center gap-1" onclick={() => adminContext.navigate('/login')}>
             <ArrowLeft class="h-3 w-3" />
-            {t('auth.backToLogin')}
+            {i18n.t('auth.backToLogin')}
           </Button>
         </div>
       {/if}

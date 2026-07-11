@@ -49,11 +49,16 @@ import { AdminApp } from '@svadmin/ui';
 | `title` | `string` | — | `'Admin'` | App title (shown in sidebar) / 应用标题 |
 | `defaultTheme` | `'light' \| 'dark' \| 'system'` | — | `'system'` | Initial theme / 初始主题 |
 | `themeConfig` | `ThemeConfig` | — | — | Theme config (strategy, CSS overrides) / 主题配置 |
-| `locale` | `string` | — | auto-detect | Override locale / 覆盖语言 |
+| `locale` | `string` | — | provider locale, otherwise browser auto-detect (`en` during SSR) | Bindable tree-local locale override / 可绑定的树级语言覆盖 |
+| `i18nProvider` | `I18nProvider` | — | — | Tree-local translation provider; explicit `locale` takes priority / 树级翻译提供者；显式 `locale` 优先 |
 | `dashboard` | `Snippet` | — | — | Custom dashboard page / 自定义仪表盘 |
 | `loginPage` | `Snippet` | — | — | Custom login page / 自定义登录页 |
 | `loginDefaults` | `{ identifier?: string; password?: string; hint?: string }` | — | — | Prefill default login credentials / 预填默认登录凭据 |
 | `components` | `Partial<ComponentRegistry>` | — | — | Override default components (DI) / 覆盖默认组件 |
+
+Each `AdminApp` owns an isolated locale scope. When `locale` is omitted, the app uses `i18nProvider.getLocale()` first, then detects the browser language independently for that tree; server rendering defaults to `en`. Use `bind:locale` to observe and control locale changes without mutating another app instance or the legacy global locale.
+
+每个 `AdminApp` 都拥有独立的语言作用域。省略 `locale` 时，组件会先使用 `i18nProvider.getLocale()`，否则为当前组件树独立检测浏览器语言；服务端渲染默认使用 `en`。可通过 `bind:locale` 观察和控制语言变化，不会污染其他应用实例或旧版全局语言状态。
 
 ## Component Injection / 组件注入
 

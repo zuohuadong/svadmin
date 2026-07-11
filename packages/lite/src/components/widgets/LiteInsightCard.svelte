@@ -1,5 +1,6 @@
 <script lang="ts">
-/* eslint-disable svelte/no-at-html-tags */
+  import { toSafeText } from '../../security.js';
+
   /**
    * SSR InsightCard — Degraded to static pre-rendered content.
    * The SPA version streams AI-generated insights via ChatProvider.
@@ -12,6 +13,7 @@
   }
 
   let { title = 'Insights', content = '' }: Props = $props();
+  const displayContent = $derived(toSafeText(content));
 </script>
 
 <div class="lite-card" style="margin-bottom: 16px;">
@@ -20,8 +22,8 @@
     {title}
   </div>
   <div style="padding: 16px; font-size: 14px; color: #334155; line-height: 1.6;">
-    {#if content}
-      {@html content}
+    {#if displayContent}
+      <p style="white-space: pre-wrap; margin: 0;">{displayContent}</p>
     {:else}
       <p style="color: #94a3b8; font-style: italic;">No insights available. AI analysis requires JavaScript.</p>
     {/if}

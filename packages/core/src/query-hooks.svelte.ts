@@ -1,6 +1,6 @@
 import { createQuery } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options.svelte';
-import { getDataProviderForResource, getDataProvider, getLiveProvider } from './context.svelte';
+import { captureAdminContext } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 import {
   checkError,
@@ -11,8 +11,8 @@ import {
 } from './hook-utils.svelte';
 import type { NotificationConfig, OvertimeOptions, LiveSubscriptionParams } from './hook-utils.svelte';
 import type {
-  GetListParams, GetListResult, Pagination, Sort, Filter, BaseRecord, HttpError,
-  GetOneParams, GetOneResult, GetManyParams, GetManyResult, CustomParams, CustomResult,
+  GetListResult, Pagination, Sort, Filter, BaseRecord, HttpError,
+  GetOneResult, GetManyResult,
   KnownResources,
 } from './types';
 import type { LiveMode, LiveEvent } from './live.svelte';
@@ -74,6 +74,7 @@ export interface UseListOptions<_TData extends BaseRecord = BaseRecord, _TError 
 }
 
 export function useList<TData extends BaseRecord = BaseRecord, TError = HttpError>(optionsOrGetter: MaybeGetter<UseListOptions<TData, TError>> = {}) {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
   const adminOptions = getAdminOptions();
   
@@ -83,7 +84,7 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
   const query = createQuery<GetListResult<TData>, TError>(() => {
     const opts = getOptions();
     const resource = getResource();
-    const provider = getDataProviderForResource(resource, opts.dataProviderName);
+    const provider = adminContext.getDataProviderForResource(resource, opts.dataProviderName);
     const queryOptions = opts.queryOptions;
     const pagination = cloneQueryKeyPart(opts.pagination);
     const sorters = cloneQueryKeyPart(opts.sorters);
@@ -129,7 +130,7 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
     const opts = getOptions();
     return {
       resource: getResource(),
-      liveProvider: getLiveProvider(),
+      liveProvider: adminContext.liveProvider,
       liveMode: opts.liveMode ?? adminOptions.liveMode,
       onLiveEvent: (e: LiveEvent) => {
         opts.onLiveEvent?.(e);
@@ -153,7 +154,7 @@ export function useList<TData extends BaseRecord = BaseRecord, TError = HttpErro
       }
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
-      checkError(query.error);
+      checkError(query.error, adminContext);
       fireErrorNotification(opts.errorNotification, 'Fetch failed', query.error, getResource());
     }
   });
@@ -178,6 +179,7 @@ export interface UseOneOptions<_TData extends BaseRecord = BaseRecord, _TError =
 }
 
 export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError>(optionsOrGetter: MaybeGetter<UseOneOptions<TData, TError>> = {}) {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
   const adminOptions = getAdminOptions();
   
@@ -189,7 +191,7 @@ export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError
     const opts = getOptions();
     const resource = getResource();
     const id = getId();
-    const provider = getDataProviderForResource(resource, opts.dataProviderName);
+    const provider = adminContext.getDataProviderForResource(resource, opts.dataProviderName);
     const queryOptions = opts.queryOptions;
 
     return {
@@ -217,7 +219,7 @@ export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError
     const resource = getResource();
     return {
       resource,
-      liveProvider: getLiveProvider(),
+      liveProvider: adminContext.liveProvider,
       liveMode: opts.liveMode ?? adminOptions.liveMode,
       onLiveEvent: (e: LiveEvent) => {
         opts.onLiveEvent?.(e);
@@ -240,7 +242,7 @@ export function useOne<TData extends BaseRecord = BaseRecord, TError = HttpError
       }
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
-      checkError(query.error);
+      checkError(query.error, adminContext);
       fireErrorNotification(opts.errorNotification, 'Fetch failed', query.error, getResource());
     }
   });
@@ -288,13 +290,14 @@ export interface UseManyOptions<_TData extends BaseRecord = BaseRecord, _TError 
 }
 
 export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpError>(optionsOrGetter: MaybeGetter<UseManyOptions<TData, TError>>) {
+  const adminContext = captureAdminContext();
   const adminOptions = getAdminOptions();
   const getOptions = () => typeof optionsOrGetter === 'function' ? optionsOrGetter() : optionsOrGetter;
 
   const query = createQuery<GetManyResult<TData>, TError>(() => {
     const opts = getOptions();
     const { resource, ids, meta, dataProviderName, queryOptions } = opts;
-    const provider = getDataProviderForResource(resource, dataProviderName);
+    const provider = adminContext.getDataProviderForResource(resource, dataProviderName);
 
     return {
       queryKey: [dataProviderName, resource, 'many', ids, meta],
@@ -319,7 +322,7 @@ export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpErro
     const opts = getOptions();
     return {
       resource: opts.resource,
-      liveProvider: getLiveProvider(),
+      liveProvider: adminContext.liveProvider,
       liveMode: opts.liveMode ?? adminOptions.liveMode,
       onLiveEvent: (e: LiveEvent) => {
         opts.onLiveEvent?.(e);
@@ -342,7 +345,7 @@ export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpErro
       }
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
-      checkError(query.error);
+      checkError(query.error, adminContext);
       fireErrorNotification(opts.errorNotification, 'Fetch failed', query.error, opts.resource);
     }
   });
@@ -351,5 +354,5 @@ export function useMany<TData extends BaseRecord = BaseRecord, TError = HttpErro
 }
 
 export function useApiUrl(dataProviderName?: string): string {
-  return getDataProvider(dataProviderName).getApiUrl();
+  return captureAdminContext().getDataProvider(dataProviderName).getApiUrl();
 }

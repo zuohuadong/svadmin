@@ -2,8 +2,9 @@
   /**
    * LiteShowField — SSR-compatible field renderer for detail views.
    * Renders a single field value based on its type definition.
-   */
+  */
   import type { FieldDefinition } from '@svadmin/core';
+  import { toSafeHref, toSafeText } from '../security';
 
   interface Props {
     field: FieldDefinition;
@@ -35,9 +36,19 @@
   <span class="lite-bool {value ? 'lite-bool-true' : ''}"></span>
   {value ? '✓ Yes' : '✗ No'}
 {:else if field.type === 'url' && value}
-  <a href={String(value)} target="_blank" rel="noopener">{value}</a>
+  {@const href = toSafeHref(value)}
+  {#if href}
+    <a {href} target="_blank" rel="noopener noreferrer">{toSafeText(value)}</a>
+  {:else}
+    {toSafeText(value)}
+  {/if}
 {:else if field.type === 'email' && value}
-  <a href="mailto:{value}">{value}</a>
+  {@const href = toSafeHref(`mailto:${toSafeText(value)}`)}
+  {#if href}
+    <a {href}>{toSafeText(value)}</a>
+  {:else}
+    {toSafeText(value)}
+  {/if}
 {:else if field.type === 'image' && value}
   <img src={String(value)} alt={field.label} style="max-width:300px;max-height:200px;border-radius:6px;border:1px solid #e2e8f0;" />
 {:else if field.type === 'tags' && Array.isArray(value)}

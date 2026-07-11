@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '../ui/card/index.js';
   import { Badge } from '../ui/badge/index.js';
   import { Button } from '../ui/button/index.js';
   import { Avatar } from '../ui/avatar/index.js';
   import { Users, ArrowRight } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   interface TeamMember {
     name: string;
@@ -31,11 +33,11 @@
 </script>
 
 <div class="space-y-4">
-  <h3 class="text-lg font-semibold text-foreground">{t('publicProfile.teams')}</h3>
+  <h3 class="text-lg font-semibold text-foreground">{i18n.t('publicProfile.teams')}</h3>
 
   {#if teams.length === 0}
     <div class="rounded-xl border border-dashed border-border/60 p-8 text-center">
-      <p class="text-sm text-muted-foreground">{t('publicProfile.noTeams')}</p>
+      <p class="text-sm text-muted-foreground">{i18n.t('publicProfile.noTeams')}</p>
     </div>
   {:else}
     <div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
@@ -55,7 +57,7 @@
                 {/if}
                 <div>
                   <h4 class="font-semibold text-foreground">{team.name}</h4>
-                  <p class="text-xs text-muted-foreground">{team.totalMembers} {t('publicProfile.projectMembers', { count: team.totalMembers })}</p>
+                  <p class="text-xs text-muted-foreground">{team.totalMembers} {i18n.t('publicProfile.projectMembers', { count: team.totalMembers })}</p>
                 </div>
               </div>
               <Badge variant="secondary" class="shrink-0">
@@ -87,7 +89,7 @@
 
             <div class="pt-2 border-t">
               <Button variant="ghost" size="sm" class="w-full">
-                {t('publicProfile.viewProfile')} <ArrowRight class="h-3.5 w-3.5 ml-1" />
+                {i18n.t('publicProfile.viewProfile')} <ArrowRight class="h-3.5 w-3.5 ml-1" />
               </Button>
             </div>
           </Card.CardContent>

@@ -1,14 +1,15 @@
 <script lang="ts">
-  import { getResources, getChatProvider } from '@svadmin/core';
-  import { navigate } from '@svadmin/core/router';
-  import { t } from '@svadmin/core/i18n';
-  import { toggleTheme } from '@svadmin/core';
-  import { Command } from 'cmdk-sv';
+  import { captureAdminContext, getResources, getChatProvider, toggleTheme } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core/i18n';
+  import { Command } from './ui/command/index.js';
   import * as Dialog from './ui/dialog/index.js';
   import { Search, LayoutDashboard, Plus, Sun, FileText, Sparkles, Loader2 } from '@lucide/svelte';
   import MarkdownRenderer from './MarkdownRenderer.svelte';
 
+  const i18n = useTranslation();
+
   let { open = $bindable(false) } = $props<{ open?: boolean }>();
+  const adminContext = captureAdminContext();
   let searchValue = $state('');
   
   const resources = getResources();
@@ -80,14 +81,14 @@
     }
   }
 
-  const itemClass = 'relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50';
+  const itemClass = 'relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[selected]:bg-accent data-[selected]:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50';
 </script>
 
 <Dialog.Dialog bind:open onOpenChange={(v: boolean) => !v && close()}>
   <Dialog.DialogContent class="overflow-hidden p-0 sm:max-w-[600px] border-none shadow-2xl">
     <Command.Root
       shouldFilter={!aiMode}
-      class="flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground [&_[data-cmdk-group-heading]]:text-muted-foreground [&_[data-cmdk-group-heading]]:px-2 [&_[data-cmdk-group-heading]]:py-1.5 [&_[data-cmdk-group-heading]]:text-xs [&_[data-cmdk-group-heading]]:font-semibold [&_[data-cmdk-group-heading]]:uppercase [&_[data-cmdk-group-heading]]:tracking-wider"
+      class="flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground [&_[data-command-group-heading]]:text-muted-foreground [&_[data-command-group-heading]]:px-2 [&_[data-command-group-heading]]:py-1.5 [&_[data-command-group-heading]]:text-xs [&_[data-command-group-heading]]:font-semibold [&_[data-command-group-heading]]:uppercase [&_[data-command-group-heading]]:tracking-wider"
     >
       <div class="flex items-center border-b px-3 h-12 relative" data-cmdk-input-wrapper="">
         {#if aiMode}
@@ -119,13 +120,13 @@
           </Command.Empty>
 
           <!-- Navigation -->
-          <Command.Group heading={t('common.home')}>
-            <Command.Item value="home" onSelect={() => act(() => navigate('/'))} class={itemClass}>
+          <Command.Group heading={i18n.t('common.home')}>
+            <Command.Item value="home" onSelect={() => act(() => adminContext.navigate('/'))} class={itemClass}>
               <LayoutDashboard class="h-4 w-4 text-muted-foreground" />
-              {t('common.home')}
+              {i18n.t('common.home')}
             </Command.Item>
             {#each resources as r, _i (_i)}
-              <Command.Item value={r.name} onSelect={() => act(() => navigate(`/${r.name}`))} class={itemClass}>
+              <Command.Item value={r.name} onSelect={() => act(() => adminContext.navigate(`/${r.name}`))} class={itemClass}>
                 <FileText class="h-4 w-4 text-muted-foreground" />
                 {r.label}
               </Command.Item>
@@ -135,16 +136,16 @@
           <Command.Separator class="mx-1 my-1 h-px bg-border" />
 
           <!-- Actions -->
-          <Command.Group heading={t('common.actions')}>
+          <Command.Group heading={i18n.t('common.actions')}>
             {#each resources as r, _i (_i)}
-              <Command.Item value={`create-${r.name}`} onSelect={() => act(() => navigate(`/${r.name}/create`))} class={itemClass}>
+              <Command.Item value={`create-${r.name}`} onSelect={() => act(() => adminContext.navigate(`/${r.name}/create`))} class={itemClass}>
                 <Plus class="h-4 w-4 text-muted-foreground" />
-                {t('common.create')} {r.label}
+                {i18n.t('common.create')} {r.label}
               </Command.Item>
             {/each}
             <Command.Item value="toggle-theme" onSelect={() => act(() => toggleTheme())} class={itemClass}>
               <Sun class="h-4 w-4 text-muted-foreground" />
-              {t('common.toggleTheme')}
+              {i18n.t('common.toggleTheme')}
             </Command.Item>
           </Command.Group>
         </Command.List>

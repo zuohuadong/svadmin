@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { getResources, getDataProviderNames } from '@svadmin/core';
-  import { getLocale } from '@svadmin/core/i18n';
   import { getResolvedTheme, getColorTheme } from '@svadmin/core';
   import * as Card from './ui/card/index.js';
   import { Badge } from './ui/badge/index.js';
   import { Info, Database, Globe, Palette, Layers } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   const resources = getResources();
   const providerNames = getDataProviderNames();
@@ -15,7 +16,7 @@
 
 <div class="space-y-6">
   <div>
-    <h2 class="text-xl font-semibold text-foreground">{t('settings.about')}</h2>
+    <h2 class="text-xl font-semibold text-foreground">{i18n.t('settings.about')}</h2>
   </div>
 
   <!-- Version -->
@@ -29,7 +30,7 @@
     <Card.CardContent>
       <div class="grid gap-4 text-sm">
         <div class="flex items-center justify-between">
-          <span class="text-muted-foreground">{t('settings.version')}</span>
+          <span class="text-muted-foreground">{i18n.t('settings.version')}</span>
           <Badge variant="secondary" class="font-mono text-xs">{version}</Badge>
         </div>
       </div>
@@ -41,7 +42,7 @@
     <Card.CardHeader class="pb-3">
       <Card.CardTitle class="text-base flex items-center gap-2">
         <Layers class="h-4 w-4 text-muted-foreground" />
-        {t('settings.registeredResources')}
+        {i18n.t('settings.registeredResources')}
       </Card.CardTitle>
     </Card.CardHeader>
     <Card.CardContent>
@@ -61,7 +62,7 @@
     <Card.CardHeader class="pb-3">
       <Card.CardTitle class="text-base flex items-center gap-2">
         <Database class="h-4 w-4 text-muted-foreground" />
-        {t('settings.dataProvider')}
+        {i18n.t('settings.dataProvider')}
       </Card.CardTitle>
     </Card.CardHeader>
     <Card.CardContent>
@@ -78,25 +79,25 @@
     <Card.CardHeader class="pb-3">
       <Card.CardTitle class="text-base flex items-center gap-2">
         <Globe class="h-4 w-4 text-muted-foreground" />
-        {t('settings.currentEnvironment')}
+        {i18n.t('settings.currentEnvironment')}
       </Card.CardTitle>
     </Card.CardHeader>
     <Card.CardContent>
       <div class="grid gap-3 text-sm">
         <div class="flex items-center justify-between">
-          <span class="text-muted-foreground">{t('settings.language')}</span>
-          <span class="font-mono text-xs">{getLocale()}</span>
+          <span class="text-muted-foreground">{i18n.t('settings.language')}</span>
+          <span class="font-mono text-xs">{i18n.locale}</span>
         </div>
         <div class="h-px bg-border"></div>
         <div class="flex items-center justify-between">
-          <span class="text-muted-foreground">{t('settings.themeMode')}</span>
+          <span class="text-muted-foreground">{i18n.t('settings.themeMode')}</span>
           <span class="font-mono text-xs">{getResolvedTheme()}</span>
         </div>
         <div class="h-px bg-border"></div>
         <div class="flex items-center justify-between">
           <span class="text-muted-foreground flex items-center gap-1.5">
             <Palette class="h-3.5 w-3.5" />
-            {t('settings.colorAccent')}
+            {i18n.t('settings.colorAccent')}
           </span>
           <span class="font-mono text-xs">{getColorTheme()}</span>
         </div>

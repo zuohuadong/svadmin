@@ -1,11 +1,22 @@
 <script lang="ts">
-/* eslint-disable @typescript-eslint/no-explicit-any */
-  import { Toaster, toast as sonner } from 'sonner-svelte';
+  import { onMount } from 'svelte';
+  import { Toaster, toast as sonner, type ToasterProps } from 'svelte-sonner';
   import { getResolvedTheme, getToastQueue, consumeToastQueue, getPromiseQueue, consumePromiseQueue } from '@svadmin/core';
+  import { registerToastHost, type ToastHostRegistration } from './toast-host.svelte.js';
 
+  let host = $state<ToastHostRegistration | null>(null);
+  const isActiveHost = $derived(host?.isActive() ?? false);
   const theme = $derived(getResolvedTheme() === 'dark' ? 'dark' : 'light');
 
+  onMount(() => {
+    const registration = registerToastHost();
+    host = registration;
+
+    return () => registration.unregister();
+  });
+
   $effect(() => {
+    if (!isActiveHost) return;
     const queue = getToastQueue();
     if (queue.length > 0) {
       for (const t of queue) {
@@ -21,6 +32,7 @@
   });
 
   $effect(() => {
+    if (!isActiveHost) return;
     const pQueue = getPromiseQueue();
     if (pQueue.length > 0) {
       for (const p of pQueue) {
@@ -41,7 +53,9 @@
         toast: 'font-sans',
       },
     }
-  } as any);
+  } satisfies ToasterProps);
 </script>
 
-<Toaster {...toasterProps} />
+{#if isActiveHost}
+  <Toaster {...toasterProps} />
+{/if}

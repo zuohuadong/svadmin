@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from './ui/card/index.js';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
@@ -7,6 +7,8 @@
   import { Badge } from './ui/badge/index.js';
   import { Separator } from './ui/separator/index.js';
   import { Shield, Copy, CheckCircle2, AlertTriangle, ArrowRight, ArrowLeft } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   type Step = 'intro' | 'scan' | 'verify' | 'recovery';
 
@@ -45,7 +47,7 @@
   function handleVerify() {
     verifyError = '';
     if (verificationCode.length !== 6) {
-      verifyError = t('auth.twoFactorEnterCode');
+      verifyError = i18n.t('auth.twoFactorEnterCode');
       return;
     }
     currentStep = 'recovery';
@@ -89,34 +91,34 @@
             <Shield class="h-8 w-8" />
           </div>
           <div class="space-y-2">
-            <h2 class="text-2xl font-semibold text-foreground">{t('auth.twoFactorSetup')}</h2>
-            <p class="text-sm text-muted-foreground">{t('security.twoFactorDescription')}</p>
+            <h2 class="text-2xl font-semibold text-foreground">{i18n.t('auth.twoFactorSetup')}</h2>
+            <p class="text-sm text-muted-foreground">{i18n.t('security.twoFactorDescription')}</p>
           </div>
           <div class="space-y-3 text-left">
             <div class="flex items-start gap-3 rounded-xl border p-3">
               <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500 text-sm font-bold">1</div>
               <div>
-                <p class="text-sm font-medium text-foreground">{t('auth.twoFactorScanQR')}</p>
+                <p class="text-sm font-medium text-foreground">{i18n.t('auth.twoFactorScanQR')}</p>
                 <p class="text-xs text-muted-foreground">Google Authenticator, Authy, etc.</p>
               </div>
             </div>
             <div class="flex items-start gap-3 rounded-xl border p-3">
               <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500 text-sm font-bold">2</div>
               <div>
-                <p class="text-sm font-medium text-foreground">{t('auth.twoFactorEnterCode')}</p>
+                <p class="text-sm font-medium text-foreground">{i18n.t('auth.twoFactorEnterCode')}</p>
                 <p class="text-xs text-muted-foreground">6-digit code from your authenticator</p>
               </div>
             </div>
             <div class="flex items-start gap-3 rounded-xl border p-3">
               <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500 text-sm font-bold">3</div>
               <div>
-                <p class="text-sm font-medium text-foreground">{t('auth.twoFactorSaveRecovery')}</p>
-                <p class="text-xs text-muted-foreground">{t('auth.twoFactorRecoveryHint')}</p>
+                <p class="text-sm font-medium text-foreground">{i18n.t('auth.twoFactorSaveRecovery')}</p>
+                <p class="text-xs text-muted-foreground">{i18n.t('auth.twoFactorRecoveryHint')}</p>
               </div>
             </div>
           </div>
           <Button class="w-full" onclick={startSetup}>
-            {t('auth.twoFactorSetup')} <ArrowRight class="h-4 w-4 ml-2" />
+            {i18n.t('auth.twoFactorSetup')} <ArrowRight class="h-4 w-4 ml-2" />
           </Button>
         </Card.CardContent>
       </Card.Card>
@@ -126,7 +128,7 @@
       <Card.Card class="border-border/60">
         <Card.CardContent class="space-y-6 p-8">
           <div class="text-center space-y-2">
-            <h2 class="text-xl font-semibold text-foreground">{t('auth.twoFactorScanQR')}</h2>
+            <h2 class="text-xl font-semibold text-foreground">{i18n.t('auth.twoFactorScanQR')}</h2>
             <p class="text-sm text-muted-foreground">Use your authenticator app to scan the code below.</p>
           </div>
           <div class="mx-auto flex h-48 w-48 items-center justify-center rounded-xl border-2 border-dashed border-border/60 bg-muted/20">
@@ -138,10 +140,10 @@
           </div>
           <div class="flex gap-3">
             <Button variant="outline" class="flex-1" onclick={() => currentStep = 'intro'}>
-              <ArrowLeft class="h-4 w-4 mr-2" />{t('common.back')}
+              <ArrowLeft class="h-4 w-4 mr-2" />{i18n.t('common.back')}
             </Button>
             <Button class="flex-1" onclick={proceedToVerify}>
-              {t('common.next')} <ArrowRight class="h-4 w-4 ml-2" />
+              {i18n.t('common.next')} <ArrowRight class="h-4 w-4 ml-2" />
             </Button>
           </div>
         </Card.CardContent>
@@ -152,8 +154,8 @@
       <Card.Card class="border-border/60">
         <Card.CardContent class="space-y-6 p-8">
           <div class="text-center space-y-2">
-            <h2 class="text-xl font-semibold text-foreground">{t('auth.twoFactorVerify')}</h2>
-            <p class="text-sm text-muted-foreground">{t('auth.twoFactorEnterCode')}</p>
+            <h2 class="text-xl font-semibold text-foreground">{i18n.t('auth.twoFactorVerify')}</h2>
+            <p class="text-sm text-muted-foreground">{i18n.t('auth.twoFactorEnterCode')}</p>
           </div>
 
           {#if verifyError}
@@ -178,10 +180,10 @@
 
           <div class="flex gap-3">
             <Button variant="outline" class="flex-1" onclick={() => currentStep = 'scan'}>
-              <ArrowLeft class="h-4 w-4 mr-2" />{t('common.back')}
+              <ArrowLeft class="h-4 w-4 mr-2" />{i18n.t('common.back')}
             </Button>
             <Button class="flex-1" onclick={handleVerify}>
-              {t('common.confirm')} <ArrowRight class="h-4 w-4 ml-2" />
+              {i18n.t('common.confirm')} <ArrowRight class="h-4 w-4 ml-2" />
             </Button>
           </div>
         </Card.CardContent>
@@ -195,8 +197,8 @@
             <div class="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/10 text-green-500">
               <CheckCircle2 class="h-6 w-6" />
             </div>
-            <h2 class="text-xl font-semibold text-foreground">{t('auth.twoFactorRecovery')}</h2>
-            <p class="text-sm text-muted-foreground">{t('auth.twoFactorRecoveryHint')}</p>
+            <h2 class="text-xl font-semibold text-foreground">{i18n.t('auth.twoFactorRecovery')}</h2>
+            <p class="text-sm text-muted-foreground">{i18n.t('auth.twoFactorRecoveryHint')}</p>
           </div>
 
           <div class="rounded-xl border bg-muted/20 p-4">
@@ -210,13 +212,13 @@
           <div class="flex gap-3">
             <Button variant="outline" class="flex-1" onclick={copyRecoveryCodes}>
               {#if copiedRecovery}
-                <CheckCircle2 class="h-4 w-4 mr-2" />{t('common.copied')}
+                <CheckCircle2 class="h-4 w-4 mr-2" />{i18n.t('common.copied')}
               {:else}
-                <Copy class="h-4 w-4 mr-2" />{t('common.copyAll')}
+                <Copy class="h-4 w-4 mr-2" />{i18n.t('common.copyAll')}
               {/if}
             </Button>
             <Button class="flex-1" onclick={completeSetup}>
-              {t('account.completeSetup')} <ArrowRight class="h-4 w-4 ml-2" />
+              {i18n.t('account.completeSetup')} <ArrowRight class="h-4 w-4 ml-2" />
             </Button>
           </div>
         </Card.CardContent>
@@ -230,15 +232,15 @@
             <Shield class="h-8 w-8" />
           </div>
           <div class="space-y-2">
-            <h2 class="text-2xl font-semibold text-foreground">{t('auth.twoFactorVerifySuccess')}</h2>
-            <p class="text-sm text-muted-foreground">{t('security.twoFactorActive')}</p>
+            <h2 class="text-2xl font-semibold text-foreground">{i18n.t('auth.twoFactorVerifySuccess')}</h2>
+            <p class="text-sm text-muted-foreground">{i18n.t('security.twoFactorActive')}</p>
           </div>
           <Badge variant="secondary" class="bg-green-500/10 text-green-600">
             <CheckCircle2 class="h-3 w-3 mr-1" />2FA Active
           </Badge>
           <Separator />
           <Button variant="destructive" onclick={disable2fa}>
-            {t('auth.twoFactorDisable')}
+            {i18n.t('auth.twoFactorDisable')}
           </Button>
         </Card.CardContent>
       </Card.Card>

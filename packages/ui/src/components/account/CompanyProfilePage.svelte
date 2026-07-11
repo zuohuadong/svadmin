@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '../ui/card/index.js';
   import { Button } from '../ui/button/index.js';
   import { Input } from '../ui/input/index.js';
   import { Label } from '../ui/label/index.js';
   import { Upload, Loader2 } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   let companyName = $state('Acme Corporation');
   let industry = $state('Technology');
@@ -23,8 +25,8 @@
 
 <div class="space-y-6" data-svadmin-content-page="account">
   <div>
-    <h2 class="text-xl font-semibold text-foreground">{t('account.companyProfile')}</h2>
-    <p class="mt-1 text-sm text-muted-foreground">{t('account.companyProfileDescription')}</p>
+    <h2 class="text-xl font-semibold text-foreground">{i18n.t('account.companyProfile')}</h2>
+    <p class="mt-1 text-sm text-muted-foreground">{i18n.t('account.companyProfileDescription')}</p>
   </div>
 
   <!-- Company Avatar & Banner -->
@@ -54,33 +56,33 @@
   <!-- Company Details Form -->
   <Card.Card class="border-border/60">
     <Card.CardHeader>
-      <Card.CardTitle class="text-base">{t('profile.companyName')}</Card.CardTitle>
+      <Card.CardTitle class="text-base">{i18n.t('profile.companyName')}</Card.CardTitle>
     </Card.CardHeader>
     <Card.CardContent class="space-y-4">
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="space-y-2">
-          <Label for="company-name">{t('profile.companyName')}</Label>
+          <Label for="company-name">{i18n.t('profile.companyName')}</Label>
           <Input id="company-name" bind:value={companyName} />
         </div>
         <div class="space-y-2">
-          <Label for="company-industry">{t('profile.industry')}</Label>
+          <Label for="company-industry">{i18n.t('profile.industry')}</Label>
           <Input id="company-industry" bind:value={industry} />
         </div>
         <div class="space-y-2">
-          <Label for="company-website">{t('profile.website')}</Label>
+          <Label for="company-website">{i18n.t('profile.website')}</Label>
           <Input id="company-website" bind:value={website} type="url" />
         </div>
         <div class="space-y-2">
-          <Label for="company-employees">{t('profile.employees')}</Label>
+          <Label for="company-employees">{i18n.t('profile.employees')}</Label>
           <Input id="company-employees" bind:value={employeeCount} />
         </div>
         <div class="space-y-2">
-          <Label for="company-founded">{t('profile.founded')}</Label>
+          <Label for="company-founded">{i18n.t('profile.founded')}</Label>
           <Input id="company-founded" bind:value={foundedYear} />
         </div>
       </div>
       <div class="space-y-2">
-        <Label for="company-description">{t('profile.companyDescription')}</Label>
+        <Label for="company-description">{i18n.t('profile.companyDescription')}</Label>
         <textarea
           id="company-description"
           bind:value={description}
@@ -91,7 +93,7 @@
       <div class="flex justify-end">
         <Button onclick={handleSave} disabled={saving}>
           {#if saving}<Loader2 class="h-4 w-4 animate-spin mr-2" />{/if}
-          {t('common.save')}
+          {i18n.t('common.save')}
         </Button>
       </div>
     </Card.CardContent>

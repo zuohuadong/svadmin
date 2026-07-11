@@ -10,7 +10,7 @@
     type ColumnVisibilityState,
     type ExpandedState,
   } from '@tanstack/svelte-table';
-  import type { Updater } from '@tanstack/table-core';
+  import type { Column, Header, TableFeatures, Updater } from '@tanstack/table-core';
   import {
     column_getCanSort,
     column_getIsSorted,
@@ -31,12 +31,19 @@
     cell_getValue,
   } from '@tanstack/table-core/static-functions';
 
-  import { useList, useDelete, useDeleteMany, getResource, notify } from '@svadmin/core';
-  import type { Pagination as PaginationState, Sort, Filter, FieldDefinition } from '@svadmin/core';
-  import { navigate } from '@svadmin/core/router';
+  import { captureAdminContext, useList, useDelete, useDeleteMany, getResource, notify } from '@svadmin/core';
+  import type {
+    BaseRecord,
+    FieldDefinition,
+    Filter,
+    LogicalFilter,
+    Pagination as PaginationState,
+    Sort,
+  } from '@svadmin/core';
   import { useCan, getAccessControlProvider } from '@svadmin/core';
   import { readURLState, writeURLState } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { fade } from 'svelte/transition';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
@@ -50,7 +57,7 @@
   import * as ContextMenu from './ui/context-menu/index.js';
   import {
     Plus, Pencil, Trash2,
-    Search, Download, Upload, ChevronDown, ChevronUp, SlidersHorizontal, Filter as FilterIcon,
+    Search, Download, ChevronDown, ChevronUp, SlidersHorizontal, Filter as FilterIcon,
     Eye, Copy
   } from '@lucide/svelte';
   import ConfirmDialog from './ConfirmDialog.svelte';
@@ -58,6 +65,8 @@
   import InlineEdit from './InlineEdit.svelte';
   import DraggableHeader from './DraggableHeader.svelte';
   import type { Snippet } from 'svelte';
+
+  const i18n = useTranslation();
 
   // ─── Props with Snippet composability ─────────────────────────
   interface Props {
@@ -96,12 +105,13 @@
     pagination: externalPagination,
     sorters: externalSorters,
   }: Props = $props();
+  const adminContext = captureAdminContext();
 
   const resource = $derived(getResource(resourceName));
   const primaryKey = $derived(resource.primaryKey ?? 'id');
 
   // ─── URL state + server-side state ────────────────────────────
-  const urlState = readURLState();
+  const urlState = readURLState(adminContext);
 
   // Snapshot resource values for initial state (untrack to avoid reactive tracking)
   const storedPageSize = typeof window !== 'undefined' ? parseInt(localStorage.getItem('svadmin-default-page-size') ?? '', 10) : NaN;
@@ -142,7 +152,7 @@
       sortField: sorters[0]?.field,
       sortOrder: sorters[0]?.order,
       search: searchText || undefined,
-    });
+    }, adminContext);
   });
 
   // ─── Build active filters with search ─────────────────────────
@@ -156,14 +166,15 @@
       if (searchableFields.length === 1) {
         result.push({ field: searchableFields[0].key, operator: 'contains', value: searchText });
       } else {
-        result.push({
+        const searchFilter: LogicalFilter = {
           operator: 'or',
           value: searchableFields.map(f => ({
             field: f.key,
             operator: 'contains',
             value: searchText
           }))
-        } as any);
+        };
+        result.push(searchFilter);
       }
     }
     for (const [key, value] of Object.entries(filterValues)) {
@@ -353,7 +364,7 @@
     resource.fields.filter(f => f.showInList !== false)
   );
 
-  const columns = $derived<ColumnDef<any, Record<string, unknown>>[]>([
+  const columns = $derived<ColumnDef<TableFeatures, BaseRecord, unknown>[]>([
     // Selection column
     ...(selectable && (canDelete || batchActions) ? [{
       id: '_select',
@@ -361,7 +372,7 @@
       cell: () => '',
       size: 40,
       enableSorting: false,
-    } satisfies ColumnDef<any, Record<string, unknown>>] : []),
+    } satisfies ColumnDef<TableFeatures, BaseRecord, unknown>] : []),
     // Expand column
     ...(expandedRowRender ? [{
       id: '_expand',
@@ -369,9 +380,9 @@
       cell: () => '',
       size: 40,
       enableSorting: false,
-    } satisfies ColumnDef<any, Record<string, unknown>>] : []),
+    } satisfies ColumnDef<TableFeatures, BaseRecord, unknown>] : []),
     // Data columns
-    ...visibleFields.map((field): ColumnDef<any, Record<string, unknown>> => ({
+    ...visibleFields.map((field): ColumnDef<TableFeatures, BaseRecord, unknown> => ({
       id: field.key,
       accessorKey: field.key,
       header: () => field.label,
@@ -380,7 +391,7 @@
     // Actions column
     {
       id: '_actions',
-      header: () => t('common.actions'),
+      header: () => i18n.t('common.actions'),
       cell: () => '',
       size: 100,
       enableSorting: false,
@@ -388,23 +399,26 @@
   ]);
 
   // ─── Create TanStack Table ────────────────────────────────────
-  const tbl = createTable({
-    get data() { return query.data?.data ?? []; },
-    get columns() { return columns; },
-    getCoreRowModel: createCoreRowModel(),
-    manualPagination: true,
-    manualSorting: true,
-    getRowId: (row: any) => String(row[primaryKey]),
-    atoms: {
-      sorting: sortingAtom,
-      columnVisibility: columnVisibilityAtom,
-      rowSelection: rowSelectionAtom,
-      expanded: expandedAtom,
-      columnOrder: columnOrderAtom,
+  const tbl = createTable(
+    {
+      get data() { return query.data?.data ?? []; },
+      get columns() { return columns; },
+      getCoreRowModel: createCoreRowModel(),
+      manualPagination: true,
+      manualSorting: true,
+      getRowId: (row: BaseRecord) => String(row[primaryKey]),
+      atoms: {
+        sorting: sortingAtom,
+        columnVisibility: columnVisibilityAtom,
+        rowSelection: rowSelectionAtom,
+        expanded: expandedAtom,
+        columnOrder: columnOrderAtom,
+      },
+      get enableRowSelection() { return selectable && (canDelete || batchActions); },
+      get enableExpanding() { return !!expandedRowRender; },
     },
-    get enableRowSelection() { return selectable && (canDelete || batchActions); },
-    get enableExpanding() { return !!expandedRowRender; },
-  });
+    () => undefined,
+  );
 
   const selectedCount = $derived(Object.keys(rowSelection).length);
   const totalPages = $derived(Math.ceil((query.data?.total ?? 0) / (pagination.pageSize ?? 10)));
@@ -433,7 +447,7 @@
   let confirmAction = $state<() => void>(() => {});
 
   function confirmDelete(id: string | number) {
-    confirmMessage = t('common.deleteConfirm');
+    confirmMessage = i18n.t('common.deleteConfirm');
     confirmAction = async () => {
       await deleteMutation.mutateAsync({ id, resource: resourceName });
       confirmOpen = false;
@@ -443,13 +457,13 @@
 
   function confirmBatchDelete() {
     const ids = Object.keys(rowSelection);
-    confirmMessage = t('common.batchDeleteConfirm', { count: ids.length });
+    confirmMessage = i18n.t('common.batchDeleteConfirm', { count: ids.length });
     confirmAction = async () => {
       try {
         await deleteManyMutation.mutateAsync({ ids, resource: resourceName });
-        notify({ type: 'success', message: t('common.batchDeleteSuccess', { count: ids.length }) });
+        notify({ type: 'success', message: i18n.t('common.batchDeleteSuccess', { count: ids.length }) });
       } catch {
-        notify({ type: 'error', message: t('common.batchDeletePartialFail', { failed: 1, total: ids.length }) });
+        notify({ type: 'error', message: i18n.t('common.batchDeletePartialFail', { failed: 1, total: ids.length }) });
       }
       rowSelection = {};
       confirmOpen = false;
@@ -491,7 +505,7 @@
     <div class="flex flex-wrap items-center gap-2">
       {#if canExport}
         <Button variant="outline" size="sm" onclick={exportCSV}>
-          <Download class="h-4 w-4" data-icon="inline-start" /> {t('common.export')}
+          <Download class="h-4 w-4" data-icon="inline-start" /> {i18n.t('common.export')}
         </Button>
       {/if}
       {#if selectedCount > 0 && canDelete}
@@ -501,7 +515,7 @@
           class="h-9 whitespace-nowrap"
           onclick={confirmBatchDelete}
         >
-          <Trash2 class="h-4 w-4" data-icon="inline-start" /> {t('common.batchDelete', { count: selectedCount })}
+          <Trash2 class="h-4 w-4" data-icon="inline-start" /> {i18n.t('common.batchDelete', { count: selectedCount })}
         </Button>
       {/if}
       
@@ -514,12 +528,12 @@
         <DropdownMenu.Trigger>
           {#snippet child({ props })}
             <Button variant="outline" size="sm" {...props}>
-              <SlidersHorizontal class="h-4 w-4" data-icon="inline-start" /> {t('common.columns') || 'Columns'}
+              <SlidersHorizontal class="h-4 w-4" data-icon="inline-start" /> {i18n.t('common.columns') || 'Columns'}
             </Button>
           {/snippet}
         </DropdownMenu.Trigger>
         <DropdownMenu.Content align="end" class="w-48">
-          {#each table_getAllLeafColumns(tbl).filter((c: any) => !c.id.startsWith('_')) as column, _i (_i)}
+          {#each table_getAllLeafColumns(tbl).filter((column: Column<TableFeatures, BaseRecord, unknown>) => !column.id.startsWith('_')) as column, _i (_i)}
             <DropdownMenu.CheckboxItem
               checked={column_getIsVisible(column)}
               onCheckedChange={(v) => column_toggleVisibility(column, !!v)}
@@ -533,8 +547,8 @@
         {@render headerActions()}
       {/if}
       {#if canCreate}
-        <Button onclick={() => navigate(`/${resourceName}/create`)}>
-          <Plus class="h-4 w-4" data-icon="inline-start" /> {t('common.create')}
+        <Button onclick={() => adminContext.navigate(`/${resourceName}/create`)}>
+          <Plus class="h-4 w-4" data-icon="inline-start" /> {i18n.t('common.create')}
         </Button>
       {/if}
     </div>
@@ -549,7 +563,7 @@
           type="text"
           bind:value={searchText}
           oninput={() => { pagination = { ...pagination, current: 1 }; }}
-          placeholder={t('common.search')}
+          placeholder={i18n.t('common.search')}
           class="pl-10 h-9"
         />
       </div>
@@ -561,7 +575,7 @@
           {#snippet child({ props })}
             <Button variant="outline" size="sm" class="h-9 px-3" {...props}>
               <FilterIcon class="h-4 w-4" data-icon="inline-start" />
-              {t('common.filter')}
+              {i18n.t('common.filter')}
               {#if activeFilterCount > 0}
                 <Badge variant="secondary" class="ml-1 h-5 min-w-5 px-1">{activeFilterCount}</Badge>
               {/if}
@@ -570,7 +584,7 @@
         </Popover.Trigger>
         <Popover.Content class="w-80">
           <div class="space-y-3">
-            <h4 class="font-medium text-sm">{t('common.filter')}</h4>
+            <h4 class="font-medium text-sm">{i18n.t('common.filter')}</h4>
             {#each filterableFields as field, _i (_i)}
               <div class="space-y-1">
                 <label class="text-xs text-muted-foreground" for="filter-{field.key}">{field.label}</label>
@@ -581,7 +595,7 @@
                     value={filterValues[field.key] ?? ''}
                     onchange={(e) => filterValues[field.key] = (e.currentTarget as HTMLSelectElement).value}
                   >
-                    <option value="">{t('common.all')}</option>
+                    <option value="">{i18n.t('common.all')}</option>
                     {#each field.options as opt, _i (_i)}
                       <option value={opt.value}>{opt.label}</option>
                     {/each}
@@ -600,13 +614,13 @@
             {/each}
             <div class="flex gap-2 pt-2">
               <Button size="sm" class="flex-1" onclick={() => { pagination = { ...pagination, current: 1 }; }}>
-                {t('common.confirm')}
+                {i18n.t('common.confirm')}
               </Button>
               <Button variant="outline" size="sm" onclick={() => {
                 filterValues = {};
                 pagination = { ...pagination, current: 1 };
               }}>
-                {t('common.reset')}
+                {i18n.t('common.reset')}
               </Button>
             </div>
           </div>
@@ -616,7 +630,7 @@
   </div>
 
   <!-- Table (TanStack-powered) -->
-  <div class="rounded-[24px] bg-card/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden ring-1 ring-border/30" role="region" aria-label="{resource.label} {t('common.list')}">
+  <div class="rounded-[24px] bg-card/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden ring-1 ring-border/30" role="region" aria-label="{resource.label} {i18n.t('common.list')}">
     {#if query.isLoading}
       <div class="p-4 space-y-3">
         <div class="flex gap-4 mb-2">
@@ -634,7 +648,7 @@
       </div>
     {:else if query.error}
       <div class="flex h-64 items-center justify-center text-destructive text-sm">
-        {t('common.loadFailed', { message: (query.error as Error).message })}
+        {i18n.t('common.loadFailed', { message: (query.error as Error).message })}
       </div>
     {:else}
       <div in:fade={{ duration: 150 }}>
@@ -644,9 +658,9 @@
           <Table.Header>
             {#each table_getHeaderGroups(tbl) as headerGroup, _i (_i)}
               <DraggableHeader
-                columns={headerGroup.headers.map((h: any) => ({ id: h.column.id, header: h }))}
+                columns={headerGroup.headers.map((header: Header<TableFeatures, BaseRecord, unknown>) => ({ id: header.column.id, header }))}
                 resourceName={resourceName}
-                onReorder={(newOrder) => { columnOrder = newOrder.map((c: any) => c.id); }}
+                onReorder={(newOrder) => { columnOrder = newOrder.map((column) => column.id); }}
               >
                 {#snippet header(col, _index, dragProps)}
                   {@const header = col.header as typeof headerGroup.headers[0]}
@@ -663,7 +677,7 @@
                     {:else if header.id === '_expand'}
                       <!-- empty -->
                     {:else if header.id === '_actions'}
-                      <span class="text-right block">{t('common.actions')}</span>
+                      <span class="text-right block">{i18n.t('common.actions')}</span>
                     {:else if column_getCanSort(header.column)}
                       <Button
                         variant="ghost"
@@ -703,7 +717,7 @@
                               onCheckedChange={() => row_toggleSelected(row)}
                             />
                           {:else if cell.column.id === '_expand'}
-                            <TooltipButton tooltip={row_getIsExpanded(row) ? t('common.collapse') : t('common.expand')} variant="ghost" size="icon" class="h-7 w-7" onclick={() => row_toggleExpanded(row)}>
+                            <TooltipButton tooltip={row_getIsExpanded(row) ? i18n.t('common.collapse') : i18n.t('common.expand')} variant="ghost" size="icon" class="h-7 w-7" onclick={() => row_toggleExpanded(row)}>
                               {#if row_getIsExpanded(row)}
                                 <ChevronUp class="h-4 w-4" />
                               {:else}
@@ -716,12 +730,12 @@
                                 {@render rowActions({ record, id })}
                               {:else}
                                 {#if canEdit}
-                                  <TooltipButton tooltip={t('common.edit')} variant="ghost" size="icon-sm" onclick={() => navigate(`/${resourceName}/edit/${id}`)}>
+                                  <TooltipButton tooltip={i18n.t('common.edit')} variant="ghost" size="icon-sm" onclick={() => adminContext.navigate(`/${resourceName}/edit/${id}`)}>
                                     <Pencil class="h-4 w-4" />
                                   </TooltipButton>
                                 {/if}
                                 {#if canDelete}
-                                  <TooltipButton tooltip={t('common.delete')} variant="ghost" size="icon-sm" onclick={() => confirmDelete(id)} class="hover:text-destructive">
+                                  <TooltipButton tooltip={i18n.t('common.delete')} variant="ghost" size="icon-sm" onclick={() => confirmDelete(id)} class="hover:text-destructive">
                                     <Trash2 class="h-4 w-4" />
                                   </TooltipButton>
                                 {/if}
@@ -767,20 +781,20 @@
                 </ContextMenu.Trigger>
                 <ContextMenu.Content class="w-48">
                   {#if canEdit}
-                    <ContextMenu.Item onclick={() => navigate(`/${resourceName}/edit/${id}`)} class="gap-2">
-                      <Pencil class="h-4 w-4" /> {t('common.edit')}
+                    <ContextMenu.Item onclick={() => adminContext.navigate(`/${resourceName}/edit/${id}`)} class="gap-2">
+                      <Pencil class="h-4 w-4" /> {i18n.t('common.edit')}
                     </ContextMenu.Item>
                   {/if}
-                  <ContextMenu.Item onclick={() => navigate(`/${resourceName}/show/${id}`)} class="gap-2">
-                    <Eye class="h-4 w-4" /> {t('common.detail')}
+                  <ContextMenu.Item onclick={() => adminContext.navigate(`/${resourceName}/show/${id}`)} class="gap-2">
+                    <Eye class="h-4 w-4" /> {i18n.t('common.detail')}
                   </ContextMenu.Item>
                   <ContextMenu.Item onclick={() => navigator.clipboard?.writeText(String(id))} class="gap-2">
-                    <Copy class="h-4 w-4" /> {t('common.copyId')}
+                    <Copy class="h-4 w-4" /> {i18n.t('common.copyId')}
                   </ContextMenu.Item>
                   {#if canDelete}
                     <ContextMenu.Separator />
                     <ContextMenu.Item onclick={() => confirmDelete(id)} class="gap-2 text-destructive">
-                      <Trash2 class="h-4 w-4" /> {t('common.delete')}
+                      <Trash2 class="h-4 w-4" /> {i18n.t('common.delete')}
                     </ContextMenu.Item>
                   {/if}
                 </ContextMenu.Content>
@@ -802,12 +816,12 @@
                       <svg class="h-16 w-16 text-muted-foreground/30 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                       </svg>
-                      <p class="text-sm font-medium text-muted-foreground mb-1">{t('common.noData')}</p>
-                      <p class="text-xs text-muted-foreground/60 mb-4">{t('common.noDataHint') || 'Get started by creating your first record.'}</p>
+                      <p class="text-sm font-medium text-muted-foreground mb-1">{i18n.t('common.noData')}</p>
+                      <p class="text-xs text-muted-foreground/60 mb-4">{i18n.t('common.noDataHint') || 'Get started by creating your first record.'}</p>
                       {#if canCreate}
-                        <Button variant="outline" size="sm" class="gap-2" onclick={() => navigate(`/${resourceName}/create`)}>
+                        <Button variant="outline" size="sm" class="gap-2" onclick={() => adminContext.navigate(`/${resourceName}/create`)}>
                           <Plus class="h-3.5 w-3.5" />
-                          {t('common.create')}
+                          {i18n.t('common.create')}
                         </Button>
                       {/if}
                     </div>
@@ -843,15 +857,15 @@
                     {@render rowActions({ record, id })}
                   {:else}
                     {#if canEdit}
-                      <TooltipButton tooltip={t('common.edit')} variant="ghost" size="icon-sm" onclick={() => navigate(`/${resourceName}/edit/${id}`)}>
+                      <TooltipButton tooltip={i18n.t('common.edit')} variant="ghost" size="icon-sm" onclick={() => adminContext.navigate(`/${resourceName}/edit/${id}`)}>
                         <Pencil class="h-4 w-4" />
                       </TooltipButton>
                     {/if}
-                    <TooltipButton tooltip={t('common.detail')} variant="ghost" size="icon-sm" onclick={() => navigate(`/${resourceName}/show/${id}`)}>
+                    <TooltipButton tooltip={i18n.t('common.detail')} variant="ghost" size="icon-sm" onclick={() => adminContext.navigate(`/${resourceName}/show/${id}`)}>
                       <Eye class="h-4 w-4" />
                     </TooltipButton>
                     {#if canDelete}
-                      <TooltipButton tooltip={t('common.delete')} variant="ghost" size="icon-sm" onclick={() => confirmDelete(id)} class="hover:text-destructive">
+                      <TooltipButton tooltip={i18n.t('common.delete')} variant="ghost" size="icon-sm" onclick={() => confirmDelete(id)} class="hover:text-destructive">
                         <Trash2 class="h-4 w-4" />
                       </TooltipButton>
                     {/if}
@@ -895,7 +909,7 @@
               {#if emptyState}
                 {@render emptyState()}
               {:else}
-                {t('common.noData')}
+                {i18n.t('common.noData')}
               {/if}
             </div>
           {/each}
@@ -908,7 +922,7 @@
   {#if totalPages > 0}
   <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
     <div class="flex items-center gap-2">
-      <span>{t('common.total', { total: query.data?.total ?? 0 })}</span>
+      <span>{i18n.t('common.total', { total: query.data?.total ?? 0 })}</span>
       <select
         class="h-8 w-[70px] px-1 py-1 flex items-center justify-between rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         value={String(pagination.pageSize ?? 10)}
@@ -962,7 +976,7 @@
 <ConfirmDialog
   open={confirmOpen}
   message={confirmMessage}
-  confirmText={t('common.delete')}
+  confirmText={i18n.t('common.delete')}
   onconfirm={confirmAction}
   oncancel={() => { confirmOpen = false; }}
 />

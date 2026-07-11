@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { AlertTriangle, CheckCircle2, KeyRound, Monitor, Shield, ShieldAlert, ShieldCheck, Smartphone, Trash2 } from '@lucide/svelte';
   import type { Component } from 'svelte';
   import * as Alert from './ui/alert/index.js';
@@ -8,6 +9,8 @@
   import { Label } from './ui/label/index.js';
   import { Switch } from './ui/switch/index.js';
   import PasswordInput from './PasswordInput.svelte';
+
+  const i18n = useTranslation();
 
   interface SessionInfo {
     id: string;
@@ -39,19 +42,19 @@
     passwordErrorMessage = '';
 
     if (!currentPassword) {
-      passwordErrorMessage = t('profile.currentPassword');
+      passwordErrorMessage = i18n.t('profile.currentPassword');
       return;
     }
     if (newPassword.length < 8) {
-      passwordErrorMessage = t('validation.minLength', { min: 8 });
+      passwordErrorMessage = i18n.t('validation.minLength', { min: 8 });
       return;
     }
     if (newPassword !== confirmPassword) {
-      passwordErrorMessage = t('auth.passwordMismatch');
+      passwordErrorMessage = i18n.t('auth.passwordMismatch');
       return;
     }
 
-    passwordSuccessMessage = t('profile.passwordChanged');
+    passwordSuccessMessage = i18n.t('profile.passwordChanged');
     lastChanged = 'Just now';
     currentPassword = '';
     newPassword = '';
@@ -69,8 +72,8 @@
 
 <div class="space-y-6">
   <div>
-    <h2 class="text-xl font-semibold text-foreground">{t('settings.security')}</h2>
-    <p class="mt-1 text-sm text-muted-foreground">{t('settings.securityDescription')}</p>
+    <h2 class="text-xl font-semibold text-foreground">{i18n.t('settings.security')}</h2>
+    <p class="mt-1 text-sm text-muted-foreground">{i18n.t('settings.securityDescription')}</p>
   </div>
 
   <Card.Card>
@@ -81,16 +84,16 @@
         {:else}
           <ShieldAlert class="h-5 w-5 text-amber-500" />
         {/if}
-        {t('security.twoFactorAuth')}
+        {i18n.t('security.twoFactorAuth')}
       </Card.CardTitle>
-      <Card.CardDescription>{t('security.twoFactorDescription')}</Card.CardDescription>
+      <Card.CardDescription>{i18n.t('security.twoFactorDescription')}</Card.CardDescription>
     </Card.CardHeader>
     <Card.CardContent>
       <div class="flex items-center justify-between gap-4 border-t pt-4">
         <div class="space-y-1">
-          <Label for="two-factor" class="text-sm font-medium">{t('security.enable2fa')}</Label>
+          <Label for="two-factor" class="text-sm font-medium">{i18n.t('security.enable2fa')}</Label>
           <p class="text-xs text-muted-foreground">
-            {is2faEnabled ? t('security.twoFactorActive') : t('security.twoFactorInactive')}
+            {is2faEnabled ? i18n.t('security.twoFactorActive') : i18n.t('security.twoFactorInactive')}
           </p>
         </div>
         <Switch id="two-factor" bind:checked={is2faEnabled} />
@@ -102,9 +105,9 @@
     <Card.CardHeader>
       <Card.CardTitle class="flex items-center gap-2 text-base">
         <KeyRound class="h-4 w-4 text-muted-foreground" />
-        {t('profile.changePassword')}
+        {i18n.t('profile.changePassword')}
       </Card.CardTitle>
-      <Card.CardDescription>{t('security.passwordLastChanged', { time: lastChanged })}</Card.CardDescription>
+      <Card.CardDescription>{i18n.t('security.passwordLastChanged', { time: lastChanged })}</Card.CardDescription>
     </Card.CardHeader>
     <Card.CardContent>
       <form onsubmit={handlePasswordChange} class="max-w-sm space-y-4">
@@ -121,11 +124,11 @@
           </Alert.Root>
         {/if}
 
-        <PasswordInput id="security-current-password" label={t('profile.currentPassword')} bind:value={currentPassword} autocomplete="current-password" />
-        <PasswordInput id="security-new-password" label={t('profile.newPassword')} bind:value={newPassword} autocomplete="new-password" showStrength />
-        <PasswordInput id="security-confirm-password" label={t('auth.confirmPassword')} bind:value={confirmPassword} autocomplete="new-password" />
+        <PasswordInput id="security-current-password" label={i18n.t('profile.currentPassword')} bind:value={currentPassword} autocomplete="current-password" />
+        <PasswordInput id="security-new-password" label={i18n.t('profile.newPassword')} bind:value={newPassword} autocomplete="new-password" showStrength />
+        <PasswordInput id="security-confirm-password" label={i18n.t('auth.confirmPassword')} bind:value={confirmPassword} autocomplete="new-password" />
 
-        <Button type="submit">{t('profile.updatePassword')}</Button>
+        <Button type="submit">{i18n.t('profile.updatePassword')}</Button>
       </form>
     </Card.CardContent>
   </Card.Card>
@@ -135,12 +138,12 @@
       <div class="space-y-1">
         <Card.CardTitle class="flex items-center gap-2 text-base">
           <Shield class="h-4 w-4 text-muted-foreground" />
-          {t('security.activeSessions')}
+          {i18n.t('security.activeSessions')}
         </Card.CardTitle>
-        <Card.CardDescription>{t('security.sessionsDescription')}</Card.CardDescription>
+        <Card.CardDescription>{i18n.t('security.sessionsDescription')}</Card.CardDescription>
       </div>
       {#if sessions.length > 1}
-        <Button variant="outline" size="sm" onclick={revokeAllOthers}>{t('security.revokeOthers')}</Button>
+        <Button variant="outline" size="sm" onclick={revokeAllOthers}>{i18n.t('security.revokeOthers')}</Button>
       {/if}
     </Card.CardHeader>
     <Card.CardContent>
@@ -155,7 +158,7 @@
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="text-sm font-medium">{session.os} - {session.browser}</span>
                   {#if session.isCurrent}
-                    <span class="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">{t('security.currentSession')}</span>
+                    <span class="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">{i18n.t('security.currentSession')}</span>
                   {/if}
                 </div>
                 <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -165,13 +168,13 @@
               </div>
             </div>
             {#if !session.isCurrent}
-              <Button variant="ghost" size="icon-sm" onclick={() => revokeSession(session.id)} title={t('security.revokeSession')}>
+              <Button variant="ghost" size="icon-sm" onclick={() => revokeSession(session.id)} title={i18n.t('security.revokeSession')}>
                 <Trash2 class="h-4 w-4" />
               </Button>
             {/if}
           </div>
         {:else}
-          <div class="py-6 text-center text-sm text-muted-foreground">{t('security.noSessions')}</div>
+          <div class="py-6 text-center text-sm text-muted-foreground">{i18n.t('security.noSessions')}</div>
         {/each}
       </div>
     </Card.CardContent>

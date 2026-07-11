@@ -7,10 +7,10 @@
   import CommandPalette from './CommandPalette.svelte';
   import KeyboardShortcuts from './KeyboardShortcuts.svelte';
   import ChatDialog from './ChatDialog.svelte';
-  import { t } from '@svadmin/core/i18n';
-  import { getAuthProvider, getTaskProvider } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core/i18n';
+
+  import { captureAdminContext, getAuthProvider, getTaskProvider } from '@svadmin/core';
   import type { Identity, MenuItem, TaskProvider, TaskRecord } from '@svadmin/core';
-  import { navigate } from '@svadmin/core/router';
   import { getPath } from '../router-state.svelte.js';
   import { Skeleton } from './ui/skeleton/index.js';
   import * as Sheet from './ui/sheet/index.js';
@@ -18,24 +18,23 @@
   import { getComponentRegistry } from '../component-registry.svelte.js';
   import { Button } from './ui/button/index.js';
 
+  const i18n = useTranslation();
+
   let commandOpen = $state(false);
   let shortcutsOpen = $state(false);
   let mobileMenuOpen = $state(false);
 
   let { children, title = 'Admin', menu, siteUrl, routeMode = 'auto' }: { children: Snippet; title?: string; menu?: MenuItem[]; siteUrl?: string; routeMode?: 'hash' | 'path' | 'auto' } = $props();
+  const adminContext = captureAdminContext();
 
-  let _hasAuth = true;
   let auth: ReturnType<typeof getAuthProvider> | null = null;
   try {
     auth = getAuthProvider();
-  } catch {
-    _hasAuth = false;
-  }
+  } catch { /* Auth is optional for public layouts. */ }
   let loading = $state(true);
   let identity = $state<Identity | null>(null);
   const taskProvider = getTaskProvider({ optional: true }) as TaskProvider<TaskRecord> | undefined;
-  const registry = getComponentRegistry() || {} as any;
-  const TaskQueueComponent = registry.TaskQueueDrawer;
+  const TaskQueueComponent = getComponentRegistry()?.TaskQueueDrawer;
 
   $effect(() => {
     let cancelled = false;
@@ -59,10 +58,10 @@
     try {
       const result = await auth.logout();
       if (result.success) {
-        navigate(result.redirectTo ?? '/login');
+        await adminContext.navigate(result.redirectTo ?? '/login');
       }
     } catch {
-      navigate('/login');
+      await adminContext.navigate('/login');
     }
   }
 
@@ -156,11 +155,11 @@
             variant="outline"
             size="sm"
             class="md:hidden gap-1.5 px-2.5"
-            aria-label={t('common.menu')}
+            aria-label={i18n.t('common.menu')}
             onclick={() => { mobileMenuOpen = true; }}
           >
             <Menu class="h-5 w-5" />
-            <span class="text-xs">{t('common.menu')}</span>
+            <span class="text-xs">{i18n.t('common.menu')}</span>
           </Button>
         {/snippet}
         {#snippet rightActions()}

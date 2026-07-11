@@ -7,6 +7,29 @@ import { hashPassword, verifyPassword } from './password';
 import { createSessionManager } from './session';
 import { generateSecret, generateTOTP, verifyTOTP, generateQRUri } from './totp';
 
+const SESSION_SECRET = 'test-secret-key-at-least-32-chars!!';
+
+function base64urlEncodeJson(value: unknown): string {
+  const json = JSON.stringify(value);
+  const bytes = new TextEncoder().encode(json);
+  const binary = Array.from(bytes, byte => String.fromCodePoint(byte)).join('');
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function signSessionPayload(payload: unknown): Promise<string> {
+  const encoded = base64urlEncodeJson(payload);
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(SESSION_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(encoded));
+  const signatureHex = Array.from(new Uint8Array(signature), byte => byte.toString(16).padStart(2, '0')).join('');
+  return `${encoded}.${signatureHex}`;
+}
+
 // ─── Password ────────────────────────────────────────────────
 
 describe('password', () => {
@@ -41,12 +64,42 @@ describe('password', () => {
     const h2 = await hashPassword('same-password', { algorithm: 'pbkdf2' });
     expect(h1).not.toBe(h2); // different salt each time
   });
+
+  test('explicit Bun-only algorithms fail when Bun.password is unavailable', async () => {
+    const bunRuntime = Reflect.get(globalThis, 'Bun') as Record<string, unknown>;
+    const originalPasswordApi = bunRuntime.password;
+    bunRuntime.password = undefined;
+
+    try {
+      await expect(hashPassword('test', { algorithm: 'argon2id' })).rejects.toThrow('requires Bun.password');
+      await expect(hashPassword('test', { algorithm: 'bcrypt' })).rejects.toThrow('requires Bun.password');
+
+      const fallbackHash = await hashPassword('test', { algorithm: 'auto' });
+      expect(fallbackHash.startsWith('pbkdf2:')).toBe(true);
+    } finally {
+      bunRuntime.password = originalPasswordApi;
+    }
+  });
+
+  test('malformed PBKDF2 hashes are rejected without throwing', async () => {
+    const malformedHashes = [
+      'pbkdf2:',
+      'pbkdf2:abc:00:00',
+      'pbkdf2:310000:00:00',
+      `pbkdf2:1000001:${'00'.repeat(32)}:${'00'.repeat(64)}`,
+      `pbkdf2:310000:${'00'.repeat(32)}:${'00'.repeat(64)}:extra`,
+    ];
+
+    for (const hash of malformedHashes) {
+      await expect(verifyPassword('test', hash)).resolves.toBe(false);
+    }
+  });
 });
 
 // ─── Session ─────────────────────────────────────────────────
 
 describe('session', () => {
-  const sessions = createSessionManager('test-secret-key-at-least-32-chars!!');
+  const sessions = createSessionManager(SESSION_SECRET);
 
   test('create and verify session', async () => {
     const token = await sessions.create({ userId: 'user-123', role: 'admin' });
@@ -67,7 +120,7 @@ describe('session', () => {
   });
 
   test('verify rejects expired token', async () => {
-    const shortSession = createSessionManager('test-secret-key-at-least-32-chars!!', { ttl: -1 });
+    const shortSession = createSessionManager(SESSION_SECRET, { ttl: -1 });
     const token = await shortSession.create({ userId: 'user-123' });
     const payload = await shortSession.verify(token);
     expect(payload).toBeNull();
@@ -82,6 +135,41 @@ describe('session', () => {
   test('generateId produces hex string', () => {
     const id = sessions.generateId();
     expect(id).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  test('create protects registered claims from custom data overrides', async () => {
+    const now = Math.floor(Date.now() / 1000);
+    const protectedSessions = createSessionManager(SESSION_SECRET, { ttl: 60 });
+    const token = await protectedSessions.create({
+      userId: 'trusted-user',
+      sub: 'attacker',
+      iat: 0,
+      exp: 0,
+    });
+
+    const payload = await protectedSessions.verify(token);
+    expect(payload).not.toBeNull();
+    expect(payload!.sub).toBe('trusted-user');
+    expect(payload!.iat).toBeGreaterThanOrEqual(now);
+    expect(payload!.exp).toBeGreaterThanOrEqual(now + 59);
+  });
+
+  test('verify rejects signed payloads with missing or invalid registered claims', async () => {
+    const now = Math.floor(Date.now() / 1000);
+    const invalidPayloads = [
+      { sub: 'user-123', iat: now, exp: 0 },
+      { sub: 'user-123', iat: now, exp: 'never' },
+      { sub: 'user-123', iat: 'now', exp: now + 60 },
+      { sub: 123, iat: now, exp: now + 60 },
+      { sub: 'user-123', iat: now },
+      null,
+      [],
+    ];
+
+    for (const payload of invalidPayloads) {
+      const token = await signSessionPayload(payload);
+      expect(await sessions.verify(token)).toBeNull();
+    }
   });
 });
 
@@ -125,13 +213,14 @@ describe('totp', () => {
     expect(uri).toContain(secret);
   });
 
-  test('different secrets produce different codes', async () => {
+  test('different secrets produce independently valid codes', async () => {
     const s1 = generateSecret();
     const s2 = generateSecret();
-    const _c1 = await generateTOTP(s1);
-    const _c2 = await generateTOTP(s2);
-    // Very unlikely to be the same
+    const c1 = await generateTOTP(s1);
+    const c2 = await generateTOTP(s2);
+
     expect(s1).not.toBe(s2);
-    // Codes might collide, but secrets shouldn't
+    expect(c1).toMatch(/^\d{6}$/);
+    expect(c2).toMatch(/^\d{6}$/);
   });
 });

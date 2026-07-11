@@ -1,5 +1,7 @@
 // Core type definitions — DataProvider + AuthProvider + Providers
 
+import type { Component } from 'svelte';
+
 // ─── HttpError ─────────────────────────────────────────────────
 
 export type ValidationErrors = Record<string, string | string[]>;
@@ -385,7 +387,7 @@ export interface MenuItem {
   /** Display label. Falls back to `t('menu.${name}')` if omitted */
   label?: string;
   /** Icon name string (maps to lucide icon set) or Svelte component */
-  icon?: string | any;
+  icon?: string | Component;
   /** Navigation path — omit for parent-only menu nodes */
   href?: string;
   /** Open in new tab (useful for external links) */

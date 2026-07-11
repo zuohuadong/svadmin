@@ -1,7 +1,9 @@
 <script lang="ts">
   import * as AlertDialog from './ui/alert-dialog/index.js';
   import { Button } from './ui/button/index.js';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
+  const i18n = useTranslation();
 
   let { open = $bindable(false), title, message = '',
     confirmText, cancelText, variant = 'danger',
@@ -22,9 +24,9 @@
     info: 'default' as const,
   };
 
-  const resolvedTitle = $derived(title ?? t('common.confirmAction'));
-  const resolvedConfirmText = $derived(confirmText ?? t('common.confirm'));
-  const resolvedCancelText = $derived(cancelText ?? t('common.cancel'));
+  const resolvedTitle = $derived(title ?? i18n.t('common.confirmAction'));
+  const resolvedConfirmText = $derived(confirmText ?? i18n.t('common.confirm'));
+  const resolvedCancelText = $derived(cancelText ?? i18n.t('common.cancel'));
 
   let confirmed = $state(false);
 

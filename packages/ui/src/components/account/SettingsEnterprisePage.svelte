@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '../ui/card/index.js';
   import { Button } from '../ui/button/index.js';
   import { Input } from '../ui/input/index.js';
@@ -7,6 +7,8 @@
   import { Switch } from '../ui/switch/index.js';
   import { Badge } from '../ui/badge/index.js';
   import { Loader2, Shield, Building2, Lock, Globe } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   let ssoEnabled = $state(false);
   let ssoProvider = $state('');
@@ -28,8 +30,8 @@
 <div class="space-y-6" data-svadmin-content-page="account">
   <div class="flex items-start justify-between gap-4">
     <div>
-      <h2 class="text-xl font-semibold text-foreground">{t('account.settingsEnterprise')}</h2>
-      <p class="mt-1 text-sm text-muted-foreground">{t('account.settingsEnterpriseDescription')}</p>
+      <h2 class="text-xl font-semibold text-foreground">{i18n.t('account.settingsEnterprise')}</h2>
+      <p class="mt-1 text-sm text-muted-foreground">{i18n.t('account.settingsEnterpriseDescription')}</p>
     </div>
     <Badge variant="secondary"><Building2 class="h-3 w-3 mr-1" />Enterprise</Badge>
   </div>
@@ -123,7 +125,7 @@
       <div class="flex justify-end">
         <Button onclick={handleSave} disabled={saving}>
           {#if saving}<Loader2 class="h-4 w-4 animate-spin mr-2" />{/if}
-          {t('common.save')}
+          {i18n.t('common.save')}
         </Button>
       </div>
     </Card.CardContent>

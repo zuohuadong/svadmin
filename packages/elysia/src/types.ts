@@ -39,15 +39,46 @@
  * }
  * ```
  */
-export type InferResourceMap<App> = App extends { _routes: infer Routes }
-  ? {
-      [K in keyof Routes as K extends `/${infer Resource}`
-        ? Resource extends `${string}/${string}` ? never : Resource
+type SuccessfulResponse<Response> = Response extends { 200: infer Payload }
+  ? Payload
+  : Response extends { '200': infer Payload }
+    ? Payload
+    : Response;
+
+type ResourceItem<Response> = SuccessfulResponse<Response> extends infer Payload
+  ? Payload extends { items: readonly (infer Item)[] }
+    ? Item
+    : Payload extends { data: readonly (infer Item)[] }
+      ? Item
+      : Payload extends readonly (infer Item)[]
+        ? Item
         : never
-      ]: Routes[K] extends { get: { response: { 200: infer Res } } }
-        ? Res extends { items: (infer Item)[] }
-          ? Item
-          : Res
-        : never
-    }
-  : Record<string, never>;
+  : never;
+
+type RouteResource<Route> = Route extends { get: { response: infer Response } }
+  ? ResourceItem<Response>
+  : never;
+
+type InferEdenResourceMap<Routes> = {
+  [Resource in keyof Routes as Resource extends string
+    ? Routes[Resource] extends { get: { response: unknown } }
+      ? [RouteResource<Routes[Resource]>] extends [never] ? never : Resource
+      : never
+    : never
+  ]: RouteResource<Routes[Resource]>
+};
+
+type InferLegacyResourceMap<Routes> = {
+  [Path in keyof Routes as Path extends `/${infer Resource}`
+    ? Resource extends `${string}/${string}`
+      ? never
+      : [RouteResource<Routes[Path]>] extends [never] ? never : Resource
+    : never
+  ]: RouteResource<Routes[Path]>
+};
+
+export type InferResourceMap<App> = App extends { '~Routes': infer Routes }
+  ? InferEdenResourceMap<Routes>
+  : App extends { _routes: infer Routes }
+    ? InferLegacyResourceMap<Routes>
+    : Record<string, never>;

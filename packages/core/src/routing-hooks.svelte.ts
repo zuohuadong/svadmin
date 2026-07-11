@@ -1,12 +1,10 @@
-/* eslint-disable svelte/prefer-svelte-reactivity */
-import { navigate } from './router';
-import { getResource, getResources, getRouterProvider } from './context.svelte';
+import { captureAdminContext } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 
 // ─── routing-hooks.svelte.ts ───────────────────────────────────
 
 export function useGetToPath() {
-  const routerProvider = getRouterProvider();
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
 
   return (options: { resource?: string; action?: 'list' | 'create' | 'edit' | 'show' | 'clone'; id?: string | number; meta?: Record<string, unknown> }) => {
@@ -31,7 +29,7 @@ export function useGetToPath() {
     else if (action === 'clone' && id) path += `/clone/${id}`;
 
     // Apply router mapping if the router provider defines custom path transformers
-    if (routerProvider?.go) {
+    if (adminContext.routerProvider?.go) {
       // SvelteKit path generation can be injected here.
     }
     return path;
@@ -39,6 +37,7 @@ export function useGetToPath() {
 }
 
 export function useGo() {
+  const adminContext = captureAdminContext();
   const getToPath = useGetToPath();
 
   return (options: { to?: string; query?: Record<string, unknown>; type?: 'push' | 'replace'; resource?: string; action?: 'list' | 'create' | 'edit' | 'show' | 'clone'; id?: string | number }) => {
@@ -55,19 +54,13 @@ export function useGo() {
       }
     }
 
-    navigate(targetUrl, options.type === 'replace' ? { replaceState: true } : undefined);
+    void adminContext.navigate(targetUrl, options.type === 'replace' ? { replaceState: true } : undefined);
   };
 }
 
 export function useBack() {
-  return () => {
-    const routerProvider = getRouterProvider();
-    if (routerProvider?.back) {
-      routerProvider.back();
-    } else if (typeof window !== 'undefined') {
-      window.history.back();
-    }
-  };
+  const adminContext = captureAdminContext();
+  return () => adminContext.back();
 }
 
 /**
@@ -75,13 +68,15 @@ export function useBack() {
  * (to avoid full page reloads in SSR apps)
  */
 export function useLink() {
+  const adminContext = captureAdminContext();
   return () => {
-    const routerProvider = getRouterProvider() as Record<string, unknown> | undefined;
+    const routerProvider = adminContext.routerProvider as unknown as Record<string, unknown> | undefined;
     return (routerProvider?.Link as string) ?? 'a';
   };
 }
 
 export function useResource(resourceName?: string) {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
 
   // Derived resource — re-evaluates when parsed.resource or resourceName changes
@@ -89,7 +84,7 @@ export function useResource(resourceName?: string) {
     const target = resourceName ?? parsed.resource;
     if (!target) return undefined;
     try {
-      return getResource(target);
+      return adminContext.getResource(target);
     } catch {
       return undefined;
     }
@@ -97,7 +92,7 @@ export function useResource(resourceName?: string) {
 
   return {
     get resource() { return resolvedResource; },
-    get resources() { return getResources(); },
+    get resources() { return adminContext.resources; },
     get identifier() { return resolvedResource?.identifier ?? resolvedResource?.name; },
     /** 当前 URL 解析出的 parent 资源信息（嵌套资源路由） */
     get parent() {
@@ -111,7 +106,7 @@ export function useResource(resourceName?: string) {
     /** Resolve a resource by name — useful for dynamic lookups inside callbacks */
     select: (name: string) => {
       try {
-        const res = getResource(name);
+        const res = adminContext.getResource(name);
         return { resource: res, identifier: res.identifier ?? res.name };
       } catch {
         return { resource: undefined, identifier: undefined };

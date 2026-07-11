@@ -1,10 +1,12 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
-  import { getLocale } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { Archive, Clock, FileText, Inbox, Mail, Paperclip, Plus, Send, ShieldAlert, Tag, Trash2 } from '@lucide/svelte';
   import { readHashView } from '../utils/hashView';
+
+  const i18n = useTranslation();
 
   interface MailMessage {
     id: number;
@@ -23,7 +25,7 @@
   let selectedMessageId = $state<number | null>(null);
   let composerOpen = $state(false);
 
-  const locale = $derived(getLocale());
+  const locale = $derived(i18n.locale);
   const isZh = $derived(locale === 'zh-CN');
   const inboxQuery = useList({ resource: 'mail_inbox', pagination: { mode: 'off' } });
   const draftQuery = useList({ resource: 'mail_draft', pagination: { mode: 'off' } });

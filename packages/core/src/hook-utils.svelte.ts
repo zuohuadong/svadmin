@@ -3,33 +3,34 @@
 
 import { useQueryClient } from '@tanstack/svelte-query';
 import type { LiveProvider, LiveEvent, LiveMode } from './live.svelte';
-import { getAuthProvider } from './context.svelte';
+import { captureAdminContext } from './context.svelte';
+import type { AdminContextAccessor } from './context.svelte';
 import { notify } from './notification.svelte';
 
 // ─── Auth Error Delegate ────────────────────────────────────────
 // Delegate auth errors (401/403) to authProvider.onError() — refine pattern
 
-export async function checkError(error: unknown): Promise<void> {
+export async function checkError(
+  error: unknown,
+  adminContext: AdminContextAccessor = captureAdminContext(),
+): Promise<void> {
   try {
-    const authProvider = getAuthProvider({ optional: true });
+    const authProvider = adminContext.authProvider;
     if (authProvider?.onError) {
       const result = await authProvider.onError(error);
       if (!result) return;
       if (result.logout) {
         try { await authProvider.logout?.(); } catch { /* logout failure should not block redirect */ }
-        const { navigate } = await import('./router');
-        navigate(result.redirectTo ?? '/login');
+        await adminContext.navigate(result.redirectTo ?? '/login');
       } else if (result.redirectTo) {
-        const { navigate } = await import('./router');
-        navigate(result.redirectTo);
+        await adminContext.navigate(result.redirectTo);
       }
       return;
     }
     if (error && typeof error === 'object' && 'statusCode' in error) {
       const status = (error as { statusCode: number }).statusCode;
       if (status === 401 || status === 403) {
-        const { navigate } = await import('./router');
-        navigate('/login');
+        await adminContext.navigate('/login');
       }
     }
   } catch { /* auth check failed silently */ }

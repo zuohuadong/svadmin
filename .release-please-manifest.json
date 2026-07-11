@@ -1,9 +1,11 @@
 {
   "packages/core": "0.31.0",
   "packages/ui": "0.38.2",
+  "packages/editor": "0.1.0",
   "packages/sveltekit": "0.9.4",
   "packages/drizzle": "0.11.1",
   "packages/simple-rest": "0.9.9",
+  "packages/refine-adapter": "0.9.4",
   "packages/sso": "0.10.0",
   "packages/pocketbase": "0.9.8",
   "packages/supabase": "0.11.3",

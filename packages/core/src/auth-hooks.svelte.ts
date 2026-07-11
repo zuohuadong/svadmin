@@ -2,10 +2,10 @@
 // Each hook encapsulates the auth call + loading state + error handling + redirect
 // Uses module-level $state — no component init-time constraints.
 
-import { getAuthProvider } from './context.svelte';
-import { navigate } from './router';
+import { captureAdminContext } from './context.svelte';
+import type { AdminContextAccessor } from './context.svelte';
 import { notify } from './notification.svelte';
-import { t } from './i18n.svelte';
+import { t, useTranslation } from './i18n.svelte';
 import type { AuthActionResult, CheckResult, Identity, AuthProvider } from './types';
 import { useQueryClient } from '@tanstack/svelte-query';
 
@@ -19,14 +19,16 @@ interface CreateAuthMutationOptions {
   method: keyof AuthProvider;
   successMessage?: string | null;
   errorMessage?: string | false;
-  onSuccess?: (result: AuthActionResult) => void;
+  onSuccess?: (result: AuthActionResult, adminContext: AdminContextAccessor) => void | Promise<void>;
 }
 
 function createAuthMutation(options: CreateAuthMutationOptions) {
-  const provider = getAuthProvider();
+  const adminContext = captureAdminContext();
+  const i18n = useTranslation();
   let isLoading = $state(false);
 
   async function mutate(params?: Record<string, unknown>): Promise<AuthActionResult> {
+    const provider = adminContext.authProvider;
     if (!provider) throw new Error('AuthProvider not configured');
     const fn = provider[options.method] as ((params?: Record<string, unknown>) => Promise<AuthActionResult>) | undefined;
     if (!fn) throw new Error(`AuthProvider.${options.method} not implemented`);
@@ -36,14 +38,14 @@ function createAuthMutation(options: CreateAuthMutationOptions) {
       const result = await fn.call(provider, params);
       if (result.success) {
         if (options.successMessage) notify({ type: 'success', message: options.successMessage });
-        if (options.onSuccess) options.onSuccess(result);
+        if (options.onSuccess) await options.onSuccess(result, adminContext);
       } else {
-        const msg = result.error?.message ?? (typeof options.errorMessage === 'string' ? options.errorMessage : t('common.operationFailed'));
+        const msg = result.error?.message ?? (typeof options.errorMessage === 'string' ? options.errorMessage : i18n.t('common.operationFailed'));
         if (options.errorMessage !== false) notify({ type: 'error', message: msg });
       }
       return result;
     } catch (err) {
-      const msg = err instanceof Error ? err.message : (typeof options.errorMessage === 'string' ? options.errorMessage : t('common.operationFailed'));
+      const msg = err instanceof Error ? err.message : (typeof options.errorMessage === 'string' ? options.errorMessage : i18n.t('common.operationFailed'));
       if (options.errorMessage !== false) notify({ type: 'error', message: msg });
       return { success: false, error: { message: msg } };
     } finally {
@@ -64,23 +66,26 @@ export function useLogin(opts?: { errorMessage?: string | false }) {
     method: 'login',
     successMessage: t('common.operationSuccess'),
     errorMessage: opts?.errorMessage ?? t('common.loginFailed'),
-    onSuccess: (result) => { navigate(result.redirectTo ?? '/'); }
+    onSuccess: async (result, adminContext) => { await adminContext.navigate(result.redirectTo ?? '/'); }
   });
 }
 
 // ─── useLogout ────────────────────────────────────────────────
 
 export function useLogout() {
+  let queryClient: ReturnType<typeof useQueryClient> | undefined;
+  try {
+    queryClient = useQueryClient();
+  } catch {
+    // Auth hooks remain usable without TanStack Query; cache clearing is best-effort.
+  }
   return createAuthMutation({
     method: 'logout',
     successMessage: null,
-    onSuccess: (result) => {
+    onSuccess: async (result, adminContext) => {
       _logoutVersion++;
-      try {
-        const queryClient = useQueryClient();
-        queryClient.clear();
-      } catch { /* intentional */}
-      navigate(result.redirectTo ?? '/login');
+      queryClient?.clear();
+      await adminContext.navigate(result.redirectTo ?? '/login');
     }
   });
 }
@@ -91,7 +96,9 @@ export function useRegister() {
   return createAuthMutation({
     method: 'register',
     successMessage: t('auth.registerSuccess'),
-    onSuccess: (result) => { if (result.redirectTo) navigate(result.redirectTo); }
+    onSuccess: async (result, adminContext) => {
+      if (result.redirectTo) await adminContext.navigate(result.redirectTo);
+    }
   });
 }
 
@@ -110,7 +117,9 @@ export function useUpdatePassword() {
   return createAuthMutation({
     method: 'updatePassword',
     successMessage: t('common.operationSuccess'),
-    onSuccess: (result) => { if (result.redirectTo) navigate(result.redirectTo); }
+    onSuccess: async (result, adminContext) => {
+      if (result.redirectTo) await adminContext.navigate(result.redirectTo);
+    }
   });
 }
 
@@ -120,7 +129,9 @@ export function useUpdateIdentity() {
   return createAuthMutation({
     method: 'updateIdentity',
     successMessage: t('common.operationSuccess'),
-    onSuccess: (result) => { if (result.redirectTo) navigate(result.redirectTo); }
+    onSuccess: async (result, adminContext) => {
+      if (result.redirectTo) await adminContext.navigate(result.redirectTo);
+    }
   });
 }
 
@@ -128,19 +139,22 @@ export function useUpdateProfile() {
   return createAuthMutation({
     method: 'updateProfile',
     successMessage: t('common.operationSuccess'),
-    onSuccess: (result) => { if (result.redirectTo) navigate(result.redirectTo); }
+    onSuccess: async (result, adminContext) => {
+      if (result.redirectTo) await adminContext.navigate(result.redirectTo);
+    }
   });
 }
 
 // ─── useGetIdentity ──────────────────────────────────────────
 
 export function useGetIdentity() {
-  const provider = getAuthProvider({ optional: true });
+  const adminContext = captureAdminContext();
   let data = $state<Identity | null>(null);
   let isLoading = $state(true);
   let error = $state<Error | null>(null);
 
   function fetch() {
+    const provider = adminContext.authProvider;
     if (!provider) { isLoading = false; return; }
     isLoading = true;
     provider.getIdentity().then(identity => {
@@ -172,12 +186,13 @@ export function useGetIdentity() {
 // ─── useIsAuthenticated ──────────────────────────────────────
 
 export function useIsAuthenticated() {
-  const provider = getAuthProvider({ optional: true });
+  const adminContext = captureAdminContext();
   let isAuthenticated = $state(false);
   let isLoading = $state(true);
   let checkResult = $state<CheckResult | null>(null);
 
   function check() {
+    const provider = adminContext.authProvider;
     if (!provider) {
       isAuthenticated = true;
       isLoading = false;
@@ -227,9 +242,10 @@ export function useIsAuthenticated() {
  * If it returns { redirectTo }, navigates there.
  */
 export function useOnError() {
-  const provider = getAuthProvider({ optional: true });
+  const adminContext = captureAdminContext();
 
   async function mutate(error: unknown) {
+    const provider = adminContext.authProvider;
     if (!provider?.onError) {
       console.warn('[svadmin] useOnError: authProvider.onError not implemented');
       return;
@@ -238,9 +254,9 @@ export function useOnError() {
       const result = await provider.onError(error);
       if (result.logout) {
         await provider.logout?.();
-        navigate(result.redirectTo ?? '/login');
+        await adminContext.navigate(result.redirectTo ?? '/login');
       } else if (result.redirectTo) {
-        navigate(result.redirectTo);
+        await adminContext.navigate(result.redirectTo);
       }
     } catch (err) {
       console.warn('[svadmin] useOnError failed:', err);
@@ -268,13 +284,14 @@ export function useOnError() {
  * ```
  */
 export function usePermissions<T = unknown>() {
-  const provider = getAuthProvider();
+  const adminContext = captureAdminContext();
   let permissions = $state<T | null>(null);
   let isLoading = $state(true);
   let error = $state<Error | null>(null);
   let version = $state(0);
 
   function fetch() {
+    const provider = adminContext.authProvider;
     if (!provider?.getPermissions) { isLoading = false; return; }
     isLoading = true;
     error = null;

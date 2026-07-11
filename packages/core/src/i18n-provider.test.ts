@@ -48,11 +48,4 @@ describe('I18nProvider type contract', () => {
   });
 });
 
-// 以下测试需要 Svelte 5 runes 编译环境（vitest + @sveltejs/vite-plugin-svelte）
-// 在纯 bun:test 中跳过；运行方式：cd packages/core && bunx vitest run src/i18n-provider.test.svelte.ts
-// 为避免 bun:test 失败，这里不直接 import .svelte.ts
-describe('I18nProvider runtime delegation (requires vitest)', () => {
-  test.skip('skipped: needs Svelte runes env — run via vitest', () => {
-    // placeholder for vitest-only runtime test
-  });
-});
+// 运行时委托行为由 i18n-provider.test.svelte.ts 在 Vitest + Svelte 编译环境中覆盖。

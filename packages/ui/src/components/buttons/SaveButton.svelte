@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { t } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core';
   import { Button } from '../ui/button/index.js';
   import { Save, Loader2 } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   let { loading = false, hideText = false, type = 'submit', class: className = '' } = $props<{
     loading?: boolean;
@@ -23,5 +25,5 @@
   {:else}
     <Save class="h-4 w-4" />
   {/if}
-  {#if !hideText}<span class="ml-1">{t('common.save')}</span>{/if}
+  {#if !hideText}<span class="ml-1">{i18n.t('common.save')}</span>{/if}
 </Button>

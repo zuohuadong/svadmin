@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { useImport, useCan, t } from '@svadmin/core';
+  import { useImport, useCan, useTranslation } from '@svadmin/core';
   import { Button } from '../ui/button/index.js';
   import { Upload } from '@lucide/svelte';
   import type { ButtonAccessControl } from './access-control';
+
+  const i18n = useTranslation();
 
   let { resource, hideText = false, onFinish, accessControl = { enabled: true, hideIfUnauthorized: true }, class: className = '' } = $props<{
     resource: string;
@@ -58,6 +60,6 @@
     onclick={triggerImport}
   >
     <Upload class="h-4 w-4" />
-    {#if !hideText}<span class="ml-1">{t('common.import')}</span>{/if}
+    {#if !hideText}<span class="ml-1">{i18n.t('common.import')}</span>{/if}
   </Button>
 {/if}

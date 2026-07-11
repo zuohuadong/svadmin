@@ -53,7 +53,7 @@ svadmin is a compile-time admin framework — no virtual DOM, no runtime diffing
 | SSO (OIDC/OAuth2) | ✅ `@svadmin/sso` plugin | ✅ Enterprise (paid) | ❌ No |
 | Router agnostic | ✅ Hash / SvelteKit | ✅ React Router / Next | ✅ React Router |
 | i18n | ✅ | ✅ | ✅ |
-| Zero-JS / IE11 Fallback | ✅ `@svadmin/lite` (SSR) | ❌ Hydration Required | ❌ Hydration Required |
+| SSR-first / low-JS fallback | ✅ `@svadmin/lite` (server-driven, optional enhancement) | ❌ Hydration Required | ❌ Hydration Required |
 
 ### Data & Mutations
 

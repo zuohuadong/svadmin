@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5173",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.2",
@@ -26,6 +27,7 @@
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tailwindcss/vite": "^4.3.0",
     "highlight.js": "^11.11.1",
+    "happy-dom": "^20.10.6",
     "isomorphic-dompurify": "^3.15.0",
     "marked": "^18.0.4",
     "marked-highlight": "^2.2.4",
@@ -33,6 +35,7 @@
     "svelte-check": "^4.5.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "vitest": "^4.1.10"
   }
 }

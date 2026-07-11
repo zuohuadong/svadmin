@@ -28,12 +28,26 @@ export interface PasswordOptions {
 
 // ─── Bun detection ────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const isBun = typeof (globalThis as any).Bun !== 'undefined';
+interface BunPasswordApi {
+  hash: (password: string, options?: { algorithm: 'argon2id' | 'bcrypt' }) => Promise<string>;
+  verify: (password: string, hash: string) => Promise<boolean>;
+}
+
+function getBunPasswordApi(): BunPasswordApi | null {
+  const runtime = Reflect.get(globalThis, 'Bun');
+  if (runtime === null || typeof runtime !== 'object') return null;
+
+  const passwordApi = Reflect.get(runtime, 'password');
+  if (passwordApi === null || typeof passwordApi !== 'object') return null;
+  if (typeof Reflect.get(passwordApi, 'hash') !== 'function') return null;
+  if (typeof Reflect.get(passwordApi, 'verify') !== 'function') return null;
+  return passwordApi as BunPasswordApi;
+}
 
 // ─── PBKDF2 fallback (Web Crypto API) ─────────────────────────
 
 const PBKDF2_ITERATIONS = 310_000; // OWASP recommended
+const PBKDF2_MAX_ITERATIONS = 1_000_000;
 const PBKDF2_SALT_LENGTH = 32;
 const PBKDF2_KEY_LENGTH = 64;
 
@@ -41,7 +55,9 @@ function toHex(buffer: ArrayBuffer): string {
   return Array.from(new Uint8Array(buffer), b => b.toString(16).padStart(2, '0')).join('');
 }
 
-function fromHex(hex: string): Uint8Array {
+function fromHex(hex: unknown): Uint8Array | null {
+  if (typeof hex !== 'string') return null;
+  if (hex.length % 2 !== 0 || !/^[0-9a-f]+$/i.test(hex)) return null;
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < hex.length; i += 2) {
     bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
@@ -67,9 +83,22 @@ async function pbkdf2Hash(password: string): Promise<string> {
 }
 
 async function pbkdf2Verify(password: string, stored: string): Promise<boolean> {
-  const [, iterStr, saltHex, hashHex] = stored.split(':');
-  const iterations = parseInt(iterStr, 10);
+  const parts = stored.split(':');
+  if (parts.length !== 4 || parts[0] !== 'pbkdf2') return false;
+
+  const [, iterStr, saltHex, hashHex] = parts;
+  const iterations = Number(iterStr);
   const salt = fromHex(saltHex);
+  const expectedHash = fromHex(hashHex);
+  if (
+    !Number.isSafeInteger(iterations) ||
+    iterations <= 0 ||
+    iterations > PBKDF2_MAX_ITERATIONS ||
+    !salt ||
+    salt.length !== PBKDF2_SALT_LENGTH ||
+    !expectedHash ||
+    expectedHash.length !== PBKDF2_KEY_LENGTH
+  ) return false;
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(password),
@@ -82,7 +111,14 @@ async function pbkdf2Verify(password: string, stored: string): Promise<boolean> 
     key,
     PBKDF2_KEY_LENGTH * 8,
   );
-  return toHex(derived) === hashHex;
+  const actualHash = new Uint8Array(derived);
+  if (actualHash.length !== expectedHash.length) return false;
+
+  let difference = 0;
+  for (let index = 0; index < actualHash.length; index += 1) {
+    difference |= actualHash[index] ^ expectedHash[index];
+  }
+  return difference === 0;
 }
 
 // ─── Public API ───────────────────────────────────────────────
@@ -97,17 +133,21 @@ export async function hashPassword(
   opts?: PasswordOptions,
 ): Promise<string> {
   const algo = opts?.algorithm ?? 'auto';
+  const bunPassword = getBunPasswordApi();
 
-  if ((algo === 'auto' || algo === 'argon2id' || algo === 'bcrypt') && isBun) {
-    // Use Bun's native password API
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const BunPassword = (globalThis as any).Bun as { password: { hash: (p: string, opts?: { algorithm: string }) => Promise<string> } };
-    const bunAlgo = algo === 'auto' ? 'argon2id' : algo;
-    return BunPassword.password.hash(password, { algorithm: bunAlgo });
+  if (algo === 'pbkdf2') {
+    return pbkdf2Hash(password);
   }
 
-  // Fallback to PBKDF2
-  return pbkdf2Hash(password);
+  if (bunPassword) {
+    return bunPassword.hash(password, { algorithm: algo === 'auto' ? 'argon2id' : algo });
+  }
+
+  if (algo === 'auto') {
+    return pbkdf2Hash(password);
+  }
+
+  throw new Error(`[auth-utils] ${algo} requires Bun.password in the current runtime.`);
 }
 
 /**
@@ -125,10 +165,9 @@ export async function verifyPassword(
   }
 
   // Argon2 / bcrypt hashes — use Bun.password.verify
-  if (isBun) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const BunPassword = (globalThis as any).Bun as { password: { verify: (p: string, h: string) => Promise<boolean> } };
-    return BunPassword.password.verify(password, hash);
+  const bunPassword = getBunPasswordApi();
+  if (bunPassword) {
+    return bunPassword.verify(password, hash);
   }
 
   throw new Error(

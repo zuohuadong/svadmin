@@ -1,4 +1,3 @@
-/* eslint-disable svelte/prefer-svelte-reactivity */
 export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'undoable';
 
 export interface ToastItem {
@@ -18,7 +17,7 @@ let queue = $state<ToastItem[]>([]);
 export function getToastQueue() { return queue; }
 export function consumeToastQueue() { queue = []; }
 
-let promiseQueue = $state<{ id: number; promise: Promise<any>; opts: { loading: string; success: string; error: string } }[]>([]);
+let promiseQueue = $state<{ id: number; promise: Promise<unknown>; opts: { loading: string; success: string; error: string } }[]>([]);
 export function getPromiseQueue() { return promiseQueue; }
 export function consumePromiseQueue() { promiseQueue = []; }
 

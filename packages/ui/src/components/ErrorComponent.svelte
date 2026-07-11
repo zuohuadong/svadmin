@@ -1,13 +1,15 @@
 <script lang="ts">
   import { AlertTriangle, RefreshCw } from '@lucide/svelte';
-  import { t } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core';
   import { Button } from './ui/button';
   import * as Alert from './ui/alert/index.js';
 
+  const i18n = useTranslation();
+
   let {
     error,
-    title = t('error.title'),
-    description = t('error.description'),
+    title = i18n.t('error.title'),
+    description = i18n.t('error.description'),
     retry,
   } = $props<{
     error?: Error | null;
@@ -28,7 +30,7 @@
       <div class="mt-4">
         <Button variant="outline" size="sm" onclick={retry}>
           <RefreshCw class="h-3 w-3" data-icon="inline-start" />
-          {t('buttons.retry')}
+          {i18n.t('buttons.retry')}
         </Button>
       </div>
     {/if}

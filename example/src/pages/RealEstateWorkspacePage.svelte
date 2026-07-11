@@ -1,10 +1,12 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
-  import { getLocale } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { Building2, CalendarClock, Heart, MapPin, Search, SlidersHorizontal, UserRoundCheck } from '@lucide/svelte';
   import { readHashView } from '../utils/hashView';
+
+  const i18n = useTranslation();
 
   interface Agent { id: number; name: string; territory: string; status: string; capacityScore: number; notes: string; }
   interface Property { id: number; propertyName: string; market: string; assetType: string; askingPrice: number; status: string; units: number; occupancy: number; notes: string; }
@@ -14,7 +16,7 @@
   let { resourceName = 'properties' } = $props<{ resourceName?: string }>();
   let activeView = $state(readHashView('portfolio'));
 
-  const locale = $derived(getLocale());
+  const locale = $derived(i18n.locale);
   const isZh = $derived(locale === 'zh-CN');
   const propertiesQuery = useList({ resource: 'properties', pagination: { mode: 'off' } });
   const agentsQuery = useList({ resource: 'property_agents', pagination: { mode: 'off' } });

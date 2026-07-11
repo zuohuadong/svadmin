@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Button } from '../ui/button/index.js';
+
+  const i18n = useTranslation();
 
   let { value, maxLength = 200 } = $props<{
     value: string | null | undefined;
@@ -28,7 +30,7 @@
         class="text-xs text-primary h-auto p-0"
         onclick={() => { showFull = !showFull; }}
       >
-        {showFull ? t('common.showLess') : t('common.showMore')}
+        {showFull ? i18n.t('common.showLess') : i18n.t('common.showMore')}
       </Button>
     {/if}
   </div>

@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { getTheme, setTheme, getColorTheme, setColorTheme, getColorPresets } from '@svadmin/core';
-  import { getLocale, setLocale, getAvailableLocales } from '@svadmin/core/i18n';
   import * as Card from './ui/card/index.js';
   import { Sun, Moon, Monitor, Check } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   // Theme mode
   const themeOptions = [
@@ -14,8 +16,8 @@
 
   let currentTheme = $derived(getTheme());
   let currentColor = $derived(getColorTheme());
-  let currentLocale = $derived(getLocale());
-  const availableLocales = getAvailableLocales();
+  let currentLocale = $derived(i18n.locale);
+  const availableLocales = i18n.getAvailableLocales();
   const presets = getColorPresets();
 
   // Sidebar density
@@ -55,14 +57,14 @@
 
 <div class="space-y-6">
   <div>
-    <h2 class="text-xl font-semibold text-foreground">{t('settings.appearance')}</h2>
-    <p class="text-sm text-muted-foreground mt-1">{t('settings.settingsDescription')}</p>
+    <h2 class="text-xl font-semibold text-foreground">{i18n.t('settings.appearance')}</h2>
+    <p class="text-sm text-muted-foreground mt-1">{i18n.t('settings.settingsDescription')}</p>
   </div>
 
   <!-- Theme Mode -->
   <Card.Card>
     <Card.CardHeader class="pb-3">
-      <Card.CardTitle class="text-base">{t('settings.themeMode')}</Card.CardTitle>
+      <Card.CardTitle class="text-base">{i18n.t('settings.themeMode')}</Card.CardTitle>
     </Card.CardHeader>
     <Card.CardContent>
       <div class="grid grid-cols-3 gap-3">
@@ -85,7 +87,7 @@
               <opt.icon class="h-5 w-5" />
             </div>
             <span class="text-xs font-medium {active ? 'text-primary' : 'text-muted-foreground'}">
-              {t(opt.label)}
+              {i18n.t(opt.label)}
             </span>
           </button>
         {/each}
@@ -96,7 +98,7 @@
   <!-- Color Accent -->
   <Card.Card>
     <Card.CardHeader class="pb-3">
-      <Card.CardTitle class="text-base">{t('settings.colorAccent')}</Card.CardTitle>
+      <Card.CardTitle class="text-base">{i18n.t('settings.colorAccent')}</Card.CardTitle>
     </Card.CardHeader>
     <Card.CardContent>
       <div class="flex flex-wrap gap-3">
@@ -121,20 +123,20 @@
   <!-- Interface -->
   <Card.Card>
     <Card.CardHeader class="pb-3">
-      <Card.CardTitle class="text-base">{t('settings.interface')}</Card.CardTitle>
+      <Card.CardTitle class="text-base">{i18n.t('settings.interface')}</Card.CardTitle>
     </Card.CardHeader>
     <Card.CardContent class="space-y-5">
       <!-- Language -->
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-foreground">{t('settings.language')}</p>
+          <p class="text-sm font-medium text-foreground">{i18n.t('settings.language')}</p>
           <p class="text-xs text-muted-foreground">{localeNames[currentLocale] ?? currentLocale}</p>
         </div>
         <select
           class="h-9 rounded-md border border-input bg-background px-3 text-sm ring-offset-background
             focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           value={currentLocale}
-          onchange={(e) => setLocale((e.target as HTMLSelectElement).value)}
+          onchange={(e) => i18n.setLocale((e.target as HTMLSelectElement).value)}
         >
           {#each availableLocales as loc, _i (_i)}
             <option value={loc}>{localeNames[loc] ?? loc}</option>
@@ -147,19 +149,19 @@
       <!-- Sidebar Density -->
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-foreground">{t('settings.sidebarDensity')}</p>
+          <p class="text-sm font-medium text-foreground">{i18n.t('settings.sidebarDensity')}</p>
         </div>
         <div class="flex rounded-lg border border-input overflow-hidden">
           <button
             class="px-3 py-1.5 text-xs font-medium transition-colors
               {density === 'compact' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-accent'}"
             onclick={() => setDensity('compact')}
-          >{t('settings.compact')}</button>
+          >{i18n.t('settings.compact')}</button>
           <button
             class="px-3 py-1.5 text-xs font-medium transition-colors
               {density === 'standard' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-accent'}"
             onclick={() => setDensity('standard')}
-          >{t('settings.standard')}</button>
+          >{i18n.t('settings.standard')}</button>
         </div>
       </div>
 
@@ -168,7 +170,7 @@
       <!-- Default Page Size -->
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-foreground">{t('settings.defaultPageSize')}</p>
+          <p class="text-sm font-medium text-foreground">{i18n.t('settings.defaultPageSize')}</p>
         </div>
         <div class="flex rounded-lg border border-input overflow-hidden">
           {#each pageSizeOptions as size, _i (_i)}

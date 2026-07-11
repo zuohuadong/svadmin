@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { getAuthProvider } from '@svadmin/core';
   import type { AuditLog } from '@svadmin/core';
   import { toast } from '@svadmin/core/toast';
@@ -8,6 +9,8 @@
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
   import { Loader2, ChevronLeft, ChevronRight, Search, FileSearch, Eye, X } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   const authProvider = getAuthProvider({ optional: true });
 
@@ -27,7 +30,7 @@
 
   async function loadLogs() {
     if (!authProvider?.getAuditLogs) {
-      error = t('settings.auditNotSupported') ?? 'Audit logs are not supported by the current AuthProvider';
+      error = i18n.t('settings.auditNotSupported') ?? 'Audit logs are not supported by the current AuthProvider';
       loading = false;
       return;
     }
@@ -87,10 +90,10 @@
   <div class="mb-6">
     <h2 class="text-xl font-semibold text-foreground flex items-center gap-2">
       <FileSearch class="h-5 w-5 text-muted-foreground" />
-      {t('settings.auditLogs') ?? 'Audit Logs'}
+      {i18n.t('settings.auditLogs') ?? 'Audit Logs'}
     </h2>
     <p class="text-sm text-muted-foreground mt-1">
-      {t('settings.auditDescription') ?? 'Track and review all system operations for compliance and debugging.'}
+      {i18n.t('settings.auditDescription') ?? 'Track and review all system operations for compliance and debugging.'}
     </p>
   </div>
 
@@ -104,7 +107,7 @@
       <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       <Input
         bind:value={searchQuery}
-        placeholder={t('settings.searchLogs') ?? 'Search by user, action, or resource...'}
+        placeholder={i18n.t('settings.searchLogs') ?? 'Search by user, action, or resource...'}
         class="pl-9"
       />
     </div>
@@ -114,19 +117,19 @@
       {#if loading}
         <div class="flex items-center justify-center h-48 text-muted-foreground">
           <Loader2 class="h-5 w-5 animate-spin mr-2" />
-          {t('common.loading')}
+          {i18n.t('common.loading')}
         </div>
       {:else}
         <div class="overflow-auto">
           <Table.Root>
             <Table.Header>
               <Table.Row>
-                <Table.Head class="w-[160px]">{t('settings.auditTime') ?? 'Time'}</Table.Head>
-                <Table.Head>{t('settings.auditUser') ?? 'User'}</Table.Head>
-                <Table.Head>{t('settings.auditAction') ?? 'Action'}</Table.Head>
-                <Table.Head>{t('settings.auditResource') ?? 'Resource'}</Table.Head>
-                <Table.Head class="w-[120px]">{t('settings.auditIp') ?? 'IP Address'}</Table.Head>
-                <Table.Head class="w-[60px] text-center">{t('common.detail') ?? 'Detail'}</Table.Head>
+                <Table.Head class="w-[160px]">{i18n.t('settings.auditTime') ?? 'Time'}</Table.Head>
+                <Table.Head>{i18n.t('settings.auditUser') ?? 'User'}</Table.Head>
+                <Table.Head>{i18n.t('settings.auditAction') ?? 'Action'}</Table.Head>
+                <Table.Head>{i18n.t('settings.auditResource') ?? 'Resource'}</Table.Head>
+                <Table.Head class="w-[120px]">{i18n.t('settings.auditIp') ?? 'IP Address'}</Table.Head>
+                <Table.Head class="w-[60px] text-center">{i18n.t('common.detail') ?? 'Detail'}</Table.Head>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -152,7 +155,7 @@
               {:else}
                 <Table.Row>
                   <Table.Cell colspan={6} class="h-24 text-center text-muted-foreground">
-                    {t('common.noData')}
+                    {i18n.t('common.noData')}
                   </Table.Cell>
                 </Table.Row>
               {/each}
@@ -164,7 +167,7 @@
 
     <!-- Pagination -->
     <div class="mt-4 flex items-center justify-between text-sm text-muted-foreground">
-      <span>{total} {t('settings.auditTotal') ?? 'total records'}</span>
+      <span>{total} {i18n.t('settings.auditTotal') ?? 'total records'}</span>
       <div class="flex items-center gap-2">
         <Button
           variant="outline" size="sm"
@@ -199,7 +202,7 @@
         <div>
           <h2 class="text-lg font-bold text-foreground flex items-center gap-2">
             <FileSearch class="h-5 w-5 text-primary" />
-            {t('settings.auditSnapshot') ?? 'Change Snapshot'}
+            {i18n.t('settings.auditSnapshot') ?? 'Change Snapshot'}
           </h2>
           <p class="text-xs text-muted-foreground mt-1">{formatDate(drawerLog.createdAt)} · {drawerLog.userName ?? drawerLog.userId}</p>
         </div>

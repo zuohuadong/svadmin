@@ -20,6 +20,22 @@ const mockTaskProvider = {
 };
 
 vi.mock('./context.svelte', () => ({
+  captureAdminContext: () => ({
+    providers: null,
+    authProvider: null,
+    resources: [],
+    routerProvider: undefined,
+    liveProvider: undefined,
+    taskProvider: mockTaskProvider,
+    getDataProvider: vi.fn(),
+    getDataProviderNames: () => [],
+    getDataProviderForResource: vi.fn(),
+    getResource: vi.fn(),
+    currentPath: () => '/',
+    formatLink: (path: string) => path,
+    navigate: vi.fn(async () => {}),
+    back: vi.fn(),
+  }),
   getTaskProvider: () => mockTaskProvider,
   getAuthProvider: () => null,
 }));

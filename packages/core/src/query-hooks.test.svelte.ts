@@ -2,33 +2,58 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi } from 'vitest';
 import { useList, useOne } from './query-hooks.svelte';
-import type { GetListResult } from './types';
 import { flushSync } from 'svelte';
 import { QueryClient } from '@tanstack/svelte-query';
 
-vi.mock('./context.svelte', () => ({
-  useDataProvider: () => ({
+vi.mock('./context.svelte', () => {
+  const dataProvider = {
     getOne: vi.fn(),
     getList: vi.fn()
-  }),
-  useResource: () => ({ name: 'posts' }),
-  getResource: (name: string) => ({ name, primaryKey: 'id' }),
-  useRouterContext: () => ({ navigate: vi.fn() }),
-  useTranslate: () => (key: string) => key,
-  useNotification: () => ({ open: vi.fn(), close: vi.fn() }),
-  getLiveProvider: () => undefined
-}));
+  };
+  const getResource = (name: string) => ({ name, primaryKey: 'id' });
+  return {
+    captureAdminContext: () => ({
+      providers: { default: dataProvider },
+      authProvider: null,
+      resources: [getResource('posts')],
+      routerProvider: undefined,
+      liveProvider: undefined,
+      taskProvider: undefined,
+      getDataProvider: () => dataProvider,
+      getDataProviderNames: () => ['default'],
+      getDataProviderForResource: () => dataProvider,
+      getResource,
+      currentPath: () => '/posts',
+      formatLink: (path: string) => path,
+      navigate: vi.fn(async () => {}),
+      back: vi.fn(),
+    }),
+    getDataProviderForResource: () => dataProvider,
+    useResource: () => ({ name: 'posts' }),
+    getResource,
+    useRouterContext: () => ({ navigate: vi.fn() }),
+    useTranslate: () => (key: string) => key,
+    useNotification: () => ({ open: vi.fn(), close: vi.fn() }),
+    getLiveProvider: () => undefined
+  };
+});
 
 vi.mock('@tanstack/svelte-query', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual as any,
     useQueryClient: () => new QueryClient(),
-    createQuery: () => ({
-      data: { data: [{ id: 1, title: 'One' }], title: 'One' }, // Unified mock to please both array and direct object assertions
+    createQuery: (factory: any) => ({
+      data: factory().queryKey[2] === 'one'
+        ? { data: { id: 1, title: 'One' } }
+        : { data: [{ id: 1, title: 'One' }], total: 1 },
       isPending: false,
       isFetching: false,
-      error: null
+      isSuccess: true,
+      isError: false,
+      dataUpdatedAt: 1,
+      errorUpdatedAt: 0,
+      error: null,
     })
   };
 });
@@ -46,7 +71,7 @@ describe('useList & useOne - Headless Svelte 5 Compatibility', () => {
     
     expect(listQuery!.data).toBeDefined();
     expect(listQuery!.data!.data[0].title).toBe('One');
-    expect((listQuery!.data as GetListResult & { title?: string }).title).toBe('One');
+    expect(listQuery!.data!.total).toBe(1);
     expect(listQuery!.isPending).toBe(false);
 
     cleanup();

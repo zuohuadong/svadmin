@@ -228,17 +228,29 @@ describe('Supabase LiveProvider', () => {
     const client = createMockSupabaseClient();
     const live = createSupabaseLiveProvider(client);
     
-    let _callbackTriggered = false;
+    let callbackEvent: unknown;
     const unsub = live.subscribe({
       resource: 'posts',
-      callback: (_event) => { _callbackTriggered = true; }
+      callback: (event) => { callbackEvent = event; }
     });
     
     expect(client.channel).toHaveBeenCalledWith('live-posts');
     const channelMock = (client.channel as ReturnType<typeof mock>).mock.results[0].value;
     expect(channelMock.on).toHaveBeenCalled();
     expect(channelMock.subscribe).toHaveBeenCalled();
-    
+
+    const postgresChangesHandler = channelMock.on.mock.calls[0][2] as (payload: {
+      eventType: 'INSERT';
+      new: Record<string, unknown>;
+      old: null;
+    }) => void;
+    postgresChangesHandler({ eventType: 'INSERT', new: { id: 1 }, old: null });
+    expect(callbackEvent).toEqual({
+      type: 'INSERT',
+      resource: 'posts',
+      payload: { id: 1 },
+    });
+
     unsub();
     expect(channelMock.unsubscribe).toHaveBeenCalled();
   });

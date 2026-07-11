@@ -1,9 +1,12 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { AlertCircle, Cloud, FolderGit, MessageCircle, Plug } from '@lucide/svelte';
   import type { Component } from 'svelte';
   import * as Card from './ui/card/index.js';
   import { Switch } from './ui/switch/index.js';
+
+  const i18n = useTranslation();
 
   interface Integration {
     id: string;
@@ -28,8 +31,8 @@
 
 <div class="space-y-6">
   <div>
-    <h2 class="text-xl font-semibold text-foreground">{t('settings.integrations')}</h2>
-    <p class="mt-1 text-sm text-muted-foreground">{t('settings.integrationsDescription')}</p>
+    <h2 class="text-xl font-semibold text-foreground">{i18n.t('settings.integrations')}</h2>
+    <p class="mt-1 text-sm text-muted-foreground">{i18n.t('settings.integrationsDescription')}</p>
   </div>
 
   <div class="grid gap-4">
@@ -45,14 +48,14 @@
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="font-semibold text-foreground">{integration.name}</span>
                   <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold {integration.connected ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}">
-                    {integration.connected ? t('integrations.statusConnected') : t('integrations.statusDisconnected')}
+                    {integration.connected ? i18n.t('integrations.statusConnected') : i18n.t('integrations.statusDisconnected')}
                   </span>
                 </div>
                 <p class="text-sm text-muted-foreground">{integration.description}</p>
               </div>
             </div>
             <div class="flex items-center gap-3">
-              <span class="text-xs text-muted-foreground">{integration.connected ? t('integrations.enabled') : t('integrations.disabled')}</span>
+              <span class="text-xs text-muted-foreground">{integration.connected ? i18n.t('integrations.enabled') : i18n.t('integrations.disabled')}</span>
               <Switch checked={integration.connected} onCheckedChange={(checked) => toggleConnection(integration.id, checked)} />
             </div>
           </div>
@@ -64,7 +67,7 @@
   <Card.Card class="border-dashed bg-muted/20">
     <Card.CardContent class="flex items-center gap-3 p-5 text-sm text-muted-foreground">
       <AlertCircle class="h-4 w-4 shrink-0" />
-      <span>{t('integrations.addMoreHint')}</span>
+      <span>{i18n.t('integrations.addMoreHint')}</span>
     </Card.CardContent>
   </Card.Card>
 </div>

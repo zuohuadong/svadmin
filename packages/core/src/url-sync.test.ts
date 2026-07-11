@@ -6,6 +6,7 @@ import type { Filter } from './types';
 let routerProvider: RouterProvider | undefined;
 
 mock.module('./context.svelte', () => ({
+  captureAdminContext: () => ({ routerProvider }),
   getRouterProvider: () => routerProvider,
 }));
 
@@ -85,6 +86,23 @@ describe('url-sync', () => {
 
   test('ignores invalid serialized filters', () => {
     mockWindow.setHash('#/posts?filters=%7Bbad-json');
+    expect(readURLState().filters).toBeUndefined();
+  });
+
+  test('rejects valid JSON that does not match the Filter contract', () => {
+    const invalidFilters = [
+      { field: 'status', operator: 'drop-table', value: 'open' },
+      { operator: 'or', value: { field: 'status', operator: 'eq', value: 'open' } },
+    ];
+    mockWindow.setHash(`#/posts?filters=${encodeURIComponent(JSON.stringify(invalidFilters))}`);
+
+    expect(readURLState().filters).toBeUndefined();
+  });
+
+  test('rejects non-array filter payloads', () => {
+    const invalidFilters = { field: 'status', operator: 'eq', value: 'open' };
+    mockWindow.setHash(`#/posts?filters=${encodeURIComponent(JSON.stringify(invalidFilters))}`);
+
     expect(readURLState().filters).toBeUndefined();
   });
 });

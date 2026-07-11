@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { useMenu } from '@svadmin/core';
-  import { navigate } from '@svadmin/core/router';
+  import { captureAdminContext, useMenu } from '@svadmin/core';
   
+  const adminContext = captureAdminContext();
   const { menuItems } = useMenu();
 
   let navigated = false;
@@ -9,7 +9,7 @@
     // Navigate to first resource ONCE — avoid infinite re-triggers
     if (!navigated && menuItems.length > 0) {
       navigated = true;
-      navigate(menuItems[0].route);
+      adminContext.navigate(menuItems[0].route);
     }
   });
 </script>

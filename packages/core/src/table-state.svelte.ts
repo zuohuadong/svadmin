@@ -1,10 +1,11 @@
-/* eslint-disable svelte/prefer-svelte-reactivity */
 // TableState — Svelte 5 Class State Pattern for table data management
 // Reactive class that encapsulates all table state with fine-grained $state/$derived
 
 import { useParsed } from './useParsed.svelte';
 import { useList } from './query-hooks.svelte';
 import { readURLState, writeURLState } from './url-sync';
+import { captureAdminContext } from './context.svelte';
+import type { AdminContextAccessor } from './context.svelte';
 import type { Pagination, Sort, Filter, BaseRecord, HttpError, KnownResources, GetListResult } from './types';
 import type { UseListOptions } from './query-hooks.svelte';
 
@@ -53,11 +54,13 @@ export class TableState<TData extends BaseRecord = BaseRecord, TError = HttpErro
   private filterDefaultBehavior: FilterSetMode;
   private syncWithLocation: boolean;
   private paginationMode: string;
+  private adminContext: AdminContextAccessor;
 
   // ─── Query result ─────────────────────────────────────────────
   private _queryResult;
 
   constructor(options: TableStateOptions<TData, TError> = {}) {
+    this.adminContext = captureAdminContext();
     const parsed = useParsed();
     const resource = options.resource ?? parsed.resource ?? '';
 
@@ -75,7 +78,7 @@ export class TableState<TData extends BaseRecord = BaseRecord, TError = HttpErro
     let initFilters = options.filters?.initial ?? [];
 
     if (this.syncWithLocation && typeof window !== 'undefined') {
-      const urlState = readURLState();
+      const urlState = readURLState(this.adminContext);
       if (urlState.page || urlState.pageSize) {
         initPagination = {
           current: urlState.page ?? initPagination.current,
@@ -116,7 +119,7 @@ export class TableState<TData extends BaseRecord = BaseRecord, TError = HttpErro
           sortField: this.currentSorters[0]?.field,
           sortOrder: this.currentSorters[0]?.order,
           filters: this.currentFilters,
-        });
+        }, this.adminContext);
       });
     }
   }

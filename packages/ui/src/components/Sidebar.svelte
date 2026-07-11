@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { getResources, canAccessAsync } from '@svadmin/core';
+  import { captureAdminContext, getResources, canAccessAsync } from '@svadmin/core';
   import type { Identity, MenuItem } from '@svadmin/core';
-  import { navigate } from '@svadmin/core/router';
   import { getPath } from '../router-state.svelte.js';
-  import { t, getLocale, setLocale, getAvailableLocales } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { toggleTheme, getResolvedTheme, getColorThemes, getColorTheme, setColorTheme } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
@@ -22,6 +22,8 @@
     Calendar, Bell, Clock, Tag, Trash2, Shield
   } from '@lucide/svelte';
 
+  const i18n = useTranslation();
+
   let { collapsed, identity, title, onToggle, onLogout, menu, routeMode = 'auto' }: {
     collapsed: boolean;
     identity: Identity | null;
@@ -31,12 +33,18 @@
     menu?: MenuItem[];
     routeMode?: 'hash' | 'path' | 'auto';
   } = $props();
+  const adminContext = captureAdminContext();
 
   const effectiveRouteMode = $derived(
     routeMode === 'auto'
       ? (typeof window !== 'undefined' && window.location.hash.startsWith('#/') ? 'hash' : 'path')
       : routeMode
   );
+
+  function formatSidebarLink(path: string): string {
+    if (adminContext.routerProvider) return adminContext.formatLink(path);
+    return effectiveRouteMode === 'hash' ? `#${path}` : path;
+  }
 
   const iconMap: Record<string, typeof LayoutDashboard> = {
     'dashboard': LayoutDashboard,
@@ -97,7 +105,7 @@
   let navItems = $state.raw<NavItem[]>([]);
 
   $effect(() => {
-    getLocale();
+    const homeLabel = i18n.t('common.home');
     const currentResources = getResources();
     let cancelled = false;
 
@@ -110,7 +118,7 @@
       }
     })).then(results => {
       if (cancelled) return;
-      const items: NavItem[] = [{ path: '/', label: t('common.home'), Icon: LayoutDashboard }];
+      const items: NavItem[] = [{ path: '/', label: homeLabel, Icon: LayoutDashboard }];
       for (const { r, can } of results) {
         if (can) {
           items.push({
@@ -128,14 +136,14 @@
   });
 
   function toggleLocale() {
-    const locales = getAvailableLocales();
-    const current = getLocale();
+    const locales = i18n.getAvailableLocales();
+    const current = i18n.locale;
     const idx = locales.indexOf(current);
     const next = locales[(idx + 1) % locales.length];
-    setLocale(next);
+    i18n.setLocale(next);
   }
 
-  const localeLabel = $derived(getLocale() === 'zh-CN' ? '中' : 'EN');
+  const localeLabel = $derived(i18n.locale === 'zh-CN' ? '中' : 'EN');
 
   const path = $derived(getPath());
 
@@ -210,12 +218,12 @@
 >
   <div class="flex h-[70px] items-center shrink-0" class:px-5={!collapsed} class:justify-center={collapsed}>
     {#if !collapsed}
-      <a href="#/" class="flex items-center gap-2.5 group" onclick={(e) => { e.preventDefault(); navigate('/'); }}>
+      <a href={formatSidebarLink('/')} class="flex items-center gap-2.5 group" onclick={(e) => { e.preventDefault(); adminContext.navigate('/'); }}>
         <div class="w-[34px] h-[34px] rounded-lg bg-gradient-to-tr from-primary to-purple-500 shrink-0 transition-transform group-hover:scale-105" style="box-shadow: 0 4px 12px oklch(0.488 0.243 264.376 / 20%);"></div>
         <span class="font-semibold text-[15px] tracking-[-0.01em] text-sidebar-foreground">{title}</span>
       </a>
     {:else}
-      <a href="#/" class="group" aria-label={title} onclick={(e) => { e.preventDefault(); navigate('/'); }}>
+      <a href={formatSidebarLink('/')} class="group" aria-label={title} onclick={(e) => { e.preventDefault(); adminContext.navigate('/'); }}>
         <div class="w-[34px] h-[34px] rounded-lg bg-gradient-to-tr from-primary to-purple-500 shrink-0 transition-transform group-hover:scale-105" style="box-shadow: 0 4px 12px oklch(0.488 0.243 264.376 / 20%);"></div>
       </a>
     {/if}
@@ -248,8 +256,8 @@
               {#each group.items as item, _i (_i)}
                 {@const active = isActive(item.path)}
                 <a
-                  href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
-                  onclick={(e) => { e.preventDefault(); navigate(item.path); }}
+                  href={formatSidebarLink(item.path)}
+                  onclick={(e) => { e.preventDefault(); adminContext.navigate(item.path); }}
                   class="sidebar-menu-item flex items-center gap-2.5 rounded-md px-[10px] {pyClassGroupItem} text-[13px] font-medium transition-colors duration-150
                   {active
                     ? 'sidebar-menu-item-active bg-sidebar-accent text-primary'
@@ -271,8 +279,8 @@
                 {#snippet child({ props }: { props: Record<string, unknown> })}
                   <a
                     {...props}
-                    href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
-                    onclick={(e) => { e.preventDefault(); navigate(item.path); }}
+                    href={formatSidebarLink(item.path)}
+                    onclick={(e) => { e.preventDefault(); adminContext.navigate(item.path); }}
                     class="sidebar-menu-item flex items-center justify-center rounded-md px-2 {pyClass} transition-colors duration-150
                     {active
                       ? 'sidebar-menu-item-active bg-sidebar-accent text-primary'
@@ -288,8 +296,8 @@
             </Tooltip.Root>
           {:else}
             <a
-              href={effectiveRouteMode === 'hash' ? `#${item.path}` : item.path}
-              onclick={(e) => { e.preventDefault(); navigate(item.path); }}
+              href={formatSidebarLink(item.path)}
+              onclick={(e) => { e.preventDefault(); adminContext.navigate(item.path); }}
               class="sidebar-menu-item flex items-center gap-2.5 rounded-md px-[10px] {pyClass} text-[13px] font-medium transition-colors duration-150
               {active
                 ? 'sidebar-menu-item-active bg-sidebar-accent text-primary'
@@ -315,7 +323,7 @@
             onclick={() => { if (!colorPickerOpen) colorPickerOpenedAt = Date.now(); colorPickerOpen = !colorPickerOpen; }}
           >
             <Palette class="h-3.5 w-3.5" />
-            <span class="flex-1 text-left">{t('common.toggleTheme')}</span>
+            <span class="flex-1 text-left">{i18n.t('common.toggleTheme')}</span>
             <span
               class="h-3 w-3 rounded-full ring-1 ring-offset-1 ring-offset-sidebar"
               style="background-color: {getColorThemes().find(c => c.id === getColorTheme())?.color ?? '#6366f1'}; --tw-ring-color: {getColorThemes().find(c => c.id === getColorTheme())?.color ?? '#6366f1'}"
@@ -363,21 +371,21 @@
         </div>
         <div class="mt-1 flex items-center justify-between px-1">
           <div class="flex items-center gap-0.5">
-            <TooltipButton tooltip={t('common.switchLanguage')} variant="ghost" size="icon-sm" onclick={toggleLocale} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+            <TooltipButton tooltip={i18n.t('common.switchLanguage')} variant="ghost" size="icon-sm" onclick={toggleLocale} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
               <span class="text-[11px] font-semibold">{localeLabel}</span>
             </TooltipButton>
-            <TooltipButton tooltip={t('common.toggleTheme')} variant="ghost" size="icon-sm" onclick={toggleTheme} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+            <TooltipButton tooltip={i18n.t('common.toggleTheme')} variant="ghost" size="icon-sm" onclick={toggleTheme} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
               {#if getResolvedTheme() === 'dark'}
                 <Sun class="h-3.5 w-3.5" />
               {:else}
                 <Moon class="h-3.5 w-3.5" />
               {/if}
             </TooltipButton>
-            <TooltipButton tooltip={t('settings.title')} variant="ghost" size="icon-sm" onclick={() => navigate('/settings')} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+            <TooltipButton tooltip={i18n.t('settings.title')} variant="ghost" size="icon-sm" onclick={() => adminContext.navigate('/settings')} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
               <Settings class="h-3.5 w-3.5" />
             </TooltipButton>
           </div>
-          <TooltipButton tooltip={t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+          <TooltipButton tooltip={i18n.t('common.toggleSidebar')} variant="ghost" size="icon-sm" onclick={onToggle} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
             <ChevronLeft class="h-3.5 w-3.5" />
           </TooltipButton>
         </div>
@@ -392,7 +400,7 @@
               </Button>
             {/snippet}
           </Tooltip.Trigger>
-          <Tooltip.Content side="right">{t('common.switchLanguage')}</Tooltip.Content>
+          <Tooltip.Content side="right">{i18n.t('common.switchLanguage')}</Tooltip.Content>
         </Tooltip.Root>
         <Tooltip.Root>
           <Tooltip.Trigger>
@@ -406,7 +414,7 @@
               </Button>
             {/snippet}
           </Tooltip.Trigger>
-          <Tooltip.Content side="right">{t('common.toggleTheme')}</Tooltip.Content>
+          <Tooltip.Content side="right">{i18n.t('common.toggleTheme')}</Tooltip.Content>
         </Tooltip.Root>
         <Tooltip.Root>
           <Tooltip.Trigger>
@@ -416,7 +424,7 @@
               </Button>
             {/snippet}
           </Tooltip.Trigger>
-          <Tooltip.Content side="right">{t('common.toggleSidebar')}</Tooltip.Content>
+          <Tooltip.Content side="right">{i18n.t('common.toggleSidebar')}</Tooltip.Content>
         </Tooltip.Root>
         <Tooltip.Root>
           <Tooltip.Trigger>
@@ -426,15 +434,15 @@
               </Button>
             {/snippet}
           </Tooltip.Trigger>
-          <Tooltip.Content side="right">{t('common.logout')}</Tooltip.Content>
+          <Tooltip.Content side="right">{i18n.t('common.logout')}</Tooltip.Content>
         </Tooltip.Root>
       </div>
     {:else}
       <div class="flex justify-center gap-1 p-3">
-        <TooltipButton tooltip={t('common.switchLanguage')} variant="ghost" size="icon" onclick={toggleLocale} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+        <TooltipButton tooltip={i18n.t('common.switchLanguage')} variant="ghost" size="icon" onclick={toggleLocale} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
           <span class="text-[11px] font-semibold">{localeLabel}</span>
         </TooltipButton>
-        <TooltipButton tooltip={t('common.toggleTheme')} variant="ghost" size="icon" onclick={toggleTheme} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+        <TooltipButton tooltip={i18n.t('common.toggleTheme')} variant="ghost" size="icon" onclick={toggleTheme} class="h-8 w-8 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
           {#if getResolvedTheme() === 'dark'}
             <Sun class="h-3.5 w-3.5" />
           {:else}

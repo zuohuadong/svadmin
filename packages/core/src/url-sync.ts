@@ -1,6 +1,43 @@
 import type { Filter } from './types';
-import { getRouterProvider } from './context.svelte';
+import { captureAdminContext } from './context.svelte';
+import type { AdminContextAccessor } from './context.svelte';
 import { getAdminOptions } from './options.svelte';
+
+const CRUD_OPERATORS = new Set([
+  'eq', 'ne', 'lt', 'gt', 'lte', 'gte',
+  'contains', 'ncontains', 'startswith', 'endswith',
+  'in', 'nin', 'null', 'nnull', 'between', 'nbetween',
+]);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isFilter(value: unknown, depth: number, budget: { remaining: number }): value is Filter {
+  if (depth > 20 || budget.remaining-- <= 0 || !isRecord(value)) return false;
+
+  if (typeof value.field === 'string') {
+    return value.field.trim().length > 0
+      && typeof value.operator === 'string'
+      && CRUD_OPERATORS.has(value.operator)
+      && 'value' in value;
+  }
+
+  return (value.operator === 'and' || value.operator === 'or')
+    && Array.isArray(value.value)
+    && value.value.every((entry) => isFilter(entry, depth + 1, budget));
+}
+
+function parseFilters(value: string): Filter[] | undefined {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (!Array.isArray(parsed)) return undefined;
+    const budget = { remaining: 200 };
+    return parsed.every((entry) => isFilter(entry, 0, budget)) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export interface URLState {
   page?: number;
@@ -11,9 +48,9 @@ export interface URLState {
   filters?: Filter[];
 }
 
-export function readURLState(): URLState {
+export function readURLState(adminContext: AdminContextAccessor = captureAdminContext()): URLState {
   if (typeof window === 'undefined') return {};
-  const rp = getRouterProvider();
+  const rp = adminContext.routerProvider;
   if (!rp) return {};
 
   const { params } = rp.parse();
@@ -36,17 +73,19 @@ export function readURLState(): URLState {
 
   const filtersRaw = params['filters'];
   if (filtersRaw) {
-    try {
-      state.filters = JSON.parse(filtersRaw);
-    } catch { /* ignore invalid json */ }
+    const filters = parseFilters(filtersRaw);
+    if (filters) state.filters = filters;
   }
 
   return state;
 }
 
-export function writeURLState(state: URLState): void {
+export function writeURLState(
+  state: URLState,
+  adminContext: AdminContextAccessor = captureAdminContext(),
+): void {
   if (typeof window === 'undefined') return;
-  const rp = getRouterProvider();
+  const rp = adminContext.routerProvider;
   if (!rp) return;
 
   const current = rp.parse();

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '../ui/card/index.js';
   import { Button } from '../ui/button/index.js';
   import { Badge } from '../ui/badge/index.js';
@@ -8,6 +8,8 @@
   import ActivityTimeline from './ActivityTimeline.svelte';
   import TeamsShowcase from './TeamsShowcase.svelte';
   import { MapPin, Link, Calendar, MoreHorizontal } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   type ProfileVariant = 'default' | 'company' | 'gamer';
   type ProfileTab = 'projects' | 'activity' | 'teams';
@@ -35,9 +37,9 @@
         followers: 8420,
         following: 312,
         stats: [
-          { label: t('profile.employees'), value: '1,250' },
-          { label: t('publicProfile.projects'), value: '48' },
-          { label: t('publicProfile.teams'), value: '12' },
+          { label: i18n.t('profile.employees'), value: '1,250' },
+          { label: i18n.t('publicProfile.projects'), value: '48' },
+          { label: i18n.t('publicProfile.teams'), value: '12' },
         ],
         tags: ['SaaS', 'Enterprise', 'Cloud', 'AI'],
       };
@@ -52,9 +54,9 @@
         followers: 24600,
         following: 180,
         stats: [
-          { label: t('profile.gamesPlayed'), value: '1,284' },
-          { label: t('profile.winRate'), value: '68%' },
-          { label: t('profile.rank'), value: 'Diamond II' },
+          { label: i18n.t('profile.gamesPlayed'), value: '1,284' },
+          { label: i18n.t('profile.winRate'), value: '68%' },
+          { label: i18n.t('profile.rank'), value: 'Diamond II' },
         ],
         tags: ['FPS', 'RPG', 'Streaming', 'Esports'],
       };
@@ -68,9 +70,9 @@
       followers: 1234,
       following: 567,
       stats: [
-        { label: t('publicProfile.projects'), value: '24' },
-        { label: t('publicProfile.followers'), value: '1.2K' },
-        { label: t('publicProfile.following'), value: '567' },
+        { label: i18n.t('publicProfile.projects'), value: '24' },
+        { label: i18n.t('publicProfile.followers'), value: '1.2K' },
+        { label: i18n.t('publicProfile.following'), value: '567' },
       ],
       tags: ['TypeScript', 'Svelte', 'Node.js', 'Open Source'],
     };
@@ -125,13 +127,13 @@
               <span class="flex items-center gap-1"><Link class="h-3.5 w-3.5" />{profileData.website}</span>
             {/if}
             {#if 'joinedDate' in profileData && profileData.joinedDate}
-              <span class="flex items-center gap-1"><Calendar class="h-3.5 w-3.5" />{t('publicProfile.joinedDate', { date: profileData.joinedDate })}</span>
+              <span class="flex items-center gap-1"><Calendar class="h-3.5 w-3.5" />{i18n.t('publicProfile.joinedDate', { date: profileData.joinedDate })}</span>
             {/if}
           </div>
         </div>
         <div class="flex gap-2 shrink-0">
-          <Button size="sm">{t('publicProfile.editProfile')}</Button>
-          <Button size="sm" variant="outline">{t('publicProfile.sendMessage')}</Button>
+          <Button size="sm">{i18n.t('publicProfile.editProfile')}</Button>
+          <Button size="sm" variant="outline">{i18n.t('publicProfile.sendMessage')}</Button>
           <Button size="sm" variant="ghost"><MoreHorizontal class="h-4 w-4" /></Button>
         </div>
       </div>
@@ -162,9 +164,9 @@
   <!-- Tabs: Projects / Activity / Teams -->
   <Tabs.Root value={activeTab}>
     <Tabs.List class="w-full justify-start border-b">
-      <Tabs.Trigger value="projects" active={activeTab === 'projects'} onclick={() => activeTab = 'projects'} class="gap-1.5">{t('publicProfile.projects')}</Tabs.Trigger>
-      <Tabs.Trigger value="activity" active={activeTab === 'activity'} onclick={() => activeTab = 'activity'} class="gap-1.5">{t('publicProfile.activity')}</Tabs.Trigger>
-      <Tabs.Trigger value="teams" active={activeTab === 'teams'} onclick={() => activeTab = 'teams'} class="gap-1.5">{t('publicProfile.teams')}</Tabs.Trigger>
+      <Tabs.Trigger value="projects" active={activeTab === 'projects'} onclick={() => activeTab = 'projects'} class="gap-1.5">{i18n.t('publicProfile.projects')}</Tabs.Trigger>
+      <Tabs.Trigger value="activity" active={activeTab === 'activity'} onclick={() => activeTab = 'activity'} class="gap-1.5">{i18n.t('publicProfile.activity')}</Tabs.Trigger>
+      <Tabs.Trigger value="teams" active={activeTab === 'teams'} onclick={() => activeTab = 'teams'} class="gap-1.5">{i18n.t('publicProfile.teams')}</Tabs.Trigger>
     </Tabs.List>
     <Tabs.Content value="projects" active={activeTab === 'projects'} class="mt-4">
       <ProjectsGrid {columns} projects={demoProjects} />

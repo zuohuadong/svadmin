@@ -9,10 +9,6 @@ export interface FieldComponentMap {
   [fieldType: string]: Component<any>;
 }
 
-// Default display component map (read-only field display)
-// Dynamically imports components only when first used
-const _displayCache = new Map<string, Component<any>>();
-
 // Pre-import all field display components (tree-shaken by bundler)
 import BooleanField from './fields/BooleanField.svelte';
 import ImageField from './fields/ImageField.svelte';

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getResource } from '@svadmin/core';
-  import { getLocale } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { ResourceOperationsPage } from '@svadmin/ui';
   import type { Component } from 'svelte';
   import {
@@ -15,6 +15,8 @@
     Users,
   } from '@lucide/svelte';
   import { readHashView } from '../utils/hashView';
+
+  const i18n = useTranslation();
 
   interface PageCopy {
     eyebrow: string;
@@ -39,7 +41,7 @@
   let { resourceName }: { resourceName: string } = $props();
   let activeView = $state(readHashView('default'));
 
-  const locale = $derived(getLocale());
+  const locale = $derived(i18n.locale);
   const resource = $derived(getResource(resourceName));
 
   const fallbackConfig: PageConfig = {

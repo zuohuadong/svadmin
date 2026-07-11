@@ -75,8 +75,12 @@ export function deriveValidator(
     only?: string[];
     /** Skip these field keys. */
     except?: string[];
+    /** Captured tree-local translator for validation that runs after component initialization. */
+    translate?: typeof t;
   }
 ): (values: Record<string, unknown>) => Record<string, string> | null {
+  const translate = options?.translate ?? t;
+
   return (values: Record<string, unknown>) => {
     const errors: Record<string, string> = {};
     const only = options?.only ? new Set(options.only) : null;
@@ -91,12 +95,12 @@ export function deriveValidator(
       // Required check
       if (field.required) {
         if (value === undefined || value === null || value === '') {
-          errors[field.key] = t('validation.required');
+          errors[field.key] = translate('validation.required');
           continue;
         }
         // Empty array check for multi-value fields
         if (Array.isArray(value) && value.length === 0 && (field.type === 'multiselect' || field.type === 'tags')) {
-          errors[field.key] = t('validation.required');
+          errors[field.key] = translate('validation.required');
           continue;
         }
       }
@@ -109,7 +113,7 @@ export function deriveValidator(
         case 'email': {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (typeof value === 'string' && !emailRegex.test(value)) {
-            errors[field.key] = t('validation.invalidEmail');
+            errors[field.key] = translate('validation.invalidEmail');
           }
           break;
         }
@@ -117,17 +121,17 @@ export function deriveValidator(
           try {
             new URL(value as string);
           } catch {
-            errors[field.key] = t('validation.invalidUrl');
+            errors[field.key] = translate('validation.invalidUrl');
           }
           break;
         }
         case 'number': {
           if (typeof value === 'string' && isNaN(Number(value))) {
-            errors[field.key] = t('validation.invalidNumber');
+            errors[field.key] = translate('validation.invalidNumber');
           } else if (typeof value === 'number' && isNaN(value)) {
-            errors[field.key] = t('validation.invalidNumber');
+            errors[field.key] = translate('validation.invalidNumber');
           } else if (typeof value !== 'string' && typeof value !== 'number') {
-            errors[field.key] = t('validation.invalidNumber');
+            errors[field.key] = translate('validation.invalidNumber');
           }
           break;
         }

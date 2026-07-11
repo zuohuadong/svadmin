@@ -1,5 +1,5 @@
 // @svadmin/lite — Lightweight SSR Admin UI
-// Zero client-side JS required. IE11 compatible.
+// Server-rendered by default, with optional progressive enhancement.
 
 // Server utilities (use in +page.server.ts / hooks.server.ts)
 export {

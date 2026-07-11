@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '../ui/card/index.js';
   import { Button } from '../ui/button/index.js';
   import { Badge } from '../ui/badge/index.js';
   import { Input } from '../ui/input/index.js';
   import { Search, ExternalLink, Check, Plus } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   interface NFTUser {
     id: string;
@@ -53,13 +55,13 @@
 
 <div class="space-y-6" data-svadmin-content-page="network">
   <div>
-    <h2 class="text-xl font-semibold text-foreground">{t('network.userCards')}</h2>
-    <p class="mt-1 text-sm text-muted-foreground">{t('network.userCardsDescription')}</p>
+    <h2 class="text-xl font-semibold text-foreground">{i18n.t('network.userCards')}</h2>
+    <p class="mt-1 text-sm text-muted-foreground">{i18n.t('network.userCardsDescription')}</p>
   </div>
 
   <div class="relative">
     <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-    <Input placeholder={t('common.search')} bind:value={searchQuery} class="pl-9" />
+    <Input placeholder={i18n.t('common.search')} bind:value={searchQuery} class="pl-9" />
   </div>
 
   <div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -98,15 +100,15 @@
           <div class="grid grid-cols-3 gap-2 border-t pt-3">
             <div class="text-center">
               <div class="text-sm font-semibold text-foreground">{user.collectionCount}</div>
-              <div class="text-[10px] text-muted-foreground">{t('network.nftCollection')}</div>
+              <div class="text-[10px] text-muted-foreground">{i18n.t('network.nftCollection')}</div>
             </div>
             <div class="text-center">
               <div class="text-sm font-semibold text-foreground">{user.floorPrice}</div>
-              <div class="text-[10px] text-muted-foreground">{t('network.floorPrice')}</div>
+              <div class="text-[10px] text-muted-foreground">{i18n.t('network.floorPrice')}</div>
             </div>
             <div class="text-center">
               <div class="text-xs font-semibold text-foreground">{user.volume}</div>
-              <div class="text-[10px] text-muted-foreground">{t('network.volume')}</div>
+              <div class="text-[10px] text-muted-foreground">{i18n.t('network.volume')}</div>
             </div>
           </div>
 
@@ -118,9 +120,9 @@
               onclick={() => toggleConnect(user.id)}
             >
               {#if isConnected(user.id)}
-                <Check class="h-3.5 w-3.5 mr-1" />{t('network.connected')}
+                <Check class="h-3.5 w-3.5 mr-1" />{i18n.t('network.connected')}
               {:else}
-                <Plus class="h-3.5 w-3.5 mr-1" />{t('network.connect')}
+                <Plus class="h-3.5 w-3.5 mr-1" />{i18n.t('network.connect')}
               {/if}
             </Button>
             <Button size="sm" variant="ghost">

@@ -9,13 +9,15 @@ permissions:
   contents: write
   pull-requests: write
   id-token: write
-  actions: write
 
 jobs:
   release-please:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
+      paths_released: ${{ steps.release.outputs.paths_released }}
+      release_sha: ${{ steps.release-ref.outputs.sha }}
     steps:
       - uses: googleapis/release-please-action@v5
         id: release
@@ -24,19 +26,43 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  trigger-publish:
+      - name: Resolve immutable release SHA
+        id: release-ref
+        if: steps.release.outputs.releases_created == 'true'
+        env:
+          RELEASE_OUTPUTS: ${{ toJSON(steps.release.outputs) }}
+          RELEASE_PATHS: ${{ steps.release.outputs.paths_released }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const outputs = JSON.parse(process.env.RELEASE_OUTPUTS || '{}');
+          const paths = JSON.parse(process.env.RELEASE_PATHS || '[]');
+          if (!Array.isArray(paths) || paths.length === 0) {
+            throw new Error('release-please reported a release without paths');
+          }
+
+          const shas = paths.map((path) => outputs[`${path}--sha`]);
+          if (shas.some((sha) => typeof sha !== 'string' || !/^[0-9a-f]{40,64}$/.test(sha))) {
+            throw new Error(`Missing immutable release SHA for paths: ${paths.join(', ')}`);
+          }
+
+          const uniqueShas = [...new Set(shas)];
+          if (uniqueShas.length !== 1) {
+            throw new Error(`Release paths point at different SHAs: ${uniqueShas.join(', ')}`);
+          }
+
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `sha=${uniqueShas[0]}\n`);
+          NODE
+
+  quality-and-publish:
     needs: release-please
-    if: needs.release-please.outputs.releases_created == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger CI publish via workflow_dispatch
-        uses: actions/github-script@v9
-        with:
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'ci.yml',
-              ref: 'main',
-            });
-            console.log('✅ Triggered CI publish workflow');
+    if: needs.release-please.outputs.releases_created == 'true' && needs.release-please.outputs.release_sha != ''
+    uses: ./.github/workflows/ci.yml
+    with:
+      release_sha: ${{ needs.release-please.outputs.release_sha }}
+      release_paths: ${{ needs.release-please.outputs.paths_released }}
+      publish: true
+    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write

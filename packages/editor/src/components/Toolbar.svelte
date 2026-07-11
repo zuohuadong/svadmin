@@ -9,15 +9,13 @@
   import ImageUpload from './ImageUpload.svelte';
   import {
     Bold, Italic, Underline as UnderlineIcon, Strikethrough,
-    Heading1, Heading2, Heading3,
     List, ListOrdered, ListChecks,
     AlignLeft, AlignCenter, AlignRight, AlignJustify,
     Quote, Minus, Code, Code2,
     Undo2, Redo2,
     Link as LinkIcon, ImageIcon, TableIcon,
-    Palette, Highlighter, Type,
+    Palette, Highlighter,
     Subscript, Superscript,
-    Pilcrow,
   } from '@lucide/svelte';
   import { t } from '@svadmin/core';
 

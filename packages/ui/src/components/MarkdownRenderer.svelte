@@ -26,7 +26,7 @@
 
   let { content, streaming = false, class: className = "" }: Props = $props();
 
-  const hasMarkdownDeps = !!(Marked && Object.keys(DOMPurify || {}).length > 0);
+  const hasMarkdownDeps = typeof Marked === "function" && typeof DOMPurify?.sanitize === "function";
 
   // Configure marked with syntax highlighting if available
   const markedObj = hasMarkdownDeps ? new Marked(
@@ -69,47 +69,101 @@
     }, 2000);
   }
 
+  function createCopyIcon(): SVGSVGElement {
+    const svgNamespace = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNamespace, "svg");
+    svg.setAttribute("width", "14");
+    svg.setAttribute("height", "14");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+    svg.setAttribute("aria-hidden", "true");
+    svg.classList.add("lucide", "lucide-copy");
+
+    const rect = document.createElementNS(svgNamespace, "rect");
+    rect.setAttribute("width", "14");
+    rect.setAttribute("height", "14");
+    rect.setAttribute("x", "8");
+    rect.setAttribute("y", "8");
+    rect.setAttribute("rx", "2");
+    rect.setAttribute("ry", "2");
+    svg.appendChild(rect);
+
+    const path = document.createElementNS(svgNamespace, "path");
+    path.setAttribute("d", "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2");
+    svg.appendChild(path);
+
+    return svg;
+  }
+
   // Inject copy buttons into the HTML after rendering
   // We do this via action instead of raw string manipulation for safety
   function enhanceCodeBlocks(node: HTMLElement, _: string) {
+    let destroyed = false;
+    let enhancementScheduled = false;
+
+    function enhance() {
+      if (destroyed) return;
+
+      // Find all pre > code blocks that don't have wrappers yet
+      const pres = node.querySelectorAll("pre:not(.enhanced)");
+      pres.forEach((pre) => {
+        pre.classList.add("enhanced");
+        const wrapper = document.createElement("div");
+        wrapper.className =
+          "code-block-wrapper group relative my-4 rounded-md bg-foreground/95";
+
+        const header = document.createElement("div");
+        header.className =
+          "flex items-center justify-between px-4 py-2 text-xs text-zinc-400 border-b border-zinc-800";
+
+        const lang =
+          Array.from(pre.querySelector("code")?.classList || [])
+            .find((className) => className.startsWith("language-"))
+            ?.replace("language-", "") || "Code";
+        const languageLabel = document.createElement("span");
+        languageLabel.textContent = lang;
+
+        const copyButton = document.createElement("button");
+        copyButton.type = "button";
+        copyButton.className =
+          "copy-btn hover:text-white transition-colors flex items-center gap-1";
+        copyButton.setAttribute("aria-label", "Copy code");
+        copyButton.appendChild(createCopyIcon());
+
+        header.append(languageLabel, copyButton);
+        pre.replaceWith(wrapper);
+        wrapper.appendChild(header);
+
+        const scrollContainer = document.createElement("div");
+        scrollContainer.className = "overflow-x-auto p-4";
+        scrollContainer.appendChild(pre);
+        wrapper.appendChild(scrollContainer);
+      });
+    }
+
+    function scheduleEnhancement() {
+      if (enhancementScheduled || destroyed) return;
+      enhancementScheduled = true;
+      queueMicrotask(() => {
+        enhancementScheduled = false;
+        enhance();
+      });
+    }
+
+    node.addEventListener("click", handleCopy);
+    enhance();
+    scheduleEnhancement();
+
     return {
       update(_newHtml: string) {
-        // Find all pre > code blocks that don't have wrappers yet
-        const pres = node.querySelectorAll("pre:not(.enhanced)");
-        pres.forEach((pre) => {
-          pre.classList.add("enhanced");
-          const wrapper = document.createElement("div");
-          wrapper.className =
-            "code-block-wrapper group relative my-4 rounded-md bg-foreground/95";
-
-          const header = document.createElement("div");
-          header.className =
-            "flex items-center justify-between px-4 py-2 text-xs text-zinc-400 border-b border-zinc-800";
-
-          const lang =
-            Array.from(pre.querySelector("code")?.classList || [])
-              .find((c) => c.startsWith("language-"))
-              ?.replace("language-", "") || "Code";
-          header.innerHTML = `
-            <span>${lang}</span>
-            <button class="copy-btn hover:text-white transition-colors flex items-center gap-1">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-            </button>
-          `;
-
-          pre.replaceWith(wrapper);
-          wrapper.appendChild(header);
-
-          const scrollContainer = document.createElement("div");
-          scrollContainer.className = "overflow-x-auto p-4";
-          scrollContainer.appendChild(pre);
-          wrapper.appendChild(scrollContainer);
-        });
-
-        // Add event listener for copy buttons
-        node.addEventListener("click", handleCopy);
+        scheduleEnhancement();
       },
       destroy() {
+        destroyed = true;
         node.removeEventListener("click", handleCopy);
       },
     };

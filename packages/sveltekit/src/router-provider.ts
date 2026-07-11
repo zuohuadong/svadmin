@@ -1,25 +1,46 @@
 /// <reference types="@sveltejs/kit" />
 import { goto } from '$app/navigation';
 import { page } from '$app/state';
-import { base } from '$app/paths';
+import { base, resolve } from '$app/paths';
 import type { RouterProvider } from '@svadmin/core';
+
+function normalizeInternalPath(path: string): string {
+  return path.startsWith('/') ? path : `/${path}`;
+}
+
+function runtimeResolveArgs(path: string): Parameters<typeof resolve> {
+  // RouterProvider receives concrete runtime paths, while SvelteKit types resolve() from app route IDs.
+  return [normalizeInternalPath(path)] as unknown as Parameters<typeof resolve>;
+}
+
+function stripConfiguredBase(pathname: string): string {
+  const configuredBase = base.endsWith('/') ? base.slice(0, -1) : base;
+
+  if (!configuredBase || configuredBase === '/') return pathname;
+  if (pathname === configuredBase) return '/';
+  if (pathname.startsWith(`${configuredBase}/`)) {
+    return pathname.slice(configuredBase.length) || '/';
+  }
+  return pathname;
+}
 
 export function createSvelteKitRouterProvider(): RouterProvider {
   return {
     go({ to, query, hash, type = 'push' }) {
-      let url = to;
+      let path = normalizeInternalPath(to);
       if (query) {
         const params = new URLSearchParams(query).toString();
-        if (params) url += url.includes('?') ? `&${params}` : `?${params}`;
+        if (params) path += path.includes('?') ? `&${params}` : `?${params}`;
       }
       if (hash) {
-        url += `#${hash}`;
+        path += `#${hash}`;
       }
-      
+      const url = resolve(...runtimeResolveArgs(path));
+
       const gotoPromise = type === 'replace'
         ? goto(url, { replaceState: true })
         : goto(url);
-      
+
       gotoPromise.then(() => {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new PopStateEvent('popstate'));
@@ -34,19 +55,15 @@ export function createSvelteKitRouterProvider(): RouterProvider {
       }
     },
     formatLink(path: string) {
-      const p = path.startsWith('/') ? path : `/${path}`;
-      return base + p;
+      return resolve(...runtimeResolveArgs(path));
     },
     parse() {
       let pathname = '/';
       const params: Record<string, string> = {};
-      
+
       try {
         if (page.url) {
-          pathname = page.url.pathname;
-          if (base && pathname.startsWith(base)) {
-            pathname = pathname.slice(base.length) || '/';
-          }
+          pathname = stripConfiguredBase(page.url.pathname);
         }
         if (page.url?.searchParams) {
           page.url.searchParams.forEach((v: string, k: string) => {

@@ -35,9 +35,6 @@
   }: Props<unknown> = $props();
 
   let scrollTop = $state(0);
-  let containerRef = $state<HTMLDivElement | null>(null);
-
-  const _totalHeight = $derived(items.length * rowHeight);
 
   const visibleRange = $derived.by(() => {
     const start = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan);
@@ -61,7 +58,6 @@
 </script>
 
 <div
-  bind:this={containerRef}
   class="overflow-auto {className}"
   style="height: {containerHeight}px;"
   onscroll={handleScroll}

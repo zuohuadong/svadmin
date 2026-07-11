@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Elysia DataProvider — CRUD convention compatible
 // Expects backend routes following: GET /resource, GET /resource/:id, POST /resource, PATCH /resource/:id, DELETE /resource/:id
 // Response format for lists: { items: T[], total: number } (also supports raw arrays)
@@ -8,7 +7,7 @@ import type {
   CreateParams, CreateResult, UpdateParams, UpdateResult, DeleteParams, DeleteResult,
   GetManyParams, GetManyResult, CreateManyParams, CreateManyResult,
   UpdateManyParams, UpdateManyResult, DeleteManyParams, DeleteManyResult,
-  CustomParams, CustomResult, BaseRecord,
+  CustomParams, CustomResult, BaseRecord, FieldFilter, Filter, Sort,
 } from '@svadmin/core';
 
 export interface ElysiaDataProviderOptions {
@@ -44,10 +43,28 @@ export interface ElysiaDataProviderOptions {
   parseListResponse?: <T>(json: unknown, resource: string) => { data: T[]; total: number };
 }
 
+const DEFAULT_JSON_HEADERS: Record<string, string> = { 'Content-Type': 'application/json' };
+
+type RequestOptions = Omit<RequestInit, 'headers'> & {
+  headers?: Record<string, string>;
+};
+
+function mergeHeaders(...sources: Array<Record<string, string> | undefined>): Record<string, string> {
+  const merged = new Map<string, readonly [name: string, value: string]>();
+
+  for (const source of sources) {
+    if (!source) continue;
+    for (const [name, value] of Object.entries(source)) {
+      merged.set(name.toLowerCase(), [name, value]);
+    }
+  }
+
+  return Object.fromEntries(merged.values());
+}
+
 function resolveHeaders(opts: ElysiaDataProviderOptions): Record<string, string> {
-  const base: Record<string, string> = { 'Content-Type': 'application/json' };
   const extra = typeof opts.headers === 'function' ? opts.headers() : (opts.headers ?? {});
-  return { ...base, ...extra };
+  return mergeHeaders(DEFAULT_JSON_HEADERS, extra);
 }
 
 function resolveResourceUrl(opts: ElysiaDataProviderOptions, resource: string): string {
@@ -55,8 +72,116 @@ function resolveResourceUrl(opts: ElysiaDataProviderOptions, resource: string): 
   return `${opts.apiUrl}/${segment}`;
 }
 
-async function request<T>(url: string, headers: Record<string, string>, init?: RequestInit, withCredentials?: boolean): Promise<T> {
-  const fetchInit: RequestInit = { ...init, headers: { ...headers, ...init?.headers } };
+function encodeIdPathSegment(id: string | number): string {
+  return encodeURIComponent(String(id));
+}
+
+function isSameOrigin(apiUrl: string, targetUrl: string): boolean {
+  try {
+    const api = new URL(apiUrl);
+    const target = new URL(targetUrl, apiUrl.endsWith('/') ? apiUrl : `${apiUrl}/`);
+    return api.origin === target.origin;
+  } catch {
+    return false;
+  }
+}
+
+function serializeQueryValue(value: unknown): string {
+  if (value === null) return 'null';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+    return String(value);
+  }
+
+  const serialized = JSON.stringify(value);
+  return serialized === undefined ? String(value) : serialized;
+}
+
+function appendQuery(params: URLSearchParams, query?: Record<string, unknown>): void {
+  if (!query) return;
+
+  for (const [name, value] of Object.entries(query)) {
+    if (value === undefined) continue;
+    if (Array.isArray(value)) {
+      for (const item of value) params.append(name, serializeQueryValue(item));
+      continue;
+    }
+    params.set(name, serializeQueryValue(value));
+  }
+}
+
+function appendSorters(params: URLSearchParams, sorters?: Sort[]): void {
+  if (!sorters?.length) return;
+  params.set('_sort', sorters.map(sorter => sorter.field).join(','));
+  params.set('_order', sorters.map(sorter => sorter.order).join(','));
+}
+
+function filterParamName(filter: FieldFilter): string {
+  if (filter.operator === 'eq') return filter.field;
+  if (filter.operator === 'contains') return `${filter.field}_like`;
+  return `${filter.field}_${filter.operator}`;
+}
+
+function filterParamValue(filter: FieldFilter): string {
+  if (filter.operator === 'null' || filter.operator === 'nnull') return 'true';
+  if (Array.isArray(filter.value)) {
+    return filter.value.map(serializeQueryValue).join(',');
+  }
+  return serializeQueryValue(filter.value);
+}
+
+function appendFilters(params: URLSearchParams, filters?: Filter[]): void {
+  if (!filters?.length) return;
+
+  let hasLogicalFilter = false;
+  for (const filter of filters) {
+    if ('field' in filter) {
+      params.append(filterParamName(filter), filterParamValue(filter));
+    } else {
+      hasLogicalFilter = true;
+    }
+  }
+
+  // Flat filters keep the established field_operator convention. A canonical
+  // JSON copy is added only when a logical group is present, because OR/AND
+  // cannot be represented without losing nesting in flat query parameters.
+  if (hasLogicalFilter) params.set('_filters', JSON.stringify(filters));
+}
+
+function buildCustomUrl(
+  url: string,
+  apiUrl: string,
+  query?: Record<string, unknown>,
+  sorters?: Sort[],
+  filters?: Filter[],
+): string {
+  const parsed = new URL(url, apiUrl.endsWith('/') ? apiUrl : `${apiUrl}/`);
+  appendQuery(parsed.searchParams, query);
+  appendSorters(parsed.searchParams, sorters);
+  appendFilters(parsed.searchParams, filters);
+  return parsed.toString();
+}
+
+async function parseResponse<T>(response: Response): Promise<T> {
+  if (response.status === 204 || response.status === 205) {
+    return undefined as unknown as T;
+  }
+
+  const contentLength = response.headers?.get('content-length');
+  if (contentLength?.trim() === '0') {
+    return undefined as unknown as T;
+  }
+
+  const body = await response.text();
+  if (!body || body.trim() === '') {
+    return undefined as unknown as T;
+  }
+
+  return JSON.parse(body) as T;
+}
+
+async function request<T>(url: string, headers: Record<string, string>, init?: RequestOptions, withCredentials?: boolean): Promise<T> {
+  const fetchInit: RequestInit = { ...init, headers: mergeHeaders(headers, init?.headers) };
   if (withCredentials) {
     fetchInit.credentials = 'include';
   }
@@ -65,7 +190,7 @@ async function request<T>(url: string, headers: Record<string, string>, init?: R
     const body = await response.text().catch(() => '');
     throw new Error(`HTTP ${response.status}: ${response.statusText}${body ? ` — ${body}` : ''}`);
   }
-  return response.json();
+  return parseResponse<T>(response);
 }
 
 /**
@@ -121,18 +246,8 @@ export function createElysiaDataProvider(opts: ElysiaDataProviderOptions): DataP
       params.set('_page', String(current));
       params.set('_limit', String(pageSize));
 
-      if (sorters?.length) {
-        params.set('_sort', sorters.map(s => s.field).join(','));
-        params.set('_order', sorters.map(s => s.order).join(','));
-      }
-
-      if (filters?.length) {
-        for (const f of filters) {
-          if ((f as any).operator === 'eq') params.set((f as any).field, String((f as any).value));
-          else if ((f as any).operator === 'contains') params.set(`${(f as any).field}_like`, String((f as any).value));
-          else params.set(`${(f as any).field}_${(f as any).operator}`, String((f as any).value));
-        }
-      }
+      appendSorters(params, sorters);
+      appendFilters(params, filters);
 
       const baseUrl = resolveResourceUrl(opts, resource);
       const url = `${baseUrl}?${params.toString()}`;
@@ -147,7 +262,7 @@ export function createElysiaDataProvider(opts: ElysiaDataProviderOptions): DataP
 
     async getOne<TData extends BaseRecord = BaseRecord>({ resource, id }: GetOneParams): Promise<GetOneResult<TData>> {
       const baseUrl = resolveResourceUrl(opts, resource);
-      const data = await request<TData>(`${baseUrl}/${id}`, resolveHeaders(opts), undefined, withCredentials);
+      const data = await request<TData>(`${baseUrl}/${encodeIdPathSegment(id)}`, resolveHeaders(opts), undefined, withCredentials);
       return { data };
     },
 
@@ -162,7 +277,7 @@ export function createElysiaDataProvider(opts: ElysiaDataProviderOptions): DataP
 
     async update<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, id, variables }: UpdateParams<TVariables>): Promise<UpdateResult<TData>> {
       const baseUrl = resolveResourceUrl(opts, resource);
-      const data = await request<TData>(`${baseUrl}/${id}`, resolveHeaders(opts), {
+      const data = await request<TData>(`${baseUrl}/${encodeIdPathSegment(id)}`, resolveHeaders(opts), {
         method: updateMethod,
         body: JSON.stringify(variables),
       }, withCredentials);
@@ -171,10 +286,10 @@ export function createElysiaDataProvider(opts: ElysiaDataProviderOptions): DataP
 
     async deleteOne<TData extends BaseRecord = BaseRecord, TVariables = unknown>({ resource, id }: DeleteParams<TVariables>): Promise<DeleteResult<TData>> {
       const baseUrl = resolveResourceUrl(opts, resource);
-      const data = await request<TData>(`${baseUrl}/${id}`, resolveHeaders(opts), {
+      const data = await request<TData | undefined>(`${baseUrl}/${encodeIdPathSegment(id)}`, resolveHeaders(opts), {
         method: 'DELETE',
       }, withCredentials);
-      return { data };
+      return { data: data === undefined ? { id } as unknown as TData : data };
     },
 
     async getMany<TData extends BaseRecord = BaseRecord>({ resource, ids }: GetManyParams): Promise<GetManyResult<TData>> {
@@ -201,7 +316,7 @@ export function createElysiaDataProvider(opts: ElysiaDataProviderOptions): DataP
       const baseUrl = resolveResourceUrl(opts, resource);
       const results = await Promise.all(
         ids.map(id =>
-          request<TData>(`${baseUrl}/${id}`, resolveHeaders(opts), {
+          request<TData>(`${baseUrl}/${encodeIdPathSegment(id)}`, resolveHeaders(opts), {
             method: updateMethod,
             body: JSON.stringify(variables),
           }, withCredentials)
@@ -214,19 +329,29 @@ export function createElysiaDataProvider(opts: ElysiaDataProviderOptions): DataP
       const baseUrl = resolveResourceUrl(opts, resource);
       const results = await Promise.all(
         ids.map(id =>
-          request<TData>(`${baseUrl}/${id}`, resolveHeaders(opts), {
+          request<TData | undefined>(`${baseUrl}/${encodeIdPathSegment(id)}`, resolveHeaders(opts), {
             method: 'DELETE',
-          }, withCredentials)
+          }, withCredentials).then(data => data === undefined ? { id } as unknown as TData : data)
         )
       );
       return { data: results };
     },
 
-    async custom<TData = unknown, TVariables = unknown>({ url, method, payload, headers }: CustomParams<TVariables>): Promise<CustomResult<TData>> {
-      const data = await request<TData>(url, { ...resolveHeaders(opts), ...headers }, {
+    async custom<TData = unknown, TVariables = unknown>({ url, method, payload, query, headers, sorters, filters }: CustomParams<TVariables>): Promise<CustomResult<TData>> {
+      const requestUrl = buildCustomUrl(url, apiUrl, query, sorters, filters);
+      const sameOrigin = isSameOrigin(apiUrl, requestUrl);
+      const providerHeaders = resolveHeaders(opts);
+      const requestHeaders = mergeHeaders(
+        // Provider-level headers often contain credentials under application-specific
+        // names. Never inherit them across origins; callers must opt in explicitly via
+        // custom.headers for the target service.
+        sameOrigin ? providerHeaders : DEFAULT_JSON_HEADERS,
+        headers,
+      );
+      const data = await request<TData>(requestUrl, requestHeaders, {
         method: method.toUpperCase(),
-        body: payload ? JSON.stringify(payload) : undefined,
-      }, withCredentials);
+        body: payload === undefined ? undefined : JSON.stringify(payload),
+      }, withCredentials && sameOrigin);
       return { data };
     },
   };

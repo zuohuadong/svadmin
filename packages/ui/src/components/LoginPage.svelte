@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { useLogin, getAuthProvider } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
-  import { navigate } from '@svadmin/core/router';
+  import { captureAdminContext, useLogin, getAuthProvider } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
   import { Label } from './ui/label/index.js';
@@ -9,6 +8,8 @@
   import PasswordInput from './PasswordInput.svelte';
   import { Separator } from './ui/separator/index.js';
   import { User, Loader2, AlertCircle, Shield } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   interface SocialProvider {
     name: string;
@@ -32,6 +33,7 @@
     loginHint?: string;
   }>();
 
+  const adminContext = captureAdminContext();
   const login = useLogin({ errorMessage: false });
   const authProvider = getAuthProvider();
 
@@ -51,14 +53,14 @@
     e.preventDefault();
     error = '';
 
-    if (!identifier) { error = t('auth.usernameOrEmailRequired'); return; }
-    if (!password) { error = t('auth.passwordRequired'); return; }
+    if (!identifier) { error = i18n.t('auth.usernameOrEmailRequired'); return; }
+    if (!password) { error = i18n.t('auth.passwordRequired'); return; }
 
     const result = await login.mutate({ email: identifier, username: identifier, password });
     if (result.success) {
       onSuccess?.();
     } else {
-      error = result.error?.message ?? t('common.loginFailed');
+      error = result.error?.message ?? i18n.t('common.loginFailed');
     }
   }
 </script>
@@ -83,10 +85,10 @@
 
       <div class="max-w-[360px] space-y-4">
         <h2 class="text-4xl font-bold text-white leading-tight">
-          {t('auth.welcomeBack')}
+          {i18n.t('auth.welcomeBack')}
         </h2>
         <p class="text-lg text-white/75 leading-relaxed">
-          {t('auth.welcomeMessage')}
+          {i18n.t('auth.welcomeMessage')}
         </p>
       </div>
 
@@ -109,10 +111,10 @@
 
       <div class="space-y-2.5">
         <h1 class="text-3xl font-semibold tracking-tight text-foreground">
-          {t('auth.welcomeBack')}
+          {i18n.t('auth.welcomeBack')}
         </h1>
         <p class="text-base text-muted-foreground leading-relaxed">
-          {t('auth.welcomeMessage')}
+          {i18n.t('auth.welcomeMessage')}
         </p>
       </div>
 
@@ -125,7 +127,7 @@
             {#if defaultIdentifier}
               <div class="rounded-xl border border-border/70 bg-background/80 px-3 py-2">
                 <p class="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t('auth.usernameOrEmail')}
+                  {i18n.t('auth.usernameOrEmail')}
                 </p>
                 <p class="mt-1 font-mono text-sm font-semibold text-foreground">{defaultIdentifier}</p>
               </div>
@@ -133,7 +135,7 @@
             {#if defaultPassword}
               <div class="rounded-xl border border-border/70 bg-background/80 px-3 py-2">
                 <p class="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t('auth.password')}
+                  {i18n.t('auth.password')}
                 </p>
                 <p class="mt-1 font-mono text-sm font-semibold text-foreground">{defaultPassword}</p>
               </div>
@@ -152,14 +154,14 @@
 
         <div class="space-y-2.5">
           <Label for="login-identifier" class="text-sm font-semibold text-foreground/80 pl-0.5">
-            {t('auth.usernameOrEmail')}
+            {i18n.t('auth.usernameOrEmail')}
           </Label>
           <div class="relative">
             <User class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-[1]" />
             <Input
               id="login-identifier"
               type="text"
-              placeholder={t('auth.identifierPlaceholder')}
+              placeholder={i18n.t('auth.identifierPlaceholder')}
               bind:value={identifier}
               class="pl-12"
               autocomplete="username"
@@ -170,11 +172,11 @@
         <div class="space-y-2.5">
           <div class="flex items-center justify-between pl-0.5">
             <Label for="login-password" class="text-sm font-semibold text-foreground/80">
-              {t('auth.password')}
+              {i18n.t('auth.password')}
             </Label>
             {#if authProvider.forgotPassword}
-              <Button variant="link" class="text-xs h-auto p-0 font-medium hover:text-primary transition-colors" onclick={() => navigate('/forgot-password')}>
-                {t('auth.forgotPasswordLink')}
+              <Button variant="link" class="text-xs h-auto p-0 font-medium hover:text-primary transition-colors" onclick={() => adminContext.navigate('/forgot-password')}>
+                {i18n.t('auth.forgotPasswordLink')}
               </Button>
             {/if}
           </div>
@@ -190,7 +192,7 @@
           {#if login.isLoading}
             <Loader2 class="h-5 w-5 animate-spin mr-2" />
           {/if}
-          {t('auth.loginButton')}
+          {i18n.t('auth.loginButton')}
         </Button>
       </form>
 
@@ -198,7 +200,7 @@
         <div class="relative my-8">
           <Separator />
           <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-4 text-xs font-semibold text-muted-foreground tracking-wider uppercase">
-            {t('auth.orContinueWith')}
+            {i18n.t('auth.orContinueWith')}
           </span>
         </div>
 
@@ -220,9 +222,9 @@
 
       {#if authProvider.register}
         <div class="flex items-center justify-center gap-1.5 mt-8 pt-6 border-t border-border/60">
-          <span class="text-sm text-muted-foreground">{t('auth.noAccount')}</span>
-          <Button variant="link" class="text-sm h-auto p-0 font-semibold text-primary hover:underline" onclick={() => navigate('/register')}>
-            {t('auth.register')}
+          <span class="text-sm text-muted-foreground">{i18n.t('auth.noAccount')}</span>
+          <Button variant="link" class="text-sm h-auto p-0 font-semibold text-primary hover:underline" onclick={() => adminContext.navigate('/register')}>
+            {i18n.t('auth.register')}
           </Button>
         </div>
       {/if}

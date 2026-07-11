@@ -1,9 +1,11 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
-  import { getLocale } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { CalendarDays, ChevronLeft, ChevronRight, Clock, Filter, ListChecks, Plus } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   interface CalendarEvent {
     id: number;
@@ -19,7 +21,7 @@
   let selectedType = $state<string | null>(null);
   let viewMode = $state<'month' | 'agenda'>('month');
 
-  const locale = $derived(getLocale());
+  const locale = $derived(i18n.locale);
   const isZh = $derived(locale === 'zh-CN');
   const query = useList({ resource: 'calendar_events', pagination: { mode: 'off' }, sorters: [{ field: 'startDate', order: 'asc' }] });
   const events = $derived((query.data?.data ?? []) as unknown as CalendarEvent[]);

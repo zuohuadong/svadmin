@@ -202,25 +202,6 @@ function resolvePreset(preset: ColorPreset | string): ColorPreset | undefined {
   return preset;
 }
 
-/** Apply a color preset's CSS variables based on current resolved theme. */
-let activePresetVars: string[] = [];
-
-function applyColorPreset(preset: ColorPreset): void {
-  if (typeof document === 'undefined') return;
-  const resolved = mode === 'system' ? getSystemPreference() : mode;
-  const vars = resolved === 'dark' ? preset.dark : preset.light;
-  const root = document.documentElement;
-  for (const key of activePresetVars) {
-    root.style.removeProperty(key);
-  }
-  activePresetVars = [];
-  for (const [key, value] of Object.entries(vars)) {
-    const cssVar = key.startsWith('--') ? key : `--${key}`;
-    root.style.setProperty(cssVar, value);
-    activePresetVars.push(cssVar);
-  }
-}
-
 /** Get all available color presets (built-in + registered). */
 export function getColorPresets(): ColorPreset[] {
   return Object.values(builtinPresets);
@@ -239,136 +220,224 @@ export interface ThemeConfig {
   layoutPreset?: 'default' | 'clean-flat';
 }
 
+/** Explicit document-level values contributed by one mounted AdminApp. */
+export interface ThemeOwnerOptions {
+  themeConfig?: ThemeConfig;
+  defaultTheme?: ThemeMode;
+}
+
+/** Opaque identity used to update or unregister a mounted theme owner. */
+export type ThemeOwnerToken = symbol;
+
 const STORAGE_KEY = 'svadmin-theme';
 const COLOR_STORAGE_KEY = 'svadmin-color-theme';
 
-// ── Theme configuration ──────────────────────────────────
-let themeConfig: ThemeConfig = {};
+interface ThemeOwnerEntry {
+  token: ThemeOwnerToken;
+  options: ThemeOwnerOptions;
+}
 
-/**
- * Configure the theme system. Must be called before setTheme() or
- * automatically via AdminApp's themeConfig prop.
- */
-export function configureTheme(config: ThemeConfig): void {
-  themeConfig = { ...themeConfig, ...config };
-  applyTheme(mode);
-  if (config.colorPreset) {
-    const preset = resolvePreset(config.colorPreset);
-    if (preset) {
-      colorTheme = preset.name as ColorTheme;
-      if (typeof window !== 'undefined') {
-        try { localStorage.setItem(COLOR_STORAGE_KEY, preset.name); } catch { /* intentional */}
-      }
-      applyColorTheme(preset.name as ColorTheme);
-      applyColorPreset(preset);
-    }
+let legacyThemeConfig: ThemeConfig = {};
+let themeConfig: ThemeConfig = {};
+let themeOwners: ThemeOwnerEntry[] = [];
+let activePresetVars: string[] = [];
+let activeCssOverrideVars: string[] = [];
+let colorSelectionOverridesConfig = false;
+
+function cloneColorPreset(preset: ColorPreset): ColorPreset {
+  return {
+    ...preset,
+    light: { ...preset.light },
+    dark: { ...preset.dark },
+  };
+}
+
+function cloneThemeConfig(config: ThemeConfig = {}): ThemeConfig {
+  const cloned = { ...config };
+  if (config.cssOverrides) cloned.cssOverrides = { ...config.cssOverrides };
+  if (typeof config.colorPreset === 'object') cloned.colorPreset = cloneColorPreset(config.colorPreset);
+  return cloned;
+}
+
+function cloneOwnerOptions(options: ThemeOwnerOptions): ThemeOwnerOptions {
+  return {
+    defaultTheme: options.defaultTheme,
+    themeConfig: options.themeConfig === undefined
+      ? undefined
+      : cloneThemeConfig(options.themeConfig),
+  };
+}
+
+function isExplicitOwner(options: ThemeOwnerOptions): boolean {
+  return options.themeConfig !== undefined || options.defaultTheme !== undefined;
+}
+
+function getActiveOwner(): ThemeOwnerEntry | undefined {
+  for (let index = themeOwners.length - 1; index >= 0; index -= 1) {
+    const owner = themeOwners[index];
+    if (isExplicitOwner(owner.options)) return owner;
   }
-  if (config.cssOverrides) {
-    applyCssOverrides(config.cssOverrides);
+  return undefined;
+}
+
+function getStorage(): Storage | undefined {
+  if (typeof window === 'undefined') return undefined;
+  try {
+    return window.localStorage;
+  } catch {
+    return undefined;
   }
 }
 
-/** Get current theme configuration */
-export function getThemeConfig(): ThemeConfig {
-  return { ...themeConfig };
+function readStoredTheme(): ThemeMode | undefined {
+  const stored = getStorage()?.getItem(STORAGE_KEY);
+  return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : undefined;
+}
+
+function readStoredColorTheme(): ColorTheme {
+  const stored = getStorage()?.getItem(COLOR_STORAGE_KEY);
+  return stored && builtinPresets[stored] ? stored as ColorTheme : 'blue';
+}
+
+function persistSelection(key: string, value: string): void {
+  const storage = getStorage();
+  if (!storage || storage.getItem(key) === value) return;
+  storage.setItem(key, value);
+}
+
+let selectedMode = readStoredTheme();
+let mode = $state<ThemeMode>(selectedMode ?? 'system');
+const initialColorTheme = readStoredColorTheme();
+let selectedColorTheme = $state<ColorTheme>(initialColorTheme);
+let colorTheme = $state<ColorTheme>(initialColorTheme);
+
+function getSystemPreference(): 'light' | 'dark' {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return 'light';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function removeCssProperties(keys: string[]): void {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  for (const key of keys) root.style.removeProperty(key);
+}
+
+function clearAppliedArtifacts(): void {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+
+  removeCssProperties(activeCssOverrideVars);
+  removeCssProperties(activePresetVars);
+  activeCssOverrideVars = [];
+  activePresetVars = [];
+  root.classList.remove('layout-clean-flat', 'light', 'dark');
+  root.style.removeProperty('color-scheme');
+  root.removeAttribute('data-theme');
+}
+
+function applyThemeClasses(themeMode: ThemeMode, config: ThemeConfig): void {
+  if (typeof document === 'undefined') return;
+  const resolved = themeMode === 'system' ? getSystemPreference() : themeMode;
+  const strategy = config.strategy ?? 'standard';
+  const root = document.documentElement;
+
+  root.classList.toggle('layout-clean-flat', config.layoutPreset === 'clean-flat');
+  if (strategy === 'dark-first') {
+    root.classList.toggle('light', resolved === 'light');
+    root.classList.remove('dark');
+  } else {
+    root.classList.toggle('dark', resolved === 'dark');
+    root.classList.remove('light');
+  }
+
+  if (!config.disableColorScheme) root.style.colorScheme = resolved;
+}
+
+function applyColorPreset(preset: ColorPreset, themeMode: ThemeMode): void {
+  if (typeof document === 'undefined') return;
+  const resolved = themeMode === 'system' ? getSystemPreference() : themeMode;
+  const variables = resolved === 'dark' ? preset.dark : preset.light;
+  const root = document.documentElement;
+
+  for (const [key, value] of Object.entries(variables)) {
+    const cssVar = key.startsWith('--') ? key : '--' + key;
+    root.style.setProperty(cssVar, value);
+    activePresetVars.push(cssVar);
+  }
 }
 
 function applyCssOverrides(overrides: Record<string, string>): void {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
+
   for (const [key, value] of Object.entries(overrides)) {
-    const cssVar = key.startsWith('--') ? key : `--${key}`;
+    const cssVar = key.startsWith('--') ? key : '--' + key;
     root.style.setProperty(cssVar, value);
+    activeCssOverrideVars.push(cssVar);
   }
 }
 
-/** Remove previously applied CSS overrides */
+function applyEffectiveTheme(): void {
+  const owner = getActiveOwner();
+  const nextConfig = owner
+    ? cloneThemeConfig(owner.options.themeConfig)
+    : cloneThemeConfig(legacyThemeConfig);
+  const nextMode = selectedMode ?? owner?.options.defaultTheme ?? 'system';
+  const configuredPreset = !colorSelectionOverridesConfig && nextConfig.colorPreset
+    ? resolvePreset(nextConfig.colorPreset)
+    : undefined;
+  const preset = configuredPreset ?? builtinPresets[selectedColorTheme];
+
+  themeConfig = nextConfig;
+  mode = nextMode;
+  colorTheme = (preset?.name ?? selectedColorTheme) as ColorTheme;
+
+  if (typeof document === 'undefined') return;
+  clearAppliedArtifacts();
+  applyThemeClasses(mode, themeConfig);
+  document.documentElement.setAttribute('data-theme', colorTheme);
+  if (preset) applyColorPreset(preset, mode);
+  if (themeConfig.cssOverrides) applyCssOverrides(themeConfig.cssOverrides);
+}
+
+/**
+ * Configure the legacy document owner. Configuration is replaced as a whole;
+ * mounted explicit owners continue to take precedence until they unregister.
+ */
+export function configureTheme(config: ThemeConfig): void {
+  legacyThemeConfig = cloneThemeConfig(config);
+  colorSelectionOverridesConfig = false;
+  if (!getActiveOwner()) applyEffectiveTheme();
+}
+
+/** Get current effective theme configuration. */
+export function getThemeConfig(): ThemeConfig {
+  return cloneThemeConfig(themeConfig);
+}
+
+/** Remove previously applied CSS overrides. */
 export function clearCssOverrides(keys?: string[]): void {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
+
   if (keys) {
     for (const key of keys) {
-      const cssVar = key.startsWith('--') ? key : `--${key}`;
+      const cssVar = key.startsWith('--') ? key : '--' + key;
       root.style.removeProperty(cssVar);
+      activeCssOverrideVars = activeCssOverrideVars.filter((activeKey) => activeKey !== cssVar);
     }
-  } else if (themeConfig.cssOverrides) {
-    for (const key of Object.keys(themeConfig.cssOverrides)) {
-      const cssVar = key.startsWith('--') ? key : `--${key}`;
-      root.style.removeProperty(cssVar);
-    }
+  } else {
+    removeCssProperties(activeCssOverrideVars);
+    activeCssOverrideVars = [];
   }
 }
-
-// ── Color themes (display metadata, derived from presets) ──
-const _colorThemesCache: { id: ColorTheme | string; label: string; color: string }[] = $derived(Object.values(builtinPresets).map(p => ({
-  id: p.name as ColorTheme,
-  label: p.label,
-  color: p.color,
-})));
 
 export function getColorThemes() {
-  return _colorThemesCache;
-}
-
-// ── Dark/Light mode ──────────────────────────────────────
-
-function getStoredTheme(): ThemeMode {
-  if (typeof window === 'undefined') return 'system';
-  try { return (localStorage.getItem(STORAGE_KEY) as ThemeMode) ?? 'system'; } catch { return 'system'; }
-}
-
-function getSystemPreference(): 'light' | 'dark' {
-  if (typeof window === 'undefined') return 'light';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-let mode = $state<ThemeMode>(getStoredTheme());
-
-function applyTheme(m: ThemeMode): void {
-  const resolved = m === 'system' ? getSystemPreference() : m;
-  if (typeof document === 'undefined') return;
-
-  const strategy = themeConfig.strategy ?? 'standard';
-  const el = document.documentElement;
-  
-  // Apply clean-flat layout preset class to html
-  if (themeConfig.layoutPreset === 'clean-flat') {
-    el.classList.add('layout-clean-flat');
-  } else {
-    el.classList.remove('layout-clean-flat');
-  }
-
-  if (strategy === 'dark-first') {
-    // Dark-first: default is dark, add 'light' class for light mode
-    el.classList.toggle('light', resolved === 'light');
-    el.classList.remove('dark'); // ensure no conflict
-  } else {
-    // Standard: default is light, add 'dark' class for dark mode
-    el.classList.toggle('dark', resolved === 'dark');
-    el.classList.remove('light'); // ensure no conflict
-  }
-
-  // Set color-scheme attribute unless disabled
-  if (!themeConfig.disableColorScheme) {
-    el.style.colorScheme = resolved;
-  }
-}
-
-// Apply on init (browser only)
-if (typeof window !== 'undefined') {
-  applyTheme(getStoredTheme());
-}
-
-// Listen for system preference changes
-if (typeof window !== 'undefined') {
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (mode === 'system') {
-      applyTheme('system');
-      // Re-apply color preset for new resolved mode (light/dark values differ)
-      const preset = builtinPresets[colorTheme];
-      if (preset) applyColorPreset(preset);
-    }
-  });
+  return Object.values(builtinPresets).map((preset) => ({
+    id: preset.name as ColorTheme,
+    label: preset.label,
+    color: preset.color,
+  }));
 }
 
 export function getTheme(): ThemeMode {
@@ -376,14 +445,9 @@ export function getTheme(): ThemeMode {
 }
 
 export function setTheme(newMode: ThemeMode): void {
-  mode = newMode;
-  if (typeof window !== 'undefined') {
-    try { localStorage.setItem(STORAGE_KEY, newMode); } catch { /* intentional */}
-  }
-  applyTheme(newMode);
-  // Re-apply color preset — light/dark CSS variable overrides differ
-  const preset = builtinPresets[colorTheme];
-  if (preset) applyColorPreset(preset);
+  selectedMode = newMode;
+  persistSelection(STORAGE_KEY, newMode);
+  applyEffectiveTheme();
 }
 
 export function toggleTheme(): void {
@@ -391,59 +455,89 @@ export function toggleTheme(): void {
   setTheme(resolved === 'dark' ? 'light' : 'dark');
 }
 
-/** Resolved theme (always 'light' or 'dark', never 'system') */
+/** Resolved theme (always 'light' or 'dark', never 'system'). */
 export function getResolvedTheme(): 'light' | 'dark' {
   return mode === 'system' ? getSystemPreference() : mode;
-}
-
-// ── Color theme ──────────────────────────────────────────
-
-function getStoredColorTheme(): ColorTheme {
-  if (typeof window === 'undefined') return 'blue';
-  try { return (localStorage.getItem(COLOR_STORAGE_KEY) as ColorTheme) ?? 'blue'; } catch { return 'blue'; }
-}
-
-let colorTheme = $state<ColorTheme>(getStoredColorTheme());
-
-function applyColorTheme(ct: ColorTheme): void {
-  if (typeof document !== 'undefined') {
-    document.documentElement.setAttribute('data-theme', ct);
-  }
-}
-
-// Apply on init (browser only)
-if (typeof window !== 'undefined') {
-  applyColorTheme(getStoredColorTheme());
-  const initPreset = builtinPresets[getStoredColorTheme()];
-  if (initPreset) applyColorPreset(initPreset);
 }
 
 export function getColorTheme(): ColorTheme {
   return colorTheme;
 }
 
-export function setColorTheme(ct: ColorTheme): void {
-  colorTheme = ct;
-  if (typeof window !== 'undefined') {
-    try { localStorage.setItem(COLOR_STORAGE_KEY, ct); } catch { /* intentional */}
+export function setColorTheme(nextColorTheme: ColorTheme): void {
+  selectedColorTheme = nextColorTheme;
+  colorSelectionOverridesConfig = true;
+  persistSelection(COLOR_STORAGE_KEY, nextColorTheme);
+  applyEffectiveTheme();
+}
+
+/**
+ * Register a browser-only document owner. Owners with omitted values remain
+ * inert, allowing a mounted AdminApp to activate the same token after prop updates.
+ */
+export function registerThemeOwner(options: ThemeOwnerOptions): ThemeOwnerToken | undefined {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
+
+  const token = Symbol('svadmin-theme-owner');
+  const entry = { token, options: cloneOwnerOptions(options) };
+  themeOwners.push(entry);
+
+  if (isExplicitOwner(entry.options)) {
+    colorSelectionOverridesConfig = false;
+    applyEffectiveTheme();
   }
-  applyColorTheme(ct);
-  const preset = builtinPresets[ct];
-  if (preset) applyColorPreset(preset);
+
+  return token;
+}
+
+/** Update one mounted owner without changing its stack order. */
+export function updateThemeOwner(
+  token: ThemeOwnerToken | undefined,
+  options: ThemeOwnerOptions,
+): void {
+  if (!token || typeof window === 'undefined' || typeof document === 'undefined') return;
+  const owner = themeOwners.find((entry) => entry.token === token);
+  if (!owner) return;
+
+  const wasExplicit = isExplicitOwner(owner.options);
+  owner.options = cloneOwnerOptions(options);
+  if (wasExplicit || isExplicitOwner(owner.options)) {
+    colorSelectionOverridesConfig = false;
+    applyEffectiveTheme();
+  }
+}
+
+/** Remove an owner safely regardless of its position in the stack. */
+export function unregisterThemeOwner(token: ThemeOwnerToken | undefined): void {
+  if (!token || typeof window === 'undefined' || typeof document === 'undefined') return;
+  const index = themeOwners.findIndex((entry) => entry.token === token);
+  if (index === -1) return;
+
+  const [removed] = themeOwners.splice(index, 1);
+  if (isExplicitOwner(removed.options)) {
+    colorSelectionOverridesConfig = false;
+    applyEffectiveTheme();
+  }
 }
 
 export function resetTheme(): void {
-  mode = getStoredTheme();
-  colorTheme = getStoredColorTheme();
+  selectedMode = readStoredTheme();
+  selectedColorTheme = readStoredColorTheme();
+  mode = selectedMode ?? 'system';
+  colorTheme = selectedColorTheme;
+  legacyThemeConfig = {};
   themeConfig = {};
-  if (typeof document !== 'undefined') {
-    for (const key of activePresetVars) {
-      document.documentElement.style.removeProperty(key);
-    }
+  themeOwners = [];
+  colorSelectionOverridesConfig = false;
+  applyEffectiveTheme();
+}
+
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  applyEffectiveTheme();
+
+  if (typeof window.matchMedia === 'function') {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (mode === 'system') applyEffectiveTheme();
+    });
   }
-  activePresetVars = [];
-  applyTheme(mode);
-  applyColorTheme(colorTheme);
-  const preset = builtinPresets[colorTheme];
-  if (preset) applyColorPreset(preset);
 }

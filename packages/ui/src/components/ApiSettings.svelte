@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { AlertCircle, Calendar, Check, Copy, Key, Plus, ShieldCheck, Trash2 } from '@lucide/svelte';
   import * as Card from './ui/card/index.js';
   import { Badge } from './ui/badge/index.js';
@@ -7,6 +8,8 @@
   import { Checkbox } from './ui/checkbox/index.js';
   import { Input } from './ui/input/index.js';
   import { Label } from './ui/label/index.js';
+
+  const i18n = useTranslation();
 
   interface ApiKey {
     id: string;
@@ -76,8 +79,8 @@
 
 <div class="space-y-6">
   <div>
-    <h2 class="text-xl font-semibold text-foreground">{t('settings.api')}</h2>
-    <p class="mt-1 text-sm text-muted-foreground">{t('settings.apiDescription')}</p>
+    <h2 class="text-xl font-semibold text-foreground">{i18n.t('settings.api')}</h2>
+    <p class="mt-1 text-sm text-muted-foreground">{i18n.t('settings.apiDescription')}</p>
   </div>
 
   <div class="grid gap-6 lg:grid-cols-3">
@@ -85,19 +88,19 @@
       <Card.CardHeader>
         <Card.CardTitle class="flex items-center gap-2 text-base">
           <Plus class="h-4 w-4" />
-          {t('api.generateTitle')}
+          {i18n.t('api.generateTitle')}
         </Card.CardTitle>
-        <Card.CardDescription>{t('api.generateDesc')}</Card.CardDescription>
+        <Card.CardDescription>{i18n.t('api.generateDesc')}</Card.CardDescription>
       </Card.CardHeader>
       <Card.CardContent>
         <form onsubmit={handleGenerateKey} class="space-y-4">
           <div class="space-y-2">
-            <Label for="api-key-name">{t('api.keyName')}</Label>
+            <Label for="api-key-name">{i18n.t('api.keyName')}</Label>
             <Input id="api-key-name" placeholder="CI deployment token" bind:value={newKeyName} required />
           </div>
 
           <div class="space-y-3">
-            <Label>{t('api.permissions')}</Label>
+            <Label>{i18n.t('api.permissions')}</Label>
             {#each Object.keys(newKeyPermissions) as permission (permission)}
               <div class="flex items-center gap-2">
                 <Checkbox id={`perm-${permission}`} bind:checked={newKeyPermissions[permission as keyof typeof newKeyPermissions]} />
@@ -106,7 +109,7 @@
             {/each}
           </div>
 
-          <Button type="submit" class="w-full">{t('api.generateButton')}</Button>
+          <Button type="submit" class="w-full">{i18n.t('api.generateButton')}</Button>
         </form>
       </Card.CardContent>
     </Card.Card>
@@ -115,9 +118,9 @@
       <Card.CardHeader>
         <Card.CardTitle class="flex items-center gap-2 text-base">
           <Key class="h-4 w-4 text-muted-foreground" />
-          {t('api.activeKeysTitle')}
+          {i18n.t('api.activeKeysTitle')}
         </Card.CardTitle>
-        <Card.CardDescription>{t('api.activeKeysDesc')}</Card.CardDescription>
+        <Card.CardDescription>{i18n.t('api.activeKeysDesc')}</Card.CardDescription>
       </Card.CardHeader>
       <Card.CardContent>
         {#if showCreatedToken}
@@ -125,8 +128,8 @@
             <div class="flex items-start gap-2 text-sm text-green-700 dark:text-green-300">
               <ShieldCheck class="mt-0.5 h-5 w-5 shrink-0" />
               <div>
-                <h4 class="font-semibold">{t('api.successTitle')}</h4>
-                <p class="mt-0.5 text-xs">{t('api.successHint')}</p>
+                <h4 class="font-semibold">{i18n.t('api.successTitle')}</h4>
+                <p class="mt-0.5 text-xs">{i18n.t('api.successHint')}</p>
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -140,7 +143,7 @@
               </Button>
             </div>
             <div class="flex justify-end">
-              <Button variant="ghost" size="sm" onclick={() => { showCreatedToken = false; generatedToken = ''; }}>{t('common.close')}</Button>
+              <Button variant="ghost" size="sm" onclick={() => { showCreatedToken = false; generatedToken = ''; }}>{i18n.t('common.close')}</Button>
             </div>
           </div>
         {/if}
@@ -160,14 +163,14 @@
                   </div>
                 </div>
                 <div class="flex shrink-0 items-center gap-1">
-                  <Button variant="ghost" size="icon-sm" onclick={() => copyToken(key.maskedToken, key.id)} title={t('common.copy')}>
+                  <Button variant="ghost" size="icon-sm" onclick={() => copyToken(key.maskedToken, key.id)} title={i18n.t('common.copy')}>
                     {#if copiedKeyId === key.id}
                       <Check class="h-4 w-4 text-green-500" />
                     {:else}
                       <Copy class="h-4 w-4" />
                     {/if}
                   </Button>
-                  <Button variant="ghost" size="icon-sm" onclick={() => deleteKey(key.id)} title={t('common.delete')}>
+                  <Button variant="ghost" size="icon-sm" onclick={() => deleteKey(key.id)} title={i18n.t('common.delete')}>
                     <Trash2 class="h-4 w-4" />
                   </Button>
                 </div>
@@ -181,7 +184,7 @@
           {:else}
             <div class="flex flex-col items-center gap-2 py-8 text-center text-sm text-muted-foreground">
               <AlertCircle class="h-8 w-8 opacity-60" />
-              <span>{t('api.noKeys')}</span>
+              <span>{i18n.t('api.noKeys')}</span>
             </div>
           {/each}
         </div>

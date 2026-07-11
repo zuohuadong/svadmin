@@ -67,14 +67,22 @@ export function matchRoute(
   return null;
 }
 
-export async function navigate(path: string, options?: { replaceState?: boolean }): Promise<void> {
-  const from = currentPath();
+/**
+ * Navigate with an explicit tree-scoped provider while preserving the same
+ * guards, path synchronization, and after hooks as the legacy active router.
+ */
+export async function navigateWithProvider(
+  provider: RouterProvider | undefined,
+  path: string,
+  options?: { replaceState?: boolean },
+): Promise<void> {
+  const from = currentPathWithProvider(provider);
   for (const guard of _beforeGuards) {
     const allowed = await guard(path, from);
     if (!allowed) return;
   }
-  if (_routerProvider) {
-    _routerProvider.go({ to: path, type: options?.replaceState ? 'replace' : 'push' });
+  if (provider) {
+    provider.go({ to: path, type: options?.replaceState ? 'replace' : 'push' });
   } else if (typeof window !== 'undefined') {
     window.location.hash = '#' + path.replace(/^#/, '');
   }
@@ -84,19 +92,31 @@ export async function navigate(path: string, options?: { replaceState?: boolean 
   }
 }
 
+export async function navigate(path: string, options?: { replaceState?: boolean }): Promise<void> {
+  await navigateWithProvider(_routerProvider, path, options);
+}
+
 /**
  * Format a path into an href suitable for <a> tags.
  */
 export function formatLink(path: string): string {
-  if (_routerProvider?.formatLink) {
-    return _routerProvider.formatLink(path);
+  return formatLinkWithProvider(_routerProvider, path);
+}
+
+export function formatLinkWithProvider(provider: RouterProvider | undefined, path: string): string {
+  if (provider?.formatLink) {
+    return provider.formatLink(path);
   }
   return '#' + path.replace(/^#/, '');
 }
 
 export function currentPath(): string {
-  if (_routerProvider) {
-    const parsed = _routerProvider.parse();
+  return currentPathWithProvider(_routerProvider);
+}
+
+export function currentPathWithProvider(provider: RouterProvider | undefined): string {
+  if (provider) {
+    const parsed = provider.parse();
     const pathname = parsed.pathname || '/';
     let qs = '';
     if (parsed.params && Object.keys(parsed.params).length > 0) {

@@ -42,26 +42,88 @@ test.describe('CRUD Operations', () => {
   });
 
   test('list page loads data', async ({ page }) => {
+    const stateProxyEqualityWarnings: string[] = [];
+    page.on('console', (message) => {
+      if (message.text().includes('state_proxy_equality_mismatch')) {
+        stateProxyEqualityWarnings.push(message.text());
+      }
+    });
+
     await page.goto('/#/products');
-    await expect(page.locator('table, [class*="table"]').first()).toBeVisible({ timeout: 10000 });
+    const table = page.locator('table').first();
+    await expect(table).toBeVisible({ timeout: 10000 });
+
+    const firstRow = table.locator('tbody tr').first();
+    await expect(firstRow).toBeVisible();
+
+    const firstSortableHeader = table.locator('thead button:not([role="checkbox"])').first();
+    await firstSortableHeader.click();
+    await expect.poll(() => {
+      const [, query = ''] = new URL(page.url()).hash.split('?');
+      const params = new URLSearchParams(query);
+      return { sort: params.get('sort'), order: params.get('order') };
+    }).toEqual({ sort: 'name', order: 'asc' });
+
+    const firstRowCheckbox = firstRow.getByRole('checkbox');
+    await firstRowCheckbox.click();
+    await expect(firstRowCheckbox).toHaveAttribute('aria-checked', 'true');
+
+    expect(stateProxyEqualityWarnings).toEqual([]);
   });
 
   test('navigate to create page', async ({ page }) => {
     await page.goto('/#/products');
-    const createBtn = page.getByRole('button', { name: /create/i });
-    await createBtn.waitFor({ state: 'visible', timeout: 10000 });
+    const createBtn = page.getByRole('button', { name: /new products|create/i }).first();
+    await expect(createBtn).toBeVisible({ timeout: 10000 });
     await createBtn.click();
     await expect(page).toHaveURL(/create/, { timeout: 5000 });
   });
 
   test('navigate to edit page', async ({ page }) => {
     await page.goto('/#/products');
-    await page.locator('table tbody tr, [class*="table"] [class*="row"]').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
-    const editBtn = page.locator('a[href*="edit"], button:has-text("Edit")').first();
-    if (await editBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 10000 });
+    const editBtn = page.getByRole('button', { name: /edit/i }).first();
+    await expect(editBtn).toBeVisible({ timeout: 5000 });
+    await editBtn.click();
+    await expect(page).toHaveURL(/edit/, { timeout: 5000 });
+  });
+
+  test('tooltip layers stay bounded across repeated list-to-edit navigation', async ({ page }) => {
+    const lifecycleWarnings: string[] = [];
+    page.on('console', (message) => {
+      if (message.text().includes('derived_inert')) lifecycleWarnings.push(message.text());
+    });
+
+    for (let iteration = 0; iteration < 5; iteration += 1) {
+      await page.goto('/#/products');
+      await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 10000 });
+
+      const editBtn = page.getByRole('button', { name: /edit/i }).first();
+      await editBtn.hover();
+      await expect(page.getByRole('tooltip')).toBeVisible();
       await editBtn.click();
       await expect(page).toHaveURL(/edit/, { timeout: 5000 });
+      await page.waitForTimeout(20);
+
+      const layerStats = await page.evaluate(() => {
+        type Layer = { opts?: { ref?: { current?: HTMLElement | null } } };
+        const registry = (
+          globalThis as typeof globalThis & { bitsDismissableLayers?: Map<Layer, unknown> }
+        ).bitsDismissableLayers;
+        const layers = [...(registry?.keys() ?? [])];
+        return {
+          total: layers.length,
+          disconnectedTooltips: layers.filter((layer) => {
+            const node = layer.opts?.ref?.current;
+            return node?.dataset.slot === 'tooltip-content' && !node.isConnected;
+          }).length,
+        };
+      });
+
+      expect(layerStats).toEqual({ total: 0, disconnectedTooltips: 0 });
     }
+
+    expect(lifecycleWarnings).toEqual([]);
   });
 });
 
@@ -71,14 +133,15 @@ test.describe('Navigation', () => {
   });
 
   test('sidebar navigation works', async ({ page }) => {
-    const sidebarLink = page.locator('nav a, aside a, [class*="sidebar"] a').first();
-    if (await sidebarLink.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const href = await sidebarLink.getAttribute('href');
-      await sidebarLink.click();
-      if (href) {
-        await expect(page).toHaveURL(new RegExp(href.replace('#', '')), { timeout: 5000 });
-      }
-    }
+    const sidebar = page.getByRole('complementary', { name: 'Sidebar navigation' });
+    await sidebar.getByRole('button', { name: 'Apps', exact: true }).click();
+    await sidebar.getByRole('button', { name: 'Inventory', exact: true }).click();
+    await sidebar.getByRole('button', { name: 'Catalog', exact: true }).click();
+
+    const productsLink = sidebar.getByRole('link', { name: 'Products', exact: true });
+    await expect(productsLink).toBeVisible({ timeout: 5000 });
+    await productsLink.click();
+    await expect(page).toHaveURL(/#\/products(?:\?|$)/, { timeout: 5000 });
   });
 
   test('browser back button works', async ({ page }) => {

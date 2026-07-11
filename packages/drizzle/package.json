@@ -41,9 +41,6 @@
   "peerDependenciesMeta": {
     "@svadmin/core": {
       "optional": true
-    },
-    "refine-sqlx": {
-      "optional": true
     }
   }
 }

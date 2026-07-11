@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @svadmin/drizzle — DataProvider integration test
  *
@@ -12,6 +11,7 @@ import { drizzle } from 'drizzle-orm/bun-sqlite';
 import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
 import { createDrizzleDataProvider } from './data-provider';
 import type { DataProvider } from '@svadmin/core';
+import type { RefineSQLConfig } from 'refine-sqlx';
 
 // ─── Test Schema ──────────────────────────────────────────────────
 
@@ -41,7 +41,8 @@ describe('@svadmin/drizzle DataProvider', () => {
       )
     `);
     db = drizzle({ client: sqlite, schema });
-    dataProvider = await createDrizzleDataProvider({ connection: db as any, schema });
+    const connection = db as unknown as RefineSQLConfig<typeof schema>['connection'];
+    dataProvider = await createDrizzleDataProvider({ connection, schema });
   });
 
   it('returns a valid DataProvider with all required methods', () => {
@@ -51,6 +52,16 @@ describe('@svadmin/drizzle DataProvider', () => {
     expect(dataProvider.update).toBeFunction();
     expect(dataProvider.deleteOne).toBeFunction();
     expect(dataProvider.getApiUrl).toBeFunction();
+  });
+
+  it('declares the statically imported refine-sqlx runtime as a required peer', async () => {
+    const manifest = await Bun.file(new URL('../package.json', import.meta.url)).json() as {
+      peerDependencies?: Record<string, string>;
+      peerDependenciesMeta?: Record<string, { optional?: boolean }>;
+    };
+
+    expect(manifest.peerDependencies?.['refine-sqlx']).toBe('^0.10.3');
+    expect(manifest.peerDependenciesMeta?.['refine-sqlx']?.optional).toBeUndefined();
   });
 
   it('create → getOne roundtrip', async () => {

@@ -1,9 +1,12 @@
 <script lang="ts">
   import { getTaskProvider } from '@svadmin/core';
   import { useQueryClient } from '@tanstack/svelte-query';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { Button } from './ui/button/index.js';
   import { Loader2, Ban } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   let {
     taskId,
@@ -55,6 +58,6 @@
   {#if children}
     {@render children()}
   {:else}
-    {t('common.cancel')}
+    {i18n.t('common.cancel')}
   {/if}
 </Button>

@@ -3,10 +3,13 @@
   import { useInfiniteList } from '@svadmin/core';
   import type { BaseRecord, Sort, Filter } from '@svadmin/core';
   import type { Snippet } from 'svelte';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { Skeleton } from './ui/skeleton/index.js';
   import { Loader2 } from '@lucide/svelte';
   import { intersect } from '../actions.js';
+
+  const i18n = useTranslation();
 
   interface Props<T extends BaseRecord = BaseRecord> {
     resource: string;
@@ -67,7 +70,7 @@
     {#if empty}
       {@render empty()}
     {:else}
-      <p class="text-center text-sm text-muted-foreground py-8">{t('empty.title')}</p>
+      <p class="text-center text-sm text-muted-foreground py-8">{i18n.t('empty.title')}</p>
     {/if}
   {:else}
     {#each allItems as item, index (index)}
@@ -86,7 +89,7 @@
       <!-- Sentinel for infinite scroll -->
       <div use:intersect={loadMore} class="h-1"></div>
     {:else}
-      <p class="text-center text-xs text-muted-foreground py-2">{t('empty.noMore')}</p>
+      <p class="text-center text-xs text-muted-foreground py-2">{i18n.t('empty.noMore')}</p>
     {/if}
   {/if}
 </div>

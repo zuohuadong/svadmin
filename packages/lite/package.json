@@ -1,26 +1,51 @@
 {
   "name": "@svadmin/lite",
   "version": "0.3.7",
-  "description": "SSR-compatible lightweight admin UI for @svadmin — zero client-side JS, works in IE11",
+  "description": "SSR-first lightweight admin UI for @svadmin with optional progressive enhancement",
   "type": "module",
-  "files": [
-    "src/**/*.ts",
-    "!src/**/*.test.*",
-    "!src/**/*.spec.*",
-    "!src/**/vitest.config.*",
-    "!src/**/setupTest.*"
+  "sideEffects": [
+    "./dist/lite.css",
+    "./dist/enhance.js"
   ],
-  "main": "src/index.ts",
-  "types": "src/index.ts",
-  "svelte": "./src/index.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "!dist/**/*.test.*",
+    "!dist/**/*.test-*",
+    "!dist/**/*.spec.*",
+    "!dist/**/*.spec-*"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "svelte": "./dist/index.js",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "svelte": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "svelte": "./dist/index.js",
+      "default": "./dist/index.js"
     },
-    "./enhance.js": "./static/enhance.js",
-    "./src/lite.css": "./src/lite.css"
+    "./components/*.svelte": {
+      "types": "./dist/components/*.svelte.d.ts",
+      "svelte": "./dist/components/*.svelte",
+      "default": "./dist/components/*.svelte"
+    },
+    "./components/*": "./dist/components/*",
+    "./enhance.js": {
+      "import": "./dist/enhance.js",
+      "default": "./dist/enhance.js"
+    },
+    "./lite.css": {
+      "svelte": "./dist/lite.css",
+      "style": "./dist/lite.css",
+      "import": "./dist/lite.css",
+      "default": "./dist/lite.css"
+    },
+    "./src/lite.css": {
+      "svelte": "./dist/lite.css",
+      "style": "./dist/lite.css",
+      "import": "./dist/lite.css",
+      "default": "./dist/lite.css"
+    }
   },
   "peerDependencies": {
     "svelte": "^5.0.0",
@@ -29,8 +54,20 @@
   },
   "dependencies": {
     "@lucide/svelte": "^1.17.0",
-    "sveltekit-superforms": "^2.30.1",
+    "sveltekit-superforms": "^2.30.2",
     "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^20.10.6",
+    "@sveltejs/vite-plugin-svelte": "^7.1.2",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/svelte": "^5.3.1",
+    "happy-dom": "^20.10.6",
+    "vitest": "^4.1.10"
+  },
+  "scripts": {
+    "build": "svelte-package -i src -o dist && bun ../../scripts/copy-package-assets.ts static/enhance.js dist/enhance.js",
+    "test": "vitest run --config ./vitest.config.ts"
   },
   "license": "MIT",
   "publishConfig": {

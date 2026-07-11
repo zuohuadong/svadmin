@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect, beforeEach, mock, afterEach } from 'bun:test';
 import { createElysiaDataProvider } from './data-provider';
-import type { DataProvider } from '@svadmin/core';
+import type { DataProvider, Filter } from '@svadmin/core';
 
 // ─── Mock fetch ──────────────────────────────────────────────
 
@@ -19,6 +19,17 @@ function setupMockFetch(response: unknown, status = 200, statusText = 'OK') {
       text: () => Promise.resolve(JSON.stringify(response)),
     } as Response)
   );
+  globalThis.fetch = mockFetchFn as unknown as typeof fetch;
+}
+
+function setupNoContentFetch(status = 204) {
+  mockFetchFn = mock(() => Promise.resolve({
+    ok: true,
+    status,
+    statusText: status === 205 ? 'Reset Content' : 'No Content',
+    headers: new Headers(),
+    text: mock(() => Promise.resolve('')),
+  } as unknown as Response));
   globalThis.fetch = mockFetchFn as unknown as typeof fetch;
 }
 
@@ -118,6 +129,65 @@ describe('createElysiaDataProvider', () => {
       expect(url).toContain('name_like=test');
       expect(url).toContain('age_gte=18');
     });
+
+    it('should serialize every filter operator and nested logical groups without losing values', async () => {
+      setupMockFetch({ items: [], total: 0 });
+      const filters: Filter[] = [
+        { field: 'eq', operator: 'eq', value: 0 },
+        { field: 'ne', operator: 'ne', value: false },
+        { field: 'lt', operator: 'lt', value: 1 },
+        { field: 'gt', operator: 'gt', value: 2 },
+        { field: 'lte', operator: 'lte', value: 3 },
+        { field: 'gte', operator: 'gte', value: 4 },
+        { field: 'contains', operator: 'contains', value: '' },
+        { field: 'ncontains', operator: 'ncontains', value: 'draft' },
+        { field: 'startswith', operator: 'startswith', value: 'A' },
+        { field: 'endswith', operator: 'endswith', value: 'Z' },
+        { field: 'in', operator: 'in', value: [1, 2] },
+        { field: 'nin', operator: 'nin', value: ['x', 'y'] },
+        { field: 'null', operator: 'null', value: null },
+        { field: 'nnull', operator: 'nnull', value: null },
+        { field: 'between', operator: 'between', value: [10, 20] },
+        { field: 'nbetween', operator: 'nbetween', value: [30, 40] },
+        {
+          operator: 'or',
+          value: [
+            { field: 'status', operator: 'eq', value: 'active' },
+            {
+              operator: 'and',
+              value: [
+                { field: 'score', operator: 'gte', value: 10 },
+                { field: 'score', operator: 'lte', value: 20 },
+              ],
+            },
+          ],
+        },
+      ];
+
+      await provider.getList({ resource: 'posts', filters });
+
+      const [rawUrl] = mockFetchFn.mock.calls[0] as [string, RequestInit];
+      const params = new URL(rawUrl).searchParams;
+      expect(params.get('eq')).toBe('0');
+      expect(params.get('ne_ne')).toBe('false');
+      expect(params.get('lt_lt')).toBe('1');
+      expect(params.get('gt_gt')).toBe('2');
+      expect(params.get('lte_lte')).toBe('3');
+      expect(params.get('gte_gte')).toBe('4');
+      expect(params.get('contains_like')).toBe('');
+      expect(params.get('ncontains_ncontains')).toBe('draft');
+      expect(params.get('startswith_startswith')).toBe('A');
+      expect(params.get('endswith_endswith')).toBe('Z');
+      expect(params.get('in_in')).toBe('1,2');
+      expect(params.get('nin_nin')).toBe('x,y');
+      expect(params.get('null_null')).toBe('true');
+      expect(params.get('nnull_nnull')).toBe('true');
+      expect(params.get('between_between')).toBe('10,20');
+      expect(params.get('nbetween_nbetween')).toBe('30,40');
+      expect(JSON.parse(params.get('_filters')!)).toEqual(filters);
+      expect(rawUrl).not.toContain('undefined');
+      expect(rawUrl).not.toContain('%5Bobject+Object%5D');
+    });
   });
 
   // ─── getOne ────────────────────────────────────────────────
@@ -132,6 +202,16 @@ describe('createElysiaDataProvider', () => {
 
       const [url] = mockFetchFn.mock.calls[0] as [string, RequestInit];
       expect(url).toBe('http://localhost:3000/posts/1');
+    });
+
+    it('should encode reserved characters and traversal attempts in record id path segments', async () => {
+      const unsafeId = '../admin/users?role=owner#details';
+      setupMockFetch({ id: unsafeId });
+
+      await provider.getOne({ resource: 'posts', id: unsafeId });
+
+      const [url] = mockFetchFn.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe('http://localhost:3000/posts/..%2Fadmin%2Fusers%3Frole%3Downer%23details');
     });
   });
 
@@ -171,6 +251,19 @@ describe('createElysiaDataProvider', () => {
       const [, init] = mockFetchFn.mock.calls[0] as [string, RequestInit];
       expect(init.method).toBe('PATCH');
     });
+
+    it('should encode the record id path segment', async () => {
+      setupMockFetch({ id: 'folder/item?draft#top' });
+
+      await provider.update({
+        resource: 'posts',
+        id: 'folder/item?draft#top',
+        variables: { name: 'Updated' },
+      });
+
+      const [url] = mockFetchFn.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe('http://localhost:3000/posts/folder%2Fitem%3Fdraft%23top');
+    });
   });
 
   // ─── deleteOne ─────────────────────────────────────────────
@@ -185,6 +278,23 @@ describe('createElysiaDataProvider', () => {
       const [url, init] = mockFetchFn.mock.calls[0] as [string, RequestInit];
       expect(url).toBe('http://localhost:3000/posts/1');
       expect(init.method).toBe('DELETE');
+    });
+
+    it('should preserve the deleted id when the backend returns 204', async () => {
+      setupNoContentFetch();
+
+      const result = await provider.deleteOne({ resource: 'posts', id: 42 });
+
+      expect(result.data).toEqual({ id: 42 });
+    });
+
+    it('should encode the record id path segment', async () => {
+      setupMockFetch({ id: 'folder/item?draft#top' });
+
+      await provider.deleteOne({ resource: 'posts', id: 'folder/item?draft#top' });
+
+      const [url] = mockFetchFn.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe('http://localhost:3000/posts/folder%2Fitem%3Fdraft%23top');
     });
   });
 
@@ -398,6 +508,252 @@ describe('custom', () => {
     expect(init.method).toBe('POST');
     expect(init.credentials).toBe('include');
   });
+
+  it('should apply query, sorters, and nested logical filters', async () => {
+    const provider = createElysiaDataProvider({
+      apiUrl: 'http://localhost:3000/api',
+    });
+    const filters: Filter[] = [
+      { field: 'tenantId', operator: 'eq', value: 0 },
+      {
+        operator: 'or',
+        value: [
+          { field: 'status', operator: 'eq', value: 'active' },
+          {
+            operator: 'and',
+            value: [
+              { field: 'score', operator: 'gte', value: 10 },
+              { field: 'score', operator: 'lte', value: 20 },
+            ],
+          },
+        ],
+      },
+    ];
+
+    setupMockFetch({ ok: true });
+
+    await provider.custom!({
+      url: 'http://localhost:3000/api/reports?existing=yes',
+      method: 'post',
+      query: {
+        page: 0,
+        enabled: false,
+        search: '',
+        nullable: null,
+        tags: ['one', 'two'],
+      },
+      sorters: [
+        { field: 'createdAt', order: 'desc' },
+        { field: 'name', order: 'asc' },
+      ],
+      filters,
+    });
+
+    const [rawUrl] = mockFetchFn.mock.calls[0] as [string, RequestInit];
+    const url = new URL(rawUrl);
+    expect(url.searchParams.get('existing')).toBe('yes');
+    expect(url.searchParams.get('page')).toBe('0');
+    expect(url.searchParams.get('enabled')).toBe('false');
+    expect(url.searchParams.get('search')).toBe('');
+    expect(url.searchParams.get('nullable')).toBe('null');
+    expect(url.searchParams.getAll('tags')).toEqual(['one', 'two']);
+    expect(url.searchParams.get('_sort')).toBe('createdAt,name');
+    expect(url.searchParams.get('_order')).toBe('desc,asc');
+    expect(JSON.parse(url.searchParams.get('_filters')!)).toEqual(filters);
+  });
+
+  it('should keep provider credentials on same-origin requests', async () => {
+    const provider = createElysiaDataProvider({
+      apiUrl: 'https://api.example.com/v1',
+      headers: {
+        Authorization: 'Bearer provider-token',
+        Cookie: 'session=provider-session',
+        'X-API-Key': 'provider-key',
+        'X-Tenant': 'tenant-a',
+      },
+      withCredentials: true,
+    });
+
+    setupMockFetch({ ok: true });
+    await provider.custom!({
+      url: 'https://api.example.com/v1/reports',
+      method: 'get',
+    });
+
+    const [, init] = mockFetchFn.mock.calls[0] as [string, RequestInit];
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toBe('Bearer provider-token');
+    expect(headers.Cookie).toBe('session=provider-session');
+    expect(headers['X-API-Key']).toBe('provider-key');
+    expect(headers['X-Tenant']).toBe('tenant-a');
+    expect(init.credentials).toBe('include');
+  });
+
+  it('should not inherit provider defaults on cross-origin requests', async () => {
+    const provider = createElysiaDataProvider({
+      apiUrl: 'https://api.example.com/v1',
+      headers: {
+        Authorization: 'Bearer provider-token',
+        Cookie: 'session=provider-session',
+        'X-API-Key': 'provider-key',
+        'X-Tenant': 'tenant-a',
+        'X-Client-Secret': 'provider-secret',
+      },
+      withCredentials: true,
+    });
+
+    setupMockFetch({ ok: true });
+    await provider.custom!({
+      url: 'https://analytics.example.net/report',
+      method: 'get',
+      headers: { 'X-Request-ID': 'request-1' },
+    });
+
+    const [, init] = mockFetchFn.mock.calls[0] as [string, RequestInit];
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toBeUndefined();
+    expect(headers.Cookie).toBeUndefined();
+    expect(headers['X-API-Key']).toBeUndefined();
+    expect(headers['X-Tenant']).toBeUndefined();
+    expect(headers['X-Client-Secret']).toBeUndefined();
+    expect(headers['Content-Type']).toBe('application/json');
+    expect(headers['X-Request-ID']).toBe('request-1');
+    expect(init.credentials).toBeUndefined();
+  });
+
+  it('should allow an explicit cross-origin authorization header', async () => {
+    const provider = createElysiaDataProvider({
+      apiUrl: 'https://api.example.com/v1',
+      headers: { Authorization: 'Bearer provider-token' },
+    });
+
+    setupMockFetch({ ok: true });
+    await provider.custom!({
+      url: 'https://analytics.example.net/report',
+      method: 'get',
+      headers: { Authorization: 'Bearer analytics-token' },
+    });
+
+    const [, init] = mockFetchFn.mock.calls[0] as [string, RequestInit];
+    expect((init.headers as Record<string, string>).Authorization).toBe('Bearer analytics-token');
+  });
+
+  for (const [name, payload, expectedBody] of [
+    ['zero', 0, '0'],
+    ['false', false, 'false'],
+    ['empty string', '', '""'],
+    ['null', null, 'null'],
+  ] as const) {
+    it(`should preserve a ${name} payload`, async () => {
+      const provider = createElysiaDataProvider({ apiUrl: 'http://localhost:3000' });
+      setupMockFetch({ ok: true });
+
+      await provider.custom!({
+        url: 'http://localhost:3000/echo',
+        method: 'post',
+        payload,
+      });
+
+      const [, init] = mockFetchFn.mock.calls[0] as [string, RequestInit];
+      expect(init.body).toBe(expectedBody);
+    });
+  }
+
+  it('should not parse JSON for a 204 response', async () => {
+    const json = mock(() => Promise.reject(new Error('json() must not be called')));
+    const text = mock(() => Promise.resolve(''));
+    mockFetchFn = mock(() => Promise.resolve({
+      ok: true,
+      status: 204,
+      statusText: 'No Content',
+      headers: new Headers(),
+      json,
+      text,
+    } as unknown as Response));
+    globalThis.fetch = mockFetchFn as unknown as typeof fetch;
+
+    const provider = createElysiaDataProvider({ apiUrl: 'http://localhost:3000' });
+    const result = await provider.custom!({
+      url: 'http://localhost:3000/empty',
+      method: 'delete',
+    });
+
+    expect(result.data).toBeUndefined();
+    expect(json).not.toHaveBeenCalled();
+    expect(text).not.toHaveBeenCalled();
+  });
+
+  it('should not parse JSON for a 205 response', async () => {
+    const json = mock(() => Promise.reject(new Error('json() must not be called')));
+    const text = mock(() => Promise.resolve(''));
+    mockFetchFn = mock(() => Promise.resolve({
+      ok: true,
+      status: 205,
+      statusText: 'Reset Content',
+      headers: new Headers(),
+      json,
+      text,
+    } as unknown as Response));
+    globalThis.fetch = mockFetchFn as unknown as typeof fetch;
+
+    const provider = createElysiaDataProvider({ apiUrl: 'http://localhost:3000' });
+    const result = await provider.custom!({
+      url: 'http://localhost:3000/empty',
+      method: 'post',
+    });
+
+    expect(result.data).toBeUndefined();
+    expect(json).not.toHaveBeenCalled();
+    expect(text).not.toHaveBeenCalled();
+  });
+
+  it('should not parse JSON when Content-Length is zero', async () => {
+    const json = mock(() => Promise.reject(new Error('json() must not be called')));
+    const text = mock(() => Promise.reject(new Error('text() must not be called')));
+    mockFetchFn = mock(() => Promise.resolve({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers({ 'Content-Length': '0' }),
+      json,
+      text,
+    } as unknown as Response));
+    globalThis.fetch = mockFetchFn as unknown as typeof fetch;
+
+    const provider = createElysiaDataProvider({ apiUrl: 'http://localhost:3000' });
+    const result = await provider.custom!({
+      url: 'http://localhost:3000/empty',
+      method: 'get',
+    });
+
+    expect(result.data).toBeUndefined();
+    expect(json).not.toHaveBeenCalled();
+    expect(text).not.toHaveBeenCalled();
+  });
+
+  it('should not parse JSON when the response body is actually empty', async () => {
+    const json = mock(() => Promise.reject(new Error('json() must not be called')));
+    const text = mock(() => Promise.resolve(''));
+    mockFetchFn = mock(() => Promise.resolve({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers(),
+      json,
+      text,
+    } as unknown as Response));
+    globalThis.fetch = mockFetchFn as unknown as typeof fetch;
+
+    const provider = createElysiaDataProvider({ apiUrl: 'http://localhost:3000' });
+    const result = await provider.custom!({
+      url: 'http://localhost:3000/empty',
+      method: 'get',
+    });
+
+    expect(result.data).toBeUndefined();
+    expect(json).not.toHaveBeenCalled();
+    expect(text).toHaveBeenCalledTimes(1);
+  });
 });
 
 // ─── bulk operations ─────────────────────────────────────────
@@ -418,7 +774,7 @@ describe('bulk operations', () => {
     const provider = createElysiaDataProvider({ apiUrl: 'http://localhost:3000' });
     setupMockFetch({ id: 1, name: 'A' });
 
-    const _result = await provider.createMany!({
+    await provider.createMany!({
       resource: 'posts',
       variables: [{ name: 'A' }, { name: 'B' }],
     });
@@ -437,5 +793,31 @@ describe('bulk operations', () => {
       const [, init] = call as [string, RequestInit];
       expect(init.method).toBe('DELETE');
     }
+  });
+
+  it('should preserve every deleted id when deleteMany receives 204 responses', async () => {
+    const provider = createElysiaDataProvider({ apiUrl: 'http://localhost:3000' });
+    setupNoContentFetch();
+
+    const result = await provider.deleteMany!({ resource: 'posts', ids: [1, 2] });
+
+    expect(result.data).toEqual([{ id: 1 }, { id: 2 }]);
+  });
+
+  it('should encode every updateMany and deleteMany id path segment', async () => {
+    const provider = createElysiaDataProvider({ apiUrl: 'http://localhost:3000' });
+    const ids = ['../admin', 'folder/item?draft#top'];
+    const expectedUrls = [
+      'http://localhost:3000/posts/..%2Fadmin',
+      'http://localhost:3000/posts/folder%2Fitem%3Fdraft%23top',
+    ];
+
+    setupMockFetch({ ok: true });
+    await provider.updateMany!({ resource: 'posts', ids, variables: { active: true } });
+    expect(mockFetchFn.mock.calls.map(call => (call as [string, RequestInit])[0])).toEqual(expectedUrls);
+
+    setupMockFetch({ ok: true });
+    await provider.deleteMany!({ resource: 'posts', ids });
+    expect(mockFetchFn.mock.calls.map(call => (call as [string, RequestInit])[0])).toEqual(expectedUrls);
   });
 });

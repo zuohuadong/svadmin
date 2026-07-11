@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createMutation, useQueryClient } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options.svelte';
-import { getDataProviderForResource, getResource, getLiveProvider } from './context.svelte';
+import { captureAdminContext } from './context.svelte';
+import type { AdminContextAccessor } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 import { audit } from './audit';
 import { UndoError } from './types';
@@ -12,9 +13,14 @@ import { toast } from './toast.svelte';
 
 // ─── Helper: publish live events after mutations ────────────────
 
-export function publishLiveEvent(resource: string, type: 'created' | 'updated' | 'deleted', ids?: (string | number)[]) {
+export function publishLiveEvent(
+  resource: string,
+  type: 'created' | 'updated' | 'deleted',
+  ids?: (string | number)[],
+  adminContext: AdminContextAccessor = captureAdminContext(),
+) {
   try {
-    const liveProvider = getLiveProvider();
+    const liveProvider = adminContext.liveProvider;
     if (liveProvider?.publish) {
       liveProvider.publish({
         type: type === 'created' ? 'INSERT' : type === 'updated' ? 'UPDATE' : 'DELETE',
@@ -42,7 +48,9 @@ export function invalidateByScopes(
 ): void {
   if (scopes === false) return;
   const effectiveScopes = (scopes && scopes.length > 0) ? scopes : defaults;
-  const dpMatch = (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === dataProviderName;
+  const dpMatch = dataProviderName === undefined
+    ? () => true
+    : (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === dataProviderName;
   for (const scope of effectiveScopes) {
     if (scope === 'list') queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === resource && (q.queryKey[2] === 'list' || q.queryKey[2] === 'infiniteList' || q.queryKey[2] === 'select' || q.queryKey[2] === 'select-defaults') });
     else if (scope === 'many') queryClient.invalidateQueries({ predicate: (q) => dpMatch(q) && q.queryKey[1] === resource && q.queryKey[2] === 'many' });
@@ -99,6 +107,7 @@ export interface UseCreateMutateParams<TVariables> {
 }
 
 export function useCreate<TData extends BaseRecord = BaseRecord, TError = HttpError, TVariables = Record<string, unknown>>(options: UseCreateOptions = {}) {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
   const defaultResource = options.resource ?? parsed.resource ?? '';
   const adminOptions = getAdminOptions();
@@ -114,7 +123,7 @@ export function useCreate<TData extends BaseRecord = BaseRecord, TError = HttpEr
     ...options.mutationOptions,
     mutationFn: async (params) => {
       const resName = params.resource ?? defaultResource;
-      const provider = getDataProviderForResource(resName, params.dataProviderName);
+      const provider = adminContext.getDataProviderForResource(resName, params.dataProviderName);
       return await provider.create<TData, TVariables>({
           resource: resName,
           variables: params.variables,
@@ -125,11 +134,11 @@ export function useCreate<TData extends BaseRecord = BaseRecord, TError = HttpEr
     onSuccess: (data, params, context) => {
       const resName = params.resource ?? defaultResource;
       fireSuccessNotification(params.successNotification, 'Created successfully', data.data, params.variables, resName);
-      const res = getResource(resName);
+      const res = adminContext.getResource(resName);
       const pk = res.primaryKey ?? 'id';
       const newId = (data.data as Record<string, unknown>)[pk];
       audit({ action: 'create', resource: resName, recordId: String(newId) });
-      publishLiveEvent(resName, 'created', newId != null ? [newId as string | number] : undefined);
+      publishLiveEvent(resName, 'created', newId != null ? [newId as string | number] : undefined, adminContext);
       // Invalidation in onSuccess for create (refine pattern — no optimistic data to reconcile on error)
       invalidateByScopes(queryClient, resName, params.invalidates, ['list', 'many'], undefined, params.dataProviderName);
       if (typeof options.mutationOptions?.onSuccess === 'function') {
@@ -137,7 +146,7 @@ export function useCreate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       }
     },
     onError: (error, params, context) => {
-      checkError(error);
+      checkError(error, adminContext);
       fireErrorNotification(params.errorNotification, 'Create failed', error, params.resource ?? defaultResource);
       if (typeof options.mutationOptions?.onError === 'function') {
         (options.mutationOptions.onError as (...a: unknown[]) => unknown)(error, params, context);
@@ -177,6 +186,7 @@ export interface UseUpdateMutateParams<TVariables> {
 }
 
 export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpError, TVariables = Record<string, unknown>>(options: UseUpdateOptions = {}) {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
   const defaultResource = options.resource ?? parsed.resource ?? '';
   const defaultId = options.id ?? parsed.id;
@@ -207,7 +217,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
         });
       }
 
-      const provider = getDataProviderForResource(resName, params.dataProviderName);
+      const provider = adminContext.getDataProviderForResource(resName, params.dataProviderName);
       return await provider.update<TData, TVariables>({
           resource: resName,
           id: targetId,
@@ -229,7 +239,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
 
       const previousQueries = queryClient.getQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resName });
       
-      const pk = getResource(resName).primaryKey ?? 'id';
+      const pk = adminContext.getResource(resName).primaryKey ?? 'id';
       const updater = params.optimisticUpdateMap ?? { list: true, many: true, detail: true };
       
       if (updater.detail !== false) {
@@ -267,7 +277,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
       const targetId = params.id ?? defaultId;
       fireSuccessNotification(params.successNotification, 'Updated successfully', data.data, params.variables, resName);
       audit({ action: 'update', resource: resName, recordId: String(targetId) });
-      publishLiveEvent(resName, 'updated', targetId != null ? [targetId] : undefined);
+      publishLiveEvent(resName, 'updated', targetId != null ? [targetId] : undefined, adminContext);
       if (typeof options.mutationOptions?.onSuccess === 'function') {
         (options.mutationOptions.onSuccess as (...a: unknown[]) => unknown)(data, params, extractedCtx);
       }
@@ -289,7 +299,7 @@ export function useUpdate<TData extends BaseRecord = BaseRecord, TError = HttpEr
         }
       }
       if (error instanceof UndoError) return;
-      checkError(error);
+      checkError(error, adminContext);
       const extractedCtx = ctx?._svadmin_ctx ? ctx.userContext : context;
       fireErrorNotification(params.errorNotification, 'Update failed', error, params.resource ?? defaultResource);
       if (typeof options.mutationOptions?.onError === 'function') {
@@ -325,6 +335,7 @@ export interface UseDeleteMutateParams<TVariables> {
 }
 
 export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpError, TVariables = Record<string, unknown>>(options: UseDeleteOptions = {}) {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
   const defaultResource = options.resource ?? parsed.resource ?? '';
   const defaultId = options.id ?? parsed.id;
@@ -355,7 +366,7 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
         });
       }
 
-      const provider = getDataProviderForResource(resName, params.dataProviderName);
+      const provider = adminContext.getDataProviderForResource(resName, params.dataProviderName);
       return await provider.deleteOne<TData, TVariables>({
           resource: resName,
           id: targetId,
@@ -377,7 +388,7 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
 
       const previousQueries = queryClient.getQueriesData({ predicate: (q) => dp(q) && q.queryKey[1] === resName });
       
-      const pk = getResource(resName).primaryKey ?? 'id';
+      const pk = adminContext.getResource(resName).primaryKey ?? 'id';
       
       if (targetId != null) queryClient.removeQueries({ predicate: (q) => dp(q) && q.queryKey[1] === resName && q.queryKey[2] === 'one' && q.queryKey[3] === targetId });
 
@@ -408,7 +419,7 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
 
       fireSuccessNotification(params.successNotification, 'Deleted successfully', data.data, params.variables, resName);
       audit({ action: 'delete', resource: resName, recordId: String(targetId) });
-      publishLiveEvent(resName, 'deleted', targetId != null ? [targetId] : undefined);
+      publishLiveEvent(resName, 'deleted', targetId != null ? [targetId] : undefined, adminContext);
       if (typeof options.mutationOptions?.onSuccess === 'function') {
         (options.mutationOptions.onSuccess as (...a: unknown[]) => unknown)(data, params, extractedCtx);
       }
@@ -430,7 +441,7 @@ export function useDelete<TData extends BaseRecord = BaseRecord, TError = HttpEr
         }
       }
       if (error instanceof UndoError) return;
-      checkError(error);
+      checkError(error, adminContext);
       const extractedCtx = ctx?._svadmin_ctx ? ctx.userContext : context;
       fireErrorNotification(params.errorNotification, 'Delete failed', error, params.resource ?? defaultResource);
       if (typeof options.mutationOptions?.onError === 'function') {

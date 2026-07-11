@@ -2,13 +2,10 @@
 	import { cn, type WithElementRef } from "../../../utils.js";
 	import type { HTMLAttributes } from "svelte/elements";
 
-	type Props = WithElementRef<HTMLAttributes<HTMLDivElement>> & {
-		side?: "left" | "right";
-	};
+	type Props = WithElementRef<HTMLAttributes<HTMLDivElement>>;
 
 	let {
 		ref = $bindable(null),
-		side = "right",
 		class: className,
 		children,
 		...restProps

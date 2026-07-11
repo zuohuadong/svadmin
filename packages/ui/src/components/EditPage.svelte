@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { getResource } from '@svadmin/core';
-  import { navigate } from '@svadmin/core/router';
-  import { t } from '@svadmin/core/i18n';
+  import { captureAdminContext, getResource } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import type { Snippet } from 'svelte';
   import PageHeader from './PageHeader.svelte';
   import AutoForm from './AutoForm.svelte';
@@ -9,6 +9,8 @@
   import ShowButton from './buttons/ShowButton.svelte';
   import RefreshButton from './buttons/RefreshButton.svelte';
   import DeleteButton from './buttons/DeleteButton.svelte';
+
+  const i18n = useTranslation();
 
   interface Props {
     resourceName: string;
@@ -27,9 +29,10 @@
     headerActions,
     class: className = '',
   }: Props = $props();
+  const adminContext = captureAdminContext();
 
   const resource = $derived(getResource(resourceName));
-  const pageTitle = $derived(title ?? `${t('common.edit')} ${resource.label} #${id}`);
+  const pageTitle = $derived(title ?? `${i18n.t('common.edit')} ${resource.label} #${id}`);
   const showDelete = $derived(canDelete ?? resource.canDelete !== false);
 </script>
 
@@ -40,7 +43,7 @@
       <ShowButton resource={resourceName} recordItemId={id} hideText />
       <RefreshButton resource={resourceName} hideText />
       {#if showDelete !== false}
-        <DeleteButton resource={resourceName} recordItemId={id} hideText onSuccess={() => navigate(`/${resourceName}`)} />
+        <DeleteButton resource={resourceName} recordItemId={id} hideText onSuccess={() => adminContext.navigate(`/${resourceName}`)} />
       {/if}
       {#if headerActions}
         {@render headerActions()}

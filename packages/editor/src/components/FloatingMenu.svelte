@@ -6,7 +6,7 @@
   import {
     Heading1, Heading2, Heading3,
     List, ListOrdered, ListChecks,
-    Quote, Code2, Minus, ImageIcon, TableIcon,
+    Quote, Code2, Minus,
   } from '@lucide/svelte';
   import { t } from '@svadmin/core';
 

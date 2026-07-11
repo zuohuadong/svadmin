@@ -2,12 +2,15 @@
 /* eslint-disable no-undef, svelte/no-at-html-tags */
   import { getChatProvider, getChatContext, setChatContext, getAgentProvider, registerApproval, resolveApproval } from '@svadmin/core';
   import type { ChatMessage, ChatAction } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { useParsed } from '@svadmin/core';
   import { fly, fade, scale } from 'svelte/transition';
   import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
   import { MessageCircle, X, Minus, Send, Loader2, Bot, Trash2 } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   interface Props {
     /** localStorage key for chat history persistence. Set to '' to disable. */
@@ -254,18 +257,18 @@
 
               collectedActions.push(
                 {
-                  label: `✅ ${t('common.confirm') || 'Approve'}: ${event.description}`,
+                  label: `✅ ${i18n.t('common.confirm') || 'Approve'}: ${event.description}`,
                   variant: 'default',
                   payload: { approvalId: reqId, approved: true },
                 },
                 {
-                  label: `❌ ${t('common.cancel') || 'Reject'}`,
+                  label: `❌ ${i18n.t('common.cancel') || 'Reject'}`,
                   variant: 'destructive',
                   payload: { approvalId: reqId, approved: false },
                 },
               );
 
-              assistantMsg.content += `\n⚠️ **${t('chat.approvalRequired') || 'Approval required'}**: ${event.description}`;
+              assistantMsg.content += `\n⚠️ **${i18n.t('chat.approvalRequired') || 'Approval required'}**: ${event.description}`;
               assistantMsg.actions = [...collectedActions];
               messages = [...messages.slice(0, -1), { ...assistantMsg }];
               scrollToBottom();
@@ -305,7 +308,7 @@
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return;
-      assistantMsg.content = t('chat.error') || 'Sorry, something went wrong. Please try again.';
+      assistantMsg.content = i18n.t('chat.error') || 'Sorry, something went wrong. Please try again.';
       messages = [...messages.slice(0, -1), { ...assistantMsg }];
     } finally {
       isStreaming = false;
@@ -401,9 +404,9 @@
   }
 
   const suggestions = $derived([
-    t('chat.suggestion1') || 'How do I create a new resource?',
-    t('chat.suggestion2') || 'Explain the data model',
-    t('chat.suggestion3') || 'Help me write a filter query',
+    i18n.t('chat.suggestion1') || 'How do I create a new resource?',
+    i18n.t('chat.suggestion2') || 'Explain the data model',
+    i18n.t('chat.suggestion3') || 'Help me write a filter query',
   ]);
 </script>
 
@@ -414,7 +417,7 @@
   {#if !open}
     <div transition:scale={{ duration: 200 }}>
       <TooltipButton
-        tooltip={t('chat.title') || 'AI Assistant'}
+        tooltip={i18n.t('chat.title') || 'AI Assistant'}
         variant="default"
         size="icon"
         class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9998] h-12 w-12 rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all bg-primary text-primary-foreground"
@@ -450,17 +453,17 @@
           </div>
           <div>
             <h3 class="text-sm font-semibold leading-none">
-              {t('chat.title') || 'AI Assistant'}
+              {i18n.t('chat.title') || 'AI Assistant'}
             </h3>
             {#if isStreaming}
-              <p class="text-[10px] opacity-80 mt-0.5">{t('chat.typing') || 'Typing...'}</p>
+              <p class="text-[10px] opacity-80 mt-0.5">{i18n.t('chat.typing') || 'Typing...'}</p>
             {/if}
           </div>
         </div>
         <div class="flex items-center gap-0.5">
           {#if messages.length > 0}
             <TooltipButton
-              tooltip={t('chat.clear') || 'Clear'}
+              tooltip={i18n.t('chat.clear') || 'Clear'}
               variant="ghost"
               size="icon"
               class="h-7 w-7 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
@@ -470,7 +473,7 @@
             </TooltipButton>
           {/if}
           <TooltipButton
-            tooltip={minimized ? (t('common.expand') || 'Expand') : (t('common.collapse') || 'Minimize')}
+            tooltip={minimized ? (i18n.t('common.expand') || 'Expand') : (i18n.t('common.collapse') || 'Minimize')}
             variant="ghost"
             size="icon"
             class="h-7 w-7 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
@@ -479,7 +482,7 @@
             <Minus class="h-3.5 w-3.5" />
           </TooltipButton>
           <TooltipButton
-            tooltip={t('common.close') || 'Close'}
+            tooltip={i18n.t('common.close') || 'Close'}
             variant="ghost"
             size="icon"
             class="h-7 w-7 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
@@ -503,10 +506,10 @@
                 <Bot class="h-6 w-6 text-primary" />
               </div>
               <h4 class="text-sm font-semibold text-foreground mb-1">
-                {t('chat.welcome') || 'How can I help?'}
+                {i18n.t('chat.welcome') || 'How can I help?'}
               </h4>
               <p class="text-xs text-muted-foreground mb-4">
-                {t('chat.welcomeDesc') || 'Ask me anything about your admin panel.'}
+                {i18n.t('chat.welcomeDesc') || 'Ask me anything about your admin panel.'}
               </p>
               <div class="flex flex-col gap-2 w-full max-w-[240px]">
                 {#each suggestions as suggestion, _i (_i)}
@@ -551,7 +554,7 @@
                     {:else}
                       <div class="flex items-center gap-1.5 text-muted-foreground">
                         <Loader2 class="h-3.5 w-3.5 animate-spin" />
-                        <span class="text-xs">{t('chat.thinking') || 'Thinking...'}</span>
+                        <span class="text-xs">{i18n.t('chat.thinking') || 'Thinking...'}</span>
                       </div>
                     {/if}
                   {:else}
@@ -569,7 +572,7 @@
             <textarea
               bind:value={inputValue}
               onkeydown={handleKeydown}
-              placeholder={t('chat.placeholder') || 'Type a message...'}
+              placeholder={i18n.t('chat.placeholder') || 'Type a message...'}
               rows={1}
               disabled={isStreaming}
               class="flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 disabled:opacity-50 max-h-[100px] min-h-[40px]"
@@ -597,7 +600,7 @@
           </div>
           <p class="text-[10px] text-muted-foreground mt-1.5 text-center">
             <kbd class="px-1 py-0.5 rounded border border-border bg-muted text-[9px] font-mono">Ctrl+Shift+L</kbd>
-            {t('chat.shortcutHint') || 'to toggle'}
+            {i18n.t('chat.shortcutHint') || 'to toggle'}
           </p>
         </div>
       {/if}

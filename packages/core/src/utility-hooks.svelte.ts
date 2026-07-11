@@ -1,12 +1,11 @@
-/* eslint-disable svelte/prefer-svelte-reactivity */
-import { useForm, type UseFormOptions, type UseFormReturn } from './form-hooks.svelte';
+import { useForm, type UseFormOptions } from './form-hooks.svelte';
 import { useQueryClient } from '@tanstack/svelte-query';
 import { useParsed } from './useParsed.svelte';
-import { getResource, getResources } from './context.svelte';
+import { captureAdminContext } from './context.svelte';
 import { getAdminOptions } from './options.svelte';
 import { t } from './i18n.svelte';
 import type { BaseRecord, HttpError, Filter, KnownResources, ResourceDefinition } from './types';
-import { useList, type UseListOptions } from './query-hooks.svelte';
+import { useList } from './query-hooks.svelte';
 import { toast } from './toast.svelte';
 import type { UseSelectOptions } from './hooks.svelte';
 import { useSelect as useSelectImpl } from './hooks.svelte';
@@ -89,11 +88,12 @@ export interface MenuConfig {
 }
 
 export function useMenu() {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
 
   const menuItems = $derived.by<MenuConfig[]>(() => {
     const adminOptions = getAdminOptions();
-    const resources = getResources();
+    const resources = adminContext.resources;
     let items: MenuConfig[] = resources
       .filter((r: ResourceDefinition) => r.showInMenu !== false)
       .map((r: ResourceDefinition): MenuConfig => ({
@@ -125,6 +125,7 @@ export interface BreadcrumbItem {
 }
 
 export function useBreadcrumb() {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
   
   const items = $derived.by<BreadcrumbItem[]>(() => {
@@ -132,7 +133,7 @@ export function useBreadcrumb() {
     if (!parsed.resource) return list;
 
     try {
-      const res = getResource(parsed.resource);
+      const res = adminContext.getResource(parsed.resource);
       const chain: { label: string; link: string; icon?: string }[] = [];
       let current: typeof res | undefined = res;
       const visited = new Set<string>();
@@ -140,7 +141,7 @@ export function useBreadcrumb() {
         if (visited.has(current.name)) break;
         visited.add(current.name);
         chain.unshift({ label: current.label || current.name, link: `/${current.name}`, icon: current.icon });
-        current = current.parentName ? getResource(current.parentName) : undefined;
+        current = current.parentName ? adminContext.getResource(current.parentName) : undefined;
       }
       list.push(...chain);
 

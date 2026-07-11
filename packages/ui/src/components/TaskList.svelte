@@ -1,6 +1,7 @@
 <script lang="ts">
   import { useTaskList, getTaskProvider } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import type { TaskProvider, TaskRecord } from '@svadmin/core';
   import { Loader2 } from '@lucide/svelte';
   import * as Card from './ui/card/index.js';
@@ -18,6 +19,8 @@
     resolveTaskTitle,
     resolveTaskUpdatedAt,
   } from './task-utils.js';
+
+  const i18n = useTranslation();
 
   let {
     tasks,
@@ -68,8 +71,8 @@
   });
 
   const resolvedTasks = $derived(tasks ?? query.data?.data ?? []);
-  const resolvedTitle = $derived(title ?? (dlq ? t('task.dlqTitle') : t('task.listTitle')));
-  const resolvedEmptyText = $derived(emptyText ?? (dlq ? t('task.noDlq') : t('task.noTasks')));
+  const resolvedTitle = $derived(title ?? (dlq ? i18n.t('task.dlqTitle') : i18n.t('task.listTitle')));
+  const resolvedEmptyText = $derived(emptyText ?? (dlq ? i18n.t('task.noDlq') : i18n.t('task.noTasks')));
 
   function formatDate(value: unknown) {
     if (!value) return '—';
@@ -84,9 +87,9 @@
     <Card.Title class="text-base">{resolvedTitle}</Card.Title>
       <Card.Description>
       {#if useProviderData && taskProvider}
-        {t('task.count', { count: (query.data?.total ?? resolvedTasks.length) || 0 })}
+        {i18n.t('task.count', { count: (query.data?.total ?? resolvedTasks.length) || 0 })}
       {:else}
-        {t('task.count', { count: resolvedTasks.length })}
+        {i18n.t('task.count', { count: resolvedTasks.length })}
       {/if}
     </Card.Description>
   </Card.Header>
@@ -94,18 +97,18 @@
     {#if useProviderData && taskProvider && query.isLoading}
       <div class="flex h-40 items-center justify-center text-muted-foreground">
         <Loader2 class="mr-2 h-4 w-4 animate-spin" />
-        {t('task.loadingList')}
+        {i18n.t('task.loadingList')}
       </div>
     {:else}
       <div class="overflow-auto">
         <Table.Root>
           <Table.Header>
             <Table.Row>
-              <Table.Head>{t('task.taskColumn')}</Table.Head>
-              <Table.Head>{t('task.statusColumn')}</Table.Head>
-              <Table.Head>{t('task.updatedColumn')}</Table.Head>
+              <Table.Head>{i18n.t('task.taskColumn')}</Table.Head>
+              <Table.Head>{i18n.t('task.statusColumn')}</Table.Head>
+              <Table.Head>{i18n.t('task.updatedColumn')}</Table.Head>
               {#if showActions}
-                <Table.Head class="text-right">{t('task.actionsColumn')}</Table.Head>
+                <Table.Head class="text-right">{i18n.t('task.actionsColumn')}</Table.Head>
               {/if}
             </Table.Row>
           </Table.Header>
@@ -139,7 +142,7 @@
                         <CancelTaskButton taskId={task.id} {taskProvider} />
                       {/if}
                       <Button variant="ghost" size="sm" onclick={(e) => { e.stopPropagation(); onSelect?.(task); }}>
-                        {t('task.detailsAction')}
+                        {i18n.t('task.detailsAction')}
                       </Button>
                     </div>
                   </Table.Cell>

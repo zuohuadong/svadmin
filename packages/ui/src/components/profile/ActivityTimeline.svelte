@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '../ui/card/index.js';
   import { Avatar } from '../ui/avatar/index.js';
   import { MessageSquare, Plus, UserPlus, Star } from '@lucide/svelte';
   import type { Component } from 'svelte';
+
+  const i18n = useTranslation();
 
   interface ActivityItem {
     id: string;
@@ -22,20 +24,20 @@
   let { activities = [] }: Props = $props();
 
   const typeConfig: Record<string, { icon: Component; color: string; action: string }> = {
-    'posted': { icon: MessageSquare, color: 'bg-blue-500/10 text-blue-500', action: t('publicProfile.activityPosted') },
-    'commented': { icon: MessageSquare, color: 'bg-green-500/10 text-green-500', action: t('publicProfile.activityCommented') },
-    'joined': { icon: UserPlus, color: 'bg-purple-500/10 text-purple-500', action: t('publicProfile.activityJoined') },
-    'created': { icon: Plus, color: 'bg-amber-500/10 text-amber-500', action: t('publicProfile.activityCreated') },
-    'starred': { icon: Star, color: 'bg-yellow-500/10 text-yellow-500', action: t('publicProfile.activityCreated') },
+    'posted': { icon: MessageSquare, color: 'bg-blue-500/10 text-blue-500', action: i18n.t('publicProfile.activityPosted') },
+    'commented': { icon: MessageSquare, color: 'bg-green-500/10 text-green-500', action: i18n.t('publicProfile.activityCommented') },
+    'joined': { icon: UserPlus, color: 'bg-purple-500/10 text-purple-500', action: i18n.t('publicProfile.activityJoined') },
+    'created': { icon: Plus, color: 'bg-amber-500/10 text-amber-500', action: i18n.t('publicProfile.activityCreated') },
+    'starred': { icon: Star, color: 'bg-yellow-500/10 text-yellow-500', action: i18n.t('publicProfile.activityCreated') },
   };
 </script>
 
 <div class="space-y-4">
-  <h3 class="text-lg font-semibold text-foreground">{t('publicProfile.activity')}</h3>
+  <h3 class="text-lg font-semibold text-foreground">{i18n.t('publicProfile.activity')}</h3>
 
   {#if activities.length === 0}
     <div class="rounded-xl border border-dashed border-border/60 p-8 text-center">
-      <p class="text-sm text-muted-foreground">{t('publicProfile.noActivity')}</p>
+      <p class="text-sm text-muted-foreground">{i18n.t('publicProfile.noActivity')}</p>
     </div>
   {:else}
     <Card.Card class="border-border/60">

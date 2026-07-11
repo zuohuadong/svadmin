@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Button } from '../ui/button/index.js';
   import { Copy, Check, ChevronDown, ChevronRight } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   let { value } = $props<{
     value: unknown;
@@ -47,14 +49,14 @@
         {:else}
           <ChevronRight class="h-3 w-3" />
         {/if}
-        {expanded ? t('common.collapse') : t('common.expand')}
+        {expanded ? i18n.t('common.collapse') : i18n.t('common.expand')}
       </Button>
       <Button
         variant="ghost"
         size="sm"
         class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground h-auto py-0.5 px-1"
         onclick={copyJson}
-        aria-label={t('common.copy')}
+        aria-label={i18n.t('common.copy')}
       >
         {#if copied}
           <Check class="h-3 w-3 text-emerald-500" />

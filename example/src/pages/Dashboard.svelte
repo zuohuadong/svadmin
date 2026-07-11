@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
-  import { getLocale } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import {
     AlertTriangle,
@@ -19,6 +19,8 @@
     Truck,
     Users,
   } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   interface Product {
     id: number;
@@ -131,7 +133,7 @@
     sorters: [{ field: 'createdAt', order: 'desc' }],
   });
 
-  const locale = $derived(getLocale());
+  const locale = $derived(i18n.locale);
   const isZh = $derived(locale === 'zh-CN');
 
   const products = $derived((productsQuery.data?.data ?? []) as unknown as Product[]);

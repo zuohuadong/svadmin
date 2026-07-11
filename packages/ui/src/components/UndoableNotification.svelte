@@ -1,9 +1,12 @@
 <script lang="ts">
   import { Button } from './ui/button/index.js';
   import { Progress } from './ui/progress/index.js';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { slide } from 'svelte/transition';
   import { X, Undo2 } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   let { message, duration = 5000, onUndo, onTimeout } = $props<{
     message: string;
@@ -56,7 +59,7 @@
       <div class="flex items-center gap-1 flex-shrink-0">
         <Button variant="ghost" size="sm" onclick={handleUndo} class="font-semibold text-primary">
           <Undo2 class="h-3.5 w-3.5 mr-1" />
-          {t('common.undo')}
+          {i18n.t('common.undo')}
         </Button>
         <Button variant="ghost" size="icon" class="h-7 w-7" onclick={handleDismiss}>
           <X class="h-3.5 w-3.5" />

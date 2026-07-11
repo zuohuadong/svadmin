@@ -1,6 +1,6 @@
 // Minimal i18n — simple key-value translation
 
-
+import { createContext } from 'svelte';
 
 const baseLocales: Record<string, Record<string, string>> = {
   'zh-CN': {
@@ -994,52 +994,189 @@ export interface I18nProvider {
   getAvailableLocales?: () => string[];
 }
 
+/** Owner-controlled values for one component-tree i18n scope. */
+export interface I18nScopeOptions {
+  locale?: string;
+  provider?: I18nProvider;
+  onLocaleChange?: (locale: string) => void;
+}
+
+/**
+ * Tree-local i18n state. `updateOwner` synchronizes props without emitting a
+ * change event, while `setLocale` represents a change requested inside the tree.
+ */
+export interface I18nScope {
+  readonly locale: string;
+  readonly provider: I18nProvider | undefined;
+  translate: (key: string, params?: Record<string, string | number>) => string;
+  setLocale: (locale: string) => void;
+  setProvider: (provider: I18nProvider | undefined) => void;
+  getAvailableLocales: () => string[];
+  updateOwner: (options: I18nScopeOptions) => void;
+}
+
+const [readI18nScopeContext, writeI18nScopeContext] = createContext<I18nScope>();
+
+function translateFromTables(
+  locale: string,
+  key: string,
+  params?: Record<string, string | number>,
+): string {
+  const localeTable = locales[locale];
+  let text = localeTable?.[key] ?? locales.en?.[key] ?? key;
+
+  if (params) {
+    for (const [param, value] of Object.entries(params)) {
+      text = text.replaceAll(`{${param}}`, String(value));
+    }
+  }
+
+  return text;
+}
+
+function readCurrentI18nScope(): I18nScope | undefined {
+  try {
+    return readI18nScopeContext();
+  } catch {
+    // Context is only readable while Svelte owns the current render/effect.
+    // Public facade calls made outside a component intentionally use legacy state.
+    return undefined;
+  }
+}
+
+/** Create reactive i18n state that can be owned by one AdminApp tree. */
+export function createI18nScope(options: I18nScopeOptions = {}): I18nScope {
+  const initialProviderLocale = options.provider?.getLocale();
+  const initialLocale = options.locale ?? initialProviderLocale ?? detectLocale();
+  let scopeLocale = $state(initialLocale);
+  let scopeProvider = $state.raw<I18nProvider | undefined>(options.provider);
+  let onLocaleChange = $state.raw<((locale: string) => void) | undefined>(options.onLocaleChange);
+  let ownerControlsLocale = options.locale !== undefined;
+
+  function synchronizeProviderLocale(locale: string): void {
+    if (scopeProvider && scopeProvider.getLocale() !== locale) {
+      scopeProvider.setLocale(locale);
+    }
+  }
+
+  if (options.locale !== undefined) {
+    synchronizeProviderLocale(options.locale);
+  }
+
+  const scope: I18nScope = {
+    get locale() {
+      return scopeLocale;
+    },
+    get provider() {
+      return scopeProvider;
+    },
+    translate(key, params) {
+      // Establish the locale dependency even when a provider owns translation.
+      const locale = scopeLocale;
+      return scopeProvider?.translate(key, params) ?? translateFromTables(locale, key, params);
+    },
+    setLocale(locale) {
+      const providerLocale = scopeProvider?.getLocale();
+      const changed = scopeLocale !== locale || (scopeProvider !== undefined && providerLocale !== locale);
+
+      scopeLocale = locale;
+      synchronizeProviderLocale(locale);
+      if (changed) onLocaleChange?.(locale);
+    },
+    setProvider(provider) {
+      if (scopeProvider === provider) return;
+      scopeProvider = provider;
+      // Provider replacement is owner configuration, not a tree locale action.
+      scopeLocale = provider?.getLocale() || detectLocale();
+    },
+    getAvailableLocales() {
+      return scopeProvider?.getAvailableLocales?.() ?? Object.keys(locales);
+    },
+    updateOwner(nextOptions) {
+      const providerChanged = scopeProvider !== nextOptions.provider;
+      const clearedControlledLocale = ownerControlsLocale && nextOptions.locale === undefined;
+      scopeProvider = nextOptions.provider;
+      onLocaleChange = nextOptions.onLocaleChange;
+      ownerControlsLocale = nextOptions.locale !== undefined;
+
+      if (nextOptions.locale !== undefined) {
+        scopeLocale = nextOptions.locale;
+        synchronizeProviderLocale(nextOptions.locale);
+      } else if (providerChanged || clearedControlledLocale) {
+        scopeLocale = scopeProvider?.getLocale() || detectLocale();
+      }
+    },
+  };
+
+  return scope;
+}
+
+/** Attach an i18n scope to the current component tree. */
+export function provideI18nScope(scope: I18nScope): I18nScope {
+  writeI18nScopeContext(scope);
+  return scope;
+}
+
+/** Return the current tree scope when called during a Svelte render/effect. */
+export function getI18nScope(): I18nScope | undefined {
+  return readCurrentI18nScope();
+}
+
 let i18nProvider: I18nProvider | undefined;
 
+function setLegacyLocale(locale: string): void {
+  i18nProvider?.setLocale(locale);
+  currentLocale = locale;
+}
+
+function getLegacyLocale(): string {
+  // Reading the rune keeps legacy consumers reactive.
+  const locale = currentLocale;
+  return i18nProvider?.getLocale() ?? locale;
+}
+
+function getLegacyAvailableLocales(): string[] {
+  return i18nProvider?.getAvailableLocales?.() ?? Object.keys(locales);
+}
+
+function translateLegacy(key: string, params?: Record<string, string | number>): string {
+  const locale = currentLocale;
+  return i18nProvider?.translate(key, params) ?? translateFromTables(locale, key, params);
+}
+
 export function setI18nProvider(provider: I18nProvider | undefined): void {
+  const scope = readCurrentI18nScope();
+  if (scope) {
+    scope.setProvider(provider);
+    return;
+  }
   i18nProvider = provider;
 }
 
 export function getI18nProvider(): I18nProvider | undefined {
-  return i18nProvider;
+  const scope = readCurrentI18nScope();
+  return scope ? scope.provider : i18nProvider;
 }
 
 export function setLocale(locale: string): void {
-  if (i18nProvider) {
-    i18nProvider.setLocale(locale);
+  const scope = readCurrentI18nScope();
+  if (scope) {
+    scope.setLocale(locale);
+    return;
   }
-  // 同步更新 local state，确保 Svelte $state 依赖追踪触发模板刷新
-  currentLocale = locale;
+  setLegacyLocale(locale);
 }
 
 export function getLocale(): string {
-  // 读取 currentLocale 以保持 Svelte $state 响应式追踪
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  currentLocale;
-  if (i18nProvider) return i18nProvider.getLocale();
-  return currentLocale;
+  return readCurrentI18nScope()?.locale ?? getLegacyLocale();
 }
 
 export function getAvailableLocales(): string[] {
-  if (i18nProvider?.getAvailableLocales) return i18nProvider.getAvailableLocales();
-  return Object.keys(locales);
+  return readCurrentI18nScope()?.getAvailableLocales() ?? getLegacyAvailableLocales();
 }
 
 export function t(key: string, params?: Record<string, string | number>): string {
-  // 读取 currentLocale 以建立 Svelte $state 依赖追踪，
-  // 确保无论是否使用 provider，语言切换都能触发模板刷新。
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  currentLocale;
-  if (i18nProvider) return i18nProvider.translate(key, params);
-  const locale = locales[currentLocale];
-  let text = locale?.[key] ?? locales['en']?.[key] ?? key;
-
-  if (params) {
-    for (const [k, v] of Object.entries(params)) {
-      text = text.replaceAll(`{${k}}`, String(v));
-    }
-  }
-  return text;
+  return readCurrentI18nScope()?.translate(key, params) ?? translateLegacy(key, params);
 }
 
 export function addTranslations(locale: string, translations: Record<string, string>): void {
@@ -1048,7 +1185,7 @@ export function addTranslations(locale: string, translations: Record<string, str
 
 export function resetI18n(): void {
   currentLocale = detectLocale();
-  locales = initialLocales;
+  locales = structuredClone(initialLocales);
   i18nProvider = undefined;
 }
 
@@ -1057,14 +1194,23 @@ export function resetI18n(): void {
  * Tracks locale changes natively.
  */
 export function useTranslation() {
-  const translate = (key: string, params?: Record<string, string | number>): string => {
-    return t(key, params);
-  };
-  
+  // Capture context while the component is initializing. Event handlers and
+  // async continuations cannot safely call getContext later.
+  const scope = readCurrentI18nScope();
+  const translate = scope
+    ? (key: string, params?: Record<string, string | number>) => scope.translate(key, params)
+    : translateLegacy;
+  const changeLocale = scope
+    ? (locale: string) => scope.setLocale(locale)
+    : setLegacyLocale;
+  const availableLocales = scope
+    ? () => scope.getAvailableLocales()
+    : getLegacyAvailableLocales;
+
   return {
     get t() { return translate; },
-    get locale() { return getLocale(); },
-    setLocale,
-    getAvailableLocales
+    get locale() { return scope?.locale ?? getLegacyLocale(); },
+    setLocale: changeLocale,
+    getAvailableLocales: availableLocales,
   };
 }

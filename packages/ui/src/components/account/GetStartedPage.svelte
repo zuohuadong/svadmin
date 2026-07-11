@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import * as Card from '../ui/card/index.js';
   import { Button } from '../ui/button/index.js';
   import { Badge } from '../ui/badge/index.js';
   import { Camera, UserPlus, Puzzle, Users, CheckCircle2, ArrowRight, Sparkles } from '@lucide/svelte';
   import type { Component } from 'svelte';
+
+  const i18n = useTranslation();
 
   interface Step {
     key: string;
@@ -17,10 +19,10 @@
   let currentStep = $state(0);
 
   let steps = $state<Step[]>([
-    { key: 'avatar', title: t('account.uploadAvatar'), description: t('account.getStartedDescription'), icon: Camera, completed: false },
-    { key: 'profile', title: t('account.setupProfile'), description: t('account.getStartedDescription'), icon: UserPlus, completed: false },
-    { key: 'connect', title: t('account.connectProvider'), description: t('account.getStartedDescription'), icon: Puzzle, completed: false },
-    { key: 'team', title: t('account.setupTeam'), description: t('account.getStartedDescription'), icon: Users, completed: false },
+    { key: 'avatar', title: i18n.t('account.uploadAvatar'), description: i18n.t('account.getStartedDescription'), icon: Camera, completed: false },
+    { key: 'profile', title: i18n.t('account.setupProfile'), description: i18n.t('account.getStartedDescription'), icon: UserPlus, completed: false },
+    { key: 'connect', title: i18n.t('account.connectProvider'), description: i18n.t('account.getStartedDescription'), icon: Puzzle, completed: false },
+    { key: 'team', title: i18n.t('account.setupTeam'), description: i18n.t('account.getStartedDescription'), icon: Users, completed: false },
   ]);
 
   const completedCount = $derived(steps.filter(s => s.completed).length);
@@ -50,8 +52,8 @@
 <div class="space-y-6" data-svadmin-content-page="account">
   <div class="flex items-start justify-between gap-4">
     <div>
-      <h2 class="text-xl font-semibold text-foreground">{t('account.getStarted')}</h2>
-      <p class="mt-1 text-sm text-muted-foreground">{t('account.getStartedDescription')}</p>
+      <h2 class="text-xl font-semibold text-foreground">{i18n.t('account.getStarted')}</h2>
+      <p class="mt-1 text-sm text-muted-foreground">{i18n.t('account.getStartedDescription')}</p>
     </div>
     <Badge variant="secondary">{progressPercent}%</Badge>
   </div>
@@ -61,7 +63,7 @@
     <div class="h-2 rounded-full bg-muted overflow-hidden">
       <div class="h-full rounded-full bg-primary transition-all duration-500" style="width: {progressPercent}%"></div>
     </div>
-    <p class="text-xs text-muted-foreground">{t('account.step', { current: completedCount, total: steps.length })}</p>
+    <p class="text-xs text-muted-foreground">{i18n.t('account.step', { current: completedCount, total: steps.length })}</p>
   </div>
 
   {#if allCompleted}
@@ -71,8 +73,8 @@
           <Sparkles class="h-6 w-6" />
         </div>
         <div>
-          <h3 class="font-semibold text-success">{t('account.completeSetup')}</h3>
-          <p class="text-sm text-success/70">{t('account.getStartedDescription')}</p>
+          <h3 class="font-semibold text-success">{i18n.t('account.completeSetup')}</h3>
+          <p class="text-sm text-success/70">{i18n.t('account.getStartedDescription')}</p>
         </div>
       </Card.CardContent>
     </Card.Card>
@@ -98,7 +100,7 @@
                 <div class="flex items-center gap-2">
                   <h4 class="font-medium text-foreground">{step.title}</h4>
                   {#if currentStep === i && !step.completed}
-                    <Badge variant="outline" class="text-[10px]">{t('account.step', { current: i + 1, total: steps.length })}</Badge>
+                    <Badge variant="outline" class="text-[10px]">{i18n.t('account.step', { current: i + 1, total: steps.length })}</Badge>
                   {/if}
                 </div>
                 <p class="text-sm text-muted-foreground mt-0.5">{step.description}</p>
@@ -106,10 +108,10 @@
                 {#if currentStep === i && !step.completed}
                   <div class="mt-3 flex gap-2">
                     <Button size="sm" onclick={() => markComplete(i)}>
-                      {t('account.completeSetup')} <ArrowRight class="h-3.5 w-3.5 ml-1" />
+                      {i18n.t('account.completeSetup')} <ArrowRight class="h-3.5 w-3.5 ml-1" />
                     </Button>
                     <Button size="sm" variant="ghost" onclick={skipStep}>
-                      {t('account.skipSetup')}
+                      {i18n.t('account.skipSetup')}
                     </Button>
                   </div>
                 {/if}

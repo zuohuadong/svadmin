@@ -1,17 +1,19 @@
 <script lang="ts">
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-  import { getResources } from '@svadmin/core';
+  import { captureAdminContext, getResources } from '@svadmin/core';
   import { getPath } from '../router-state.svelte.js';
-  import { formatLink } from '@svadmin/core/router';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import * as Breadcrumb from './ui/breadcrumb/index.js';
 
+  const i18n = useTranslation();
+
+  const adminContext = captureAdminContext();
   const resources = $derived((() => { try { return getResources(); } catch { return []; } })());
 
   interface Crumb { label: string; href: string; }
 
   const crumbs = $derived.by(() => {
-    const result: Crumb[] = [{ label: t('common.home') ?? 'Home', href: formatLink('/') }];
+    const result: Crumb[] = [{ label: i18n.t('common.home') ?? 'Home', href: adminContext.formatLink('/') }];
     const path = getPath().replace(/^\//, ''); 
     if (path === '') return result;
 
@@ -25,21 +27,23 @@
        currentPath += `/${seg}`;
 
        if (resourceNames.includes(seg)) {
-          const res = resources.find(r => r.name === seg)!;
-          result.push({ label: res.label, href: formatLink(currentPath) });
+          const res = resources.find(r => r.name === seg);
+          if (res) {
+            result.push({ label: res.label, href: adminContext.formatLink(currentPath) });
+          }
        } else if (seg === 'create') {
-          result.push({ label: t('common.create') ?? 'Create', href: formatLink(currentPath) });
+          result.push({ label: i18n.t('common.create') ?? 'Create', href: adminContext.formatLink(currentPath) });
        } else if (['edit', 'show', 'clone'].includes(seg) && segments[i+1]) {
-          const actionLabel = seg === 'edit' ? (t('common.edit') ?? 'Edit') : 
-                              seg === 'show' ? (t('common.detail') ?? 'Details') : 
-                              (t('common.clone') ?? 'Clone');
+          const actionLabel = seg === 'edit' ? (i18n.t('common.edit') ?? 'Edit') :
+                              seg === 'show' ? (i18n.t('common.detail') ?? 'Details') :
+                              (i18n.t('common.clone') ?? 'Clone');
           const id = segments[i+1];
           currentPath += `/${id}`; // advance path by id
-          result.push({ label: `${actionLabel} #${id}`, href: formatLink(currentPath) });
+          result.push({ label: `${actionLabel} #${id}`, href: adminContext.formatLink(currentPath) });
           i++; // skip next segment since we consumed the id
        } else if (i > 0 && resourceNames.includes(segments[i-1])) {
           // This is a parent ID (e.g. /teams/123/users) and we are not an action
-          result.push({ label: `#${seg}`, href: formatLink(currentPath) });
+          result.push({ label: `#${seg}`, href: adminContext.formatLink(currentPath) });
        }
     }
 

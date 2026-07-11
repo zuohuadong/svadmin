@@ -1,11 +1,35 @@
+<script module lang="ts">
+  const loadPublicProfilePage = () => import('./profile/PublicProfilePage.svelte');
+  const loadGetStartedPage = () => import('./account/GetStartedPage.svelte');
+  const loadCompanyProfilePage = () => import('./account/CompanyProfilePage.svelte');
+  const loadSettingsPlainPage = () => import('./account/SettingsPlainPage.svelte');
+  const loadSettingsSidebarPage = () => import('./account/SettingsSidebarPage.svelte');
+  const loadSettingsEnterprisePage = () => import('./account/SettingsEnterprisePage.svelte');
+  const loadImportMembersPage = () => import('./account/ImportMembersPage.svelte');
+  const loadMembersStarterPage = () => import('./account/MembersStarterPage.svelte');
+  const loadTeamMembersPage = () => import('./account/TeamMembersPage.svelte');
+  const loadSecurityLogPage = () => import('./account/SecurityLogPage.svelte');
+  const loadUserCardsNFTPage = () => import('./network/UserCardsNFTPage.svelte');
+  const loadTeamCrewTablePage = () => import('./network/TeamCrewTablePage.svelte');
+  const loadTwoFactorAuthPage = () => import('./TwoFactorAuthPage.svelte');
+</script>
+
 <script lang="ts">
   // Auto-inject design tokens so consumers don't need to manually import
   import '../app.css';
-  import type { Component, Snippet } from 'svelte';
-  import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode, RouterProvider, ThemeConfig, MenuItem, TaskProvider } from '@svadmin/core';
-  import { setDataProvider, setAuthProvider, setResources, setLocale, setTheme, setRouterProvider, setTaskProvider, createHashRouterProvider, configureTheme } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
-  import { navigate } from '@svadmin/core/router';
+  import { onDestroy, onMount, untrack, type Component, type Snippet } from 'svelte';
+  import type { DataProvider, AuthProvider, ResourceDefinition, ThemeMode, RouterProvider, ThemeConfig, MenuItem, TaskProvider, I18nProvider } from '@svadmin/core';
+  import {
+    captureAdminContext,
+    createHashRouterProvider,
+    createI18nScope,
+    provideAdminContext,
+    provideI18nScope,
+    registerThemeOwner,
+    unregisterThemeOwner,
+    updateThemeOwner,
+  } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { QueryClient, QueryClientProvider, type DefaultOptions } from '@tanstack/svelte-query';
   import { setComponentRegistry, type ComponentRegistry } from '../component-registry.svelte.js';
   import Layout from './Layout.svelte';
@@ -24,24 +48,12 @@
   import TaskQueueDrawer from './TaskQueueDrawer.svelte';
   import SettingsPage from './SettingsPage.svelte';
   import ErrorPage from './ErrorPage.svelte';
-  import PublicProfilePage from './profile/PublicProfilePage.svelte';
-  import GetStartedPage from './account/GetStartedPage.svelte';
-  import CompanyProfilePage from './account/CompanyProfilePage.svelte';
-  import SettingsPlainPage from './account/SettingsPlainPage.svelte';
-  import SettingsSidebarPage from './account/SettingsSidebarPage.svelte';
-  import SettingsEnterprisePage from './account/SettingsEnterprisePage.svelte';
-  import ImportMembersPage from './account/ImportMembersPage.svelte';
-  import MembersStarterPage from './account/MembersStarterPage.svelte';
-  import TeamMembersPage from './account/TeamMembersPage.svelte';
-  import SecurityLogPage from './account/SecurityLogPage.svelte';
-  import UserCardsNFTPage from './network/UserCardsNFTPage.svelte';
-  import TeamCrewTablePage from './network/TeamCrewTablePage.svelte';
-  import TwoFactorAuthPage from './TwoFactorAuthPage.svelte';
+  import LazyPage from './LazyPage.svelte';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
   import { Badge } from './ui/badge/index.js';
   import { Skeleton } from './ui/skeleton/index.js';
-  import { initRouter, getRoute, getParams } from '../router-state.svelte.js';
+  import { provideRouterState } from '../router-state.svelte.js';
 
   interface Props {
     dataProvider: DataProvider;
@@ -49,7 +61,10 @@
     taskProvider?: TaskProvider;
     routerProvider?: RouterProvider;
     resources: ResourceDefinition[];
+    /** Bindable tree-local locale; defaults to the provider locale or per-tree browser detection (English during SSR). */
     locale?: string;
+    /** Optional tree-local translation provider. */
+    i18nProvider?: I18nProvider;
     title?: string;
     defaultTheme?: ThemeMode;
     /** Theme configuration for dark-first mode, CSS overrides, etc. */
@@ -90,7 +105,8 @@
     taskProvider,
     routerProvider,
     resources,
-    locale,
+    locale = $bindable(),
+    i18nProvider,
     title = 'Admin',
     defaultTheme,
     themeConfig: userThemeConfig,
@@ -122,28 +138,89 @@
   const resolvedRouter = $derived(routerProvider ?? createHashRouterProvider());
   const resolvedRouteMode = $derived(routeMode ?? (routerProvider ? 'auto' : 'hash'));
 
+  const routerState = provideRouterState(untrack(() => resolvedRouter));
+  const scopedRouterProvider: RouterProvider = {
+    go(options) {
+      resolvedRouter.go(options);
+      routerState.sync();
+    },
+    back() {
+      resolvedRouter.back();
+      routerState.sync();
+    },
+    parse() {
+      return resolvedRouter.parse();
+    },
+    formatLink(path) {
+      return resolvedRouter.formatLink?.(path) ?? `#${path.replace(/^#/, '')}`;
+    },
+  };
+
+  $effect.pre(() => routerState.init(resolvedRouter));
+  onDestroy(() => routerState.destroy());
+
+  function updateBoundLocale(nextLocale: string) {
+    locale = nextLocale;
+  }
+
+  const i18nScope = createI18nScope({
+    locale: untrack(() => locale),
+    provider: untrack(() => i18nProvider),
+    onLocaleChange: updateBoundLocale,
+  });
+  provideI18nScope(i18nScope);
+  const translation = useTranslation();
+
+  $effect.pre(() => {
+    const ownerProvider = i18nProvider;
+    const ownerLocale = locale;
+    untrack(() => i18nScope.updateOwner({
+      locale: ownerLocale,
+      provider: ownerProvider,
+      onLocaleChange: updateBoundLocale,
+    }));
+  });
+
+  let themeOwner = $state.raw<ReturnType<typeof registerThemeOwner>>(undefined);
+
+  onMount(() => {
+    themeOwner = registerThemeOwner({
+      defaultTheme,
+      themeConfig: userThemeConfig,
+    });
+
+    return () => {
+      unregisterThemeOwner(themeOwner);
+      themeOwner = undefined;
+    };
+  });
+
+  $effect(() => {
+    const owner = themeOwner;
+    const ownerOptions = {
+      defaultTheme,
+      themeConfig: userThemeConfig,
+    };
+    untrack(() => updateThemeOwner(owner, ownerOptions));
+  });
+
   function syncComponentRegistry() {
     setComponentRegistry(mergedComponents);
   }
 
-  function syncAppContext() {
-    setDataProvider(dataProvider);
-    if (authProvider) setAuthProvider(authProvider);
-    if (taskProvider) setTaskProvider(taskProvider);
-    setResources(resources);
-    setRouterProvider(resolvedRouter);
-    if (locale) setLocale(locale);
-    if (userThemeConfig) configureTheme(userThemeConfig);
-    if (defaultTheme) setTheme(defaultTheme);
-  }
+  provideAdminContext({
+    get dataProvider() { return dataProvider; },
+    get authProvider() { return authProvider ?? null; },
+    get taskProvider() { return taskProvider; },
+    get resources() { return resources; },
+    get routerProvider() { return scopedRouterProvider; },
+  });
+  const adminContext = captureAdminContext();
 
-  // Set up initial context synchronously so children can access resources immediately during first render.
+  // Context must be available synchronously to descendants during their first render.
   syncComponentRegistry();
-  syncAppContext();
 
-  // Set up context — use $effect so prop changes are tracked
   $effect.pre(syncComponentRegistry);
-  $effect.pre(syncAppContext);
 
   const queryClient = $derived(providedQueryClient ?? new QueryClient({
     defaultOptions: {
@@ -152,24 +229,20 @@
     },
   }));
 
-  function syncRouter() {
-    initRouter(resolvedRouter);
-  }
-
-  // Initialize router with provider synchronously
-  syncRouter();
-  $effect.pre(syncRouter);
-
   // Reactive getters for route state
-  const route = $derived(getRoute());
-  const params = $derived(getParams());
+  const route = $derived(routerState.route);
+  const params = $derived(routerState.params);
   const resourceNames = $derived(new Set(resources.map((resource) => resource.name)));
   const hasRouteResource = $derived(!params.resource || resourceNames.has(params.resource));
   const currentResourcePages = $derived(params.resource ? resourcePages?.[params.resource] : undefined);
 
   // Auth check
-  let isAuthenticated = $state(false);
-  let authChecked = $state(false);
+  let isAuthenticated = $state(untrack(() => !authProvider));
+  let authChecked = $state(untrack(() => !authProvider));
+
+  async function navigateWithinApp(path: string) {
+    await adminContext.navigate(path);
+  }
 
   $effect(() => {
     let cancelled = false;
@@ -183,12 +256,13 @@
       }
       return;
     }
+    authChecked = false;
     authProvider.check().then(result => {
       if (cancelled) return;
       isAuthenticated = result.authenticated;
       authChecked = true;
       if (!result.authenticated && _route !== '/login' && _route !== '/register' && _route !== '/forgot-password' && _route !== '/update-password') {
-        navigate(result.redirectTo ?? '/login');
+        void navigateWithinApp(result.redirectTo ?? '/login');
       }
     }).catch(err => {
       if (cancelled) return;
@@ -196,7 +270,7 @@
       isAuthenticated = false;
       authChecked = true;
       if (_route !== '/login' && _route !== '/register' && _route !== '/forgot-password' && _route !== '/update-password') {
-        navigate('/login');
+        void navigateWithinApp('/login');
       }
     });
 
@@ -220,7 +294,7 @@
       defaultIdentifier={loginDefaults?.identifier}
       defaultPassword={loginDefaults?.password}
       loginHint={loginDefaults?.hint}
-      onSuccess={() => { isAuthenticated = true; navigate('/'); }}
+      onSuccess={() => { isAuthenticated = true; void navigateWithinApp('/'); }}
     />
   {:else if route === '/register' && authProvider?.register}
     <RegisterPage {title} />
@@ -229,49 +303,49 @@
   {:else if route === '/update-password' && authProvider?.updatePassword}
     <UpdatePasswordPage {title} />
   {:else if route === '/login' || route === '/register' || route === '/forgot-password' || route === '/update-password'}
-    <ConfigErrorScreen title="{title} — {t('common.configRequired')}" />
+    <ConfigErrorScreen title="{title} — {translation.t('common.configRequired')}" />
   {:else if isAuthenticated || !authProvider}
     <Layout {title} {menu} {siteUrl} routeMode={resolvedRouteMode}>
       {#key route + (params.resource ?? '') + (params.id ?? '') + (params.variant ?? '') + (params.columns ?? '')}
       <div class="svadmin-page-enter">
       {#if route === '/2fa' || route === '/authentication/branded/2fa'}
-        <TwoFactorAuthPage />
+        <LazyPage loader={loadTwoFactorAuthPage} props={{}} />
       {:else if route === '/public-profile'}
-        <PublicProfilePage variant="default" initialTab="projects" />
+        <LazyPage loader={loadPublicProfilePage} props={{ variant: 'default', initialTab: 'projects' }} />
       {:else if route === '/public-profile/projects/:columns'}
-        <PublicProfilePage variant="default" initialTab="projects" columns={params.columns?.includes('3') ? 3 : 2} />
+        <LazyPage loader={loadPublicProfilePage} props={{ variant: 'default', initialTab: 'projects', columns: params.columns?.includes('3') ? 3 : 2 }} />
       {:else if route === '/public-profile/activity'}
-        <PublicProfilePage variant="default" initialTab="activity" />
+        <LazyPage loader={loadPublicProfilePage} props={{ variant: 'default', initialTab: 'activity' }} />
       {:else if route === '/public-profile/teams'}
-        <PublicProfilePage variant="default" initialTab="teams" />
+        <LazyPage loader={loadPublicProfilePage} props={{ variant: 'default', initialTab: 'teams' }} />
       {:else if route === '/public-profile/profiles/:variant'}
-        <PublicProfilePage variant={(params.variant === 'company' || params.variant === 'gamer' || params.variant === 'default' ? params.variant : 'default') as 'company' | 'gamer' | 'default'} />
+        <LazyPage loader={loadPublicProfilePage} props={{ variant: (params.variant === 'company' || params.variant === 'gamer' || params.variant === 'default' ? params.variant : 'default') as 'company' | 'gamer' | 'default' }} />
       {:else if route === '/account/get-started' || route === '/account/home/get-started'}
-        <GetStartedPage />
+        <LazyPage loader={loadGetStartedPage} props={{}} />
       {:else if route === '/account/home/user-profile'}
         <SettingsPage />
       {:else if route === '/account/company-profile' || route === '/account/home/company-profile'}
-        <CompanyProfilePage />
+        <LazyPage loader={loadCompanyProfilePage} props={{}} />
       {:else if route === '/account/settings-plain' || route === '/account/home/settings-plain'}
-        <SettingsPlainPage />
+        <LazyPage loader={loadSettingsPlainPage} props={{}} />
       {:else if route === '/account/settings-sidebar' || route === '/account/home/settings-sidebar'}
-        <SettingsSidebarPage />
+        <LazyPage loader={loadSettingsSidebarPage} props={{}} />
       {:else if route === '/account/settings-enterprise' || route === '/account/home/settings-enterprise'}
-        <SettingsEnterprisePage />
+        <LazyPage loader={loadSettingsEnterprisePage} props={{}} />
       {:else if route === '/account/:tab'}
         <SettingsPage />
       {:else if route === '/account/import-members' || route === '/account/members/import-members'}
-        <ImportMembersPage />
+        <LazyPage loader={loadImportMembersPage} props={{}} />
       {:else if route === '/account/members-starter' || route === '/account/members/members-starter'}
-        <MembersStarterPage />
+        <LazyPage loader={loadMembersStarterPage} props={{}} />
       {:else if route === '/account/team-members' || route === '/account/members/team-members'}
-        <TeamMembersPage />
+        <LazyPage loader={loadTeamMembersPage} props={{}} />
       {:else if route === '/account/security-log' || route === '/account/security/security-log'}
-        <SecurityLogPage />
+        <LazyPage loader={loadSecurityLogPage} props={{}} />
       {:else if route === '/network/user-cards' || route === '/network/user-cards/nft'}
-        <UserCardsNFTPage />
+        <LazyPage loader={loadUserCardsNFTPage} props={{}} />
       {:else if route === '/network/team-crew' || route === '/network/user-table/team-crew'}
-        <TeamCrewTablePage />
+        <LazyPage loader={loadTeamCrewTablePage} props={{}} />
       {:else if route.startsWith('/settings')}
         <SettingsPage />
       {:else if route === '/500' || (route === '/:resource' && params.resource === '500')}
@@ -282,8 +356,8 @@
           {@render dashboard()}
         {:else}
           <div class="space-y-4">
-            <h1 class="text-xl font-semibold text-foreground">{t('common.welcome', { title })}</h1>
-            <p class="text-muted-foreground">{t('common.dashboardHint')}</p>
+            <h1 class="text-xl font-semibold text-foreground">{translation.t('common.welcome', { title })}</h1>
+            <p class="text-muted-foreground">{translation.t('common.dashboardHint')}</p>
           </div>
         {/if}
       {:else if (route === '/:resource' || route === '/:parent/:parentId/:resource') && hasRouteResource}
@@ -320,7 +394,7 @@
     </Layout>
   {:else}
     <div class="flex h-screen items-center justify-center">
-      <p class="text-muted-foreground">{t('common.redirecting')}</p>
+      <p class="text-muted-foreground">{translation.t('common.redirecting')}</p>
     </div>
   {/if}
   <Toast />

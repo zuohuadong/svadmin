@@ -51,6 +51,7 @@ Provider 期望标准的 RESTful 路由：
 | 分页 | `_page`、`_limit` | `?_page=1&_limit=10` |
 | 排序 | `_sort`、`_order` | `?_sort=name&_order=asc` |
 | 过滤 | `字段_操作符` | `?status_eq=active&name_contains=foo` |
+| 逻辑过滤 | `_filters` JSON | `?_filters=[{"operator":"or",...}]` |
 
 ### 过滤操作符
 
@@ -62,6 +63,10 @@ Provider 期望标准的 RESTful 路由：
 ?name_contains=widget    → name LIKE '%widget%'
 ?category_in=1,2,3       → category IN (1, 2, 3)
 ```
+
+普通字段过滤继续使用上述紧凑查询格式。当过滤器包含嵌套的 `and` / `or`
+分组时，Provider 还会把完整过滤树以 JSON 写入 `_filters`；Elysia 端点应先
+解析和校验该参数，再应用到查询。
 
 ## 端到端类型安全
 
@@ -130,11 +135,16 @@ interface ElysiaDataProviderOptions {
 
 Provider 还支持批量操作：
 
-- `getMany` — 通过 `?ids=1,2,3` 获取多条记录
+- `getMany` — 通过重复 ID 参数获取多条记录，例如 `?id=1&id=2&id=3`
 - `createMany` — 顺序 POST 调用
 - `updateMany` — 顺序 PATCH 调用
 - `deleteMany` — 顺序 DELETE 调用
 - `custom` — 任意 HTTP 请求
+
+`custom` 同时支持 `query`、`sorters` 和 `filters`。只有同源 URL 会继承
+Provider 级认证头和 `credentials: include`；跨源 URL 会移除敏感默认请求头，
+只有在明确信任目标端点时才应显式传入对应 Header。删除端点可以返回
+`204`、`205`、`Content-Length: 0` 或其他空响应体。
 
 ## 与 Simple REST 对比
 

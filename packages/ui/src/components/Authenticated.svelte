@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { useIsAuthenticated, getRouterProvider } from '@svadmin/core';
+  import { captureAdminContext, useIsAuthenticated } from '@svadmin/core';
   import type { Snippet } from 'svelte';
-  import { navigate } from '@svadmin/core';
 
   let {
     children,
@@ -17,13 +16,14 @@
     appendCurrentPathToQuery?: boolean;
   }>();
 
+  const adminContext = captureAdminContext();
   const isAuth = useIsAuthenticated();
 
   function triggerRedirect() {
     if (fallback) return;
     let url = redirectTo;
     if (appendCurrentPathToQuery && typeof window !== 'undefined') {
-      const rp = getRouterProvider();
+      const rp = adminContext.routerProvider;
       let currentString = window.location.pathname + window.location.search;
       if (rp) {
         const parsed = rp.parse();
@@ -33,7 +33,7 @@
       const current = encodeURIComponent(currentString);
       url += url.includes('?') ? `&to=${current}` : `?to=${current}`;
     }
-    navigate(url);
+    adminContext.navigate(url);
   }
 
   $effect(() => {

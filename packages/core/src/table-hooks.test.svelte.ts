@@ -5,18 +5,38 @@ import { useTable } from './table-hooks.svelte';
 import { flushSync } from 'svelte';
 import { QueryClient } from '@tanstack/svelte-query';
 
-vi.mock('./context.svelte', () => ({
-  useDataProvider: () => ({
+vi.mock('./context.svelte', () => {
+  const dataProvider = {
     getList: vi.fn().mockResolvedValue({ data: [], total: 0 })
-  }),
-  useResource: () => ({ name: 'posts' }),
-  getResource: (name: string) => ({ name, primaryKey: 'id' }),
-  useRouterContext: () => ({ navigate: vi.fn(), url: '/', parsedParams: { current: 1, pageSize: 10 } }),
-  useTranslate: () => (key: string) => key,
-  getSyncWithLocation: () => false,
-  useNotification: () => ({ open: vi.fn(), close: vi.fn() }),
-  getLiveProvider: () => undefined
-}));
+  };
+  const getResource = (name: string) => ({ name, primaryKey: 'id' });
+  return {
+    captureAdminContext: () => ({
+      providers: { default: dataProvider },
+      authProvider: null,
+      resources: [getResource('posts')],
+      routerProvider: undefined,
+      liveProvider: undefined,
+      taskProvider: undefined,
+      getDataProvider: () => dataProvider,
+      getDataProviderNames: () => ['default'],
+      getDataProviderForResource: () => dataProvider,
+      getResource,
+      currentPath: () => '/',
+      formatLink: (path: string) => path,
+      navigate: vi.fn(async () => {}),
+      back: vi.fn(),
+    }),
+    useDataProvider: () => dataProvider,
+    useResource: () => ({ name: 'posts' }),
+    getResource,
+    useRouterContext: () => ({ navigate: vi.fn(), url: '/', parsedParams: { current: 1, pageSize: 10 } }),
+    useTranslate: () => (key: string) => key,
+    getSyncWithLocation: () => false,
+    useNotification: () => ({ open: vi.fn(), close: vi.fn() }),
+    getLiveProvider: () => undefined
+  };
+});
 
 vi.mock('@tanstack/svelte-query', async (importOriginal) => {
   const actual = await importOriginal();

@@ -1,7 +1,7 @@
 /**
- * @svadmin/lite — IE11+ Compatible CSS
+ * @svadmin/lite — lightweight server-rendered admin CSS
  *
- * Baseline: IE11 (standard flexbox, no CSS Variables, no Grid)
+ * Baseline: modern evergreen browsers with a conservative flexbox layout.
  * Color system: Aligned with @svadmin/ui (Indigo primary / Slate neutrals)
  *
  * RULES:
@@ -54,6 +54,46 @@ a:hover {
   padding: 16px 0;
   flex-shrink: 0;
   border-right: 1px solid #e2e8f0;
+}
+
+.lite-mobile-nav {
+  display: none;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.lite-mobile-nav summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  font-weight: 700;
+}
+
+.lite-mobile-nav-links {
+  padding: 0 16px 12px;
+}
+
+.lite-mobile-nav-links > a {
+  display: block;
+  padding: 9px 0;
+  border-top: 1px solid #f1f5f9;
+}
+
+.lite-mobile-nav-links > a.active {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.lite-mobile-user {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.lite-mobile-user form {
+  display: inline;
+  margin: 0;
 }
 
 .lite-sidebar-brand {
@@ -282,6 +322,69 @@ a:hover {
 /* ─── Forms — Text Inputs ─────────────────────────────────── */
 .lite-form-group {
   margin-bottom: 18px;
+}
+
+.lite-array-field {
+  border: 2px dashed #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 0;
+}
+
+.lite-array-field legend {
+  padding: 0 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.lite-array-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #f8fafc;
+}
+
+.lite-array-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.lite-array-item-number {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.lite-array-remove,
+.lite-array-remove-nojs {
+  color: #dc2626;
+}
+
+.lite-array-remove-nojs input {
+  margin-right: 4px;
+}
+
+.lite-js .lite-array-remove-nojs {
+  display: none;
+}
+
+.lite-array-subfield {
+  margin-bottom: 8px;
+}
+
+.lite-array-subfield > label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.lite-array-field [data-lite-array-add] {
+  margin-top: 4px;
 }
 
 .lite-form-group label {
@@ -669,8 +772,14 @@ textarea.lite-input {
 
 /* ─── Responsive ───────────────────────────────────────────── */
 @media (max-width: 768px) {
+  .lite-wrapper {
+    display: block;
+  }
   .lite-sidebar {
     display: none;
+  }
+  .lite-mobile-nav {
+    display: block;
   }
   .lite-main {
     padding: 16px;

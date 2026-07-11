@@ -4,16 +4,35 @@ import { useGo, useBack } from './routing-hooks.svelte';
 import { useParsed } from './useParsed.svelte';
 import { flushSync } from 'svelte';
 
-vi.mock('./context.svelte', () => ({
-  useRouterContext: () => ({ 
+vi.mock('./context.svelte', () => {
+  const routerContext = {
     navigate: vi.fn(), 
     url: '/posts/1/edit',
     parsedParams: { resource: 'posts', action: 'edit', id: '1' },
     go: vi.fn(),
     back: vi.fn()
-  }),
-  getRouterProvider: () => undefined
-}));
+  };
+  return {
+    captureAdminContext: () => ({
+      providers: null,
+      authProvider: null,
+      resources: [],
+      routerProvider: undefined,
+      liveProvider: undefined,
+      taskProvider: undefined,
+      getDataProvider: vi.fn(),
+      getDataProviderNames: () => [],
+      getDataProviderForResource: vi.fn(),
+      getResource: vi.fn(),
+      currentPath: () => '/posts/1/edit',
+      formatLink: (path: string) => path,
+      navigate: vi.fn(async () => {}),
+      back: vi.fn(),
+    }),
+    useRouterContext: () => routerContext,
+    getRouterProvider: () => undefined
+  };
+});
 
 vi.mock('./useParsed.svelte', () => ({
   useParsed: () => ({ resource: 'posts', action: 'edit', id: '1' })

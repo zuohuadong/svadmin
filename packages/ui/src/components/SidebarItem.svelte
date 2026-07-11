@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { MenuItem } from '@svadmin/core';
+  import { captureAdminContext, type MenuItem } from '@svadmin/core';
   import * as Collapsible from './ui/collapsible/index.js';
   import * as Tooltip from './ui/tooltip/index.js';
   import { Badge } from './ui/badge/index.js';
@@ -12,14 +12,14 @@
     Circle,
   } from '@lucide/svelte';
 
-  import { formatLink } from '@svadmin/core/router';
-  
+
   let { item, currentPath, collapsed = false, depth = 0 }: {
     item: MenuItem;
     currentPath: string;
     collapsed?: boolean;
     depth?: number;
   } = $props();
+  const adminContext = captureAdminContext();
 
   const iconMap: Record<string, typeof LayoutDashboard> = {
     dashboard: LayoutDashboard,
@@ -90,7 +90,7 @@
   const childActive = $derived(hasActiveChild(item));
   const isExternal = $derived(item.target === '_blank' || item.href?.startsWith('http'));
 
-  const finalHref = $derived(isExternal ? item.href : (item.href ? formatLink(item.href) : undefined));
+  const finalHref = $derived(isExternal ? item.href : (item.href ? adminContext.formatLink(item.href) : undefined));
 
   let isOpen = $state(false);
   $effect(() => { if (childActive) isOpen = true; });

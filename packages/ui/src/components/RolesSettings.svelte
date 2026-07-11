@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { getAuthProvider, getResources } from '@svadmin/core';
   import PermissionMatrix from './PermissionMatrix.svelte';
   import type { RoleInfo, ResourceInfo, ActionInfo } from '../types.js';
   import { toast } from '@svadmin/core/toast';
   import { AlertCircle } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   const authProvider = getAuthProvider({ optional: true });
   const rawResources = getResources();
@@ -29,15 +31,15 @@
   );
 
   let matrixActions = $state<ActionInfo[]>([
-    { code: 'create', name: t('common.create') ?? 'Create' },
-    { code: 'read', name: t('common.detail') ?? 'Read' },
-    { code: 'update', name: t('common.edit') ?? 'Update' },
-    { code: 'delete', name: t('common.delete') ?? 'Delete' },
+    { code: 'create', name: i18n.t('common.create') ?? 'Create' },
+    { code: 'read', name: i18n.t('common.detail') ?? 'Read' },
+    { code: 'update', name: i18n.t('common.edit') ?? 'Update' },
+    { code: 'delete', name: i18n.t('common.delete') ?? 'Delete' },
   ]);
 
   async function loadRoles() {
     if (!authProvider?.getRoles) {
-      error = t('settings.rbacNotSupported') ?? 'RBAC not supported by AuthProvider';
+      error = i18n.t('settings.rbacNotSupported') ?? 'RBAC not supported by AuthProvider';
       loadingRoles = false;
       return;
     }
@@ -111,7 +113,7 @@
       if (result.success) {
         // Success silently
       } else {
-         throw new Error(result.error?.message ?? t('common.operationFailed'));
+         throw new Error(result.error?.message ?? i18n.t('common.operationFailed'));
       }
     } catch (e) {
       toast.error((e as Error).message);
@@ -128,7 +130,7 @@
   <div class="h-full flex items-center justify-center">
     <div class="max-w-md p-6 border border-destructive/20 bg-destructive/10 text-destructive rounded-lg flex flex-col items-center gap-3 text-center">
       <AlertCircle class="h-8 w-8" />
-      <h3 class="font-bold text-lg">{t('common.error') ?? 'Error'}</h3>
+      <h3 class="font-bold text-lg">{i18n.t('common.error') ?? 'Error'}</h3>
       <p>{error}</p>
     </div>
   </div>

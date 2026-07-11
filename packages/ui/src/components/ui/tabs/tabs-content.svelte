@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { cn, type WithElementRef } from "../../../utils.js";
 	import type { HTMLAttributes } from "svelte/elements";
+	import { getTabsContext } from "./tabs-context.svelte.js";
 
 	type Props = WithElementRef<HTMLAttributes<HTMLDivElement>> & {
 		value: string;
@@ -10,14 +11,17 @@
 	let {
 		ref = $bindable(null),
 		value,
-		active = false,
+		active,
 		class: className,
 		children,
 		...restProps
 	}: Props = $props();
+
+	const tabs = getTabsContext();
+	const isActive = $derived(active ?? tabs.value === value);
 </script>
 
-{#if active}
+{#if isActive}
 	<div
 		bind:this={ref}
 		data-slot="tabs-content"

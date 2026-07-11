@@ -53,7 +53,7 @@ svadmin 是编译时 admin 框架 — 无虚拟 DOM、无运行时 diff，直接
 | SSO（OIDC/OAuth2） | ✅ `@svadmin/sso` 插件 | ✅ 企业版（付费） | ❌ 无 |
 | 路由无关 | ✅ Hash / SvelteKit | ✅ React Router / Next | ✅ React Router |
 | 国际化 | ✅ | ✅ | ✅ |
-| 无 JS/IE11 兼容回退 | ✅ `@svadmin/lite` (全量 SSR) | ❌ 强依赖运行时 Hydration | ❌ 强依赖运行时 Hydration |
+| SSR 优先/低 JS 回退 | ✅ `@svadmin/lite`（服务端驱动，可选渐进增强） | ❌ 强依赖运行时 Hydration | ❌ 强依赖运行时 Hydration |
 
 ### 数据与变更
 

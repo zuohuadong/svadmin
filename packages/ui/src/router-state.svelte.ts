@@ -1,12 +1,6 @@
-// Shared reactive hash router state — .svelte.ts enables $state at module level
-import { matchRoute, setActiveRouterProvider } from '@svadmin/core/router';
+import { createContext } from 'svelte';
+import { matchRoute } from '@svadmin/core/router';
 import type { RouterProvider } from '@svadmin/core';
-
-let _route = $state('/');
-let _params: Record<string, string> = $state({});
-let _path = $state('/');
-let _initialized = false;
-let _provider: RouterProvider | undefined;
 
 const ROUTES = [
   '/login',
@@ -60,52 +54,107 @@ const ROUTES = [
   '/:parent/:parentId/:resource/clone/:id',
 ];
 
-function sync() {
-  let path: string;
+export interface RouterState {
+  readonly route: string;
+  readonly params: Record<string, string>;
+  readonly path: string;
+  readonly provider: RouterProvider | undefined;
+  init: (provider: RouterProvider | undefined) => void;
+  sync: () => void;
+  destroy: () => void;
+}
 
-  if (_provider) {
-    const parsed = _provider.parse();
-    path = parsed.pathname || '/';
-    const m = matchRoute(path, ROUTES);
-    _route = m?.route ?? '/';
-    _path = path;
-    _params = { ...(m?.params ?? {}), ...parsed.params };
-  } else {
-    path = typeof window !== 'undefined' ? window.location.hash.replace(/^#/, '') || '/' : '/';
-    const m = matchRoute(path, ROUTES);
-    _route = m?.route ?? '/';
-    _path = path;
-    _params = m?.params ?? {};
+export function createRouterState(): RouterState {
+  let route = $state('/');
+  let params: Record<string, string> = $state({});
+  let path = $state('/');
+  let provider: RouterProvider | undefined;
+  let listenersAttached = false;
+
+  function sync() {
+    let nextPath: string;
+    let providerParams: Record<string, string> = {};
+
+    if (provider) {
+      const parsed = provider.parse();
+      nextPath = parsed.pathname || '/';
+      providerParams = parsed.params;
+    } else {
+      nextPath = typeof window !== 'undefined'
+        ? window.location.hash.replace(/^#/, '') || '/'
+        : '/';
+    }
+
+    const match = matchRoute(nextPath, ROUTES);
+    route = match?.route ?? '/';
+    path = nextPath;
+    params = { ...providerParams, ...(match?.params ?? {}) };
+  }
+
+  function attachListeners() {
+    if (listenersAttached || typeof window === 'undefined') return;
+    window.addEventListener('hashchange', sync);
+    window.addEventListener('popstate', sync);
+    listenersAttached = true;
+  }
+
+  return {
+    get route() { return route; },
+    get params() { return params; },
+    get path() { return path; },
+    get provider() { return provider; },
+    init(nextProvider) {
+      provider = nextProvider;
+      sync();
+      attachListeners();
+    },
+    sync,
+    destroy() {
+      if (!listenersAttached || typeof window === 'undefined') return;
+      window.removeEventListener('hashchange', sync);
+      window.removeEventListener('popstate', sync);
+      listenersAttached = false;
+    },
+  };
+}
+
+const [getRequiredRouterState, setRouterState] = createContext<RouterState>();
+
+/** Create and provide router state scoped to the current AdminApp tree. */
+export function provideRouterState(provider: RouterProvider | undefined): RouterState {
+  const state = createRouterState();
+  state.init(provider);
+  setRouterState(state);
+  return state;
+}
+
+export function getRouterState(): RouterState | undefined {
+  try {
+    return getRequiredRouterState();
+  } catch {
+    return undefined;
   }
 }
 
+// Compatibility singleton for consumers that call initRouter outside AdminApp.
+const legacyRouterState = createRouterState();
+
 export function initRouter(provider?: RouterProvider) {
-  _provider = provider;
-  setActiveRouterProvider(provider);
-  if (_initialized) {
-    sync(); // Re-sync manually since provider might have switched format/URLs
-    return;
-  }
-  _initialized = true;
-  sync();
-  if (typeof window !== 'undefined') {
-    window.addEventListener('hashchange', sync);
-    window.addEventListener('popstate', sync);
-  }
+  legacyRouterState.init(provider);
 }
 
 export function getRoute(): string {
-  return _route;
+  return getRouterState()?.route ?? legacyRouterState.route;
 }
 
 export function getPath(): string {
-  return _path;
+  return getRouterState()?.path ?? legacyRouterState.path;
 }
 
 export function getParams(): Record<string, string> {
-  return _params;
+  return getRouterState()?.params ?? legacyRouterState.params;
 }
 
 export function getRouterProviderInstance(): RouterProvider | undefined {
-  return _provider;
+  return getRouterState()?.provider ?? legacyRouterState.provider;
 }

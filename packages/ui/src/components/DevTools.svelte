@@ -1,10 +1,9 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
   import { fly } from 'svelte/transition';
-  import { getResources } from '@svadmin/core';
-  import { getTheme, getColorTheme } from '@svadmin/core';
-  import { getLocale, t } from '@svadmin/core/i18n';
-  import { currentPath } from '@svadmin/core/router';
+  import { captureAdminContext, getResources, getTheme, getColorTheme } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import TooltipButton from './TooltipButton.svelte';
   import * as Tabs from './ui/tabs/index.js';
   import { Badge } from './ui/badge/index.js';
@@ -13,6 +12,9 @@
   import { X, Bug, ChevronDown, ChevronUp, Wand2 } from '@lucide/svelte';
   import InferencerPanel from './InferencerPanel.svelte';
 
+  const i18n = useTranslation();
+
+  const adminContext = captureAdminContext();
   let visible = $state(false);
   let collapsed = $state(false);
 
@@ -28,10 +30,10 @@
   }
 
   const resources = $derived.by(() => { try { return getResources(); } catch { return []; } });
-  const path = $derived(currentPath());
+  const path = $derived(adminContext.currentPath());
   const theme = $derived(getTheme());
   const colorTheme = $derived(getColorTheme());
-  const locale = $derived(getLocale());
+  const locale = $derived(i18n.locale);
 
   // Auto-trace state changes in dev mode via Svelte 5 $inspect
   if ((import.meta as any).env?.DEV) {
@@ -56,14 +58,14 @@
           <span>svadmin DevTools</span>
         </div>
         <div class="flex gap-1">
-          <TooltipButton tooltip={collapsed ? t('common.expand') : t('common.collapse')} variant="ghost" size="icon" class="h-6 w-6" onclick={() => collapsed = !collapsed}>
+          <TooltipButton tooltip={collapsed ? i18n.t('common.expand') : i18n.t('common.collapse')} variant="ghost" size="icon" class="h-6 w-6" onclick={() => collapsed = !collapsed}>
             {#if collapsed}
               <ChevronUp class="h-3.5 w-3.5" />
             {:else}
               <ChevronDown class="h-3.5 w-3.5" />
             {/if}
           </TooltipButton>
-          <TooltipButton tooltip={t('common.close')} variant="ghost" size="icon" class="h-6 w-6" onclick={toggle}>
+          <TooltipButton tooltip={i18n.t('common.close')} variant="ghost" size="icon" class="h-6 w-6" onclick={toggle}>
             <X class="h-3.5 w-3.5" />
           </TooltipButton>
         </div>
@@ -138,7 +140,7 @@
     </div>
   {:else}
     <TooltipButton
-      tooltip={t('devtools.title')}
+      tooltip={i18n.t('devtools.title')}
       variant="default"
       size="icon"
       class="fixed bottom-4 right-4 z-[9999] h-9 w-9 rounded-full shadow-lg opacity-60 hover:opacity-100 hover:scale-110 transition-all"

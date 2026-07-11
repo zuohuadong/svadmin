@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ListTodo, Loader2, Plus, Search, RefreshCw } from '@lucide/svelte';
   import { getTaskProvider, useSubmitTask, useTaskList } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import type { TaskProvider, TaskRecord } from '@svadmin/core';
   import { Button } from './ui/button/index.js';
   import { Badge } from './ui/badge/index.js';
@@ -20,6 +20,8 @@
     resolveTaskMessage,
     resolveTaskTitle,
   } from './task-utils.js';
+
+  const i18n = useTranslation();
 
   type AutoRefreshValue = '0' | '5000' | '15000' | '30000';
   type TaskTab = 'tasks' | 'dlq';
@@ -44,14 +46,14 @@
   let autoRefresh = $state<AutoRefreshValue>('15000');
   let submitTaskName = $state('');
   let submitIdempotencyKey = $state('');
-  let submitBodyText = $state(t('task.bodyPlaceholder'));
+  let submitBodyText = $state(i18n.t('task.bodyPlaceholder'));
   let submitError = $state<string | null>(null);
   let submitOpen = $state(false);
 
   const refreshInterval = $derived.by<number | false>(() =>
     autoRefresh === '0' ? false : Number(autoRefresh),
   );
-  const resolvedTitle = $derived(title ?? t('task.drawerTitle'));
+  const resolvedTitle = $derived(title ?? i18n.t('task.drawerTitle'));
 
   const taskQuery = useTaskList({
     get taskProvider() {
@@ -158,14 +160,14 @@
   function resetSubmitForm() {
     submitTaskName = '';
     submitIdempotencyKey = '';
-    submitBodyText = t('task.bodyPlaceholder');
+    submitBodyText = i18n.t('task.bodyPlaceholder');
     submitError = null;
   }
 
   async function handleSubmitTask() {
     submitError = null;
     if (!submitTaskName.trim()) {
-      submitError = t('validation.required');
+      submitError = i18n.t('validation.required');
       return;
     }
 
@@ -174,7 +176,7 @@
       try {
         body = JSON.parse(submitBodyText) as Record<string, unknown>;
       } catch {
-        submitError = t('task.invalidJson');
+        submitError = i18n.t('task.invalidJson');
         return;
       }
     }
@@ -197,7 +199,7 @@
         dlqQuery.refetch?.(),
       ]);
     } catch (error) {
-      submitError = error instanceof Error ? error.message : t('task.submitFailed');
+      submitError = error instanceof Error ? error.message : i18n.t('task.submitFailed');
     }
   }
 
@@ -232,16 +234,16 @@
         <div class="flex flex-wrap items-center gap-2">
           <ListTodo class="h-5 w-5 text-muted-foreground" />
           <h2 class="text-sm font-semibold">{resolvedTitle}</h2>
-          <Badge variant="secondary" class="text-xs">{t('task.activeCount', { count: runningCount })}</Badge>
+          <Badge variant="secondary" class="text-xs">{i18n.t('task.activeCount', { count: runningCount })}</Badge>
           {#if allTasks[0] && resolveTaskCreatedAt(allTasks[0])}
-            <span class="text-xs text-muted-foreground">{t('task.lastQueuedAt', { time: formatTime(resolveTaskCreatedAt(allTasks[0])) })}</span>
+            <span class="text-xs text-muted-foreground">{i18n.t('task.lastQueuedAt', { time: formatTime(resolveTaskCreatedAt(allTasks[0])) })}</span>
           {/if}
         </div>
       </div>
 
       {#if !taskProvider}
         <div class="flex flex-1 items-center justify-center p-6 text-sm text-muted-foreground">
-          {t('common.configRequired')}
+          {i18n.t('common.configRequired')}
         </div>
       {:else}
         <div class="grid min-h-0 flex-1 gap-0 lg:grid-cols-[minmax(0,1.2fr)_minmax(340px,0.8fr)]">
@@ -252,11 +254,11 @@
                   <Tabs.Root value={activeTab} class="w-full">
                     <Tabs.List class="inline-flex rounded-lg border border-border bg-muted/40 p-1">
                       <Tabs.Trigger value="tasks" active={activeTab === 'tasks'} onclick={() => activeTab = 'tasks'}>
-                        {t('task.tabTasks')}
+                        {i18n.t('task.tabTasks')}
                         <Badge variant="outline" class="ml-1 text-[10px]">{taskQuery.data?.total ?? allTasks.length}</Badge>
                       </Tabs.Trigger>
                       <Tabs.Trigger value="dlq" active={activeTab === 'dlq'} onclick={() => activeTab = 'dlq'}>
-                        {t('task.tabDlq')}
+                        {i18n.t('task.tabDlq')}
                         <Badge variant="outline" class="ml-1 text-[10px]">{dlqQuery.data?.total ?? dlqTasks.length}</Badge>
                       </Tabs.Trigger>
                     </Tabs.List>
@@ -264,11 +266,11 @@
                   <div class="ml-auto flex items-center gap-2">
                     <Button variant="outline" size="sm" onclick={() => void refreshCurrentTab()}>
                       <RefreshCw class="mr-1.5 h-3.5 w-3.5" />
-                      {t('common.refresh')}
+                      {i18n.t('common.refresh')}
                     </Button>
                     <Button size="sm" onclick={() => submitOpen = !submitOpen}>
                       <Plus class="mr-1.5 h-3.5 w-3.5" />
-                      {t('task.submitAction')}
+                      {i18n.t('task.submitAction')}
                     </Button>
                   </div>
                 </div>
@@ -278,21 +280,21 @@
                     <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       class="pl-9"
-                      placeholder={t('task.searchPlaceholder')}
+                      placeholder={i18n.t('task.searchPlaceholder')}
                       bind:value={searchQuery}
                     />
                   </div>
-                  <Select bind:value={statusFilter} aria-label={t('task.statusFilterLabel')}>
-                    <option value="all">{t('task.statusAll')}</option>
+                  <Select bind:value={statusFilter} aria-label={i18n.t('task.statusFilterLabel')}>
+                    <option value="all">{i18n.t('task.statusAll')}</option>
                     {#each availableStatuses as status, _i (_i)}
                       <option value={status}>{status}</option>
                     {/each}
                   </Select>
-                  <Select bind:value={autoRefresh} aria-label={t('task.autoRefreshLabel')}>
-                    <option value="0">{t('task.refreshOff')}</option>
-                    <option value="5000">{t('task.refresh5s')}</option>
-                    <option value="15000">{t('task.refresh15s')}</option>
-                    <option value="30000">{t('task.refresh30s')}</option>
+                  <Select bind:value={autoRefresh} aria-label={i18n.t('task.autoRefreshLabel')}>
+                    <option value="0">{i18n.t('task.refreshOff')}</option>
+                    <option value="5000">{i18n.t('task.refresh5s')}</option>
+                    <option value="15000">{i18n.t('task.refresh15s')}</option>
+                    <option value="30000">{i18n.t('task.refresh30s')}</option>
                   </Select>
                 </div>
               </div>
@@ -300,20 +302,20 @@
               {#if submitOpen}
                 <Card.Root class="border-border/60 shadow-none">
                   <Card.Header class="pb-3">
-                    <Card.Title class="text-base">{t('task.submitTitle')}</Card.Title>
-                    <Card.Description>{t('task.submitDescription')}</Card.Description>
+                    <Card.Title class="text-base">{i18n.t('task.submitTitle')}</Card.Title>
+                    <Card.Description>{i18n.t('task.submitDescription')}</Card.Description>
                   </Card.Header>
                   <Card.Content class="space-y-4 pt-0">
                     <div class="space-y-2">
-                      <Label for="task-name">{t('task.taskNameLabel')}</Label>
+                      <Label for="task-name">{i18n.t('task.taskNameLabel')}</Label>
                       <Input id="task-name" bind:value={submitTaskName} placeholder="image.generate" />
                     </div>
                     <div class="space-y-2">
-                      <Label for="task-idempotency-key">{t('task.idempotencyKeyLabel')}</Label>
+                      <Label for="task-idempotency-key">{i18n.t('task.idempotencyKeyLabel')}</Label>
                       <Input id="task-idempotency-key" bind:value={submitIdempotencyKey} placeholder="poster-2026-04-19" />
                     </div>
                     <div class="space-y-2">
-                      <Label for="task-body">{t('task.bodyLabel')}</Label>
+                      <Label for="task-body">{i18n.t('task.bodyLabel')}</Label>
                       <Textarea id="task-body" bind:value={submitBodyText} class="min-h-[140px] font-mono text-xs" />
                     </div>
                     {#if submitError}
@@ -321,13 +323,13 @@
                     {/if}
                     <div class="flex flex-wrap justify-end gap-2">
                       <Button variant="ghost" onclick={() => { submitOpen = false; submitError = null; }}>
-                        {t('common.cancel')}
+                        {i18n.t('common.cancel')}
                       </Button>
                       <Button onclick={() => void handleSubmitTask()} disabled={submitTask.mutation.isPending}>
                         {#if submitTask.mutation.isPending}
                           <Loader2 class="mr-1.5 h-3.5 w-3.5 animate-spin" />
                         {/if}
-                        {t('task.submitAction')}
+                        {i18n.t('task.submitAction')}
                       </Button>
                     </div>
                   </Card.Content>
@@ -338,8 +340,8 @@
                 tasks={filteredTasks}
                 {taskProvider}
                 dlq={activeTab === 'dlq'}
-                title={activeTab === 'dlq' ? t('task.dlqTitle') : t('task.listTitle')}
-                emptyText={activeTab === 'dlq' ? t('task.noDlq') : t('task.noTasks')}
+                title={activeTab === 'dlq' ? i18n.t('task.dlqTitle') : i18n.t('task.listTitle')}
+                emptyText={activeTab === 'dlq' ? i18n.t('task.noDlq') : i18n.t('task.noTasks')}
                 onSelect={(task) => {
                   selectedTaskId = task.id;
                 }}
@@ -361,7 +363,7 @@
                 />
               {:else}
                 <div class="flex h-full min-h-[280px] items-center justify-center rounded-lg border border-dashed border-border/60 bg-background/70 text-center text-sm text-muted-foreground">
-                  {t('task.selectHint')}
+                  {i18n.t('task.selectHint')}
                 </div>
               {/if}
             </div>

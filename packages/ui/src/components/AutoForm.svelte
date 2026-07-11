@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { useForm, getResource, deriveValidator } from '@svadmin/core';
+  import { captureAdminContext, useForm, getResource, deriveValidator } from '@svadmin/core';
   import { slide } from 'svelte/transition';
   import type { FieldDefinition } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
-  import { navigate } from '@svadmin/core/router';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { Button } from './ui/button/index.js';
   import TooltipButton from './TooltipButton.svelte';
   import * as Card from './ui/card/index.js';
@@ -14,6 +14,8 @@
   import { Skeleton } from './ui/skeleton/index.js';
   import ConfirmDialog from './ConfirmDialog.svelte';
   import type { Snippet } from 'svelte';
+
+  const i18n = useTranslation();
 
   interface Props {
     resourceName: string;
@@ -26,6 +28,7 @@
   }
 
   let { resourceName, id, mode = 'create', fieldRenderer, formActions, headerContent, onSuccess }: Props = $props();
+  const adminContext = captureAdminContext();
   const isReadonly = $derived(mode === 'show');
 
   // ─── Resource metadata ────────────────────────────────────────────
@@ -73,7 +76,7 @@
     return d;
   })());
 
-  const validator = $derived(deriveValidator(formFields));
+  const validator = $derived(deriveValidator(formFields, { translate: i18n.t }));
 
   // ─── useForm: single source of truth for values, errors, tainted ──
   const form = useForm({
@@ -95,16 +98,16 @@
       await form.submit();
       onSuccess?.();
     } catch (e) {
-      submitError = e instanceof Error ? e.message : t('common.operationFailed');
+      submitError = e instanceof Error ? e.message : i18n.t('common.operationFailed');
     }
   }
 
   const pageTitle = $derived(
     mode === 'create'
-      ? `${t('common.create')}${resource.label}`
+      ? `${i18n.t('common.create')}${resource.label}`
       : mode === 'show'
-      ? `${t('common.detail')}${resource.label}`
-      : `${t('common.edit')}${resource.label}`
+      ? `${i18n.t('common.detail')}${resource.label}`
+      : `${i18n.t('common.edit')}${resource.label}`
   );
 
   // ─── Unsaved changes guard ────────────────────────────────────────
@@ -135,8 +138,8 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
     <TooltipButton
-      tooltip={t('common.back')}
-      onclick={() => guardNavigate(() => navigate(`/${resourceName}`))}
+      tooltip={i18n.t('common.back')}
+      onclick={() => guardNavigate(() => adminContext.navigate(`/${resourceName}`))}
     >
       <ArrowLeft class="h-5 w-5" />
     </TooltipButton>
@@ -145,7 +148,7 @@
       {@render headerContent()}
     {/if}
     {#if form.isTainted()}
-      <Badge variant="outline" class="border-warning/30 bg-warning/10 text-warning-foreground">{t('common.unsaved')}</Badge>
+      <Badge variant="outline" class="border-warning/30 bg-warning/10 text-warning-foreground">{i18n.t('common.unsaved')}</Badge>
     {/if}
   </div>
 
@@ -234,14 +237,14 @@
             {:else}
               <Save class="h-4 w-4" data-icon="inline-start" />
             {/if}
-            {t('common.save')}
+            {i18n.t('common.save')}
           </Button>
           <Button
             type="button"
             variant="outline"
-            onclick={() => guardNavigate(() => navigate(`/${resourceName}`))}
+            onclick={() => guardNavigate(() => adminContext.navigate(`/${resourceName}`))}
           >
-            {t('common.cancel')}
+            {i18n.t('common.cancel')}
           </Button>
         {/if}
       </div>
@@ -251,8 +254,8 @@
 
 <ConfirmDialog
   open={confirmOpen}
-  message={t('common.unsavedChanges')}
-  confirmText={t('common.confirm')}
+  message={i18n.t('common.unsavedChanges')}
+  confirmText={i18n.t('common.confirm')}
   onconfirm={confirmNavigate}
   oncancel={cancelNavigate}
 />

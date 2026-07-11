@@ -1,16 +1,19 @@
 <script lang="ts">
-  import { useUpdatePassword } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
-  import { navigate } from '@svadmin/core/router';
+  import { captureAdminContext, useUpdatePassword } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { Button } from './ui/button/index.js';
   import * as Alert from './ui/alert/index.js';
   import PasswordInput from './PasswordInput.svelte';
   import { ShieldCheck, Loader2, AlertCircle, Shield } from '@lucide/svelte';
 
+  const i18n = useTranslation();
+
   let { title = 'Admin' } = $props<{
     title?: string;
   }>();
 
+  const adminContext = captureAdminContext();
   const updatePw = useUpdatePassword();
 
   let password = $state('');
@@ -21,12 +24,12 @@
     e.preventDefault();
     error = '';
 
-    if (!password) { error = t('auth.passwordRequired'); return; }
-    if (password !== confirmPassword) { error = t('auth.passwordMismatch'); return; }
+    if (!password) { error = i18n.t('auth.passwordRequired'); return; }
+    if (password !== confirmPassword) { error = i18n.t('auth.passwordMismatch'); return; }
 
     const result = await updatePw.mutate({ password, confirmPassword });
     if (!result.success) {
-      error = result.error?.message ?? t('common.operationFailed');
+      error = result.error?.message ?? i18n.t('common.operationFailed');
     }
   }
 </script>
@@ -52,10 +55,10 @@
 
       <div class="space-y-4">
         <h2 class="text-3xl xl:text-4xl font-bold text-white leading-tight">
-          {t('auth.resetPassword')}
+          {i18n.t('auth.resetPassword')}
         </h2>
         <p class="text-base text-white/70 leading-relaxed max-w-[320px]">
-          {t('auth.resetPasswordDescription')}
+          {i18n.t('auth.resetPasswordDescription')}
         </p>
       </div>
 
@@ -78,8 +81,8 @@
       </div>
 
       <div class="space-y-1 mb-8">
-        <h1 class="text-2xl font-semibold tracking-tight">{t('auth.resetPassword')}</h1>
-        <p class="text-sm text-muted-foreground">{t('auth.resetPasswordDescription')}</p>
+        <h1 class="text-2xl font-semibold tracking-tight">{i18n.t('auth.resetPassword')}</h1>
+        <p class="text-sm text-muted-foreground">{i18n.t('auth.resetPasswordDescription')}</p>
       </div>
 
       <form onsubmit={handleSubmit} class="space-y-5">
@@ -92,7 +95,7 @@
 
         <PasswordInput
           id="new-password"
-          label={t('auth.password')}
+          label={i18n.t('auth.password')}
           bind:value={password}
           autocomplete="new-password"
           showStrength
@@ -100,7 +103,7 @@
 
         <PasswordInput
           id="confirm-password"
-          label={t('auth.confirmPassword')}
+          label={i18n.t('auth.confirmPassword')}
           bind:value={confirmPassword}
           autocomplete="new-password"
         />
@@ -109,12 +112,12 @@
           {#if updatePw.isLoading}
             <Loader2 class="h-4 w-4 animate-spin mr-2" />
           {/if}
-          {t('auth.resetPassword')}
+          {i18n.t('auth.resetPassword')}
         </Button>
 
         <div class="flex items-center justify-center mt-2">
-          <Button variant="link" class="text-sm h-auto p-0 font-medium" onclick={() => navigate('/login')}>
-            {t('auth.backToLogin')}
+          <Button variant="link" class="text-sm h-auto p-0 font-medium" onclick={() => adminContext.navigate('/login')}>
+            {i18n.t('auth.backToLogin')}
           </Button>
         </div>
       </form>

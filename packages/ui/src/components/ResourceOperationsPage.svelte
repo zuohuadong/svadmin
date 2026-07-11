@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { navigate } from '@svadmin/core/router';
+  import { captureAdminContext } from '@svadmin/core';
   import type { Component } from 'svelte';
   import AutoTable from './AutoTable.svelte';
   import { Badge } from './ui/badge/index.js';
@@ -69,6 +69,7 @@
     highlightsLabel = 'Focus queue',
     workspaceStyle = 'operations',
   }: Props = $props();
+  const adminContext = captureAdminContext();
 </script>
 
 <div class="space-y-6" data-svadmin-resource-operations={resourceName} data-svadmin-workspace-style={workspaceStyle}>
@@ -86,7 +87,7 @@
             <p class="mt-2 max-w-2xl text-sm text-muted-foreground">{description}</p>
           </div>
         </div>
-        <Button class="mt-6" onclick={() => navigate(`/${resourceName}/create`)}>
+        <Button class="mt-6" onclick={() => adminContext.navigate(`/${resourceName}/create`)}>
           {actionLabel}
         </Button>
     </div>

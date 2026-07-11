@@ -1,7 +1,9 @@
 <script lang="ts">
   import { fade, fly } from 'svelte/transition';
   import { Loader2, Check, X, Cloud } from '@lucide/svelte';
-  import { t } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
+
+  const i18n = useTranslation();
 
   let {
     status = 'idle',
@@ -19,16 +21,16 @@
     <div class="flex items-center gap-2" in:fly={{ y: -8, duration: 200 }} out:fade={{ duration: 150 }}>
       {#if status === 'idle'}
         <Cloud class="h-4 w-4" />
-        <span>{t('autoSave.idle')}</span>
+        <span>{i18n.t('autoSave.idle')}</span>
       {:else if status === 'loading'}
         <Loader2 class="h-4 w-4 animate-spin text-primary" />
-        <span>{t('autoSave.saving')}</span>
+        <span>{i18n.t('autoSave.saving')}</span>
       {:else if status === 'success'}
         <Check class="h-4 w-4 text-green-500" />
-        <span class="text-green-500">{t('autoSave.saved')}</span>
+        <span class="text-green-500">{i18n.t('autoSave.saved')}</span>
       {:else if status === 'error'}
         <X class="h-4 w-4 text-destructive" />
-        <span class="text-destructive" title={error}>{t('autoSave.error')}</span>
+        <span class="text-destructive" title={error}>{i18n.t('autoSave.error')}</span>
       {/if}
     </div>
   {/key}

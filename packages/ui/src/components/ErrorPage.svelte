@@ -1,9 +1,12 @@
 <script lang="ts">
-  import { t } from '@svadmin/core/i18n';
-  import { navigate } from '@svadmin/core/router';
+  import { captureAdminContext } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core/i18n';
+
   import { AlertTriangle, ArrowLeft, FileQuestion, Home } from '@lucide/svelte';
   import { Button } from './ui/button/index.js';
   import * as Card from './ui/card/index.js';
+
+  const i18n = useTranslation();
 
   interface Props {
     status?: '404' | '500';
@@ -12,17 +15,16 @@
   }
 
   let { status = '404', title, description }: Props = $props();
+  const adminContext = captureAdminContext();
 
   function goBack() {
-    if (typeof window !== 'undefined') {
-      window.history.back();
-    }
+    adminContext.back();
   }
 
   const isNotFound = $derived(status === '404');
-  const resolvedTitle = $derived(title ?? (isNotFound ? t('common.pageNotFound') : t('common.error')));
+  const resolvedTitle = $derived(title ?? (isNotFound ? i18n.t('common.pageNotFound') : i18n.t('common.error')));
   const resolvedDescription = $derived(
-    description ?? (isNotFound ? t('error.pageNotFoundDescription') : t('error.internalServerErrorDescription')),
+    description ?? (isNotFound ? i18n.t('error.pageNotFoundDescription') : i18n.t('error.internalServerErrorDescription')),
   );
 </script>
 
@@ -46,11 +48,11 @@
       <div class="flex flex-col justify-center gap-2 sm:flex-row">
         <Button variant="outline" onclick={goBack}>
           <ArrowLeft class="h-4 w-4" />
-          {t('common.back')}
+          {i18n.t('common.back')}
         </Button>
-        <Button onclick={() => navigate('/')}>
+        <Button onclick={() => adminContext.navigate('/')}>
           <Home class="h-4 w-4" />
-          {t('common.returnHome')}
+          {i18n.t('common.returnHome')}
         </Button>
       </div>
     </Card.CardContent>

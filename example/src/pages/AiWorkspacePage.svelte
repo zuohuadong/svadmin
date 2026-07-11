@@ -1,10 +1,12 @@
 <script lang="ts">
   import { useList } from '@svadmin/core';
-  import { getLocale } from '@svadmin/core/i18n';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Badge, Button } from '@svadmin/ui';
   import * as Card from '@svadmin/ui/components/ui/card/index.js';
   import { Bot, Boxes, BrainCircuit, BriefcaseBusiness, Code2, GraduationCap, Heart, History, MessageSquare, Palette, Pin, Send, Settings, Share2, Sparkles, Trash2 } from '@lucide/svelte';
   import { readHashView } from '../utils/hashView';
+
+  const i18n = useTranslation();
 
   interface Conversation {
     id: number;
@@ -29,7 +31,7 @@
   let draftMessage = $state('');
   let localMessages = $state<ChatMessage[]>([]);
 
-  const locale = $derived(getLocale());
+  const locale = $derived(i18n.locale);
   const isZh = $derived(locale === 'zh-CN');
   const query = useList({ resource: 'ai_conversations', pagination: { mode: 'off' }, sorters: [{ field: 'updatedAt', order: 'desc' }] });
   const conversations = $derived((query.data?.data ?? []) as unknown as Conversation[]);

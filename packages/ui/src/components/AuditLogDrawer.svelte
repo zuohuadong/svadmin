@@ -1,8 +1,11 @@
 <script lang="ts">
-  import { getAuditLogProvider, t } from '@svadmin/core';
+  import { getAuditLogProvider, useTranslation } from '@svadmin/core';
+
   import type { AuditEntry } from '@svadmin/core';
   import * as Sheet from './ui/sheet/index.js';
   import { History, Loader2 } from '@lucide/svelte';
+
+  const i18n = useTranslation();
 
   let { open = $bindable(false), resource, recordId } = $props<{
     open: boolean;
@@ -47,7 +50,7 @@
     <Sheet.Header>
       <Sheet.Title class="flex items-center gap-2">
         <History class="h-5 w-5" />
-        {t('common.history') || 'History'}
+        {i18n.t('common.history') || 'History'}
       </Sheet.Title>
       <Sheet.Description>
         Audit log and revision history for this record.
@@ -63,7 +66,7 @@
         <div class="text-center py-10">
           <History class="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" />
           <p class="text-sm text-muted-foreground">
-            {t('common.noData') || 'No audit logs found'}
+            {i18n.t('common.noData') || 'No audit logs found'}
           </p>
         </div>
       {:else}

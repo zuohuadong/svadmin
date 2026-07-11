@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { useRegister } from '@svadmin/core';
-  import { t } from '@svadmin/core/i18n';
-  import { navigate } from '@svadmin/core/router';
+  import { captureAdminContext, useRegister } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core/i18n';
   import { Button } from './ui/button/index.js';
   import { Input } from './ui/input/index.js';
   import { Label } from './ui/label/index.js';
@@ -9,11 +8,14 @@
   import PasswordInput from './PasswordInput.svelte';
   import { User, Loader2, AlertCircle, Shield } from '@lucide/svelte';
 
+  const i18n = useTranslation();
+
   let { title = 'Admin', onSuccess } = $props<{
     title?: string;
     onSuccess?: () => void;
   }>();
 
+  const adminContext = captureAdminContext();
   const register = useRegister();
 
   let identifier = $state('');
@@ -25,15 +27,15 @@
     e.preventDefault();
     error = '';
 
-    if (!identifier) { error = t('auth.usernameOrEmailRequired'); return; }
-    if (!password) { error = t('auth.passwordRequired'); return; }
-    if (password !== confirmPassword) { error = t('auth.passwordMismatch'); return; }
+    if (!identifier) { error = i18n.t('auth.usernameOrEmailRequired'); return; }
+    if (!password) { error = i18n.t('auth.passwordRequired'); return; }
+    if (password !== confirmPassword) { error = i18n.t('auth.passwordMismatch'); return; }
 
     const result = await register.mutate({ email: identifier, username: identifier, password });
     if (result.success) {
       onSuccess?.();
     } else {
-      error = result.error?.message ?? t('common.operationFailed');
+      error = result.error?.message ?? i18n.t('common.operationFailed');
     }
   }
 </script>
@@ -59,10 +61,10 @@
 
       <div class="space-y-4">
         <h2 class="text-3xl xl:text-4xl font-bold text-white leading-tight">
-          {t('auth.createAccount')}
+          {i18n.t('auth.createAccount')}
         </h2>
         <p class="text-base text-white/70 leading-relaxed max-w-[320px]">
-          {t('auth.createAccountMessage')}
+          {i18n.t('auth.createAccountMessage')}
         </p>
       </div>
 
@@ -85,8 +87,8 @@
       </div>
 
       <div class="space-y-1 mb-8">
-        <h1 class="text-2xl font-semibold tracking-tight">{t('auth.createAccount')}</h1>
-        <p class="text-sm text-muted-foreground">{t('auth.createAccountMessage')}</p>
+        <h1 class="text-2xl font-semibold tracking-tight">{i18n.t('auth.createAccount')}</h1>
+        <p class="text-sm text-muted-foreground">{i18n.t('auth.createAccountMessage')}</p>
       </div>
 
       <form onsubmit={handleSubmit} class="space-y-5">
@@ -98,13 +100,13 @@
         {/if}
 
         <div class="space-y-2">
-          <Label for="register-identifier">{t('auth.usernameOrEmail')}</Label>
+          <Label for="register-identifier">{i18n.t('auth.usernameOrEmail')}</Label>
           <div class="relative">
             <User class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-[1]" />
             <Input
               id="register-identifier"
               type="text"
-              placeholder={t('auth.identifierPlaceholder')}
+              placeholder={i18n.t('auth.identifierPlaceholder')}
               bind:value={identifier}
               class="pl-9"
               autocomplete="username"
@@ -114,7 +116,7 @@
 
         <PasswordInput
           id="register-password"
-          label={t('auth.password')}
+          label={i18n.t('auth.password')}
           bind:value={password}
           autocomplete="new-password"
           showStrength
@@ -122,7 +124,7 @@
 
         <PasswordInput
           id="register-confirm"
-          label={t('auth.confirmPassword')}
+          label={i18n.t('auth.confirmPassword')}
           bind:value={confirmPassword}
           autocomplete="new-password"
         />
@@ -131,14 +133,14 @@
           {#if register.isLoading}
             <Loader2 class="h-4 w-4 animate-spin mr-2" />
           {/if}
-          {t('auth.registerButton')}
+          {i18n.t('auth.registerButton')}
         </Button>
       </form>
 
       <div class="flex items-center justify-center gap-1 mt-8 pt-6 border-t">
-        <span class="text-sm text-muted-foreground">{t('auth.hasAccount')}</span>
-        <Button variant="link" class="text-sm h-auto p-0 font-medium" onclick={() => navigate('/login')}>
-          {t('auth.login')}
+        <span class="text-sm text-muted-foreground">{i18n.t('auth.hasAccount')}</span>
+        <Button variant="link" class="text-sm h-auto p-0 font-medium" onclick={() => adminContext.navigate('/login')}>
+          {i18n.t('auth.login')}
         </Button>
       </div>
 

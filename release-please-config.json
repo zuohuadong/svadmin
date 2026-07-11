@@ -43,6 +43,11 @@
       "component": "ui",
       "changelog-path": "CHANGELOG.md"
     },
+    "packages/editor": {
+      "release-type": "node",
+      "component": "editor",
+      "changelog-path": "CHANGELOG.md"
+    },
     "packages/sveltekit": {
       "release-type": "node",
       "component": "sveltekit",
@@ -56,6 +61,11 @@
     "packages/simple-rest": {
       "release-type": "node",
       "component": "simple-rest",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/refine-adapter": {
+      "release-type": "node",
+      "component": "refine-adapter",
       "changelog-path": "CHANGELOG.md"
     },
     "packages/sso": {

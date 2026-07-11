@@ -57,10 +57,39 @@ function base64urlEncode(data: string): string {
 }
 
 function base64urlDecode(str: string): string {
+  if (!/^[A-Za-z0-9_-]+$/.test(str)) {
+    throw new Error('Invalid base64url payload');
+  }
   const padded = str + '='.repeat((4 - (str.length % 4)) % 4);
   const binString = atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
   const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0) as number);
   return new TextDecoder().decode(bytes);
+}
+
+function hexToBytes(hex: string): Uint8Array | null {
+  if (!/^[0-9a-f]{64}$/i.test(hex)) return null;
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let index = 0; index < hex.length; index += 2) {
+    bytes[index / 2] = Number.parseInt(hex.slice(index, index + 2), 16);
+  }
+  return bytes;
+}
+
+function isSessionPayload(value: unknown): value is SessionPayload {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+
+  const payload = value as Record<string, unknown>;
+  return (
+    typeof payload.sub === 'string' &&
+    payload.sub.length > 0 &&
+    typeof payload.iat === 'number' &&
+    Number.isSafeInteger(payload.iat) &&
+    payload.iat >= 0 &&
+    typeof payload.exp === 'number' &&
+    Number.isSafeInteger(payload.exp) &&
+    payload.exp > 0 &&
+    payload.exp >= payload.iat
+  );
 }
 
 // ─── Factory ──────────────────────────────────────────────────
@@ -103,11 +132,16 @@ export function createSessionManager(
   return {
     async create(data: Record<string, unknown>): Promise<string> {
       const now = Math.floor(Date.now() / 1000);
+      const subject = typeof data.userId === 'string'
+        ? data.userId
+        : typeof data.sub === 'string'
+          ? data.sub
+          : '';
       const payload: SessionPayload = {
-        sub: (data.userId as string) ?? (data.sub as string) ?? '',
+        ...data,
+        sub: subject,
         iat: now,
         exp: now + ttl,
-        ...data,
       };
       const payloadStr = base64urlEncode(JSON.stringify(payload));
       const signature = await sign(payloadStr);
@@ -120,15 +154,24 @@ export function createSessionManager(
 
       const [payloadStr, signature] = parts;
 
-      // Verify signature
-      const expectedSig = await sign(payloadStr);
-      if (signature !== expectedSig) return null;
-
-      // Decode and check expiry
       try {
-        const payload = JSON.parse(base64urlDecode(payloadStr)) as SessionPayload;
+        const signatureBytes = hexToBytes(signature);
+        if (!signatureBytes) return null;
+
+        const key = await getKey();
+        const validSignature = await crypto.subtle.verify(
+          'HMAC',
+          key,
+          signatureBytes as unknown as BufferSource,
+          new TextEncoder().encode(payloadStr),
+        );
+        if (!validSignature) return null;
+
+        const payload: unknown = JSON.parse(base64urlDecode(payloadStr));
+        if (!isSessionPayload(payload)) return null;
+
         const now = Math.floor(Date.now() / 1000);
-        if (payload.exp && payload.exp < now) return null;
+        if (payload.exp <= now) return null;
         return payload;
       } catch {
         return null;

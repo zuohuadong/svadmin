@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { useIsAuthenticated } from '@svadmin/core';
-  import { navigate } from '@svadmin/core/router';
+  import { captureAdminContext, useIsAuthenticated } from '@svadmin/core';
   import NavigateToResource from './NavigateToResource.svelte';
   
+  const adminContext = captureAdminContext();
   const auth = useIsAuthenticated();
 
   $effect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
-      navigate('/login');
+      adminContext.navigate('/login');
     }
   });
 </script>

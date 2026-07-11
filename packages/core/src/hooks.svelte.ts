@@ -1,4 +1,3 @@
-/* eslint-disable svelte/prefer-svelte-reactivity */
 // @svadmin/core — Core Data and Hook APIs (Modularized for v0.2.29+)
 
 // ─── Re-exports from modular hook files ─────────────────────────────
@@ -24,7 +23,7 @@ export type { OvertimeResult, OvertimeOptions, NotificationConfig } from './hook
 
 import { createQuery, createInfiniteQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options.svelte';
-import { getDataProviderForResource, getDataProvider, getLiveProvider } from './context.svelte';
+import { captureAdminContext } from './context.svelte';
 import { useParsed } from './useParsed.svelte';
 import { createOvertimeTracker, createLiveSubscription, fireSuccessNotification, fireErrorNotification, checkError } from './hook-utils.svelte';
 import { invalidateByScopes, publishLiveEvent } from './mutation-hooks.svelte';
@@ -51,12 +50,13 @@ export interface UseInfiniteListOptions<_TData extends BaseRecord = BaseRecord, 
 }
 
 export function useInfiniteList<TData extends BaseRecord = BaseRecord, TError = HttpError>(options: UseInfiniteListOptions<TData, TError> = {}) {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
   const adminOptions = getAdminOptions();
 
   const query = createInfiniteQuery<{ data: TData[]; total: number }, TError>(() => {
     const resource = options.resource ?? parsed.resource ?? '';
-    const provider = getDataProviderForResource(resource, options.dataProviderName);
+    const provider = adminContext.getDataProviderForResource(resource, options.dataProviderName);
     return {
     queryKey: [options.dataProviderName, resource, 'infiniteList', options.pagination?.pageSize, options.sorters, options.filters, options.meta],
     queryFn: async ({ pageParam = 1 }) => {
@@ -84,7 +84,7 @@ export function useInfiniteList<TData extends BaseRecord = BaseRecord, TError = 
 
   createLiveSubscription((): LiveSubscriptionParams => ({
     resource: options.resource ?? parsed.resource ?? '',
-    liveProvider: getLiveProvider(),
+    liveProvider: adminContext.liveProvider,
     liveMode: options.liveMode ?? adminOptions.liveMode,
     onLiveEvent: (e: LiveEvent) => {
       options.onLiveEvent?.(e);
@@ -102,7 +102,7 @@ export function useInfiniteList<TData extends BaseRecord = BaseRecord, TError = 
       fireSuccessNotification(options.successNotification, '', query.data, undefined, options.resource ?? parsed.resource ?? '');
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
-      checkError(query.error);
+      checkError(query.error, adminContext);
       fireErrorNotification(options.errorNotification, 'Fetch failed', query.error, options.resource ?? parsed.resource ?? '');
     }
   });
@@ -133,6 +133,7 @@ export interface UseSelectOptions<TData extends BaseRecord = BaseRecord, _TOptio
 }
 
 export function useSelect<TData extends BaseRecord = BaseRecord, TOption = { label: string; value: string | number }>(options: UseSelectOptions<TData, TOption>) {
+  const adminContext = captureAdminContext();
   const { resource, optionLabel = 'title', optionValue = 'id', sorters, filters, pagination, meta, dataProviderName, onSearch, debounce: debounceMs = 300 } = options;
   const adminOptions = getAdminOptions();
 
@@ -149,7 +150,7 @@ export function useSelect<TData extends BaseRecord = BaseRecord, TOption = { lab
   const effectivePageSize = options.fetchSize ?? pagination?.pageSize ?? 999;
 
   const query = createQuery<{ data: TData[]; total: number }>(() => {
-    const provider = getDataProviderForResource(resource, dataProviderName);
+    const provider = adminContext.getDataProviderForResource(resource, dataProviderName);
     return {
     queryKey: [dataProviderName, resource, 'select', allFilters, sorters, pagination, meta],
     queryFn: () => provider.getList<TData>({ resource, sorters, filters: allFilters, pagination: { current: 1, pageSize: effectivePageSize }, meta }),
@@ -162,7 +163,7 @@ export function useSelect<TData extends BaseRecord = BaseRecord, TOption = { lab
   const defaultValueIds = options.defaultValue ?? [];
   const defaultValueQuery = defaultValueIds.length > 0
     ? createQuery<{ data: TData[] }>(() => {
-        const provider = getDataProviderForResource(resource, dataProviderName);
+        const provider = adminContext.getDataProviderForResource(resource, dataProviderName);
         return {
           queryKey: [dataProviderName, resource, 'select-defaults', defaultValueIds],
           queryFn: async () => {
@@ -205,7 +206,7 @@ export function useSelect<TData extends BaseRecord = BaseRecord, TOption = { lab
       fireSuccessNotification(options.successNotification, '', query.data, undefined, resource);
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
-      checkError(query.error);
+      checkError(query.error, adminContext);
       fireErrorNotification(options.errorNotification, 'Fetch failed', query.error, resource);
     }
   });
@@ -243,10 +244,11 @@ export interface UseCustomOptions<_TData = unknown, _TError = HttpError> {
 }
 
 export function useCustom<TData = unknown, TError = HttpError>(options: UseCustomOptions<TData, TError>) {
+  const adminContext = captureAdminContext();
   const adminOptions = getAdminOptions();
 
   const query = createQuery<{ data: TData }, TError>(() => {
-    const provider = getDataProvider(options.dataProviderName);
+    const provider = adminContext.getDataProvider(options.dataProviderName);
     return {
     queryKey: [options.dataProviderName, 'custom', options.url, options.method, options.config, options.meta],
     queryFn: async () => {
@@ -277,7 +279,7 @@ export function useCustom<TData = unknown, TError = HttpError>(options: UseCusto
       fireSuccessNotification(options.successNotification, '', query.data);
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
-      checkError(query.error);
+      checkError(query.error, adminContext);
       fireErrorNotification(options.errorNotification, 'Custom request failed', query.error, '');
     }
   });
@@ -288,11 +290,12 @@ export function useCustom<TData = unknown, TError = HttpError>(options: UseCusto
 // ─── useCustomMutation ──────────────────────────────────────────────
 
 export function useCustomMutation<TData = unknown, TError = HttpError, TVariables = unknown>(dataProviderName?: string) {
+  const adminContext = captureAdminContext();
   const queryClient = useQueryClient();
 
   const mutation = createMutation<{ data: TData }, TError, { url: string; method: 'get' | 'post' | 'put' | 'patch' | 'delete'; values?: TVariables; query?: Record<string, unknown>; headers?: Record<string, string>; sorters?: Sort[]; filters?: Filter[]; meta?: Record<string, unknown>; invalidates?: string[] | false; resource?: string }>(() => ({
     mutationFn: async (params) => {
-      const provider = getDataProvider(dataProviderName);
+      const provider = adminContext.getDataProvider(dataProviderName);
       if (!provider.custom) throw new Error('DataProvider does not support custom method');
       return provider.custom<TData>({ url: params.url, method: params.method, payload: params.values, query: params.query, headers: params.headers, sorters: params.sorters, filters: params.filters, meta: params.meta });
     },
@@ -302,7 +305,7 @@ export function useCustomMutation<TData = unknown, TError = HttpError, TVariable
       }
     },
     onError: (error) => {
-      checkError(error);
+      checkError(error, adminContext);
     },
   }));
 
@@ -312,6 +315,7 @@ export function useCustomMutation<TData = unknown, TError = HttpError, TVariable
 // ─── useCreateMany / useUpdateMany / useDeleteMany ──────────────────
 
 export function useCreateMany<TData extends BaseRecord = BaseRecord, TError = HttpError, TVariables = Record<string, unknown>>(options: { resource?: KnownResources; overtimeOptions?: OvertimeOptions } = {}) {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
   const resource = options.resource ?? parsed.resource ?? '';
   const adminOptions = getAdminOptions();
@@ -320,7 +324,7 @@ export function useCreateMany<TData extends BaseRecord = BaseRecord, TError = Ht
   const mutation = createMutation<{ data: TData[] }, TError, { resource?: KnownResources; variables: TVariables[]; meta?: Record<string, unknown>; dataProviderName?: string }>(() => ({
     mutationFn: async (params) => {
       const resName = params.resource ?? resource;
-      const provider = getDataProviderForResource(resName, params.dataProviderName);
+      const provider = adminContext.getDataProviderForResource(resName, params.dataProviderName);
       if (provider.createMany) return await provider.createMany<TData, TVariables>({ resource: resName, variables: params.variables, meta: params.meta });
       const results = await Promise.all(params.variables.map(v => provider.create<TData, TVariables>({ resource: resName, variables: v, meta: params.meta })));
       return { data: results.map(r => r.data) };
@@ -329,10 +333,10 @@ export function useCreateMany<TData extends BaseRecord = BaseRecord, TError = Ht
       const resName = params.resource ?? resource;
       fireSuccessNotification(undefined, 'Created successfully', data.data, params.variables, resName);
       audit({ action: 'create', resource: resName });
-      publishLiveEvent(resName, 'created');
+      publishLiveEvent(resName, 'created', undefined, adminContext);
     },
     onError: (error, params) => {
-      checkError(error);
+      checkError(error, adminContext);
       fireErrorNotification(undefined, 'Create many failed', error, params.resource ?? resource);
     },
     onSettled: (_d, _e, params) => {
@@ -345,6 +349,7 @@ export function useCreateMany<TData extends BaseRecord = BaseRecord, TError = Ht
 }
 
 export function useUpdateMany<TData extends BaseRecord = BaseRecord, TError = HttpError, TVariables = Record<string, unknown>>(options: { resource?: KnownResources; overtimeOptions?: OvertimeOptions } = {}) {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
   const resource = options.resource ?? parsed.resource ?? '';
   const adminOptions = getAdminOptions();
@@ -353,7 +358,7 @@ export function useUpdateMany<TData extends BaseRecord = BaseRecord, TError = Ht
   const mutation = createMutation<{ data: TData[] }, TError, { resource?: KnownResources; ids: (string | number)[]; variables: TVariables; meta?: Record<string, unknown>; dataProviderName?: string }>(() => ({
     mutationFn: async (params) => {
       const resName = params.resource ?? resource;
-      const provider = getDataProviderForResource(resName, params.dataProviderName);
+      const provider = adminContext.getDataProviderForResource(resName, params.dataProviderName);
       if (provider.updateMany) return await provider.updateMany<TData, TVariables>({ resource: resName, ids: params.ids, variables: params.variables, meta: params.meta });
       const results = await Promise.all(params.ids.map(id => provider.update<TData, TVariables>({ resource: resName, id, variables: params.variables, meta: params.meta })));
       return { data: results.map(r => r.data) };
@@ -362,10 +367,10 @@ export function useUpdateMany<TData extends BaseRecord = BaseRecord, TError = Ht
       const resName = params.resource ?? resource;
       fireSuccessNotification(undefined, 'Updated successfully', data.data, params.variables, resName);
       audit({ action: 'update', resource: resName });
-      publishLiveEvent(resName, 'updated', params.ids);
+      publishLiveEvent(resName, 'updated', params.ids, adminContext);
     },
     onError: (error, params) => {
-      checkError(error);
+      checkError(error, adminContext);
       fireErrorNotification(undefined, 'Update many failed', error, params.resource ?? resource);
     },
     onSettled: (_d, _e, params) => {
@@ -381,6 +386,7 @@ export function useUpdateMany<TData extends BaseRecord = BaseRecord, TError = Ht
 }
 
 export function useDeleteMany<TData extends BaseRecord = BaseRecord, TError = HttpError>(options: { resource?: KnownResources; overtimeOptions?: OvertimeOptions } = {}) {
+  const adminContext = captureAdminContext();
   const parsed = useParsed();
   const resource = options.resource ?? parsed.resource ?? '';
   const adminOptions = getAdminOptions();
@@ -389,7 +395,7 @@ export function useDeleteMany<TData extends BaseRecord = BaseRecord, TError = Ht
   const mutation = createMutation<{ data: TData[] }, TError, { resource?: KnownResources; ids: (string | number)[]; meta?: Record<string, unknown>; dataProviderName?: string }>(() => ({
     mutationFn: async (params) => {
       const resName = params.resource ?? resource;
-      const provider = getDataProviderForResource(resName, params.dataProviderName);
+      const provider = adminContext.getDataProviderForResource(resName, params.dataProviderName);
       if (provider.deleteMany) return await provider.deleteMany<TData>({ resource: resName, ids: params.ids, meta: params.meta });
       const results = await Promise.all(params.ids.map(id => provider.deleteOne<TData>({ resource: resName, id, meta: params.meta })));
       return { data: results.map(r => r.data) };
@@ -398,10 +404,10 @@ export function useDeleteMany<TData extends BaseRecord = BaseRecord, TError = Ht
       const resName = params.resource ?? resource;
       fireSuccessNotification(undefined, 'Deleted successfully', data.data, undefined, resName);
       audit({ action: 'delete', resource: resName });
-      publishLiveEvent(resName, 'deleted', params.ids);
+      publishLiveEvent(resName, 'deleted', params.ids, adminContext);
     },
     onError: (error, params) => {
-      checkError(error);
+      checkError(error, adminContext);
       fireErrorNotification(undefined, 'Delete many failed', error, params.resource ?? resource);
     },
     onSettled: (_d, _e, params) => {
@@ -454,7 +460,8 @@ export function useOvertime(options?: OvertimeOptions) {
 // ─── useDataProvider ────────────────────────────────────────────────
 
 export function useDataProvider(): (dataProviderName?: string) => DataProvider {
-  return (name?: string) => getDataProvider(name);
+  const adminContext = captureAdminContext();
+  return (name?: string) => adminContext.getDataProvider(name);
 }
 
 // ─── useThemedLayoutContext ─────────────────────────────────────────
@@ -470,4 +477,3 @@ export function useThemedLayoutContext() {
     toggleSidebar() { _sidebarCollapsed = !_sidebarCollapsed; },
   };
 }
-

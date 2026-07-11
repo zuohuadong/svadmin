@@ -1,11 +1,13 @@
 <script lang="ts">
   import { scale } from 'svelte/transition';
   import { PackageOpen } from '@lucide/svelte';
-  import { t } from '@svadmin/core';
+  import { useTranslation } from '@svadmin/core';
+
+  const i18n = useTranslation();
 
   let {
-    title = t('empty.title'),
-    description = t('empty.description'),
+    title = i18n.t('empty.title'),
+    description = i18n.t('empty.description'),
     children,
   } = $props<{
     title?: string;

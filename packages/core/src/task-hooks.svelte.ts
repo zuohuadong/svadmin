@@ -1,9 +1,10 @@
 import { createMutation, createQuery, useQueryClient } from '@tanstack/svelte-query';
 import { getAdminOptions } from './options.svelte';
-import { getTaskProvider } from './context.svelte';
+import { captureAdminContext } from './context.svelte';
+import type { AdminContextAccessor } from './context.svelte';
 import { checkError, createOvertimeTracker, fireErrorNotification, fireSuccessNotification } from './hook-utils.svelte';
 import type { NotificationConfig, OvertimeOptions } from './hook-utils.svelte';
-import { t } from './i18n.svelte';
+import { useTranslation } from './i18n.svelte';
 import type {
   HttpError,
   SubmitTaskOptions,
@@ -15,8 +16,13 @@ import type {
 
 function normalizeTaskProvider<TTask extends TaskRecord = TaskRecord>(
   provider?: TaskProvider<TTask>,
+  adminContext: AdminContextAccessor = captureAdminContext(),
 ): TaskProvider<TTask> {
-  return (provider ?? getTaskProvider({ optional: true }) ?? getTaskProvider()) as TaskProvider<TTask>;
+  const activeProvider = provider ?? adminContext.taskProvider;
+  if (!activeProvider) {
+    throw new Error('TaskProvider not found. Did you call setTaskProvider in App.svelte?');
+  }
+  return activeProvider as TaskProvider<TTask>;
 }
 
 export interface UseSubmitTaskOptions {
@@ -39,19 +45,21 @@ export function useSubmitTask<
   TTask extends TaskRecord = TaskRecord,
   TError = HttpError,
 >(options: UseSubmitTaskOptions = {}) {
+  const adminContext = captureAdminContext();
+  const i18n = useTranslation();
   const adminOptions = getAdminOptions();
   const queryClient = useQueryClient();
   const overtime = createOvertimeTracker(() => mutation.isPending, options.overtimeOptions ?? adminOptions.overtime);
 
   const mutation = createMutation<TaskHandle<TTask>, TError, UseSubmitTaskMutateParams<TTask>>(() => ({
     mutationFn: async (params) => {
-      const provider = normalizeTaskProvider<TTask>(params.taskProvider);
+      const provider = normalizeTaskProvider<TTask>(params.taskProvider, adminContext);
       return provider.submit(params.taskName, params.options);
     },
     onSuccess: (data, params, context) => {
       fireSuccessNotification(
         params.successNotification,
-        t('task.submitSuccess'),
+        i18n.t('task.submitSuccess'),
         data,
         params.options,
         params.taskName,
@@ -60,10 +68,10 @@ export function useSubmitTask<
       options.mutationOptions?.onSuccess?.(data, params, context);
     },
     onError: (error, params, context) => {
-      checkError(error);
+      checkError(error, adminContext);
       fireErrorNotification(
         params.errorNotification,
-        t('task.submitFailed'),
+        i18n.t('task.submitFailed'),
         error,
         params.taskName,
       );
@@ -93,10 +101,12 @@ export interface UseTaskOptions<TTask extends TaskRecord = TaskRecord, _TError =
 export function useTask<TTask extends TaskRecord = TaskRecord, TError = HttpError>(
   options: UseTaskOptions<TTask, TError> = {},
 ) {
+  const adminContext = captureAdminContext();
+  const i18n = useTranslation();
   const adminOptions = getAdminOptions();
 
   const query = createQuery<TTask, TError>(() => {
-    const provider = normalizeTaskProvider<TTask>(options.taskProvider);
+    const provider = normalizeTaskProvider<TTask>(options.taskProvider, adminContext);
     const queryOptions = options.queryOptions;
     return {
       queryKey: ['task', options.taskId],
@@ -125,8 +135,8 @@ export function useTask<TTask extends TaskRecord = TaskRecord, TError = HttpErro
       }
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
-      checkError(query.error);
-      fireErrorNotification(options.errorNotification, t('task.fetchFailed'), query.error, options.taskId);
+      checkError(query.error, adminContext);
+      fireErrorNotification(options.errorNotification, i18n.t('task.fetchFailed'), query.error, options.taskId);
     }
   });
 
@@ -158,10 +168,12 @@ export interface UseTaskListOptions<TTask extends TaskRecord = TaskRecord, _TErr
 export function useTaskList<TTask extends TaskRecord = TaskRecord, TError = HttpError>(
   options: UseTaskListOptions<TTask, TError> = {},
 ) {
+  const adminContext = captureAdminContext();
+  const i18n = useTranslation();
   const adminOptions = getAdminOptions();
 
   const query = createQuery<TaskListResult<TTask>, TError>(() => {
-    const provider = normalizeTaskProvider<TTask>(options.taskProvider);
+    const provider = normalizeTaskProvider<TTask>(options.taskProvider, adminContext);
     const queryOptions = options.queryOptions;
     return {
       queryKey: ['taskList', options.dlq ? 'dlq' : 'default', options.params],
@@ -194,8 +206,8 @@ export function useTaskList<TTask extends TaskRecord = TaskRecord, TError = Http
       }
     } else if (query.isError && query.errorUpdatedAt > lastErrorAt) {
       lastErrorAt = query.errorUpdatedAt;
-      checkError(query.error);
-      fireErrorNotification(options.errorNotification, t('task.fetchListFailed'), query.error, options.dlq ? 'taskDlq' : 'tasks');
+      checkError(query.error, adminContext);
+      fireErrorNotification(options.errorNotification, i18n.t('task.fetchListFailed'), query.error, options.dlq ? 'taskDlq' : 'tasks');
     }
   });
 
@@ -217,11 +229,12 @@ export interface UseTaskSubscriptionOptions<TTask extends TaskRecord = TaskRecor
 export function useTaskSubscription<TTask extends TaskRecord = TaskRecord>(
   options: UseTaskSubscriptionOptions<TTask>,
 ): void {
+  const adminContext = captureAdminContext();
   $effect(() => {
     const enabled = options.enabled ?? true;
     if (!enabled) return;
 
-    const provider = normalizeTaskProvider<TTask>(options.taskProvider);
+    const provider = normalizeTaskProvider<TTask>(options.taskProvider, adminContext);
     if (!provider.subscribe) {
       throw new Error('TaskProvider does not implement subscribe');
     }
