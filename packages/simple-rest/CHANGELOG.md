@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.10](https://github.com/zuohuadong/svadmin/compare/simple-rest-v0.9.9...simple-rest-v0.9.10) (2026-07-11)
+
+
+### 🐛 Bug Fixes
+
+* **packages:** add type-check devDependencies for optional peers ([a180017](https://github.com/zuohuadong/svadmin/commit/a180017c83bb1226d24b6df990927cd0ab5946cf))
+
 ## [0.9.9](https://github.com/zuohuadong/svadmin/compare/simple-rest-v0.9.8...simple-rest-v0.9.9) (2026-06-27)
 
 
