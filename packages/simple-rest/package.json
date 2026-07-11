@@ -44,5 +44,8 @@
   },
   "dependencies": {
     "@svadmin/refine-adapter": "workspace:*"
+  },
+  "devDependencies": {
+    "@refinedev/simple-rest": "^5.0.0"
   }
 }
