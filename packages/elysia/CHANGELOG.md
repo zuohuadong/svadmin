@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.8](https://github.com/zuohuadong/svadmin/compare/elysia-v0.10.7...elysia-v0.10.8) (2026-07-11)
+
+
+### 🐛 Bug Fixes
+
+* **packages:** add type-check devDependencies for optional peers ([a180017](https://github.com/zuohuadong/svadmin/commit/a180017c83bb1226d24b6df990927cd0ab5946cf))
+
+
+### 🔧 Miscellaneous Chores
+
+* **all:** sync all packages ([f1c5115](https://github.com/zuohuadong/svadmin/commit/f1c5115d190e7168bb4ae2a588f16a452ccf1ced))
+
 ## [0.10.7](https://github.com/zuohuadong/svadmin/compare/elysia-v0.10.6...elysia-v0.10.7) (2026-06-04)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/zuohuadong/svadmin/compare/drizzle-v0.11.1...drizzle-v0.11.2) (2026-07-11)
+
+
+### 🔧 Miscellaneous Chores
+
+* **all:** sync all packages ([f1c5115](https://github.com/zuohuadong/svadmin/commit/f1c5115d190e7168bb4ae2a588f16a452ccf1ced))
+
 ## [0.11.1](https://github.com/zuohuadong/svadmin/compare/drizzle-v0.11.0...drizzle-v0.11.1) (2026-06-04)
 
 

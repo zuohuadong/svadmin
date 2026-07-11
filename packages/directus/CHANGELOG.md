@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.8](https://github.com/zuohuadong/svadmin/compare/directus-v0.9.7...directus-v0.9.8) (2026-07-11)
+
+
+### 🔧 Miscellaneous Chores
+
+* **all:** sync all packages ([f1c5115](https://github.com/zuohuadong/svadmin/commit/f1c5115d190e7168bb4ae2a588f16a452ccf1ced))
+
 ## [0.9.7](https://github.com/zuohuadong/svadmin/compare/directus-v0.9.6...directus-v0.9.7) (2026-06-04)
 
 

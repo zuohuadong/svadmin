@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.8](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.7...lite-v0.3.8) (2026-07-11)
+
+
+### 🔧 Miscellaneous Chores
+
+* **all:** sync all packages ([f1c5115](https://github.com/zuohuadong/svadmin/commit/f1c5115d190e7168bb4ae2a588f16a452ccf1ced))
+
 ## [0.3.7](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.6...lite-v0.3.7) (2026-06-27)
 
 

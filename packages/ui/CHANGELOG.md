@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.38.3](https://github.com/zuohuadong/svadmin/compare/ui-v0.38.2...ui-v0.38.3) (2026-07-11)
+
+
+### 🔧 Miscellaneous Chores
+
+* **all:** sync all packages ([f1c5115](https://github.com/zuohuadong/svadmin/commit/f1c5115d190e7168bb4ae2a588f16a452ccf1ced))
+
 ## [0.38.2](https://github.com/zuohuadong/svadmin/compare/ui-v0.38.1...ui-v0.38.2) (2026-07-02)
 
 
