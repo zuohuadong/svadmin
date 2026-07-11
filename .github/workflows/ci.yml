@@ -48,11 +48,11 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      - name: Run tests
-        run: bun run test
-
       - name: Build workspace packages
         run: bun run build:packages
+
+      - name: Run tests
+        run: bun run test
 
       - name: Build example application
         run: bun run --cwd example build
