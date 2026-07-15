@@ -11,4 +11,11 @@ describe('src/app.css (Tailwind source)', () => {
 
     expect(css).toContain('@theme');
   });
+
+  it('uses the semantic border token in the global reset', () => {
+    const css = readFileSync(join(currentDir, 'app.css'), 'utf8');
+
+    expect(css).toContain('border-color: var(--color-border, var(--border));');
+    expect(css).not.toMatch(/border-color:\s*var\(--border\);/);
+  });
 });

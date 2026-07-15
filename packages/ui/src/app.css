@@ -8,12 +8,12 @@
  */
 
 @layer base {
-  /* Global border-color reset — ensures Tailwind border utilities
-   * (border-r, border-t, etc.) use the theme color instead of currentColor */
+  /* Use the semantic token so consumers can normalize legacy channel-only
+   * values without the base reset falling back to currentColor. */
   *,
   ::after,
   ::before {
-    border-color: var(--border);
+    border-color: var(--color-border, var(--border));
   }
 
   :root {
