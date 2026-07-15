@@ -118,6 +118,8 @@ jobs:
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - uses: oven-sh/setup-bun@v2
         with:
