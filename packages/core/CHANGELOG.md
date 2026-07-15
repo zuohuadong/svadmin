@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.2](https://github.com/zuohuadong/svadmin/compare/core-v0.31.1...core-v0.31.2) (2026-07-15)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump the bun-minor-and-patch group across 4 directories with 50 updates ([#182](https://github.com/zuohuadong/svadmin/issues/182)) ([b1d05ae](https://github.com/zuohuadong/svadmin/commit/b1d05ae88caaa96b8697c14a2882af76e33eaf34))
+
 ## [0.31.1](https://github.com/zuohuadong/svadmin/compare/core-v0.31.0...core-v0.31.1) (2026-07-11)
 
 

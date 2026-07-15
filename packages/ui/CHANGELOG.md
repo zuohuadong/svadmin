@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.38.4](https://github.com/zuohuadong/svadmin/compare/ui-v0.38.3...ui-v0.38.4) (2026-07-15)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** honor normalized border color tokens ([#183](https://github.com/zuohuadong/svadmin/issues/183)) ([44c0a3b](https://github.com/zuohuadong/svadmin/commit/44c0a3b9d02405738617224d2a81ce6dc014e4b9))
+* **ui:** self-register Tailwind component sources ([c68028f](https://github.com/zuohuadong/svadmin/commit/c68028fcebaf80a54e1d708a1b28daf93098c10d))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump the bun-minor-and-patch group across 4 directories with 50 updates ([#182](https://github.com/zuohuadong/svadmin/issues/182)) ([b1d05ae](https://github.com/zuohuadong/svadmin/commit/b1d05ae88caaa96b8697c14a2882af76e33eaf34))
+
 ## [0.38.3](https://github.com/zuohuadong/svadmin/compare/ui-v0.38.2...ui-v0.38.3) (2026-07-11)
 
 

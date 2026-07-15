@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/zuohuadong/svadmin/compare/editor-v0.2.0...editor-v0.2.1) (2026-07-15)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump the bun-minor-and-patch group across 4 directories with 50 updates ([#182](https://github.com/zuohuadong/svadmin/issues/182)) ([b1d05ae](https://github.com/zuohuadong/svadmin/commit/b1d05ae88caaa96b8697c14a2882af76e33eaf34))
+
 ## [0.2.0](https://github.com/zuohuadong/svadmin/compare/editor-v0.1.0...editor-v0.2.0) (2026-07-11)
 
 
