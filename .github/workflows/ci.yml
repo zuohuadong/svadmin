@@ -6,15 +6,14 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
-  workflow_call:
     inputs:
       release_sha:
         description: Immutable commit SHA created by release-please
         required: false
         type: string
         default: ""
-      release_paths:
-        description: JSON array of package paths released by release-please
+      release_manifest:
+        description: JSON array of release-please package paths and tags
         required: false
         type: string
         default: "[]"
@@ -104,12 +103,31 @@ jobs:
     name: Publish to npm
     runs-on: ubuntu-latest
     needs: [test, e2e]
-    if: inputs.publish && inputs.release_sha != '' && needs.test.result == 'success' && needs.e2e.result == 'success'
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && inputs.release_sha != '' && needs.test.result == 'success' && needs.e2e.result == 'success'
+    concurrency:
+      group: npm-publish-${{ inputs.release_sha }}
+      cancel-in-progress: false
     permissions:
       contents: read
       id-token: write
 
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          fetch-tags: true
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.11"
+
+      - name: Verify release tags
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
+        run: bun scripts/verify-release-manifest.ts
+
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.release_sha }}
@@ -118,12 +136,6 @@ jobs:
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: "1.3.11"
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -174,16 +186,17 @@ jobs:
 
       - name: Publish released packages
         env:
-          RELEASE_PATHS: ${{ inputs.release_paths }}
+          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
         run: |
           set -e
           PUBLISH_FAILED=0
           RELEASE_DIRS=$(node <<'NODE'
-          const paths = JSON.parse(process.env.RELEASE_PATHS || '[]');
-          if (!Array.isArray(paths) || paths.length === 0) {
-            throw new Error('release-please returned no package paths');
+          const releases = JSON.parse(process.env.RELEASE_MANIFEST || '[]');
+          if (!Array.isArray(releases) || releases.length === 0) {
+            throw new Error('release-please returned no release manifest');
           }
-          for (const packagePath of paths) {
+          for (const release of releases) {
+            const packagePath = release?.path;
             if (typeof packagePath !== 'string' || !/^packages\/[^/]+$/.test(packagePath)) {
               throw new Error(`Invalid release package path: ${String(packagePath)}`);
             }

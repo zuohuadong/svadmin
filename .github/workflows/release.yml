@@ -8,7 +8,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  id-token: write
+  actions: write
 
 jobs:
   release-please:
@@ -16,8 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
-      paths_released: ${{ steps.release.outputs.paths_released }}
       release_sha: ${{ steps.release-ref.outputs.sha }}
+      release_manifest: ${{ steps.release-ref.outputs.release_manifest }}
     steps:
       - uses: googleapis/release-please-action@v5
         id: release
@@ -51,18 +51,56 @@ jobs:
             throw new Error(`Release paths point at different SHAs: ${uniqueShas.join(', ')}`);
           }
 
+          const releaseManifest = paths.map((path) => {
+            const tag = outputs[`${path}--tag_name`];
+            if (typeof tag !== 'string' || !/^[A-Za-z0-9._-]+$/.test(tag)) {
+              throw new Error(`Missing or invalid release tag for ${path}: ${String(tag)}`);
+            }
+            return { path, tag };
+          });
+
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `sha=${uniqueShas[0]}\n`);
+          fs.appendFileSync(
+            process.env.GITHUB_OUTPUT,
+            `release_manifest=${JSON.stringify(releaseManifest)}\n`,
+          );
           NODE
 
-  quality-and-publish:
+  trigger-publish:
     needs: release-please
-    if: needs.release-please.outputs.releases_created == 'true' && needs.release-please.outputs.release_sha != ''
-    uses: ./.github/workflows/ci.yml
-    with:
-      release_sha: ${{ needs.release-please.outputs.release_sha }}
-      release_paths: ${{ needs.release-please.outputs.paths_released }}
-      publish: true
-    secrets: inherit
-    permissions:
-      contents: read
-      id-token: write
+    if: needs.release-please.outputs.releases_created == 'true' && needs.release-please.outputs.release_sha != '' && needs.release-please.outputs.release_manifest != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger CI publish via workflow_dispatch
+        uses: actions/github-script@v9
+        env:
+          RELEASE_SHA: ${{ needs.release-please.outputs.release_sha }}
+          RELEASE_MANIFEST: ${{ needs.release-please.outputs.release_manifest }}
+        with:
+          script: |
+            const releaseSha = process.env.RELEASE_SHA;
+            const releaseManifest = process.env.RELEASE_MANIFEST;
+
+            if (!/^[0-9a-f]{40,64}$/.test(releaseSha)) {
+              core.setFailed(`Invalid immutable release SHA: ${releaseSha}`);
+              return;
+            }
+
+            const releases = JSON.parse(releaseManifest);
+            if (!Array.isArray(releases) || releases.length === 0) {
+              core.setFailed('release-please returned no release manifest');
+              return;
+            }
+
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'ci.yml',
+              ref: 'main',
+              inputs: {
+                release_sha: releaseSha,
+                release_manifest: releaseManifest,
+                publish: 'true',
+              },
+            });
+            console.log(`✅ Triggered ci.yml publish for ${releaseSha}`);
