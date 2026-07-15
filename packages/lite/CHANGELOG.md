@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.9](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.8...lite-v0.3.9) (2026-07-15)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump the bun-minor-and-patch group across 4 directories with 50 updates ([#182](https://github.com/zuohuadong/svadmin/issues/182)) ([b1d05ae](https://github.com/zuohuadong/svadmin/commit/b1d05ae88caaa96b8697c14a2882af76e33eaf34))
+
 ## [0.3.8](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.7...lite-v0.3.8) (2026-07-11)
 
 

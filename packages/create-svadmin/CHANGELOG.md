@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.2](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.12.1...create-svadmin-v0.12.2) (2026-07-15)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** self-register Tailwind component sources ([c68028f](https://github.com/zuohuadong/svadmin/commit/c68028fcebaf80a54e1d708a1b28daf93098c10d))
+
 ## [0.12.1](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.12.0...create-svadmin-v0.12.1) (2026-06-27)
 
 
