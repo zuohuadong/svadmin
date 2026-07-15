@@ -261,20 +261,21 @@ const dataProvider = createElysiaDataProvider<App>("http://localhost:3000");
 
 ### Tailwind CSS v4 Integration / Tailwind CSS v4 集成
 
-> **Important / 重要**: Tailwind CSS v4 does not scan `node_modules` by default. You **must** add `@source` directives so that utility classes used by `@svadmin/ui` components are generated.
+> **Important / 重要**: Tailwind CSS v4 does not scan `node_modules` by default. `@svadmin/ui` registers its published `dist/components` directory from its own CSS entry, so consumers no longer need a separate `@source` directive for the UI package.
 >
-> Tailwind CSS v4 默认不扫描 `node_modules`。你**必须**添加 `@source` 指令，否则 `@svadmin/ui` 组件使用的工具类不会被生成，导致布局完全错乱。
+> Tailwind CSS v4 默认不扫描 `node_modules`。`@svadmin/ui` 会在自己的 CSS 入口中注册已发布的 `dist/components` 目录，因此消费者不再需要为 UI 包单独添加 `@source` 指令。
 
-**1. Add `@source` to your CSS entry file / 在 CSS 入口文件中添加 `@source`:**
+**1. Import the UI stylesheet / 引入 UI 样式:**
 
 ```css
 /* app.css */
 @import "tailwindcss";
 @import "@svadmin/ui/app.theme.css";
-
-/* Required: load svadmin theme tokens and scan the published package (including dist) */
-@source "../node_modules/@svadmin/ui";
 ```
+
+If an existing app still contains `@source "../node_modules/@svadmin/ui/src";`, remove that line or point it at `dist`; the published package contains `dist`, not the workspace-only `src` directory.
+
+如果已有项目仍包含 `@source "../node_modules/@svadmin/ui/src";`，请删除该行或改为指向 `dist`；npm 发布包只包含 `dist`，不包含工作区中的 `src` 目录。
 
 **2. Configure Vite `optimizeDeps` / 配置 Vite `optimizeDeps`:**
 

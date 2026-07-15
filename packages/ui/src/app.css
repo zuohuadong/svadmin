@@ -1,5 +1,9 @@
 /* Typography — Inter font for clean, modern look */
 
+/* Tailwind v4 resolves this path relative to the published CSS file, so both
+ * src/app.css in the workspace and dist/app*.css on npm scan real components. */
+@source "./components";
+
 /* @svadmin/ui — Design Tokens (clean admin shell)
  * Auto-imported by AdminApp. Can be overridden by consumer's CSS.
  *

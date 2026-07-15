@@ -4,10 +4,6 @@
 /* Base design tokens & Tailwind mappings from the UI package */
 @import "@svadmin/ui/app.css";
 
-/* Scan workspace-linked packages — Tailwind v4 skips node_modules by default */
-@source "../node_modules/@svadmin/ui";
-@source "../node_modules/@svadmin/core";
-
 @custom-variant dark (&:is(.dark *));
 
 /* ╔═══════════════════════════════════════════════════════════╗

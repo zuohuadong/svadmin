@@ -61,12 +61,18 @@ const expectations: PackageExpectation[] = [
     contentAssertions: [
       {
         path: 'dist/app.theme.css',
-        includes: ['@theme'],
+        includes: ['@theme', '@source "./components";'],
+        excludes: ['@source "./src";'],
       },
       {
         path: 'dist/app.css',
-        includes: [':root', '.svadmin-theme', '--color-primary: var(--primary);'],
-        excludes: ['@theme'],
+        includes: [
+          ':root',
+          '.svadmin-theme',
+          '--color-primary: var(--primary);',
+          '@source "./components";',
+        ],
+        excludes: ['@theme', '@source "./src";'],
       },
     ],
   },

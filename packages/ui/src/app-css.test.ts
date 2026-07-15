@@ -18,4 +18,11 @@ describe('src/app.css (Tailwind source)', () => {
     expect(css).toContain('border-color: var(--color-border, var(--border));');
     expect(css).not.toMatch(/border-color:\s*var\(--border\);/);
   });
+
+  it('registers the published component directory as its own Tailwind source', () => {
+    const css = readFileSync(join(currentDir, 'app.css'), 'utf8');
+
+    expect(css).toContain('@source "./components";');
+    expect(css).not.toContain('@source "./src";');
+  });
 });

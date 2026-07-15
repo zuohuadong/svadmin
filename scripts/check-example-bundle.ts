@@ -28,6 +28,22 @@ const assetNames = await readdir(assetsDirectory);
 const javascriptAssets = assetNames.filter((name) => name.endsWith('.js')).sort();
 assert(javascriptAssets.length > 0, 'Example build produced no JavaScript assets');
 
+const cssAssets = assetNames.filter((name) => name.endsWith('.css')).sort();
+assert(cssAssets.length > 0, 'Example build produced no CSS assets');
+const emittedCss = await Promise.all(
+  cssAssets.map((assetName) => readFile(join(assetsDirectory, assetName), 'utf8')),
+).then((contents) => contents.join('\n'));
+
+for (const [label, selector] of [
+  ['expanded sidebar width', '.w-\\[252px\\]'],
+  ['collapsed sidebar width', '.w-\\[70px\\]'],
+  ['expanded content offset', '.md\\:ml-\\[252px\\]'],
+  ['collapsed content offset', '.md\\:ml-\\[70px\\]'],
+  ['table container radius', '.rounded-\\[24px\\]'],
+] as const) {
+  assert(emittedCss.includes(selector), `Example CSS is missing ${label} utility ${selector}`);
+}
+
 let largestChunk = { name: '', size: 0 };
 for (const assetName of javascriptAssets) {
   const size = (await stat(join(assetsDirectory, assetName))).size;
