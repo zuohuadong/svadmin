@@ -371,9 +371,8 @@ describe('rotation-safe session lifecycle', () => {
         message: 'Refresh token already used',
       }, 400);
     });
-    const noOpLock = (): RefreshLock => ({ request: async (_name, operation) => operation() });
-    const first = createProvider({ storage, storageKey, fetcher, refreshLock: noOpLock() });
-    const second = createProvider({ storage, storageKey, fetcher, refreshLock: noOpLock() });
+    const first = createProvider({ storage, storageKey, fetcher });
+    const second = createProvider({ storage, storageKey, fetcher });
 
     const firstRefresh = first.refreshSession();
     await winnerStarted.promise;
@@ -393,6 +392,47 @@ describe('rotation-safe session lifecycle', () => {
     expect(refreshCalls).toBe(1);
     first.destroy();
     second.destroy();
+  });
+
+  test('fails closed in browsers without an atomic cross-context refresh lock', async () => {
+    Object.defineProperty(globalThis, 'window', {
+      value: {
+        document: {},
+        navigator: {},
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+      } as unknown as Window,
+      configurable: true,
+    });
+    const storage = createMemoryStorage();
+    const storageKey = 'missing-browser-lock';
+    saveSession(storage, storageKey, {
+      access_token: 'old-access',
+      refresh_token: 'refresh-1',
+      expires_at: 1,
+      token_type: 'Bearer',
+    });
+    let refreshCalls = 0;
+    const provider = createProvider({
+      storage,
+      storageKey,
+      fetcher: asFetcher(() => {
+        refreshCalls += 1;
+        return jsonResponse({
+          access_token: 'unexpected-access',
+          refresh_token: 'unexpected-refresh',
+          expires_in: 3600,
+        });
+      }),
+    });
+
+    await expect(provider.refreshSession()).rejects.toMatchObject({
+      code: 'refresh_lock_failed',
+      retryable: true,
+    });
+    expect(refreshCalls).toBe(0);
+    expect(readSession(storage, storageKey)?.refresh_token).toBe('refresh-1');
+    provider.destroy();
   });
 
   test('broadcasts refreshed sessions to another same-origin provider', async () => {
@@ -1101,6 +1141,59 @@ describe('logout and SSR behavior', () => {
       code: 'session_persistence_failed',
       retryable: false,
     });
+    expect(await provider.getSession()).toBeNull();
+    provider.destroy();
+  });
+
+  test('does not revive a failed local logout from a remote refresh event', async () => {
+    let storageListener: ((event: StorageEvent) => void) | undefined;
+    Object.defineProperty(globalThis, 'window', {
+      value: {
+        navigator: {},
+        addEventListener: (type: string, listener: (event: StorageEvent) => void) => {
+          if (type === 'storage') storageListener = listener;
+        },
+        removeEventListener: () => undefined,
+      } as unknown as Window,
+      configurable: true,
+    });
+    const storage = createMemoryStorage();
+    const storageKey = 'logout-no-revival';
+    saveSession(storage, storageKey, {
+      access_token: 'old-access',
+      refresh_token: 'old-refresh',
+      token_type: 'Bearer',
+    });
+    const originalSetItem = storage.setItem;
+    const originalRemoveItem = storage.removeItem;
+    storage.setItem = (key, value) => {
+      if (key === sessionKey(storageKey) && value === '') {
+        throw new DOMException('blocked', 'SecurityError');
+      }
+      originalSetItem(key, value);
+    };
+    storage.removeItem = (key) => {
+      if (key === sessionKey(storageKey)) throw new DOMException('blocked', 'SecurityError');
+      originalRemoveItem(key);
+    };
+    const provider = createProvider({
+      storage,
+      storageKey,
+      fetcher: asFetcher(() => { throw new TypeError('offline'); }),
+    });
+
+    await expect(provider.logout()).rejects.toMatchObject({ code: 'session_persistence_failed' });
+    const remoteRaw = JSON.stringify({
+      access_token: 'remote-access',
+      refresh_token: 'remote-refresh',
+      token_type: 'Bearer',
+    });
+    originalSetItem(sessionKey(storageKey), remoteRaw);
+    storageListener?.({
+      key: sessionKey(storageKey),
+      newValue: remoteRaw,
+    } as StorageEvent);
+
     expect(await provider.getSession()).toBeNull();
     provider.destroy();
   });

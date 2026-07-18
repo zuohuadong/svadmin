@@ -1,10 +1,11 @@
 import { isTerminalSessionError, SSOAuthError } from './errors';
 
 const AUTO_REFRESH_RETRY_DELAY_MS = 30_000;
-const STORAGE_LOCK_LEASE_MS = 30_000;
-const STORAGE_LOCK_RENEW_MS = 10_000;
-const STORAGE_LOCK_RETRY_MS = 20;
-const STORAGE_LOCK_TIMEOUT_MS = 10_000;
+
+const processRefreshLockTails = new WeakMap<
+  TokenStorageLike,
+  Map<string, Promise<void>>
+>();
 
 export interface SSOSession {
   access_token: string;
@@ -55,11 +56,6 @@ interface StorageKeys {
   tokens: string;
   pkceVerifier: string;
   state: string;
-}
-
-interface StorageRefreshLease {
-  owner: string;
-  expiresAt: number;
 }
 
 type RefreshRaceResolution =
@@ -172,94 +168,38 @@ function clearStorageValue(storage: TokenStorageLike, key: string): unknown | nu
   }
 }
 
-function parseStorageLease(raw: string | null): StorageRefreshLease | null {
-  if (!raw) return null;
-  try {
-    const lease = JSON.parse(raw) as Partial<StorageRefreshLease>;
-    return typeof lease.owner === 'string'
-      && typeof lease.expiresAt === 'number'
-      && Number.isFinite(lease.expiresAt)
-      ? lease as StorageRefreshLease
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-function createLockOwner(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return `${Date.now()}:${Math.random()}`;
-}
-
-function waitForLockRetry(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, STORAGE_LOCK_RETRY_MS));
-}
-
-function ownsStorageLease(storage: TokenStorageLike, key: string, owner: string): boolean {
-  return parseStorageLease(storage.getItem(key))?.owner === owner;
-}
-
-function tryAcquireStorageLease(storage: TokenStorageLike, key: string, owner: string): boolean {
-  const now = Date.now();
-  const current = parseStorageLease(storage.getItem(key));
-  if (current && current.owner !== owner && current.expiresAt > now) return false;
-  storage.setItem(key, JSON.stringify({ owner, expiresAt: now + STORAGE_LOCK_LEASE_MS }));
-  return ownsStorageLease(storage, key, owner);
-}
-
-async function acquireStorageLease(storage: TokenStorageLike, key: string, owner: string): Promise<void> {
-  const deadline = Date.now() + STORAGE_LOCK_TIMEOUT_MS;
-  while (!tryAcquireStorageLease(storage, key, owner)) {
-    if (Date.now() >= deadline) throw new Error('Shared refresh lock timed out');
-    await waitForLockRetry();
-  }
-}
-
-function renewStorageLease(storage: TokenStorageLike, key: string, owner: string): void {
-  try {
-    if (!ownsStorageLease(storage, key, owner)) return;
-    storage.setItem(key, JSON.stringify({ owner, expiresAt: Date.now() + STORAGE_LOCK_LEASE_MS }));
-  } catch {
-    // The in-flight operation will still run its storage CAS before persistence.
-  }
-}
-
-function releaseStorageLease(storage: TokenStorageLike, key: string, owner: string): void {
-  try {
-    if (ownsStorageLease(storage, key, owner)) storage.removeItem(key);
-  } catch {
-    try { storage.setItem(key, JSON.stringify({ owner, expiresAt: 0 })); } catch { /* lease expires */ }
-  }
-}
-
-function createStorageRefreshLock(storage: TokenStorageLike, storageKey: string): RefreshLock {
-  const leaseKey = `${storageKey}_refresh_lock`;
+function createProcessRefreshLock(storage: TokenStorageLike): RefreshLock {
   return {
-    async request<T>(_name: string, operation: () => Promise<T>): Promise<T> {
-      const owner = createLockOwner();
-      await acquireStorageLease(storage, leaseKey, owner);
-      const renewal = setInterval(
-        () => renewStorageLease(storage, leaseKey, owner),
-        STORAGE_LOCK_RENEW_MS,
-      );
+    async request<T>(name: string, operation: () => Promise<T>): Promise<T> {
+      const tails = processRefreshLockTails.get(storage) ?? new Map<string, Promise<void>>();
+      processRefreshLockTails.set(storage, tails);
+      const previous = tails.get(name) ?? Promise.resolve();
+      let release!: () => void;
+      const current = new Promise<void>((resolve) => { release = resolve; });
+      tails.set(name, current);
+      await previous.catch(() => undefined);
       try {
         return await operation();
       } finally {
-        clearInterval(renewal);
-        releaseStorageLease(storage, leaseKey, owner);
+        release();
+        if (tails.get(name) === current) tails.delete(name);
       }
     },
   };
 }
 
-function combineRefreshLocks(outer: RefreshLock, inner: RefreshLock): RefreshLock {
+function createUnavailableBrowserRefreshLock(): RefreshLock {
   return {
-    request<T>(name: string, operation: () => Promise<T>): Promise<T> {
-      return outer.request(name, () => inner.request(name, operation));
+    request<T>(): Promise<T> {
+      return Promise.reject(new Error(
+        'This browser does not provide Web Locks; configure an atomic cross-context refreshLock',
+      ));
     },
   };
+}
+
+function isBrowserRuntime(): boolean {
+  return typeof window !== 'undefined' && typeof window.document !== 'undefined';
 }
 
 export function createSessionManager(options: SessionManagerOptions): SessionManager {
@@ -268,9 +208,11 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     ? createStorageKeys(options.legacyStorageKey)
     : null;
   const lockName = `${options.storageKey}:refresh`;
-  const storageLock = createStorageRefreshLock(options.storage, options.storageKey);
-  const configuredLock = options.refreshLock ?? getBrowserRefreshLock();
-  const lock = configuredLock ? combineRefreshLocks(configuredLock, storageLock) : storageLock;
+  const lock = options.refreshLock
+    ?? getBrowserRefreshLock()
+    ?? (isBrowserRuntime()
+      ? createUnavailableBrowserRefreshLock()
+      : createProcessRefreshLock(options.storage));
   const listeners = new Set<AuthStateChangeCallback>();
   const channel = getBroadcastChannel(`${options.storageKey}:auth`);
 
@@ -561,7 +503,9 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
       return;
     }
 
-    locallySignedOut = false;
+    // 一次明确的本地登出只有当前上下文的新登录才能撤销；远端刷新不能复活它。
+    if (locallySignedOut) return;
+
     lastObservedRaw = raw;
     scheduleRefresh(session);
     emit(event, session);

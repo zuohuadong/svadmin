@@ -399,4 +399,32 @@ describe('createSSOAuthProvider', () => {
     expect(calls).toHaveLength(0);
     provider.destroy();
   });
+
+  test('does not call userinfo when logout wins during endpoint discovery', async () => {
+    const storage = createMemoryStorage();
+    storage.setItem(`${STORAGE_PREFIX}tokens`, JSON.stringify({
+      access_token: 'access-123',
+      token_type: 'Bearer',
+    }));
+    const calls = installFetch(() => jsonResponse({
+      sub: 'cookie-user',
+      name: 'Cookie User',
+    }));
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    const identity = provider.getIdentity();
+    const logout = provider.logout();
+
+    expect(await identity).toBeNull();
+    expect(calls).toHaveLength(0);
+    expect((await logout).success).toBe(true);
+    provider.destroy();
+  });
 });

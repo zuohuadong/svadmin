@@ -48,7 +48,10 @@ export interface SSOConfig {
   refreshBuffer?: number;
   /** Additional authorization request parameters, e.g. audience or prompt. */
   authorizationParams?: Record<string, string>;
-  /** Optional extra lock; shared storage still provides the final refresh lease. */
+  /**
+   * Atomic refresh lock override. Browsers use Web Locks by default and fail
+   * closed when unavailable; non-browser runtimes serialize within the process.
+   */
   refreshLock?: RefreshLock;
   /** Injectable fetch implementation for testing and SSR runtimes. */
   fetcher?: typeof fetch;
@@ -425,6 +428,16 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     email: (userinfo.email as string) ?? undefined,
   }));
 
+  const authorizationSource = {
+    getAuthorizationHeader: async (options?: GetAccessTokenOptions) => {
+      const accessToken = await sessions.getAccessToken(options);
+      const session = sessions.getSession();
+      return accessToken && session?.access_token === accessToken
+        ? `${session.token_type} ${accessToken}`
+        : null;
+    },
+  };
+
   const provider: SSOAuthProvider = {
     async login() {
       if (typeof window === 'undefined') {
@@ -556,7 +569,11 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
       if (!sessions.getSession()) return null;
       try {
         const endpoints = await discover();
-        const response = await provider.createAuthenticatedFetch()(endpoints.userinfo_endpoint);
+        const response = await buildAuthenticatedFetch(
+          authorizationSource,
+          getFetcher(),
+          { requireAuthorization: true },
+        )(endpoints.userinfo_endpoint);
         if (!response.ok) return null;
         return mapIdentity(await response.json() as Record<string, unknown>);
       } catch {
@@ -580,15 +597,10 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     refreshSession: () => sessions.refreshSession(),
     getAccessToken: (options) => sessions.getAccessToken(options),
     onAuthStateChange: (callback) => sessions.onAuthStateChange(callback),
-    createAuthenticatedFetch: (fetcher) => buildAuthenticatedFetch({
-      getAuthorizationHeader: async (options) => {
-        const accessToken = await sessions.getAccessToken(options);
-        const session = sessions.getSession();
-        return accessToken && session?.access_token === accessToken
-          ? `${session.token_type} ${accessToken}`
-          : null;
-      },
-    }, fetcher ?? getFetcher()),
+    createAuthenticatedFetch: (fetcher) => buildAuthenticatedFetch(
+      authorizationSource,
+      fetcher ?? getFetcher(),
+    ),
     destroy: () => sessions.destroy(),
 
     async onError(error) {

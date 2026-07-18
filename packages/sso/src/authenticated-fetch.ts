@@ -5,6 +5,10 @@ interface AccessTokenSource {
   getAuthorizationHeader: (options?: GetAccessTokenOptions) => Promise<string | null>;
 }
 
+interface AuthenticatedFetchOptions {
+  requireAuthorization?: boolean;
+}
+
 function cloneReplayableRequest(request: Request): Request {
   try {
     return request.clone();
@@ -38,6 +42,7 @@ function markRetryExhausted(response: Response): Response {
 export function createAuthenticatedFetch(
   source: AccessTokenSource,
   fetcher: typeof fetch,
+  options: AuthenticatedFetchOptions = {},
 ): typeof fetch {
   return (async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     if (input instanceof Request && input.bodyUsed) {
@@ -62,6 +67,12 @@ export function createAuthenticatedFetch(
     const firstAttempt = cloneReplayableRequest(request);
     const retryAttempt = cloneReplayableRequest(request);
     const authorization = await source.getAuthorizationHeader();
+    if (options.requireAuthorization && !authorization) {
+      throw new SSOAuthError('Authenticated request requires an active session', 401, {
+        code: 'session_not_found',
+        retryable: false,
+      });
+    }
     const response = await fetcher(withAuthorization(firstAttempt, authorization));
 
     if (response.status !== 401) return response;

@@ -67,7 +67,7 @@ interface SSOConfig {
   refreshBuffer?: number;
   /** Extra authorization request params, e.g. audience or prompt */
   authorizationParams?: Record<string, string>;
-  /** Custom refresh lock for non-browser runtimes or coordinated tabs. */
+  /** Atomic refresh lock override for runtimes without Web Locks. */
   refreshLock?: RefreshLock;
   /** Injectable fetch implementation for tests and SSR runtimes. */
   fetcher?: typeof fetch;
@@ -86,13 +86,13 @@ The provider automatically fetches your IdP's configuration from `/.well-known/o
 
 ### Token Refresh
 
-When `autoRefresh: true` (default), the provider schedules refresh before the access token expires. Browser refreshes use Web Locks when available plus a shared-storage lease, and concurrent refresh calls in one provider share a single result.
+When `autoRefresh: true` (default), the provider schedules refresh before the access token expires. Browser refreshes use the atomic Web Locks API, and concurrent refresh calls in one provider share a single result. A browser without Web Locks fails refresh closed unless an atomic cross-context `refreshLock` is configured; it never falls back to a non-atomic local-storage lease.
 
 Retryable failures such as network errors, `503`, or lock acquisition failures retain the current session for a later retry. Terminal OAuth errors such as `invalid_grant`, `refresh_token_not_found`, or refresh-token reuse clear the session and require a new login.
 
 The default storage key is isolated by issuer and client ID. Ambiguous `svadmin_sso_*` sessions are not claimed automatically because they contain no issuer/client ownership metadata. For a verified single-provider upgrade, set `legacyStorageKey: 'svadmin_sso'`; alternatively, keep using the legacy namespace with `storageKey: 'svadmin_sso'`.
 
-Cross-tab rotation coordination requires a shared storage backend. `sessionStorage` remains tab-isolated; use the default local storage or provide a shared `TokenStorage` when tabs must converge on the same rotated session.
+Cross-tab rotation coordination requires both Web Locks (or a custom atomic `refreshLock`) and a shared storage backend. `sessionStorage` remains tab-isolated; use the default local storage or provide a shared `TokenStorage` when tabs must converge on the same rotated session.
 
 If local storage is unavailable, the default browser adapter falls back to `sessionStorage`; that fallback is intentionally tab-isolated.
 
