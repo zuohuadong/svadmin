@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/zuohuadong/svadmin/compare/sso-v0.11.0...sso-v0.11.1) (2026-07-18)
+
+
+### 🐛 Bug Fixes
+
+* **core:** harden export and sso validation ([#187](https://github.com/zuohuadong/svadmin/issues/187)) ([35f286d](https://github.com/zuohuadong/svadmin/commit/35f286dada562609d104f8617b3abe4997eae2fd))
+
 ## [0.11.0](https://github.com/zuohuadong/svadmin/compare/sso-v0.10.1...sso-v0.11.0) (2026-07-18)
 
 
