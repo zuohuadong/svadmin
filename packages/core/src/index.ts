@@ -55,7 +55,7 @@ export * from './query-keys';
 export { HttpError, UndoError } from './types';
 export type {
   DataProvider, AuthProvider, NotificationProvider, MutationMode,
-  ValidationErrors, CrudOperator, LogicalFilter, FieldFilter,
+  ValidationErrors, HttpErrorOptions, CrudOperator, LogicalFilter, FieldFilter,
   CustomParams, CustomResult,
   GetListParams, GetListResult,
   GetOneParams, GetOneResult,

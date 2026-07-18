@@ -28,6 +28,22 @@ describe('HttpError', () => {
     expect(err instanceof Error).toBe(true);
     expect(err instanceof HttpError).toBe(true);
   });
+
+  test('preserves structured response metadata and cause', () => {
+    const cause = new Error('upstream failed');
+    const body = { code: 'upstream_error', details: { requestId: 'req-1' } };
+    const err = new HttpError('Bad Gateway', 502, undefined, {
+      code: 'upstream_error',
+      details: body.details,
+      body,
+      cause,
+    });
+
+    expect(err.code).toBe('upstream_error');
+    expect(err.details).toEqual({ requestId: 'req-1' });
+    expect(err.body).toBe(body);
+    expect(err.cause).toBe(cause);
+  });
 });
 
 describe('CrudOperator types', () => {

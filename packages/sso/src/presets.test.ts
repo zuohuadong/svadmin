@@ -24,6 +24,7 @@ describe('SSO presets', () => {
     expect(typeof presets.createGitLabAuth).toBe('function');
     expect(typeof presets.createKeycloakAuth).toBe('function');
     expect(typeof presets.createAuth0Auth).toBe('function');
+    expect(typeof presets.createSupauthAuth).toBe('function');
   });
 
   test('createGoogleAuth returns AuthProvider', async () => {
@@ -88,5 +89,83 @@ describe('SSO presets', () => {
     });
     expect(provider).toBeTruthy();
     expect(typeof provider.login).toBe('function');
+  });
+
+  test('derives isolated storage namespaces for Supauth clients', async () => {
+    const { createSupauthAuth } = await import('./presets');
+    const storage = createMemoryStorage();
+    const issuer = 'https://auth.example.test';
+    const firstKey = `svadmin_sso:${encodeURIComponent(issuer)}:${encodeURIComponent('client-a')}_tokens`;
+    const secondKey = `svadmin_sso:${encodeURIComponent(issuer)}:${encodeURIComponent('client-b')}_tokens`;
+    storage.setItem(firstKey, JSON.stringify({
+      access_token: 'access-a',
+      token_type: 'Bearer',
+    }));
+    storage.setItem(secondKey, JSON.stringify({
+      access_token: 'access-b',
+      token_type: 'Bearer',
+    }));
+
+    const first = createSupauthAuth('client-a', {
+      issuer,
+      redirectUri: 'http://localhost/callback',
+      storage,
+      autoRefresh: false,
+    });
+    const second = createSupauthAuth('client-b', {
+      issuer,
+      redirectUri: 'http://localhost/callback',
+      storage,
+      autoRefresh: false,
+    });
+
+    expect((await first.getSession())?.access_token).toBe('access-a');
+    expect((await second.getSession())?.access_token).toBe('access-b');
+    first.destroy();
+    second.destroy();
+  });
+
+  test('migrates a legacy preset session only when the new namespace is empty', async () => {
+    const { createGoogleAuth } = await import('./presets');
+    const storage = createMemoryStorage();
+    storage.setItem('svadmin_sso_tokens', JSON.stringify({
+      access_token: 'legacy-access',
+      refresh_token: 'legacy-refresh',
+      token_type: 'Bearer',
+    }));
+
+    const provider = createGoogleAuth('legacy-client', {
+      redirectUri: 'http://localhost/callback',
+      storage,
+      legacyStorageKey: 'svadmin_sso',
+      autoRefresh: false,
+    });
+
+    expect((await provider.getSession())?.access_token).toBe('legacy-access');
+    expect(storage.getItem('svadmin_sso_tokens')).toBeNull();
+    expect(storage.getItem(
+      `svadmin_sso:${encodeURIComponent('https://accounts.google.com')}:${encodeURIComponent('legacy-client')}_tokens`,
+    )).toContain('legacy-access');
+    provider.destroy();
+  });
+
+  test('does not claim an ambiguous legacy session by default', async () => {
+    const { createGoogleAuth } = await import('./presets');
+    const storage = createMemoryStorage();
+    storage.setItem('svadmin_sso_tokens', JSON.stringify({
+      access_token: 'legacy-access',
+      refresh_token: 'legacy-refresh',
+      token_type: 'Bearer',
+    }));
+
+    const provider = createGoogleAuth('new-client', {
+      redirectUri: 'http://localhost/callback',
+      storage,
+      autoRefresh: false,
+    });
+
+    expect(await provider.getSession()).toBeNull();
+    expect(storage.getItem('svadmin_sso_tokens')).toContain('legacy-access');
+    provider.destroy();
   });
 });

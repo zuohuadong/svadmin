@@ -8,7 +8,7 @@ import type { AdminContextAccessor } from './context.svelte';
 import { notify } from './notification.svelte';
 
 // ─── Auth Error Delegate ────────────────────────────────────────
-// Delegate auth errors (401/403) to authProvider.onError() — refine pattern
+// Delegate auth errors to authProvider.onError() — refine pattern
 
 export async function checkError(
   error: unknown,
@@ -20,7 +20,7 @@ export async function checkError(
       const result = await authProvider.onError(error);
       if (!result) return;
       if (result.logout) {
-        try { await authProvider.logout?.(); } catch { /* logout failure should not block redirect */ }
+        await authProvider.logout?.();
         await adminContext.navigate(result.redirectTo ?? '/login');
       } else if (result.redirectTo) {
         await adminContext.navigate(result.redirectTo);
@@ -29,7 +29,7 @@ export async function checkError(
     }
     if (error && typeof error === 'object' && 'statusCode' in error) {
       const status = (error as { statusCode: number }).statusCode;
-      if (status === 401 || status === 403) {
+      if (status === 401) {
         await adminContext.navigate('/login');
       }
     }

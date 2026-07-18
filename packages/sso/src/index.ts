@@ -8,7 +8,17 @@
  */
 
 export { createSSOAuthProvider } from './auth-provider';
-export type { SSOAuthProvider, SSOConfig, TokenStorage } from './auth-provider';
+export type {
+  AuthStateChangeCallback,
+  AuthStateChangeEvent,
+  GetAccessTokenOptions,
+  RefreshLock,
+  SSOAuthProvider,
+  SSOConfig,
+  SSOSession,
+  TokenStorage,
+} from './auth-provider';
+export { SSOAuthError } from './errors';
 
 // Social login presets
 export {

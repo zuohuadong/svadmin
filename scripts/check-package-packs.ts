@@ -457,6 +457,35 @@ if (typeof session.createSessionManager !== 'function' || typeof totp.generateTO
 if (typeof sso.createSSOAuthProvider !== 'function' || typeof sso.generateChallenge !== 'function') {
   throw new Error('@svadmin/sso exports are incomplete');
 }
+if (typeof sso.SSOAuthError !== 'function') {
+  throw new Error('@svadmin/sso error export is missing');
+}
+
+const ssoStorageValues = new Map();
+const ssoProvider = sso.createSSOAuthProvider({
+  issuer: 'https://idp.example',
+  clientId: 'pack-check',
+  redirectUri: 'https://app.example/callback',
+  autoRefresh: false,
+  storage: {
+    getItem: (key) => ssoStorageValues.get(key) ?? null,
+    setItem: (key, value) => { ssoStorageValues.set(key, value); },
+    removeItem: (key) => { ssoStorageValues.delete(key); },
+  },
+});
+for (const method of [
+  'getSession',
+  'refreshSession',
+  'getAccessToken',
+  'onAuthStateChange',
+  'createAuthenticatedFetch',
+  'destroy',
+]) {
+  if (typeof ssoProvider[method] !== 'function') {
+    throw new Error(\`@svadmin/sso provider is missing \${method}\`);
+  }
+}
+ssoProvider.destroy();
 
 console.info('consumer imports passed');
 `,
@@ -468,14 +497,30 @@ console.info('consumer imports passed');
     join(consumerDirectory, 'smoke.ts'),
     `import { createSessionManager } from '@svadmin/auth-utils';
 import type { PasswordOptions } from '@svadmin/auth-utils/password';
-import { createGoogleAuth } from '@svadmin/sso';
-import type { SSOConfig } from '@svadmin/sso';
+import { createGoogleAuth, SSOAuthError } from '@svadmin/sso';
+import type {
+  GetAccessTokenOptions,
+  RefreshLock,
+  SSOAuthProvider,
+  SSOConfig,
+  SSOSession,
+} from '@svadmin/sso';
 
-type PublishedTypes = PasswordOptions | SSOConfig;
+type PublishedTypes = PasswordOptions | SSOConfig | SSOSession | GetAccessTokenOptions;
 
 void createSessionManager;
-void createGoogleAuth;
+const provider: SSOAuthProvider = createGoogleAuth('pack-check', {
+  redirectUri: 'https://app.example/callback',
+  autoRefresh: false,
+});
+const refreshLock: RefreshLock = {
+  request: async (_name, operation) => operation(),
+};
+const authError = new SSOAuthError('pack check', 401);
 const publishedTypes: PublishedTypes | undefined = undefined;
+void provider;
+void refreshLock;
+void authError;
 void publishedTypes;
 `,
   );
