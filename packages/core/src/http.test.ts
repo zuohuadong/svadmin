@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test';
 import { createFetchWithInterceptor } from './http';
+import { HttpError } from './types';
 
 interface MutableLocation {
   href: string;
@@ -71,6 +72,117 @@ describe('createFetchWithInterceptor', () => {
     await expect(fetcher('/api/admin')).rejects.toThrow('No access');
   });
 
+  test('preserves structured error fields from JSON responses', async () => {
+    const fetcher = createFetchWithInterceptor({
+      fetchImpl: async () => new Response(JSON.stringify({
+        message: 'Token expired',
+        code: 'token_expired',
+        details: { expiredAt: '2026-07-18T00:00:00Z' },
+      }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+      onUnauthorized: () => undefined,
+    });
+
+    try {
+      await fetcher('/api/private');
+      throw new Error('Expected request to fail');
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpError);
+      const httpError = error as HttpError;
+      expect(httpError.statusCode).toBe(401);
+      expect(httpError.code).toBe('token_expired');
+      expect(httpError.details).toEqual({ expiredAt: '2026-07-18T00:00:00Z' });
+      expect(httpError.body).toEqual({
+        message: 'Token expired',
+        code: 'token_expired',
+        details: { expiredAt: '2026-07-18T00:00:00Z' },
+      });
+    }
+  });
+
+  test('parses nested BFF error envelopes', async () => {
+    const fetcher = createFetchWithInterceptor({
+      fetchImpl: async () => new Response(JSON.stringify({
+        error: {
+          message: 'Session expired',
+          code: 'session_expired',
+          details: { reason: 'idle_timeout' },
+        },
+      }), { status: 401 }),
+      onUnauthorized: () => undefined,
+    });
+
+    try {
+      await fetcher('/api/private');
+      throw new Error('Expected request to fail');
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpError);
+      expect(error).toMatchObject({
+        message: 'Session expired',
+        statusCode: 401,
+        code: 'session_expired',
+        details: { reason: 'idle_timeout' },
+      });
+    }
+  });
+
+  test('preserves non-auth HTTP responses for caller-owned handling', async () => {
+    const fetcher = createFetchWithInterceptor({
+      fetchImpl: async () => new Response(JSON.stringify({
+        error_code: 'refresh_token_not_found',
+        message: 'Refresh Token Not Found',
+      }), { status: 400 }),
+    });
+
+    const response = await fetcher('/oauth/token');
+    expect(response.status).toBe(400);
+  });
+
+  test('marks an exhausted authenticated retry as terminal without starting another refresh', async () => {
+    const fetcher = createFetchWithInterceptor({
+      fetchImpl: async () => new Response(null, {
+        status: 401,
+        headers: { 'X-Svadmin-Auth-Retry': 'exhausted' },
+      }),
+      onUnauthorized: () => undefined,
+    });
+
+    await expect(fetcher('/api/private')).rejects.toMatchObject({
+      statusCode: 401,
+      code: 'auth_retry_exhausted',
+    });
+  });
+
+  test('preserves structured auth errors thrown by an authenticated fetch layer', async () => {
+    const authError = Object.assign(new Error('Refresh Token Not Found'), {
+      statusCode: 400,
+      code: 'refresh_token_not_found',
+      details: { source: 'gotrue' },
+    });
+    const fetcher = createFetchWithInterceptor({
+      fetchImpl: async () => { throw authError; },
+    });
+
+    await expect(fetcher('/api/private')).rejects.toMatchObject({
+      statusCode: 400,
+      code: 'refresh_token_not_found',
+      details: { source: 'gotrue' },
+    });
+  });
+
+  test('does not invoke unauthorized handling for 403', async () => {
+    const onUnauthorized = mock(() => undefined);
+    const fetcher = createFetchWithInterceptor({
+      fetchImpl: async () => new Response(null, { status: 403 }),
+      onUnauthorized,
+    });
+
+    await expect(fetcher('/api/admin')).rejects.toBeInstanceOf(HttpError);
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
   test('uses injected fetch implementation', async () => {
     const { fetchImpl } = mockFetchWithStatus(204);
     const fetcher = createFetchWithInterceptor({ fetchImpl });
@@ -101,5 +213,14 @@ describe('createFetchWithInterceptor', () => {
     const fetcher = createFetchWithInterceptor({ fetchImpl });
 
     await expect(fetcher('/api/private')).rejects.toThrow('Unauthorized');
+  });
+
+  test('preserves unstructured network failures', async () => {
+    const cause = new TypeError('socket closed');
+    const fetcher = createFetchWithInterceptor({
+      fetchImpl: async () => { throw cause; },
+    });
+
+    await expect(fetcher('/api/private')).rejects.toBe(cause);
   });
 });

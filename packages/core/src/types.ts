@@ -6,15 +6,35 @@ import type { Component } from 'svelte';
 
 export type ValidationErrors = Record<string, string | string[]>;
 
+export interface HttpErrorOptions {
+  code?: string;
+  details?: unknown;
+  body?: unknown;
+  cause?: unknown;
+}
+
 export class HttpError extends Error {
   statusCode: number;
   errors?: ValidationErrors;
+  code?: string;
+  details?: unknown;
+  body?: unknown;
+  override cause?: unknown;
 
-  constructor(message: string, statusCode: number, errors?: ValidationErrors) {
-    super(message);
+  constructor(
+    message: string,
+    statusCode: number,
+    errors?: ValidationErrors,
+    options: HttpErrorOptions = {},
+  ) {
+    super(message, options.cause === undefined ? undefined : { cause: options.cause });
     this.name = 'HttpError';
     this.statusCode = statusCode;
     this.errors = errors;
+    this.code = options.code;
+    this.details = options.details;
+    this.body = options.body;
+    this.cause = options.cause;
   }
 }
 
