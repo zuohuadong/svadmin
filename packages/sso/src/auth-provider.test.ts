@@ -277,6 +277,88 @@ describe('createSSOAuthProvider', () => {
     provider.destroy();
   });
 
+  test('does not let a stale callback exchange consume a newer login attempt', async () => {
+    const storage = createMemoryStorage();
+    storage.setItem(`${STORAGE_PREFIX}pkce_verifier`, 'old-verifier');
+    storage.setItem(`${STORAGE_PREFIX}state`, 'old-state');
+    installWindow('http://app.test/callback?code=old-code&state=old-state');
+    const exchangeStarted = createDeferred<undefined>();
+    const exchangeResponse = createDeferred<Response>();
+    installFetch(() => {
+      exchangeStarted.resolve(undefined);
+      return exchangeResponse.promise;
+    });
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    const check = provider.check();
+    await exchangeStarted.promise;
+    expect((await provider.login({})).success).toBe(true);
+    const newerState = storage.getItem(`${STORAGE_PREFIX}state`);
+    expect(newerState).not.toBe('old-state');
+    exchangeResponse.resolve(jsonResponse({
+      access_token: 'stale-access',
+      refresh_token: 'stale-refresh',
+      token_type: 'Bearer',
+    }));
+
+    expect((await check).authenticated).toBe(false);
+    expect(await provider.getSession()).toBeNull();
+    expect(storage.getItem(`${STORAGE_PREFIX}state`)).toBe(newerState);
+    provider.destroy();
+  });
+
+  test('does not restore a callback session after a remote sign-out event', async () => {
+    const storage = createMemoryStorage();
+    storage.setItem(`${STORAGE_PREFIX}pkce_verifier`, 'verifier-123');
+    storage.setItem(`${STORAGE_PREFIX}state`, 'state-123');
+    installWindow('http://app.test/callback?code=code-123&state=state-123');
+    let storageListener: ((event: StorageEvent) => void) | undefined;
+    Object.assign(window, {
+      navigator: {},
+      addEventListener: (type: string, listener: (event: StorageEvent) => void) => {
+        if (type === 'storage') storageListener = listener;
+      },
+      removeEventListener: () => undefined,
+    });
+    const exchangeStarted = createDeferred<undefined>();
+    const exchangeResponse = createDeferred<Response>();
+    installFetch(() => {
+      exchangeStarted.resolve(undefined);
+      return exchangeResponse.promise;
+    });
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    const check = provider.check();
+    await exchangeStarted.promise;
+    storageListener?.({
+      key: `${STORAGE_PREFIX}tokens`,
+      newValue: null,
+    } as StorageEvent);
+    exchangeResponse.resolve(jsonResponse({
+      access_token: 'post-signout-access',
+      refresh_token: 'post-signout-refresh',
+      token_type: 'Bearer',
+    }));
+
+    expect((await check).authenticated).toBe(false);
+    expect(await provider.getSession()).toBeNull();
+    provider.destroy();
+  });
+
   test('rejects callback token responses with an empty token_type', async () => {
     const storage = createMemoryStorage();
     storage.setItem(`${STORAGE_PREFIX}pkce_verifier`, 'verifier-123');
@@ -421,6 +503,44 @@ describe('createSSOAuthProvider', () => {
       email: 'admin@example.com',
       avatar: 'https://example.com/avatar.png',
     });
+  });
+
+  test('returns userinfo after refreshing an expired session', async () => {
+    const storage = createMemoryStorage();
+    storage.setItem(`${STORAGE_PREFIX}tokens`, JSON.stringify({
+      access_token: 'expired-access',
+      refresh_token: 'refresh-123',
+      expires_at: 1,
+      token_type: 'Bearer',
+    }));
+    const calls = installFetch((url, init) => {
+      if (url === manualEndpoints.token_endpoint) {
+        return jsonResponse({
+          access_token: 'fresh-access',
+          refresh_token: 'refresh-456',
+          expires_in: 3600,
+          token_type: 'Bearer',
+        });
+      }
+      expect(url).toBe(manualEndpoints.userinfo_endpoint);
+      expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer fresh-access');
+      return jsonResponse({ sub: 'user-123', name: 'Fresh User' });
+    });
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    expect(await provider.getIdentity()).toMatchObject({ id: 'user-123', name: 'Fresh User' });
+    expect(calls.map(({ url }) => url)).toEqual([
+      manualEndpoints.token_endpoint,
+      manualEndpoints.userinfo_endpoint,
+    ]);
+    provider.destroy();
   });
 
   test('does not call userinfo without a session', async () => {

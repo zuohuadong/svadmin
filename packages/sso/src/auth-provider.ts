@@ -404,10 +404,26 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     legacyStorageKey: config.legacyStorageKey,
   });
 
-  async function exchangeCode(code: string): Promise<SSOSession> {
-    const revision = sessions.getRevision();
-    const endpoints = await discover();
+  function assertAuthorizationExchangeCurrent(
+    authGeneration: number,
+    expectedState: string,
+  ): void {
+    if (
+      sessions.getAuthGeneration() === authGeneration
+      && sessions.getLoginState() === expectedState
+    ) return;
+
+    throw new SSOAuthError('Authorization exchange was cancelled by a newer session action', 409, {
+      code: 'authorization_exchange_cancelled',
+      retryable: false,
+    });
+  }
+
+  async function exchangeCode(code: string, expectedState: string): Promise<SSOSession> {
+    const authGeneration = sessions.getAuthGeneration();
     const verifier = sessions.getPKCEVerifier();
+    const endpoints = await discover();
+    assertAuthorizationExchangeCurrent(authGeneration, expectedState);
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: config.clientId,
@@ -417,14 +433,9 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     });
     const response = await requestToken(endpoints.token_endpoint, body, 'Token exchange failed');
     const session = normalizeTokenResponse(response, { tokenType: 'Bearer' }, 'Token exchange failed');
-    if (sessions.getRevision() !== revision) {
-      throw new SSOAuthError('Authorization exchange was cancelled by a newer session action', 409, {
-        code: 'authorization_exchange_cancelled',
-        retryable: false,
-      });
-    }
+    assertAuthorizationExchangeCurrent(authGeneration, expectedState);
     sessions.saveSession(session);
-    sessions.clearLoginState();
+    sessions.clearLoginState(expectedState);
     return session;
   }
 
@@ -451,6 +462,7 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
         return { success: false, error: { message: 'SSO login requires a browser environment' } };
       }
 
+      sessions.beginAuthAttempt();
       try {
         const endpoints = await discover();
         const { verifier, challenge } = await createPKCEChallenge();
@@ -535,13 +547,13 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
         }
 
         try {
-          await exchangeCode(code);
+          await exchangeCode(code, savedState);
           url.searchParams.delete('code');
           url.searchParams.delete('state');
           window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
           return { authenticated: true };
         } catch (error) {
-          sessions.clearLoginState();
+          sessions.clearLoginState(savedState);
           return { authenticated: false, error: getErrorResult(error) };
         }
       }
@@ -574,7 +586,7 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
 
     async getIdentity(): Promise<Identity | null> {
       if (!sessions.getSession()) return null;
-      const revision = sessions.getRevision();
+      const authGeneration = sessions.getAuthGeneration();
       try {
         const endpoints = await discover();
         const response = await buildAuthenticatedFetch(
@@ -584,7 +596,10 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
         )(endpoints.userinfo_endpoint);
         if (!response.ok) return null;
         const userinfo = await response.json() as Record<string, unknown>;
-        if (sessions.getRevision() !== revision || !sessions.getSession()) return null;
+        if (
+          sessions.getAuthGeneration() !== authGeneration
+          || !sessions.getSession()
+        ) return null;
         return mapIdentity(userinfo);
       } catch {
         return null;

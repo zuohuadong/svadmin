@@ -64,13 +64,14 @@ type RefreshRaceResolution =
 
 export interface SessionManager {
   getSession: () => SSOSession | null;
-  getRevision: () => number;
+  getAuthGeneration: () => number;
   saveSession: (session: SSOSession, event?: AuthStateChangeEvent) => void;
   clearSession: () => void;
+  beginAuthAttempt: () => void;
   setLoginState: (verifier: string, state: string) => void;
   getPKCEVerifier: () => string | null;
   getLoginState: () => string | null;
-  clearLoginState: () => void;
+  clearLoginState: (expectedState?: string) => void;
   refreshSession: () => Promise<SSOSession | null>;
   getAccessToken: (options?: GetAccessTokenOptions) => Promise<string | null>;
   onAuthStateChange: (callback: AuthStateChangeCallback) => () => void;
@@ -221,7 +222,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
   let refreshingPromise: Promise<SSOSession | null> | null = null;
   let destroyed = false;
   let locallySignedOut = false;
-  let revision = 0;
+  let authGeneration = 0;
   function migrateLegacyStorage(): void {
     if (!legacyKeys || options.storage.getItem(keys.tokens)) return;
 
@@ -329,7 +330,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
       options.storage.setItem(keys.tokens, raw);
     } catch (error) {
       clearStorageValue(options.storage, keys.tokens);
-      revision += 1;
+      authGeneration += 1;
       locallySignedOut = true;
       lastObservedRaw = null;
       clearRefreshTimer();
@@ -341,7 +342,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
         cause: error,
       });
     }
-    revision += 1;
+    if (event !== 'TOKEN_REFRESHED') authGeneration += 1;
     locallySignedOut = false;
     lastObservedRaw = raw;
     scheduleRefresh(session);
@@ -356,7 +357,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     const failures = [keys.tokens, keys.pkceVerifier, keys.state]
       .map((key) => clearStorageValue(options.storage, key));
     const persistenceFailure = failures.find((error) => error !== null);
-    revision += 1;
+    authGeneration += 1;
     locallySignedOut = true;
     lastObservedRaw = null;
     clearRefreshTimer();
@@ -392,9 +393,17 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
   function setLoginState(verifier: string, state: string): void {
     options.storage.setItem(keys.pkceVerifier, verifier);
     options.storage.setItem(keys.state, state);
+    authGeneration += 1;
   }
 
-  function clearLoginState(): void {
+  function beginAuthAttempt(): void {
+    authGeneration += 1;
+  }
+
+  function clearLoginState(expectedState?: string): void {
+    if (expectedState !== undefined && options.storage.getItem(keys.state) !== expectedState) {
+      return;
+    }
     options.storage.removeItem(keys.pkceVerifier);
     options.storage.removeItem(keys.state);
   }
@@ -491,11 +500,15 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     return (await refreshSession())?.access_token ?? null;
   }
 
-  function syncRemoteChange(event: AuthStateChangeEvent, raw: string | null): void {
-    if (raw === lastObservedRaw) return;
+  function syncRemoteChange(
+    event: AuthStateChangeEvent,
+    raw: string | null,
+    force = false,
+  ): void {
+    if (!force && raw === lastObservedRaw) return;
 
     if (raw === null) {
-      revision += 1;
+      authGeneration += 1;
       locallySignedOut = true;
       lastObservedRaw = null;
       clearRefreshTimer();
@@ -512,7 +525,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     // 一次明确的本地登出只有当前上下文的新登录才能撤销；远端刷新不能复活它。
     if (locallySignedOut) return;
 
-    revision += 1;
+    authGeneration += 1;
     lastObservedRaw = raw;
     scheduleRefresh(session);
     emit(event, session);
@@ -524,7 +537,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     const currentRaw = options.storage.getItem(keys.tokens);
     if (data.event === 'SIGNED_OUT') {
       if (parseSession(currentRaw)) return;
-      syncRemoteChange('SIGNED_OUT', null);
+      syncRemoteChange('SIGNED_OUT', null, true);
       return;
     }
     if (data.event === 'TOKEN_REFRESHED' && currentRaw === null) return;
@@ -534,7 +547,11 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
   function onStorage(event: StorageEvent): void {
     if (event.key !== keys.tokens) return;
     const remoteSession = parseSession(event.newValue);
-    syncRemoteChange(remoteSession ? 'TOKEN_REFRESHED' : 'SIGNED_OUT', remoteSession ? event.newValue : null);
+    syncRemoteChange(
+      remoteSession ? 'TOKEN_REFRESHED' : 'SIGNED_OUT',
+      remoteSession ? event.newValue : null,
+      !remoteSession,
+    );
   }
 
   function onVisibilityChange(): void {
@@ -559,9 +576,10 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
 
   return {
     getSession,
-    getRevision: () => revision,
+    getAuthGeneration: () => authGeneration,
     saveSession,
     clearSession,
+    beginAuthAttempt,
     setLoginState,
     getPKCEVerifier: () => options.storage.getItem(keys.pkceVerifier),
     getLoginState: () => options.storage.getItem(keys.state),
