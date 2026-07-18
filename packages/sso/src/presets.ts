@@ -35,8 +35,9 @@ function resolveRedirectUri(opts?: PresetOptions): string {
  * @param clientId - Google OAuth2 Client ID
  */
 export function createGoogleAuth(clientId: string, opts?: PresetOptions) {
+  const issuer = 'https://accounts.google.com';
   return createSSOAuthProvider({
-    issuer: 'https://accounts.google.com',
+    issuer,
     clientId,
     scopes: ['openid', 'profile', 'email'],
     redirectUri: resolveRedirectUri(opts),
@@ -57,8 +58,9 @@ export function createMicrosoftAuth(
   tenantId = 'common',
   opts?: PresetOptions,
 ) {
+  const issuer = `https://login.microsoftonline.com/${tenantId}/v2.0`;
   return createSSOAuthProvider({
-    issuer: `https://login.microsoftonline.com/${tenantId}/v2.0`,
+    issuer,
     clientId,
     scopes: ['openid', 'profile', 'email'],
     redirectUri: resolveRedirectUri(opts),
@@ -84,9 +86,10 @@ export function createGitHubAuth(clientId: string, opts?: PresetOptions) {
   // GitHub uses standard OAuth2, not OIDC — requires manual endpoint config.
   // We leverage the SSO provider but override the discovery with manual endpoints.
   const redirectUri = resolveRedirectUri(opts);
+  const issuer = 'https://github.com';
 
   return createSSOAuthProvider({
-    issuer: 'https://github.com',
+    issuer,
     clientId,
     scopes: ['read:user', 'user:email'],
     redirectUri,
@@ -119,8 +122,9 @@ export function createGitLabAuth(
   instanceUrl = 'https://gitlab.com',
   opts?: PresetOptions,
 ) {
+  const issuer = instanceUrl;
   return createSSOAuthProvider({
-    issuer: instanceUrl,
+    issuer,
     clientId,
     scopes: ['openid', 'profile', 'email'],
     redirectUri: resolveRedirectUri(opts),
@@ -143,8 +147,9 @@ export function createKeycloakAuth(
   clientId: string,
   opts?: PresetOptions,
 ) {
+  const issuer = `${baseUrl.replace(/\/$/, '')}/realms/${realm}`;
   return createSSOAuthProvider({
-    issuer: `${baseUrl.replace(/\/$/, '')}/realms/${realm}`,
+    issuer,
     clientId,
     scopes: ['openid', 'profile', 'email'],
     redirectUri: resolveRedirectUri(opts),
@@ -165,8 +170,9 @@ export function createAuth0Auth(
   clientId: string,
   opts?: PresetOptions,
 ) {
+  const issuer = `https://${domain.replace(/^https?:\/\//, '').replace(/\/$/, '')}`;
   return createSSOAuthProvider({
-    issuer: `https://${domain.replace(/^https?:\/\//, '').replace(/\/$/, '')}`,
+    issuer,
     clientId,
     scopes: ['openid', 'profile', 'email'],
     redirectUri: resolveRedirectUri(opts),

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import { createSSOAuthProvider, type TokenStorage } from './auth-provider';
 
-const STORAGE_PREFIX = 'svadmin_sso_';
+const STORAGE_PREFIX = `svadmin_sso:${encodeURIComponent('https://idp.test')}:${encodeURIComponent('admin-console')}_`;
 
 type FetchCall = {
   url: string;
@@ -54,9 +54,12 @@ function installFetch(handler: (url: string, init?: RequestInit) => Response | P
   const calls: FetchCall[] = [];
   Object.defineProperty(globalThis, 'fetch', {
     value: async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      calls.push({ url, init });
-      return handler(url, init);
+      const url = input instanceof Request ? input.url : String(input);
+      const effectiveInit = input instanceof Request
+        ? { method: input.method, headers: input.headers, signal: input.signal }
+        : init;
+      calls.push({ url, init: effectiveInit });
+      return handler(url, effectiveInit);
     },
     configurable: true,
     writable: true,
@@ -135,6 +138,41 @@ describe('createSSOAuthProvider', () => {
     expect(redirectUrl.searchParams.get('code_challenge')).not.toBe(storage.getItem(`${STORAGE_PREFIX}pkce_verifier`));
   });
 
+  test('isolates direct providers by issuer and client id without explicit storage keys', async () => {
+    const storage = createMemoryStorage();
+    const firstPrefix = `svadmin_sso:${encodeURIComponent('https://idp.test')}:${encodeURIComponent('client-a')}_`;
+    const secondPrefix = `svadmin_sso:${encodeURIComponent('https://idp.test')}:${encodeURIComponent('client-b')}_`;
+    storage.setItem(`${firstPrefix}tokens`, JSON.stringify({
+      access_token: 'access-a',
+      token_type: 'Bearer',
+    }));
+    storage.setItem(`${secondPrefix}tokens`, JSON.stringify({
+      access_token: 'access-b',
+      token_type: 'Bearer',
+    }));
+    const first = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'client-a',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+    const second = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'client-b',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    expect((await first.getSession())?.access_token).toBe('access-a');
+    expect((await second.getSession())?.access_token).toBe('access-b');
+    first.destroy();
+    second.destroy();
+  });
+
   test('discovers OIDC endpoints before redirecting to the authorization server', async () => {
     const storage = createMemoryStorage();
     const calls = installFetch((url) => {
@@ -194,6 +232,32 @@ describe('createSSOAuthProvider', () => {
     expect(storage.getItem(`${STORAGE_PREFIX}state`)).toBeNull();
     expect(await provider.getAccessToken()).toBe('access-123');
     expect(await provider.getPermissions?.()).toEqual(['admin']);
+  });
+
+  test('rejects callback token responses with an empty token_type', async () => {
+    const storage = createMemoryStorage();
+    storage.setItem(`${STORAGE_PREFIX}pkce_verifier`, 'verifier-123');
+    storage.setItem(`${STORAGE_PREFIX}state`, 'state-123');
+    installWindow('http://app.test/callback?code=code-123&state=state-123');
+    installFetch(() => jsonResponse({
+      access_token: 'access-123',
+      token_type: '',
+    }));
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    const result = await provider.check();
+
+    expect(result.authenticated).toBe(false);
+    expect(result.error).toMatchObject({ name: 'invalid_token_response' });
+    expect(await provider.getSession()).toBeNull();
+    provider.destroy();
   });
 
   test('rejects callback codes without matching state', async () => {
@@ -288,7 +352,7 @@ describe('createSSOAuthProvider', () => {
     }));
     const calls = installFetch((url, init) => {
       expect(url).toBe(manualEndpoints.userinfo_endpoint);
-      expect(init?.headers).toEqual({ Authorization: 'Bearer access-123' });
+      expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer access-123');
       return jsonResponse({
         sub: 'user-123',
         name: 'Admin User',

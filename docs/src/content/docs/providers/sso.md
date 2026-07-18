@@ -55,6 +55,8 @@ interface SSOConfig {
   postLogoutRedirectUri?: string;
   /** Token storage. Default: 'local' (localStorage) */
   storage?: 'local' | 'session' | TokenStorage;
+  /** Storage namespace. Defaults to an issuer/client-specific key. */
+  storageKey?: string;
   /** Custom identity mapper */
   mapIdentity?: (userinfo: Record<string, unknown>) => Identity;
   /** Auto-refresh tokens. Default: true */
@@ -63,6 +65,8 @@ interface SSOConfig {
   refreshBuffer?: number;
   /** Extra authorization request params, e.g. audience or prompt */
   authorizationParams?: Record<string, string>;
+  /** Custom refresh lock for non-browser runtimes or coordinated tabs. */
+  refreshLock?: RefreshLock;
 }
 ```
 
@@ -78,7 +82,11 @@ The provider automatically fetches your IdP's configuration from `/.well-known/o
 
 ### Token Refresh
 
-When `autoRefresh: true` (default), the provider schedules automatic token refresh before the access token expires. If refresh fails, the user is logged out.
+When `autoRefresh: true` (default), the provider schedules refresh before the access token expires. Browser refreshes use Web Locks when available, and concurrent refresh calls in one provider share a single result.
+
+Retryable failures such as network errors, `503`, or lock acquisition failures retain the current session for a later retry. Terminal OAuth errors such as `invalid_grant`, `refresh_token_not_found`, or refresh-token reuse clear the session and require a new login.
+
+The default storage key is isolated by issuer and client ID. Existing `svadmin_sso_*` sessions are migrated once when the derived namespace is empty. Set `storageKey` explicitly when several providers intentionally share one session namespace.
 
 ### Custom Identity Mapping
 
@@ -107,7 +115,7 @@ const permissions = await authProvider.getPermissions();
 
 ### Calling Protected APIs
 
-Use `getAccessToken()` when your admin console needs to call a backend API with the current SSO session:
+Use `createAuthenticatedFetch()` for protected API calls. It adds the current access token, refreshes after one `401`, and safely replays the request once. A `403` is returned unchanged and does not refresh or sign out the user.
 
 ```typescript
 const authProvider = createSSOAuthProvider({
@@ -117,7 +125,35 @@ const authProvider = createSSOAuthProvider({
   authorizationParams: { audience: 'admin-api' },
 });
 
-const token = await authProvider.getAccessToken();
+const authFetch = authProvider.createAuthenticatedFetch();
+const response = await authFetch('/api/reports', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ range: '30d' }),
+});
+```
+
+The original request must be replayable. A consumed `Request` body fails explicitly with `request_not_replayable` instead of sending a partial retry.
+
+Use `getAccessToken()` only when a library requires the raw token and owns its own retry behavior:
+
+```typescript
+const token = await authProvider.getAccessToken({ minValiditySeconds: 60 });
+```
+
+### Session Events
+
+Subscribe to rotation and logout changes when application state must follow the auth session:
+
+```typescript
+const unsubscribe = authProvider.onAuthStateChange((event, session) => {
+  if (event === 'TOKEN_REFRESHED') updateApiSession(session);
+  if (event === 'SIGNED_OUT') clearPrivateState();
+});
+
+// Call during application teardown.
+unsubscribe();
+authProvider.destroy();
 ```
 
 ## Callback Page

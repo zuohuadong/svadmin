@@ -1,50 +1,27 @@
 /**
  * @svadmin/sso — OIDC/OAuth2 SSO AuthProvider for svadmin.
  *
- * Supports any OIDC-compliant Identity Provider:
- * - Okta
- * - Azure AD / Entra ID
- * - Amazon Cognito
- * - Keycloak
- * - Google Workspace
- * - Auth0
- * - Any custom OIDC server
- *
- * Uses the Authorization Code Flow with PKCE (no client secret needed in browser).
- *
- * @example
- * ```ts
- * import { createSSOAuthProvider } from '@svadmin/sso';
- * import { setAuthProvider } from '@svadmin/core';
-
-
- *
- * const authProvider = createSSOAuthProvider({
- *   issuer: 'https://your-tenant.okta.com',
- *   clientId: 'your-client-id',
- *   redirectUri: window.location.origin + '/callback',
- * });
- *
- * setAuthProvider(authProvider);
- * ```
+ * Uses the Authorization Code Flow with PKCE and supports rotation-safe
+ * refresh-token handling for browser applications.
  */
 
 import type { AuthProvider, Identity } from '@svadmin/core';
+import { createAuthenticatedFetch as buildAuthenticatedFetch } from './authenticated-fetch';
+import {
+  createSSOAuthNetworkError,
+  createSSOAuthResponseError,
+  isTerminalSessionError,
+  SSOAuthError,
+} from './errors';
+import {
+  createSessionManager,
+  type AuthStateChangeCallback,
+  type GetAccessTokenOptions,
+  type RefreshLock,
+  type SSOSession,
+} from './session-manager';
 
-// Safe base64url decode for JWT payloads
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
-  if (!token) return null;
-  const parts = token.split('.');
-  if (parts.length < 2) return null;
-  const payloadStr = parts[1];
-  const padded = payloadStr + '='.repeat((4 - (payloadStr.length % 4)) % 4);
-  const binString = atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
-  const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0) ?? 0);
-  return JSON.parse(new TextDecoder().decode(bytes));
-}
-
-
-// ─── Types ────────────────────────────────────────────────────
+const DEFAULT_STORAGE_KEY = 'svadmin_sso';
 
 export interface SSOConfig {
   /** OIDC Issuer URL (e.g., 'https://your-tenant.okta.com') */
@@ -59,6 +36,8 @@ export interface SSOConfig {
   postLogoutRedirectUri?: string;
   /** Token storage backend. Default: 'local' (localStorage) */
   storage?: 'local' | 'session' | TokenStorage;
+  /** Storage namespace. Default keeps compatibility with svadmin_sso_* keys. */
+  storageKey?: string;
   /** Custom identity mapper — transform OIDC userinfo to svadmin Identity */
   mapIdentity?: (userinfo: Record<string, unknown>) => Identity;
   /** Auto-refresh tokens before expiry. Default: true */
@@ -67,6 +46,10 @@ export interface SSOConfig {
   refreshBuffer?: number;
   /** Additional authorization request parameters, e.g. audience or prompt. */
   authorizationParams?: Record<string, string>;
+  /** Injectable lock used for refresh coordination. Defaults to navigator.locks. */
+  refreshLock?: RefreshLock;
+  /** Injectable fetch implementation for testing and SSR runtimes. */
+  fetcher?: typeof fetch;
   /**
    * Manual OAuth2 endpoints for providers that don't support OIDC discovery
    * (e.g., GitHub). When provided, OIDC auto-discovery is skipped.
@@ -86,7 +69,12 @@ export interface TokenStorage {
 }
 
 export interface SSOAuthProvider extends AuthProvider {
-  getAccessToken: () => Promise<string | null>;
+  getSession: () => Promise<SSOSession | null>;
+  refreshSession: () => Promise<SSOSession | null>;
+  getAccessToken: (options?: GetAccessTokenOptions) => Promise<string | null>;
+  onAuthStateChange: (callback: AuthStateChangeCallback) => () => void;
+  createAuthenticatedFetch: (fetcher?: typeof fetch) => typeof fetch;
+  destroy: () => void;
 }
 
 interface OIDCConfig {
@@ -96,155 +84,324 @@ interface OIDCConfig {
   end_session_endpoint?: string;
 }
 
-interface TokenSet {
-  access_token: string;
-  id_token?: string;
-  refresh_token?: string;
-  expires_at?: number;
-  token_type: string;
+type TokenResponse = Record<string, unknown>;
+
+interface TokenResponseDefaults {
+  idToken?: string;
+  refreshToken?: string;
+  tokenType: string;
 }
 
-// ─── PKCE Utilities ───────────────────────────────────────────
+type TokenStringField = 'access_token' | 'refresh_token' | 'token_type';
+
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  if (!token) return null;
+  const parts = token.split('.');
+  if (parts.length < 2) return null;
+  const payloadStr = parts[1];
+  const padded = payloadStr + '='.repeat((4 - (payloadStr.length % 4)) % 4);
+  const binString = atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
+  const bytes = Uint8Array.from(binString, (value) => value.codePointAt(0) ?? 0);
+  return JSON.parse(new TextDecoder().decode(bytes)) as Record<string, unknown>;
+}
+
+function getAccessTokenExpiry(data: TokenResponse, accessToken: string): number | undefined {
+  if (typeof data.expires_in === 'number' && Number.isFinite(data.expires_in)) {
+    return Math.floor(Date.now() / 1000) + data.expires_in;
+  }
+
+  try {
+    const payload = decodeJwtPayload(accessToken);
+    return typeof payload?.exp === 'number' ? payload.exp : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function createInvalidTokenResponseError(
+  fallbackMessage: string,
+  field: string,
+  body: unknown,
+): SSOAuthError {
+  return new SSOAuthError(`${fallbackMessage}: invalid ${field}`, 502, {
+    code: 'invalid_token_response',
+    body,
+    retryable: true,
+  });
+}
+
+function readTokenResponse(body: unknown, fallbackMessage: string): TokenResponse {
+  if (typeof body === 'object' && body !== null && !Array.isArray(body)) {
+    return body as TokenResponse;
+  }
+  throw createInvalidTokenResponseError(fallbackMessage, 'response body', body);
+}
+
+function requireTokenString(
+  response: TokenResponse,
+  field: TokenStringField,
+  fallbackMessage: string,
+): string {
+  const token = response[field];
+  if (typeof token === 'string' && token.length > 0) return token;
+  throw createInvalidTokenResponseError(fallbackMessage, field, response);
+}
+
+function readOptionalTokenString(
+  response: TokenResponse,
+  field: TokenStringField,
+  fallback: string | undefined,
+  fallbackMessage: string,
+): string | undefined {
+  return response[field] === undefined
+    ? fallback
+    : requireTokenString(response, field, fallbackMessage);
+}
+
+function normalizeTokenResponse(
+  body: unknown,
+  defaults: TokenResponseDefaults,
+  fallbackMessage: string,
+): SSOSession {
+  const response = readTokenResponse(body, fallbackMessage);
+  const accessToken = requireTokenString(response, 'access_token', fallbackMessage);
+  return {
+    access_token: accessToken,
+    id_token: typeof response.id_token === 'string' ? response.id_token : defaults.idToken,
+    refresh_token: readOptionalTokenString(
+      response,
+      'refresh_token',
+      defaults.refreshToken,
+      fallbackMessage,
+    ),
+    expires_at: getAccessTokenExpiry(response, accessToken),
+    token_type: readOptionalTokenString(
+      response,
+      'token_type',
+      defaults.tokenType,
+      fallbackMessage,
+    ) ?? defaults.tokenType,
+  };
+}
 
 function generateRandomString(length: number): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
   const values = crypto.getRandomValues(new Uint8Array(length));
-  return Array.from(values, (v) => chars[v % chars.length]).join('');
-}
-
-async function sha256(plain: string): Promise<ArrayBuffer> {
-  const encoder = new TextEncoder();
-  return crypto.subtle.digest('SHA-256', encoder.encode(plain));
-}
-
-function base64urlEncode(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return Array.from(values, (value) => chars[value % chars.length]).join('');
 }
 
 async function createPKCEChallenge(): Promise<{ verifier: string; challenge: string }> {
   const verifier = generateRandomString(64);
-  const hashed = await sha256(verifier);
-  const challenge = base64urlEncode(hashed);
+  const hashed = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+  const bytes = new Uint8Array(hashed);
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  const challenge = btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
   return { verifier, challenge };
 }
 
-// ─── Storage Helper ───────────────────────────────────────────
-
-const STORAGE_PREFIX = 'svadmin_sso_';
-
-function getStorage(config: SSOConfig): TokenStorage {
-  if (config.storage && typeof config.storage === 'object') return config.storage;
+function createMemoryStorage(): TokenStorage {
+  const values = new Map<string, string>();
   return {
-    getItem: (key) => typeof window !== 'undefined' ? (config.storage === 'session' ? sessionStorage : localStorage).getItem(key) : null,
-    setItem: (key, value) => { if (typeof window !== 'undefined') (config.storage === 'session' ? sessionStorage : localStorage).setItem(key, value); },
-    removeItem: (key) => { if (typeof window !== 'undefined') (config.storage === 'session' ? sessionStorage : localStorage).removeItem(key); },
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => { values.set(key, value); },
+    removeItem: (key) => { values.delete(key); },
   };
 }
 
-// ─── Provider ─────────────────────────────────────────────────
+function storageProbe(storage: Storage): boolean {
+  const probeKey = `svadmin_sso_probe_${Math.random().toString(36).slice(2)}`;
+  try {
+    storage.setItem(probeKey, '1');
+    storage.removeItem(probeKey);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-/**
- * Create an OIDC/OAuth2 SSO AuthProvider.
- */
+function unavailableStorage(): TokenStorage {
+  return {
+    getItem: () => null,
+    setItem: () => {
+      throw new SSOAuthError('Browser storage is unavailable', 0, {
+        code: 'storage_unavailable',
+        retryable: false,
+      });
+    },
+    removeItem: () => undefined,
+  };
+}
+
+function safeBrowserStorage(readStorage: () => Storage): Storage | null {
+  try {
+    const storage = readStorage();
+    return storageProbe(storage) ? storage : null;
+  } catch {
+    return null;
+  }
+}
+
+function getStorage(config: SSOConfig): TokenStorage {
+  if (config.storage && typeof config.storage === 'object') return config.storage;
+  if (typeof window === 'undefined') return createMemoryStorage();
+
+  const requestedStorage = config.storage === 'session'
+    ? safeBrowserStorage(() => window.sessionStorage)
+    : safeBrowserStorage(() => window.localStorage)
+      ?? safeBrowserStorage(() => window.sessionStorage);
+  if (!requestedStorage) return unavailableStorage();
+  return {
+    getItem: (key) => requestedStorage.getItem(key),
+    setItem: (key, value) => { requestedStorage.setItem(key, value); },
+    removeItem: (key) => { requestedStorage.removeItem(key); },
+  };
+}
+
+function getErrorResult(error: unknown): { message: string; name?: string } {
+  if (error instanceof SSOAuthError) {
+    return { message: error.message, name: error.code ?? error.name };
+  }
+  if (error instanceof Error) return { message: error.message, name: error.name };
+  return { message: String(error) };
+}
+
+function getErrorStatus(error: unknown): number | undefined {
+  if (typeof error !== 'object' || error === null) return undefined;
+  if ('statusCode' in error && typeof error.statusCode === 'number') return error.statusCode;
+  if ('status' in error && typeof error.status === 'number') return error.status;
+  return undefined;
+}
+
+/** Create an OIDC/OAuth2 SSO AuthProvider. */
 export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
   const scopes = config.scopes ?? ['openid', 'profile', 'email'];
-  const autoRefresh = config.autoRefresh ?? true;
-  const refreshBuffer = config.refreshBuffer ?? 60;
+  const refreshBuffer = Math.max(0, config.refreshBuffer ?? 60);
   const storage = getStorage(config);
-
+  const storageKey = config.storageKey
+    ?? `${DEFAULT_STORAGE_KEY}:${encodeURIComponent(config.issuer)}:${encodeURIComponent(config.clientId)}`;
   let oidcConfig: OIDCConfig | null = null;
-  let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 
-  // ── OIDC Discovery ───────────────────────────────────────
+  function getFetcher(): typeof fetch {
+    const fetcher = config.fetcher ?? globalThis.fetch;
+    if (typeof fetcher !== 'function') {
+      throw new SSOAuthError('No fetch implementation found', 0, {
+        code: 'fetch_unavailable',
+        retryable: false,
+      });
+    }
+    return fetcher.bind(globalThis) as typeof fetch;
+  }
 
   async function discover(): Promise<OIDCConfig> {
     if (oidcConfig) return oidcConfig;
-
-    // Use manual endpoints if provided (e.g., GitHub)
     if (config.manualEndpoints) {
       oidcConfig = config.manualEndpoints;
       return oidcConfig;
     }
 
     const url = `${config.issuer.replace(/\/$/, '')}/.well-known/openid-configuration`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`OIDC discovery failed: ${res.status} ${res.statusText}`);
-    oidcConfig = await res.json() as OIDCConfig;
+    let response: Response;
+    try {
+      response = await getFetcher()(url);
+    } catch (error) {
+      throw createSSOAuthNetworkError(error, 'OIDC discovery failed');
+    }
+    if (!response.ok) throw await createSSOAuthResponseError(response, 'OIDC discovery failed');
+
+    let discovered: Partial<OIDCConfig>;
+    try {
+      discovered = await response.json() as Partial<OIDCConfig>;
+    } catch (error) {
+      throw new SSOAuthError('OIDC discovery returned invalid JSON', 502, {
+        code: 'invalid_discovery_document',
+        retryable: true,
+        cause: error,
+      });
+    }
+    if (
+      typeof discovered.authorization_endpoint !== 'string'
+      || typeof discovered.token_endpoint !== 'string'
+      || typeof discovered.userinfo_endpoint !== 'string'
+    ) {
+      throw new SSOAuthError('OIDC discovery returned incomplete endpoints', 502, {
+        code: 'invalid_discovery_document',
+        body: discovered,
+      });
+    }
+    oidcConfig = discovered as OIDCConfig;
     return oidcConfig;
   }
 
-  // ── Token Management ─────────────────────────────────────
-
-  function getTokens(): TokenSet | null {
-    const raw = storage.getItem(`${STORAGE_PREFIX}tokens`);
-    if (!raw) return null;
-    try { return JSON.parse(raw) as TokenSet; }
-    catch { return null; }
-  }
-
-  function setTokens(tokens: TokenSet): void {
-    storage.setItem(`${STORAGE_PREFIX}tokens`, JSON.stringify(tokens));
-    if (autoRefresh && tokens.refresh_token && tokens.expires_at) {
-      scheduleRefresh(tokens);
-    }
-  }
-
-  function clearTokens(): void {
-    storage.removeItem(`${STORAGE_PREFIX}tokens`);
-    storage.removeItem(`${STORAGE_PREFIX}pkce_verifier`);
-    storage.removeItem(`${STORAGE_PREFIX}state`);
-    if (refreshTimer) clearTimeout(refreshTimer);
-  }
-
-  function scheduleRefresh(tokens: TokenSet): void {
-    if (refreshTimer) clearTimeout(refreshTimer);
-    if (!tokens.expires_at || !tokens.refresh_token) return;
-    const now = Math.floor(Date.now() / 1000);
-    const delay = Math.max(0, (tokens.expires_at - now - refreshBuffer)) * 1000;
-    const refreshToken = tokens.refresh_token;
-    refreshTimer = setTimeout(() => refreshAccessToken(refreshToken), delay);
-  }
-
-  async function refreshAccessToken(refreshToken: string): Promise<void> {
+  async function requestToken(
+    endpoint: string,
+    body: URLSearchParams,
+    fallbackMessage: string,
+  ): Promise<unknown> {
+    let response: Response;
     try {
-      const cfg = await discover();
-      const body = new URLSearchParams({
-        grant_type: 'refresh_token',
-        client_id: config.clientId,
-        refresh_token: refreshToken,
-      });
-      const res = await fetch(cfg.token_endpoint, {
+      response = await getFetcher()(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body,
       });
-      if (!res.ok) { clearTokens(); return; }
-      const data = await res.json();
-      if (!data.access_token) {
-        clearTokens();
-        return;
-      }
-      const newTokens: TokenSet = {
-        access_token: data.access_token,
-        id_token: data.id_token,
-        refresh_token: data.refresh_token ?? refreshToken,
-        expires_at: data.expires_in ? Math.floor(Date.now() / 1000) + data.expires_in : undefined,
-        token_type: data.token_type ?? 'Bearer',
-      };
-      setTokens(newTokens);
-    } catch {
-      clearTokens();
+    } catch (error) {
+      throw createSSOAuthNetworkError(error, fallbackMessage);
+    }
+
+    if (!response.ok) throw await createSSOAuthResponseError(response, fallbackMessage);
+
+    try {
+      return await response.json() as unknown;
+    } catch (error) {
+      throw new SSOAuthError(`${fallbackMessage}: invalid JSON response`, 502, {
+        code: 'invalid_token_response',
+        retryable: true,
+        cause: error,
+      });
     }
   }
 
-  // ── Token Exchange ───────────────────────────────────────
+  async function performRefresh(current: SSOSession): Promise<SSOSession> {
+    if (!current.refresh_token) {
+      throw new SSOAuthError('Refresh token is unavailable', 401, {
+        code: 'session_not_found',
+      });
+    }
 
-  async function exchangeCode(code: string): Promise<TokenSet> {
-    const cfg = await discover();
-    const verifier = storage.getItem(`${STORAGE_PREFIX}pkce_verifier`);
+    const endpoints = await discover();
+    const response = await requestToken(
+      endpoints.token_endpoint,
+      new URLSearchParams({
+        grant_type: 'refresh_token',
+        client_id: config.clientId,
+        refresh_token: current.refresh_token,
+      }),
+      'Token refresh failed',
+    );
+    return normalizeTokenResponse(response, {
+      idToken: current.id_token,
+      refreshToken: current.refresh_token,
+      tokenType: current.token_type,
+    }, 'Token refresh failed');
+  }
+
+  const sessions = createSessionManager({
+    storage,
+    storageKey,
+    autoRefresh: config.autoRefresh ?? true,
+    refreshBuffer,
+    refreshLock: config.refreshLock,
+    refresh: performRefresh,
+    legacyStorageKey: config.storageKey ? undefined : DEFAULT_STORAGE_KEY,
+  });
+
+  async function exchangeCode(code: string): Promise<SSOSession> {
+    const endpoints = await discover();
+    const verifier = sessions.getPKCEVerifier();
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: config.clientId,
@@ -252,54 +409,31 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
       redirect_uri: config.redirectUri,
       ...(verifier ? { code_verifier: verifier } : {}),
     });
-    const res = await fetch(cfg.token_endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-    });
-    if (!res.ok) throw new Error(`Token exchange failed: ${res.status}`);
-    const data = await res.json();
-    if (!data.access_token) throw new Error('Token exchange failed: missing access_token');
-    const tokens: TokenSet = {
-      access_token: data.access_token,
-      id_token: data.id_token,
-      refresh_token: data.refresh_token,
-      expires_at: data.expires_in ? Math.floor(Date.now() / 1000) + data.expires_in : undefined,
-      token_type: data.token_type ?? 'Bearer',
-    };
-    setTokens(tokens);
-    storage.removeItem(`${STORAGE_PREFIX}pkce_verifier`);
-    storage.removeItem(`${STORAGE_PREFIX}state`);
-    return tokens;
+    const response = await requestToken(endpoints.token_endpoint, body, 'Token exchange failed');
+    const session = normalizeTokenResponse(response, { tokenType: 'Bearer' }, 'Token exchange failed');
+    sessions.saveSession(session);
+    sessions.clearLoginState();
+    return session;
   }
 
-  // ── Default Identity Mapper ──────────────────────────────
+  const mapIdentity = config.mapIdentity ?? ((userinfo: Record<string, unknown>): Identity => ({
+    id: (userinfo.sub as string) ?? '',
+    name: (userinfo.name as string) ?? (userinfo.preferred_username as string) ?? '',
+    avatar: (userinfo.picture as string) ?? undefined,
+    email: (userinfo.email as string) ?? undefined,
+  }));
 
-  function defaultMapIdentity(userinfo: Record<string, unknown>): Identity {
-    return {
-      id: (userinfo.sub as string) ?? '',
-      name: (userinfo.name as string) ?? (userinfo.preferred_username as string) ?? '',
-      avatar: (userinfo.picture as string) ?? undefined,
-      email: (userinfo.email as string) ?? undefined,
-    };
-  }
-
-  const mapIdentity = config.mapIdentity ?? defaultMapIdentity;
-
-  // ── AuthProvider Implementation ──────────────────────────
-
-  return {
+  const provider: SSOAuthProvider = {
     async login() {
       if (typeof window === 'undefined') {
         return { success: false, error: { message: 'SSO login requires a browser environment' } };
       }
+
       try {
-        const cfg = await discover();
+        const endpoints = await discover();
         const { verifier, challenge } = await createPKCEChallenge();
         const state = generateRandomString(32);
-
-        storage.setItem(`${STORAGE_PREFIX}pkce_verifier`, verifier);
-        storage.setItem(`${STORAGE_PREFIX}state`, state);
+        sessions.setLoginState(verifier, state);
 
         const params = new URLSearchParams({
           response_type: 'code',
@@ -311,31 +445,31 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
           code_challenge_method: 'S256',
           ...config.authorizationParams,
         });
-
-        // Redirect to authorization endpoint
-        window.location.href = `${cfg.authorization_endpoint}?${params}`;
-
-        // Won't actually reach here due to redirect
+        window.location.href = `${endpoints.authorization_endpoint}?${params}`;
         return { success: true };
-      } catch (err) {
-        return { success: false, error: { message: err instanceof Error ? err.message : 'SSO login failed' } };
+      } catch (error) {
+        return { success: false, error: getErrorResult(error) };
       }
     },
 
     async logout() {
-      const cfg = await discover();
-      const tokens = getTokens();
-      clearTokens();
+      const session = sessions.getSession();
+      sessions.clearSession();
 
-      if (typeof window !== 'undefined' && cfg.end_session_endpoint && tokens?.id_token) {
-        const params = new URLSearchParams({
-          id_token_hint: tokens.id_token,
-          ...(config.postLogoutRedirectUri
-            ? { post_logout_redirect_uri: config.postLogoutRedirectUri }
-            : {}),
-        });
-        window.location.href = `${cfg.end_session_endpoint}?${params}`;
-        return { success: true };
+      try {
+        const endpoints = await discover();
+        if (typeof window !== 'undefined' && endpoints.end_session_endpoint && session?.id_token) {
+          const params = new URLSearchParams({
+            id_token_hint: session.id_token,
+            ...(config.postLogoutRedirectUri
+              ? { post_logout_redirect_uri: config.postLogoutRedirectUri }
+              : {}),
+          });
+          window.location.href = `${endpoints.end_session_endpoint}?${params}`;
+          return { success: true };
+        }
+      } catch {
+        // 本地会话已清理，发现或跳转失败不能恢复为登录态。
       }
 
       return {
@@ -345,20 +479,20 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     },
 
     async check() {
-      // SSR: no tokens, no callback — return unauthenticated
+      const existingSession = sessions.getSession();
       if (typeof window === 'undefined') {
-        const tokens = getTokens();
-        if (tokens && (!tokens.expires_at || tokens.expires_at > Math.floor(Date.now() / 1000))) {
-          return { authenticated: true };
-        }
-        return { authenticated: false, logout: true };
+        const now = Math.floor(Date.now() / 1000);
+        return existingSession && (
+          existingSession.expires_at === undefined || existingSession.expires_at > now
+        )
+          ? { authenticated: true }
+          : { authenticated: false, logout: true };
       }
 
-      // Handle callback — exchange authorization code for tokens
       const url = new URL(window.location.href);
       const callbackError = url.searchParams.get('error');
       if (callbackError) {
-        clearTokens();
+        sessions.clearSession();
         return {
           authenticated: false,
           error: {
@@ -371,115 +505,109 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
 
       const code = url.searchParams.get('code');
       const state = url.searchParams.get('state');
-
       if (code) {
-        const savedState = storage.getItem(`${STORAGE_PREFIX}state`);
+        const savedState = sessions.getLoginState();
         if (!state || !savedState || state !== savedState) {
-          clearTokens();
+          sessions.clearSession();
           return { authenticated: false, error: { message: 'State mismatch' } };
         }
+
         try {
           await exchangeCode(code);
-          // Clean URL
           url.searchParams.delete('code');
           url.searchParams.delete('state');
           window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
           return { authenticated: true };
-        } catch (err) {
-          return { authenticated: false, error: { message: String(err) } };
+        } catch (error) {
+          sessions.clearLoginState();
+          return { authenticated: false, error: getErrorResult(error) };
         }
       }
 
-      // Check existing tokens
-      const tokens = getTokens();
-      if (!tokens) {
-        return { authenticated: false, logout: true };
-      }
+      const session = sessions.getSession();
+      if (!session) return { authenticated: false, logout: true };
 
-      // Check expiry
-      if (tokens.expires_at && tokens.expires_at < Math.floor(Date.now() / 1000)) {
-        if (tokens.refresh_token) {
-          await refreshAccessToken(tokens.refresh_token);
-          const refreshed = getTokens();
-          if (refreshed) return { authenticated: true };
+      const now = Math.floor(Date.now() / 1000);
+      if (session.expires_at !== undefined && session.expires_at <= now) {
+        if (!session.refresh_token) {
+          sessions.clearSession();
+          return { authenticated: false, logout: true };
         }
-        clearTokens();
-        return { authenticated: false, logout: true };
-      }
 
-      // Schedule refresh if not already done
-      if (autoRefresh && tokens.refresh_token && tokens.expires_at) {
-        scheduleRefresh(tokens);
+        try {
+          return await sessions.refreshSession()
+            ? { authenticated: true }
+            : { authenticated: false, logout: true };
+        } catch (error) {
+          return {
+            authenticated: false,
+            error: getErrorResult(error),
+            ...(isTerminalSessionError(error) ? { logout: true } : {}),
+          };
+        }
       }
 
       return { authenticated: true };
     },
 
     async getIdentity(): Promise<Identity | null> {
-      const tokens = getTokens();
-      if (!tokens) return null;
-
       try {
-        const cfg = await discover();
-        const res = await fetch(cfg.userinfo_endpoint, {
-          headers: { Authorization: `${tokens.token_type} ${tokens.access_token}` },
-        });
-        if (!res.ok) return null;
-        const userinfo = await res.json();
-        return mapIdentity(userinfo);
+        const endpoints = await discover();
+        const response = await provider.createAuthenticatedFetch()(endpoints.userinfo_endpoint);
+        if (!response.ok) return null;
+        return mapIdentity(await response.json() as Record<string, unknown>);
       } catch {
         return null;
       }
     },
 
     async getPermissions() {
-      const tokens = getTokens();
-      if (!tokens) return null;
+      const idToken = sessions.getSession()?.id_token;
+      if (!idToken) return null;
 
-      // Try to extract roles/permissions from the ID token
-      if (tokens.id_token) {
-        try {
-          const payload = decodeJwtPayload(tokens.id_token);
-          if (!payload) return null;
-          return payload.roles ?? payload.groups ?? payload.permissions ?? null;
-        } catch {
-          return null;
-        }
+      try {
+        const payload = decodeJwtPayload(idToken);
+        return payload?.roles ?? payload?.groups ?? payload?.permissions ?? null;
+      } catch {
+        return null;
       }
-
-      return null;
     },
 
-    async getAccessToken() {
-      const tokens = getTokens();
-      if (!tokens) return null;
-
-      if (tokens.expires_at && tokens.expires_at < Math.floor(Date.now() / 1000)) {
-        if (!tokens.refresh_token) {
-          clearTokens();
-          return null;
-        }
-        await refreshAccessToken(tokens.refresh_token);
-        return getTokens()?.access_token ?? null;
-      }
-
-      return tokens.access_token;
-    },
+    getSession: async () => sessions.getSession(),
+    refreshSession: () => sessions.refreshSession(),
+    getAccessToken: (options) => sessions.getAccessToken(options),
+    onAuthStateChange: (callback) => sessions.onAuthStateChange(callback),
+    createAuthenticatedFetch: (fetcher) => buildAuthenticatedFetch(provider, fetcher ?? getFetcher()),
+    destroy: () => sessions.destroy(),
 
     async onError(error) {
-      if (typeof error === 'object' && error !== null && 'statusCode' in error) {
-        const statusCode = (error as { statusCode: number }).statusCode;
-        if (statusCode === 401 || statusCode === 403) {
-          return { logout: true, redirectTo: '/login' };
-        }
+      const status = getErrorStatus(error);
+      if (status === 403) return {};
+      if (isTerminalSessionError(error)) return { logout: true, redirectTo: '/login' };
+      if (status !== 401) return {};
+
+      const session = sessions.getSession();
+      if (!session?.refresh_token) return { logout: true, redirectTo: '/login' };
+
+      try {
+        return await sessions.getAccessToken({ forceRefresh: true })
+          ? {}
+          : { logout: true, redirectTo: '/login' };
+      } catch (refreshError) {
+        return isTerminalSessionError(refreshError)
+          ? { logout: true, redirectTo: '/login' }
+          : {};
       }
-      if (typeof error === 'object' && error !== null && 'status' in error) {
-        const status = (error as { status: number }).status;
-        if (status === 401 || status === 403) {
-          return { logout: true, redirectTo: '/login' };
-        }
-      }
-      return {};
     },
   };
+
+  return provider;
 }
+
+export type {
+  AuthStateChangeCallback,
+  AuthStateChangeEvent,
+  GetAccessTokenOptions,
+  RefreshLock,
+  SSOSession,
+} from './session-manager';
