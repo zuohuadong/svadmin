@@ -67,7 +67,7 @@ interface SSOConfig {
   refreshBuffer?: number;
   /** Extra authorization request params, e.g. audience or prompt */
   authorizationParams?: Record<string, string>;
-  /** Atomic refresh lock override for runtimes without Web Locks. */
+  /** Atomic authentication coordination lock override for runtimes without Web Locks. */
   refreshLock?: RefreshLock;
   /** Injectable fetch implementation for tests and SSR runtimes. */
   fetcher?: typeof fetch;
@@ -86,7 +86,7 @@ The provider automatically fetches your IdP's configuration from `/.well-known/o
 
 ### Token Refresh
 
-When `autoRefresh: true` (default), the provider schedules refresh before the access token expires. Browser refreshes use the atomic Web Locks API, and concurrent refresh calls in one provider share a single result. A browser without Web Locks fails refresh closed unless an atomic cross-context `refreshLock` is configured; it never falls back to a non-atomic local-storage lease.
+When `autoRefresh: true` (default), the provider schedules refresh before the access token expires. Browser refreshes and authentication commits use the atomic Web Locks API, and concurrent refresh calls in one provider share a single result. A browser without Web Locks fails refresh and token commits closed unless an atomic cross-context `refreshLock` is configured; it never falls back to a non-atomic local-storage lease. Local logout still clears the current tab.
 
 Retryable failures such as network errors, `503`, or lock acquisition failures retain the current session for a later retry. Terminal OAuth errors such as `invalid_grant`, `refresh_token_not_found`, or refresh-token reuse clear the session and require a new login.
 

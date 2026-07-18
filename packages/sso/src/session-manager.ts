@@ -68,10 +68,12 @@ export interface SessionManager {
   saveSession: (session: SSOSession, event?: AuthStateChangeEvent) => void;
   clearSession: () => void;
   beginAuthAttempt: () => void;
+  beginSignOut: () => void;
   setLoginState: (verifier: string, state: string) => void;
   getPKCEVerifier: () => string | null;
   getLoginState: () => string | null;
   clearLoginState: (expectedState?: string) => void;
+  runAuthMutation: <T>(operation: () => Promise<T>) => Promise<T>;
   refreshSession: () => Promise<SSOSession | null>;
   getAccessToken: (options?: GetAccessTokenOptions) => Promise<string | null>;
   onAuthStateChange: (callback: AuthStateChangeCallback) => () => void;
@@ -209,7 +211,8 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
   const legacyKeys = options.legacyStorageKey && options.legacyStorageKey !== options.storageKey
     ? createStorageKeys(options.legacyStorageKey)
     : null;
-  const lockName = `${options.storageKey}:refresh`;
+  const refreshLockName = `${options.storageKey}:refresh`;
+  const authLockName = `${options.storageKey}:auth`;
   const lock = options.refreshLock
     ?? getBrowserRefreshLock()
     ?? (isBrowserRuntime()
@@ -400,6 +403,12 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     authGeneration += 1;
   }
 
+  function beginSignOut(): void {
+    authGeneration += 1;
+    locallySignedOut = true;
+    clearRefreshTimer();
+  }
+
   function clearLoginState(expectedState?: string): void {
     if (expectedState !== undefined && options.storage.getItem(keys.state) !== expectedState) {
       return;
@@ -408,21 +417,45 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     options.storage.removeItem(keys.state);
   }
 
-  async function runWithRefreshLock<T>(operation: () => Promise<T>): Promise<T> {
+  async function runWithLock<T>(
+    name: string,
+    operation: () => Promise<T>,
+    createLockError: (cause: unknown) => SSOAuthError,
+  ): Promise<T> {
     let operationStarted = false;
     try {
-      return await lock.request(lockName, async () => {
+      return await lock.request(name, async () => {
         operationStarted = true;
         return operation();
       });
     } catch (error) {
       if (operationStarted) throw error;
-      throw new SSOAuthError('Token refresh lock could not be acquired', 0, {
+      throw createLockError(error);
+    }
+  }
+
+  function runWithRefreshLock<T>(operation: () => Promise<T>): Promise<T> {
+    return runWithLock(refreshLockName, operation, (cause) => new SSOAuthError(
+      'Token refresh lock could not be acquired',
+      0,
+      {
         code: 'refresh_lock_failed',
         retryable: true,
-        cause: error,
-      });
-    }
+        cause,
+      },
+    ));
+  }
+
+  function runAuthMutation<T>(operation: () => Promise<T>): Promise<T> {
+    return runWithLock(authLockName, operation, (cause) => new SSOAuthError(
+      'Authentication coordination lock could not be acquired',
+      0,
+      {
+        code: 'auth_lock_failed',
+        retryable: false,
+        cause,
+      },
+    ));
   }
 
   function resolveTerminalRefreshFailure(
@@ -580,10 +613,12 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     saveSession,
     clearSession,
     beginAuthAttempt,
+    beginSignOut,
     setLoginState,
     getPKCEVerifier: () => options.storage.getItem(keys.pkceVerifier),
     getLoginState: () => options.storage.getItem(keys.state),
     clearLoginState,
+    runAuthMutation,
     refreshSession,
     getAccessToken,
     onAuthStateChange(callback) {

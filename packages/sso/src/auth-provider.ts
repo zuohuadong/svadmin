@@ -49,8 +49,9 @@ export interface SSOConfig {
   /** Additional authorization request parameters, e.g. audience or prompt. */
   authorizationParams?: Record<string, string>;
   /**
-   * Atomic refresh lock override. Browsers use Web Locks by default and fail
-   * closed when unavailable; non-browser runtimes serialize within the process.
+   * Atomic authentication coordination lock override. Browsers use Web Locks
+   * by default and fail closed when unavailable; non-browser runtimes
+   * serialize within the process.
    */
   refreshLock?: RefreshLock;
   /** Injectable fetch implementation for testing and SSR runtimes. */
@@ -434,9 +435,12 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     const response = await requestToken(endpoints.token_endpoint, body, 'Token exchange failed');
     const session = normalizeTokenResponse(response, { tokenType: 'Bearer' }, 'Token exchange failed');
     assertAuthorizationExchangeCurrent(authGeneration, expectedState);
-    sessions.saveSession(session);
-    sessions.clearLoginState(expectedState);
-    return session;
+    return sessions.runAuthMutation(async () => {
+      assertAuthorizationExchangeCurrent(authGeneration, expectedState);
+      sessions.saveSession(session);
+      sessions.clearLoginState(expectedState);
+      return session;
+    });
   }
 
   const mapIdentity = config.mapIdentity ?? ((userinfo: Record<string, unknown>): Identity => ({
@@ -462,12 +466,23 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
         return { success: false, error: { message: 'SSO login requires a browser environment' } };
       }
 
-      sessions.beginAuthAttempt();
+      const state = generateRandomString(32);
       try {
+        await sessions.runAuthMutation(async () => {
+          sessions.beginAuthAttempt();
+          sessions.setLoginState('', state);
+        });
         const endpoints = await discover();
         const { verifier, challenge } = await createPKCEChallenge();
-        const state = generateRandomString(32);
-        sessions.setLoginState(verifier, state);
+        await sessions.runAuthMutation(async () => {
+          if (sessions.getLoginState() !== state) {
+            throw new SSOAuthError('Login attempt was superseded', 409, {
+              code: 'authorization_exchange_cancelled',
+              retryable: false,
+            });
+          }
+          sessions.setLoginState(verifier, state);
+        });
 
         const params = new URLSearchParams({
           response_type: 'code',
@@ -482,13 +497,23 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
         window.location.href = `${endpoints.authorization_endpoint}?${params}`;
         return { success: true };
       } catch (error) {
+        sessions.clearLoginState(state);
         return { success: false, error: getErrorResult(error) };
       }
     },
 
     async logout() {
       const session = sessions.getSession();
-      sessions.clearSession();
+      sessions.beginSignOut();
+      try {
+        await sessions.runAuthMutation(async () => {
+          sessions.clearSession();
+        });
+      } catch (error) {
+        if (!(error instanceof SSOAuthError) || error.code !== 'auth_lock_failed') throw error;
+        // 无跨上下文锁时 callback commit 同样会失败；本地登出仍应清理会话。
+        sessions.clearSession();
+      }
 
       try {
         const endpoints = await discover();
@@ -542,7 +567,6 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
       if (code) {
         const savedState = sessions.getLoginState();
         if (!state || !savedState || state !== savedState) {
-          sessions.clearSession();
           return { authenticated: false, error: { message: 'State mismatch' } };
         }
 

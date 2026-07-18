@@ -406,8 +406,8 @@ describe('createSSOAuthProvider', () => {
     expect(result.authenticated).toBe(false);
     expect(result.error?.message).toBe('State mismatch');
     expect(calls).toHaveLength(0);
-    expect(storage.getItem(`${STORAGE_PREFIX}pkce_verifier`)).toBeNull();
-    expect(storage.getItem(`${STORAGE_PREFIX}state`)).toBeNull();
+    expect(storage.getItem(`${STORAGE_PREFIX}pkce_verifier`)).toBe('verifier-123');
+    expect(storage.getItem(`${STORAGE_PREFIX}state`)).toBe('state-123');
   });
 
   test('surfaces OAuth callback errors and clears transient state', async () => {
@@ -540,6 +540,33 @@ describe('createSSOAuthProvider', () => {
       manualEndpoints.token_endpoint,
       manualEndpoints.userinfo_endpoint,
     ]);
+    provider.destroy();
+  });
+
+  test('does not clear a valid session or newer login state for a stale callback', async () => {
+    const storage = createMemoryStorage();
+    storage.setItem(`${STORAGE_PREFIX}tokens`, JSON.stringify({
+      access_token: 'valid-access',
+      token_type: 'Bearer',
+    }));
+    storage.setItem(`${STORAGE_PREFIX}pkce_verifier`, 'new-verifier');
+    storage.setItem(`${STORAGE_PREFIX}state`, 'new-state');
+    installWindow('http://app.test/callback?code=old-code&state=old-state');
+    const calls = installFetch(() => jsonResponse({ access_token: 'unexpected' }));
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    expect((await provider.check()).authenticated).toBe(false);
+    expect((await provider.getSession())?.access_token).toBe('valid-access');
+    expect(storage.getItem(`${STORAGE_PREFIX}state`)).toBe('new-state');
+    expect(storage.getItem(`${STORAGE_PREFIX}pkce_verifier`)).toBe('new-verifier');
+    expect(calls).toHaveLength(0);
     provider.destroy();
   });
 
