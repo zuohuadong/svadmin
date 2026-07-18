@@ -3,6 +3,7 @@ import { useParsed } from './useParsed.svelte';
 import type { Sort, Filter, BaseRecord } from './types';
 import { downloadData } from './export-format';
 import type { ExportFormat } from './export-format';
+import { parseCSV } from './helpers-pure';
 export { downloadData, toCsv, toJson, toXlsx, escapeCsvField } from './export-format';
 export type { ExportFormat } from './export-format';
 
@@ -69,7 +70,9 @@ export function useExport<TData extends BaseRecord = BaseRecord>(options: UseExp
 
       return allRecords;
     } catch (error) {
-      options.onError?.(error as Error);
+      const exportError = error instanceof Error ? error : new Error(String(error));
+      if (!options.onError) throw exportError;
+      options.onError(exportError);
       return [];
     } finally {
       isLoading = false;
@@ -210,62 +213,4 @@ export function useImport<TData = Record<string, unknown>>(options: UseImportOpt
     get isLoading() { return isLoading; },
     get mutationResult() { return mutationResult; },
   };
-}
-
-
-// ─── 解析工具 ────────────────────────────────────────────────────
-
-/** Parse full CSV text respecting quoted multi-line fields */
-function parseCSV(text: string): string[][] {
-  const rows: string[][] = [];
-  let currentRow: string[] = [];
-  let currentVal = '';
-  let inQuotes = false;
-  let wasQuoted = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (inQuotes) {
-      if (ch === '"') {
-        if (i + 1 < text.length && text[i + 1] === '"') {
-          currentVal += '"';
-          i++;
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        currentVal += ch;
-      }
-    } else {
-      if (ch === '"') {
-        inQuotes = true;
-        wasQuoted = true;
-      } else if (ch === ',') {
-        currentRow.push(wasQuoted ? currentVal : currentVal.trim());
-        currentVal = '';
-        wasQuoted = false;
-      } else if (ch === '\n' || ch === '\r') {
-        currentRow.push(wasQuoted ? currentVal : currentVal.trim());
-        if (currentRow.some(v => v !== '')) {
-          rows.push(currentRow);
-        }
-        currentRow = [];
-        currentVal = '';
-        wasQuoted = false;
-        if (ch === '\r' && i + 1 < text.length && text[i + 1] === '\n') {
-          i++;
-        }
-      } else {
-        currentVal += ch;
-      }
-    }
-  }
-  
-  if (currentVal || currentRow.length > 0) {
-    currentRow.push(wasQuoted ? currentVal : currentVal.trim());
-    if (currentRow.some(v => v !== '')) {
-      rows.push(currentRow);
-    }
-  }
-  return rows;
 }

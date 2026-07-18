@@ -5,24 +5,28 @@
 export type ExportFormat = 'csv' | 'json' | 'xlsx';
 
 /** CSV 转义，含公式注入防护 */
-export function escapeCsvField(s: string): string {
-  let val = s;
-  if (/^[=+@\t\r]/.test(val)) val = "'" + val;
-  return val.includes(',') || val.includes('"') || val.includes('\n') || val.includes('\r')
-    ? `"${val.replace(/"/g, '""')}"`
-    : val;
+export function escapeCsvField(fieldValue: string): string {
+  let escapedValue = fieldValue;
+  if (/^[=+@\t\r]/.test(escapedValue)) escapedValue = "'" + escapedValue;
+  return escapedValue.includes(',') || escapedValue.includes('"') || escapedValue.includes('\n') || escapedValue.includes('\r')
+    ? `"${escapedValue.replace(/"/g, '""')}"`
+    : escapedValue;
 }
 
 /** 将记录数组转为 CSV 字符串 */
 export function toCsv(records: Record<string, unknown>[]): string {
   if (records.length === 0) return '';
-  const fields = Object.keys(records[0]);
-  const header = fields.map(escapeCsvField).join(',');
+  const fieldNames = Object.keys(records[0]);
+  const header = fieldNames.map(escapeCsvField).join(',');
   const rows = records.map(record =>
-    fields.map(f => {
-      const val = record[f];
-      const str = val === null || val === undefined ? '' : typeof val === 'object' ? JSON.stringify(val) : String(val);
-      return escapeCsvField(str);
+    fieldNames.map(fieldName => {
+      const rawFieldValue = record[fieldName];
+      const serializedFieldValue = rawFieldValue === null || rawFieldValue === undefined
+        ? ''
+        : typeof rawFieldValue === 'object'
+          ? JSON.stringify(rawFieldValue)
+          : String(rawFieldValue);
+      return escapeCsvField(serializedFieldValue);
     }).join(',')
   );
   return [header, ...rows].join('\n');
@@ -34,8 +38,8 @@ export function toJson(records: Record<string, unknown>[]): string {
 }
 
 /** 转义 XML 特殊字符 */
-export function escapeXml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+export function escapeXml(xmlValue: string): string {
+  return xmlValue.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /**
@@ -43,17 +47,17 @@ export function escapeXml(s: string): string {
  */
 export function toXlsx(records: Record<string, unknown>[]): string {
   if (records.length === 0) return '';
-  const fields = Object.keys(records[0]);
+  const fieldNames = Object.keys(records[0]);
 
-  const headerCells = fields.map(f => `<Cell><Data ss:Type="String">${escapeXml(f)}</Data></Cell>`).join('');
+  const headerCells = fieldNames.map(fieldName => `<Cell><Data ss:Type="String">${escapeXml(fieldName)}</Data></Cell>`).join('');
   const dataRows = records.map(record =>
-    `<Row>${fields.map(f => {
-      const val = record[f];
-      if (val === null || val === undefined) return '<Cell><Data ss:Type="String"></Data></Cell>';
-      if (typeof val === 'number') return `<Cell><Data ss:Type="Number">${val}</Data></Cell>`;
-      if (typeof val === 'boolean') return `<Cell><Data ss:Type="Boolean">${val ? 1 : 0}</Data></Cell>`;
-      const str = typeof val === 'object' ? JSON.stringify(val) : String(val);
-      return `<Cell><Data ss:Type="String">${escapeXml(str)}</Data></Cell>`;
+    `<Row>${fieldNames.map(fieldName => {
+      const fieldValue = record[fieldName];
+      if (fieldValue === null || fieldValue === undefined) return '<Cell><Data ss:Type="String"></Data></Cell>';
+      if (typeof fieldValue === 'number') return `<Cell><Data ss:Type="Number">${fieldValue}</Data></Cell>`;
+      if (typeof fieldValue === 'boolean') return `<Cell><Data ss:Type="Boolean">${fieldValue ? 1 : 0}</Data></Cell>`;
+      const serializedValue = typeof fieldValue === 'object' ? JSON.stringify(fieldValue) : String(fieldValue);
+      return `<Cell><Data ss:Type="String">${escapeXml(serializedValue)}</Data></Cell>`;
     }).join('')}</Row>`
   ).join('\n');
 
@@ -84,32 +88,32 @@ export function downloadData(
 
   let content: string;
   let mimeType: string;
-  let ext: string;
+  let extension: string;
 
   switch (format) {
     case 'json':
       content = toJson(records);
       mimeType = 'application/json;charset=utf-8;';
-      ext = 'json';
+      extension = 'json';
       break;
     case 'xlsx':
       content = toXlsx(records);
       mimeType = 'application/vnd.ms-excel;charset=utf-8;';
-      ext = 'xls';
+      extension = 'xls';
       break;
     case 'csv':
     default:
       content = toCsv(records);
       mimeType = 'text/csv;charset=utf-8;';
-      ext = 'csv';
+      extension = 'csv';
       break;
   }
 
   const blob = new Blob(['\uFEFF' + content], { type: mimeType });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${resource}_export.${ext}`;
-  a.click();
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.href = url;
+  downloadAnchor.download = `${resource}_export.${extension}`;
+  downloadAnchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }

@@ -65,6 +65,7 @@ type RefreshRaceResolution =
 
 export interface SessionManager {
   getSession: () => SSOSession | null;
+  clearInvalidSession: () => Promise<void>;
   getAuthGeneration: () => number;
   saveSession: (session: SSOSession, event?: AuthStateChangeEvent) => void;
   clearSession: () => void;
@@ -408,6 +409,17 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     }
   }
 
+  function clearInvalidSession(): Promise<void> {
+    const initialSnapshot = getSessionSnapshot();
+    if (initialSnapshot.raw === null || initialSnapshot.session) return Promise.resolve();
+
+    return runAuthMutation(async () => {
+      const currentRaw = locallySignedOut ? null : options.storage.getItem(keys.tokens);
+      if (currentRaw === null || parseSession(currentRaw)) return;
+      clearTokenSession();
+    });
+  }
+
   function resolveRefreshRace(expectedRaw: string): RefreshRaceResolution {
     const currentRaw = locallySignedOut ? null : options.storage.getItem(keys.tokens);
     if (currentRaw === expectedRaw) return { changed: false };
@@ -559,7 +571,10 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     accessOptions: GetAccessTokenOptions = {},
   ): Promise<string | null> {
     const snapshot = getSessionSnapshot();
-    if (!snapshot.raw || !snapshot.session) return null;
+    if (!snapshot.raw || !snapshot.session) {
+      if (snapshot.raw) await clearInvalidSession();
+      return null;
+    }
     const { raw: initialRaw, session } = snapshot;
 
     const minValiditySeconds = Math.max(0, accessOptions.minValiditySeconds ?? 0);
@@ -671,6 +686,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
 
   return {
     getSession,
+    clearInvalidSession,
     getAuthGeneration: () => authGeneration,
     saveSession,
     clearSession,
