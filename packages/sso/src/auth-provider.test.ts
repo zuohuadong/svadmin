@@ -414,7 +414,9 @@ describe('createSSOAuthProvider', () => {
     const storage = createMemoryStorage();
     storage.setItem(`${STORAGE_PREFIX}pkce_verifier`, 'verifier-123');
     storage.setItem(`${STORAGE_PREFIX}state`, 'state-123');
-    installWindow('http://app.test/callback?error=access_denied&error_description=Denied');
+    installWindow(
+      'http://app.test/callback?error=access_denied&error_description=Denied&state=state-123',
+    );
     const provider = createSSOAuthProvider({
       issuer: 'https://idp.test',
       clientId: 'admin-console',
@@ -427,10 +429,38 @@ describe('createSSOAuthProvider', () => {
     const result = await provider.check();
 
     expect(result.authenticated).toBe(false);
-    expect(result.logout).toBe(true);
+    expect(result.logout).toBeUndefined();
     expect(result.error).toEqual({ message: 'Denied', name: 'access_denied' });
     expect(storage.getItem(`${STORAGE_PREFIX}pkce_verifier`)).toBeNull();
     expect(storage.getItem(`${STORAGE_PREFIX}state`)).toBeNull();
+  });
+
+  test('does not clear a valid session or newer login state for a stale OAuth error', async () => {
+    const storage = createMemoryStorage();
+    storage.setItem(`${STORAGE_PREFIX}tokens`, JSON.stringify({
+      access_token: 'valid-access',
+      token_type: 'Bearer',
+    }));
+    storage.setItem(`${STORAGE_PREFIX}pkce_verifier`, 'new-verifier');
+    storage.setItem(`${STORAGE_PREFIX}state`, 'new-state');
+    installWindow('http://app.test/callback?error=access_denied&state=old-state');
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    const result = await provider.check();
+
+    expect(result.authenticated).toBe(false);
+    expect(result.logout).toBeUndefined();
+    expect((await provider.getSession())?.access_token).toBe('valid-access');
+    expect(storage.getItem(`${STORAGE_PREFIX}state`)).toBe('new-state');
+    expect(storage.getItem(`${STORAGE_PREFIX}pkce_verifier`)).toBe('new-verifier');
+    provider.destroy();
   });
 
   test('refreshes expired tokens during auth checks and access-token reads', async () => {

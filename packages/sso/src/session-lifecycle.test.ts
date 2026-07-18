@@ -104,10 +104,11 @@ function createImmediateSerialLock(): RefreshLock {
       } catch (error) {
         result = Promise.reject(error);
       }
-      void result.finally(() => {
+      const finish = () => {
         release();
         if (tails.get(name) === tail) tails.delete(name);
-      });
+      };
+      void result.then(finish, finish);
       return result;
     },
   };
@@ -326,6 +327,143 @@ describe('rotation-safe session lifecycle', () => {
     expect(readSession(storage, storageKey)).toBeNull();
     refreshingProvider.destroy();
     logoutProvider.destroy();
+  });
+
+  test('does not let failed callback cleanup erase a newer login attempt', async () => {
+    const storage = createMemoryStorage();
+    const storageKey = 'callback-cleanup-vs-new-login';
+    const stateKey = `${storageKey}_state`;
+    const verifierKey = `${storageKey}_pkce_verifier`;
+    storage.setItem(stateKey, 'old-state');
+    storage.setItem(verifierKey, 'old-verifier');
+    const location = { href: 'https://app.test/callback?code=old-code&state=old-state' };
+    Object.defineProperty(globalThis, 'window', {
+      value: {
+        location,
+        history: {
+          replaceState: (_state: unknown, _title: string, url: string) => {
+            location.href = new URL(url, location.href).href;
+          },
+        },
+      } as unknown as Window,
+      configurable: true,
+    });
+    const lock = createImmediateSerialLock();
+    const discoveryStarted = createSignal();
+    const discoveryResponse = createDeferred<Response>();
+    const newerProvider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'https://app.test/callback',
+      storage,
+      storageKey,
+      refreshLock: lock,
+      autoRefresh: false,
+      fetcher: asFetcher(() => {
+        discoveryStarted.resolve();
+        return discoveryResponse.promise;
+      }),
+    });
+    let triggerNewLogin = false;
+    let newerLogin: ReturnType<typeof newerProvider.login> | undefined;
+    const originalGetItem = storage.getItem;
+    storage.getItem = (key) => {
+      const value = originalGetItem(key);
+      if (triggerNewLogin && key === stateKey) {
+        triggerNewLogin = false;
+        newerLogin = newerProvider.login({});
+      }
+      return value;
+    };
+    const staleProvider = createProvider({
+      storage,
+      storageKey,
+      refreshLock: lock,
+      fetcher: asFetcher(() => {
+        triggerNewLogin = true;
+        return jsonResponse({ access_token: 'invalid-access', token_type: '' });
+      }),
+    });
+
+    expect((await staleProvider.check()).authenticated).toBe(false);
+    await discoveryStarted.promise;
+    const pendingState = originalGetItem(stateKey);
+    expect(pendingState).not.toBeNull();
+    expect(pendingState).not.toBe('old-state');
+    discoveryResponse.resolve(jsonResponse(endpoints));
+
+    expect((await newerLogin)?.success).toBe(true);
+    expect(originalGetItem(stateKey)).toBe(pendingState);
+    expect(originalGetItem(verifierKey)).not.toBe('');
+    staleProvider.destroy();
+    newerProvider.destroy();
+  });
+
+  test('does not let a terminal refresh clear a newer login attempt', async () => {
+    const storage = createMemoryStorage();
+    const storageKey = 'terminal-refresh-vs-new-login';
+    const stateKey = `${storageKey}_state`;
+    const verifierKey = `${storageKey}_pkce_verifier`;
+    saveSession(storage, storageKey, {
+      access_token: 'old-access',
+      refresh_token: 'refresh-1',
+      expires_at: 1,
+      token_type: 'Bearer',
+    });
+    const location = { href: 'https://app.test/' };
+    Object.defineProperty(globalThis, 'window', {
+      value: { location } as unknown as Window,
+      configurable: true,
+    });
+    const lock = createImmediateSerialLock();
+    const refreshStarted = createSignal();
+    const refreshResponse = createDeferred<Response>();
+    const refreshingProvider = createProvider({
+      storage,
+      storageKey,
+      refreshLock: lock,
+      fetcher: asFetcher(() => {
+        refreshStarted.resolve();
+        return refreshResponse.promise;
+      }),
+    });
+    const discoveryStarted = createSignal();
+    const discoveryResponse = createDeferred<Response>();
+    const newerProvider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'https://app.test/callback',
+      storage,
+      storageKey,
+      refreshLock: lock,
+      autoRefresh: false,
+      fetcher: asFetcher(() => {
+        discoveryStarted.resolve();
+        return discoveryResponse.promise;
+      }),
+    });
+
+    const refresh = refreshingProvider.refreshSession();
+    await refreshStarted.promise;
+    const login = newerProvider.login({});
+    await discoveryStarted.promise;
+    const pendingState = storage.getItem(stateKey);
+    expect(pendingState).not.toBeNull();
+    refreshResponse.resolve(jsonResponse({
+      error: 'invalid_grant',
+      message: 'Refresh token already used',
+    }, 400));
+
+    await expect(refresh).rejects.toMatchObject({ code: 'invalid_grant' });
+    expect(storage.getItem(stateKey)).toBe(pendingState);
+    discoveryResponse.resolve(jsonResponse(endpoints));
+
+    expect((await login).success).toBe(true);
+    expect(storage.getItem(stateKey)).toBe(pendingState);
+    expect(storage.getItem(verifierKey)).not.toBe('');
+    expect(readSession(storage, storageKey)).toBeNull();
+    refreshingProvider.destroy();
+    newerProvider.destroy();
   });
 
   test('reuses a new login that wins while an older refresh is in flight', async () => {

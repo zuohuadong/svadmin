@@ -375,6 +375,23 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     }
   }
 
+  function clearTokenSession(): void {
+    const persistenceFailure = clearStorageValue(options.storage, keys.tokens);
+    authGeneration += 1;
+    locallySignedOut = true;
+    lastObservedRaw = null;
+    clearRefreshTimer();
+    emit('SIGNED_OUT', null);
+    broadcast('SIGNED_OUT');
+    if (persistenceFailure !== null) {
+      throw new SSOAuthError('Session could not be cleared', 0, {
+        code: 'session_persistence_failed',
+        retryable: false,
+        cause: persistenceFailure,
+      });
+    }
+  }
+
   function resolveRefreshRace(expectedRaw: string): RefreshRaceResolution {
     const currentRaw = locallySignedOut ? null : options.storage.getItem(keys.tokens);
     if (currentRaw === expectedRaw) return { changed: false };
@@ -382,7 +399,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
 
     const currentSession = parseSession(currentRaw);
     if (!currentSession) {
-      clearSession();
+      clearTokenSession();
       throw new SSOAuthError('Stored session became invalid during token refresh', 0, {
         code: 'session_refresh_failed',
         retryable: false,
@@ -464,7 +481,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
   ): SSOSession {
     const race = resolveRefreshRace(expectedRaw);
     if (race.changed && race.session) return race.session;
-    if (!race.changed) clearSession();
+    if (!race.changed) clearTokenSession();
     throw normalizeTerminalRefreshError(error);
   }
 
@@ -529,7 +546,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     }
 
     if (!session.refresh_token) {
-      if (expiresSoon) clearSession();
+      if (expiresSoon) clearTokenSession();
       return null;
     }
 

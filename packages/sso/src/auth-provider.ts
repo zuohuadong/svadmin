@@ -420,6 +420,17 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     });
   }
 
+  async function clearOwnedLoginState(expectedState: string): Promise<void> {
+    try {
+      await sessions.runAuthMutation(async () => {
+        sessions.clearLoginState(expectedState);
+      });
+    } catch (error) {
+      if (!(error instanceof SSOAuthError) || error.code !== 'auth_lock_failed') throw error;
+      sessions.clearLoginState(expectedState);
+    }
+  }
+
   async function exchangeCode(code: string, expectedState: string): Promise<SSOSession> {
     const authGeneration = sessions.getAuthGeneration();
     const verifier = sessions.getPKCEVerifier();
@@ -497,7 +508,11 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
         window.location.href = `${endpoints.authorization_endpoint}?${params}`;
         return { success: true };
       } catch (error) {
-        sessions.clearLoginState(state);
+        try {
+          await clearOwnedLoginState(state);
+        } catch {
+          // 保留触发失败的原始认证错误；清理失败不能掩盖根因。
+        }
         return { success: false, error: getErrorResult(error) };
       }
     },
@@ -551,14 +566,21 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
       const url = new URL(window.location.href);
       const callbackError = url.searchParams.get('error');
       if (callbackError) {
-        sessions.clearSession();
+        const callbackState = url.searchParams.get('state');
+        const savedState = sessions.getLoginState();
+        if (callbackState && savedState && callbackState === savedState) {
+          try {
+            await clearOwnedLoginState(savedState);
+          } catch {
+            // 错误回调仍返回 IdP 的原始错误；清理失败不掩盖它。
+          }
+        }
         return {
           authenticated: false,
           error: {
             message: url.searchParams.get('error_description') ?? callbackError,
             name: callbackError,
           },
-          logout: true,
         };
       }
 
@@ -577,7 +599,11 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
           window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
           return { authenticated: true };
         } catch (error) {
-          sessions.clearLoginState(savedState);
+          try {
+            await clearOwnedLoginState(savedState);
+          } catch {
+            // 保留 token exchange 的原始错误。
+          }
           return { authenticated: false, error: getErrorResult(error) };
         }
       }
