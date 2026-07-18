@@ -481,17 +481,20 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
         refreshedSession = await options.refresh(latestSession);
       } catch (error) {
         if (isTerminalRefreshError(error)) {
-          return resolveTerminalRefreshFailure(initialRaw, error);
+          return runAuthMutation(async () => resolveTerminalRefreshFailure(initialRaw, error));
         }
         throw error;
       }
 
-      // 刷新请求在锁内也可能与登出或新登录并发，写入前必须再次比较原始会话。
-      const writeRace = resolveRefreshRace(initialRaw);
-      if (writeRace.changed) return writeRace.session;
+      // 网络请求只持有 refresh 锁；最终 CAS 与写入再短暂持有 auth 锁，
+      // 使跨标签页 logout/callback commit 与 token rotation 线性化。
+      return runAuthMutation(async () => {
+        const writeRace = resolveRefreshRace(initialRaw);
+        if (writeRace.changed) return writeRace.session;
 
-      saveSession(refreshedSession, 'TOKEN_REFRESHED');
-      return refreshedSession;
+        saveSession(refreshedSession, 'TOKEN_REFRESHED');
+        return refreshedSession;
+      });
     });
   }
 

@@ -86,6 +86,33 @@ function createSerialLock(): RefreshLock {
   };
 }
 
+function createImmediateSerialLock(): RefreshLock {
+  const tails = new Map<string, Promise<void>>();
+  return {
+    request<T>(name: string, operation: () => Promise<T>): Promise<T> {
+      const previous = tails.get(name);
+      if (previous) {
+        return previous.catch(() => undefined).then(() => this.request(name, operation));
+      }
+
+      let release!: () => void;
+      const tail = new Promise<void>((resolve) => { release = resolve; });
+      tails.set(name, tail);
+      let result: Promise<T>;
+      try {
+        result = Promise.resolve(operation());
+      } catch (error) {
+        result = Promise.reject(error);
+      }
+      void result.finally(() => {
+        release();
+        if (tails.get(name) === tail) tails.delete(name);
+      });
+      return result;
+    },
+  };
+}
+
 class FakeBroadcastChannel {
   static readonly channels = new Map<string, Set<FakeBroadcastChannel>>();
 
@@ -244,6 +271,61 @@ describe('rotation-safe session lifecycle', () => {
     expect(await pendingRefresh).toBeNull();
     expect(readSession(storage, storageKey)).toBeNull();
     provider.destroy();
+  });
+
+  test('serializes refresh commit with a cross-provider logout', async () => {
+    const storage = createMemoryStorage();
+    const storageKey = 'cross-provider-logout-during-refresh-commit';
+    saveSession(storage, storageKey, {
+      access_token: 'old-access',
+      refresh_token: 'refresh-1',
+      expires_at: 1,
+      token_type: 'Bearer',
+    });
+    const lock = createImmediateSerialLock();
+    const refreshStarted = createSignal();
+    const refreshResponse = createDeferred<Response>();
+    const refreshingProvider = createProvider({
+      storage,
+      storageKey,
+      refreshLock: lock,
+      fetcher: asFetcher(() => {
+        refreshStarted.resolve();
+        return refreshResponse.promise;
+      }),
+    });
+    const logoutProvider = createProvider({
+      storage,
+      storageKey,
+      refreshLock: lock,
+      fetcher: asFetcher(() => { throw new TypeError('offline'); }),
+    });
+    const originalGetItem = storage.getItem;
+    let triggerLogout = false;
+    let logout: Promise<unknown> | undefined;
+    storage.getItem = (key) => {
+      const value = originalGetItem(key);
+      if (triggerLogout && key === sessionKey(storageKey)) {
+        triggerLogout = false;
+        logout = logoutProvider.logout();
+      }
+      return value;
+    };
+
+    const refresh = refreshingProvider.refreshSession();
+    await refreshStarted.promise;
+    triggerLogout = true;
+    refreshResponse.resolve(jsonResponse({
+      access_token: 'rotated-access',
+      refresh_token: 'refresh-2',
+      expires_in: 3600,
+    }));
+
+    await refresh;
+    await logout;
+    expect(readSession(storage, storageKey)).toBeNull();
+    refreshingProvider.destroy();
+    logoutProvider.destroy();
   });
 
   test('reuses a new login that wins while an older refresh is in flight', async () => {
