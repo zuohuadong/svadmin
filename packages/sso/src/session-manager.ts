@@ -64,6 +64,7 @@ type RefreshRaceResolution =
 
 export interface SessionManager {
   getSession: () => SSOSession | null;
+  getRevision: () => number;
   saveSession: (session: SSOSession, event?: AuthStateChangeEvent) => void;
   clearSession: () => void;
   setLoginState: (verifier: string, state: string) => void;
@@ -220,6 +221,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
   let refreshingPromise: Promise<SSOSession | null> | null = null;
   let destroyed = false;
   let locallySignedOut = false;
+  let revision = 0;
   function migrateLegacyStorage(): void {
     if (!legacyKeys || options.storage.getItem(keys.tokens)) return;
 
@@ -327,6 +329,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
       options.storage.setItem(keys.tokens, raw);
     } catch (error) {
       clearStorageValue(options.storage, keys.tokens);
+      revision += 1;
       locallySignedOut = true;
       lastObservedRaw = null;
       clearRefreshTimer();
@@ -338,6 +341,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
         cause: error,
       });
     }
+    revision += 1;
     locallySignedOut = false;
     lastObservedRaw = raw;
     scheduleRefresh(session);
@@ -352,6 +356,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     const failures = [keys.tokens, keys.pkceVerifier, keys.state]
       .map((key) => clearStorageValue(options.storage, key));
     const persistenceFailure = failures.find((error) => error !== null);
+    revision += 1;
     locallySignedOut = true;
     lastObservedRaw = null;
     clearRefreshTimer();
@@ -490,6 +495,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     if (raw === lastObservedRaw) return;
 
     if (raw === null) {
+      revision += 1;
       locallySignedOut = true;
       lastObservedRaw = null;
       clearRefreshTimer();
@@ -506,6 +512,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     // 一次明确的本地登出只有当前上下文的新登录才能撤销；远端刷新不能复活它。
     if (locallySignedOut) return;
 
+    revision += 1;
     lastObservedRaw = raw;
     scheduleRefresh(session);
     emit(event, session);
@@ -552,6 +559,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
 
   return {
     getSession,
+    getRevision: () => revision,
     saveSession,
     clearSession,
     setLoginState,

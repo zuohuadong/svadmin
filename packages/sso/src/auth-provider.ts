@@ -405,6 +405,7 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
   });
 
   async function exchangeCode(code: string): Promise<SSOSession> {
+    const revision = sessions.getRevision();
     const endpoints = await discover();
     const verifier = sessions.getPKCEVerifier();
     const body = new URLSearchParams({
@@ -416,6 +417,12 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     });
     const response = await requestToken(endpoints.token_endpoint, body, 'Token exchange failed');
     const session = normalizeTokenResponse(response, { tokenType: 'Bearer' }, 'Token exchange failed');
+    if (sessions.getRevision() !== revision) {
+      throw new SSOAuthError('Authorization exchange was cancelled by a newer session action', 409, {
+        code: 'authorization_exchange_cancelled',
+        retryable: false,
+      });
+    }
     sessions.saveSession(session);
     sessions.clearLoginState();
     return session;
@@ -567,6 +574,7 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
 
     async getIdentity(): Promise<Identity | null> {
       if (!sessions.getSession()) return null;
+      const revision = sessions.getRevision();
       try {
         const endpoints = await discover();
         const response = await buildAuthenticatedFetch(
@@ -575,7 +583,9 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
           { requireAuthorization: true },
         )(endpoints.userinfo_endpoint);
         if (!response.ok) return null;
-        return mapIdentity(await response.json() as Record<string, unknown>);
+        const userinfo = await response.json() as Record<string, unknown>;
+        if (sessions.getRevision() !== revision || !sessions.getSession()) return null;
+        return mapIdentity(userinfo);
       } catch {
         return null;
       }

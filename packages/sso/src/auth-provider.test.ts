@@ -67,6 +67,15 @@ function installFetch(handler: (url: string, init?: RequestInit) => Response | P
   return calls;
 }
 
+function createDeferred<T>(): {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+} {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((complete) => { resolve = complete; });
+  return { promise, resolve };
+}
+
 function uninstallFetch(): void {
   Reflect.deleteProperty(globalThis, 'fetch');
 }
@@ -232,6 +241,40 @@ describe('createSSOAuthProvider', () => {
     expect(storage.getItem(`${STORAGE_PREFIX}state`)).toBeNull();
     expect(await provider.getAccessToken()).toBe('access-123');
     expect(await provider.getPermissions?.()).toEqual(['admin']);
+  });
+
+  test('does not restore a callback session after logout cancels an in-flight exchange', async () => {
+    const storage = createMemoryStorage();
+    storage.setItem(`${STORAGE_PREFIX}pkce_verifier`, 'verifier-123');
+    storage.setItem(`${STORAGE_PREFIX}state`, 'state-123');
+    installWindow('http://app.test/callback?code=code-123&state=state-123');
+    const exchangeStarted = createDeferred<undefined>();
+    const exchangeResponse = createDeferred<Response>();
+    installFetch(() => {
+      exchangeStarted.resolve(undefined);
+      return exchangeResponse.promise;
+    });
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    const check = provider.check();
+    await exchangeStarted.promise;
+    await provider.logout();
+    exchangeResponse.resolve(jsonResponse({
+      access_token: 'post-logout-access',
+      refresh_token: 'post-logout-refresh',
+      token_type: 'Bearer',
+    }));
+
+    expect((await check).authenticated).toBe(false);
+    expect(await provider.getSession()).toBeNull();
+    provider.destroy();
   });
 
   test('rejects callback token responses with an empty token_type', async () => {
@@ -425,6 +468,37 @@ describe('createSSOAuthProvider', () => {
     expect(await identity).toBeNull();
     expect(calls).toHaveLength(0);
     expect((await logout).success).toBe(true);
+    provider.destroy();
+  });
+
+  test('does not return userinfo when logout wins after the request starts', async () => {
+    const storage = createMemoryStorage();
+    storage.setItem(`${STORAGE_PREFIX}tokens`, JSON.stringify({
+      access_token: 'access-123',
+      token_type: 'Bearer',
+    }));
+    const userinfoStarted = createDeferred<undefined>();
+    const userinfoResponse = createDeferred<Response>();
+    installFetch(() => {
+      userinfoStarted.resolve(undefined);
+      return userinfoResponse.promise;
+    });
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    const identity = provider.getIdentity();
+    await userinfoStarted.promise;
+    await provider.logout();
+    userinfoResponse.resolve(jsonResponse({ sub: 'stale-user', name: 'Stale User' }));
+
+    expect(await identity).toBeNull();
+    expect(await provider.getSession()).toBeNull();
     provider.destroy();
   });
 });
