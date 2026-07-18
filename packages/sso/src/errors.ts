@@ -6,7 +6,7 @@ export interface SSOAuthErrorOptions {
   cause?: unknown;
 }
 
-const RETRYABLE_STATUS_CODES = new Set([0, 408, 429, 502, 503, 504]);
+const RETRYABLE_STATUS_CODES = new Set([0, 408, 429, 500, 502, 503, 504]);
 const TERMINAL_OAUTH_CODES = new Set([
   'invalid_grant',
   'invalid_token',

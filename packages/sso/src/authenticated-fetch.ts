@@ -2,7 +2,7 @@ import { SSOAuthError } from './errors';
 import type { GetAccessTokenOptions } from './session-manager';
 
 interface AccessTokenSource {
-  getAccessToken: (options?: GetAccessTokenOptions) => Promise<string | null>;
+  getAuthorizationHeader: (options?: GetAccessTokenOptions) => Promise<string | null>;
 }
 
 function cloneReplayableRequest(request: Request): Request {
@@ -17,11 +17,11 @@ function cloneReplayableRequest(request: Request): Request {
   }
 }
 
-function withAccessToken(request: Request, accessToken: string | null): Request {
-  if (!accessToken) return request;
+function withAuthorization(request: Request, authorization: string | null): Request {
+  if (!authorization) return request;
 
   const headers = new Headers(request.headers);
-  headers.set('Authorization', `Bearer ${accessToken}`);
+  headers.set('Authorization', authorization);
   return new Request(request, { headers });
 }
 
@@ -61,18 +61,18 @@ export function createAuthenticatedFetch(
     // 两份副本都在首次发送前创建，避免流式 body 被消费后静默丢失。
     const firstAttempt = cloneReplayableRequest(request);
     const retryAttempt = cloneReplayableRequest(request);
-    const accessToken = await source.getAccessToken();
-    const response = await fetcher(withAccessToken(firstAttempt, accessToken));
+    const authorization = await source.getAuthorizationHeader();
+    const response = await fetcher(withAuthorization(firstAttempt, authorization));
 
     if (response.status !== 401) return response;
 
-    const currentAccessToken = await source.getAccessToken();
-    const refreshedAccessToken = currentAccessToken && currentAccessToken !== accessToken
-      ? currentAccessToken
-      : await source.getAccessToken({ forceRefresh: true });
-    if (!refreshedAccessToken) return response;
+    const currentAuthorization = await source.getAuthorizationHeader();
+    const refreshedAuthorization = currentAuthorization && currentAuthorization !== authorization
+      ? currentAuthorization
+      : await source.getAuthorizationHeader({ forceRefresh: true });
+    if (!refreshedAuthorization) return response;
 
-    const retryResponse = await fetcher(withAccessToken(retryAttempt, refreshedAccessToken));
+    const retryResponse = await fetcher(withAuthorization(retryAttempt, refreshedAuthorization));
     return retryResponse.status === 401 ? markRetryExhausted(retryResponse) : retryResponse;
   }) as typeof fetch;
 }

@@ -57,6 +57,8 @@ interface SSOConfig {
   storage?: 'local' | 'session' | TokenStorage;
   /** Storage namespace. Defaults to an issuer/client-specific key. */
   storageKey?: string;
+  /** Explicit legacy namespace to migrate after confirming provider ownership. */
+  legacyStorageKey?: string;
   /** Custom identity mapper */
   mapIdentity?: (userinfo: Record<string, unknown>) => Identity;
   /** Auto-refresh tokens. Default: true */
@@ -67,6 +69,8 @@ interface SSOConfig {
   authorizationParams?: Record<string, string>;
   /** Custom refresh lock for non-browser runtimes or coordinated tabs. */
   refreshLock?: RefreshLock;
+  /** Injectable fetch implementation for tests and SSR runtimes. */
+  fetcher?: typeof fetch;
 }
 ```
 
@@ -82,11 +86,15 @@ The provider automatically fetches your IdP's configuration from `/.well-known/o
 
 ### Token Refresh
 
-When `autoRefresh: true` (default), the provider schedules refresh before the access token expires. Browser refreshes use Web Locks when available, and concurrent refresh calls in one provider share a single result.
+When `autoRefresh: true` (default), the provider schedules refresh before the access token expires. Browser refreshes use Web Locks when available plus a shared-storage lease, and concurrent refresh calls in one provider share a single result.
 
 Retryable failures such as network errors, `503`, or lock acquisition failures retain the current session for a later retry. Terminal OAuth errors such as `invalid_grant`, `refresh_token_not_found`, or refresh-token reuse clear the session and require a new login.
 
-The default storage key is isolated by issuer and client ID. Existing `svadmin_sso_*` sessions are migrated once when the derived namespace is empty. Set `storageKey` explicitly when several providers intentionally share one session namespace.
+The default storage key is isolated by issuer and client ID. Ambiguous `svadmin_sso_*` sessions are not claimed automatically because they contain no issuer/client ownership metadata. For a verified single-provider upgrade, set `legacyStorageKey: 'svadmin_sso'`; alternatively, keep using the legacy namespace with `storageKey: 'svadmin_sso'`.
+
+Cross-tab rotation coordination requires a shared storage backend. `sessionStorage` remains tab-isolated; use the default local storage or provide a shared `TokenStorage` when tabs must converge on the same rotated session.
+
+If local storage is unavailable, the default browser adapter falls back to `sessionStorage`; that fallback is intentionally tab-isolated.
 
 ### Custom Identity Mapping
 
@@ -134,6 +142,8 @@ const response = await authFetch('/api/reports', {
 ```
 
 The original request must be replayable. A consumed `Request` body fails explicitly with `request_not_replayable` instead of sending a partial retry.
+
+For non-idempotent operations, use an idempotency key accepted by the API before enabling automatic replay. A transport-level retry cannot prove whether an upstream processed a request before returning `401`.
 
 Use `getAccessToken()` only when a library requires the raw token and owns its own retry behavior:
 

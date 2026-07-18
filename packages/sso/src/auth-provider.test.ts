@@ -379,4 +379,24 @@ describe('createSSOAuthProvider', () => {
       avatar: 'https://example.com/avatar.png',
     });
   });
+
+  test('does not call userinfo without a session', async () => {
+    const storage = createMemoryStorage();
+    const calls = installFetch(() => jsonResponse({
+      sub: 'unexpected-user',
+      name: 'Unexpected User',
+    }));
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    expect(await provider.getIdentity()).toBeNull();
+    expect(calls).toHaveLength(0);
+    provider.destroy();
+  });
 });

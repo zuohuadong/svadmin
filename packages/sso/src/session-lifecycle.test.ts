@@ -348,53 +348,49 @@ describe('rotation-safe session lifecycle', () => {
     provider.destroy();
   });
 
-  test('a losing refresh does not clear a session already rotated by another tab', async () => {
+  test('serializes shared-storage refreshes before a loser can clear the winner', async () => {
     const storage = createMemoryStorage();
-    const storageKey = 'rotation-race';
+    const storageKey = 'rotation-race-loser-first';
     saveSession(storage, storageKey, {
       access_token: 'old-access',
       refresh_token: 'refresh-1',
       expires_at: 1,
       token_type: 'Bearer',
     });
+    const winnerStarted = createSignal();
+    const winnerResponse = createDeferred<Response>();
     let refreshCalls = 0;
-    let releaseWinner!: () => void;
-    const loserStarted = new Promise<void>((resolve) => {
-      releaseWinner = resolve;
-    });
-    let winnerSaved!: () => void;
-    const winnerPersisted = new Promise<void>((resolve) => {
-      winnerSaved = resolve;
-    });
     const fetcher = asFetcher(async () => {
       refreshCalls += 1;
       if (refreshCalls === 1) {
-        await loserStarted;
-        return jsonResponse({
-          access_token: 'new-access',
-          refresh_token: 'refresh-2',
-          expires_in: 3600,
-        });
+        winnerStarted.resolve();
+        return winnerResponse.promise;
       }
-      releaseWinner();
-      await winnerPersisted;
       return jsonResponse({
-        error_code: 'refresh_token_already_used',
+        error: 'invalid_grant',
         message: 'Refresh token already used',
       }, 400);
     });
     const noOpLock = (): RefreshLock => ({ request: async (_name, operation) => operation() });
     const first = createProvider({ storage, storageKey, fetcher, refreshLock: noOpLock() });
     const second = createProvider({ storage, storageKey, fetcher, refreshLock: noOpLock() });
-    first.onAuthStateChange((event) => {
-      if (event === 'TOKEN_REFRESHED') winnerSaved();
-    });
 
-    const sessions = await Promise.all([first.refreshSession(), second.refreshSession()]);
+    const firstRefresh = first.refreshSession();
+    await winnerStarted.promise;
+    const secondRefresh = second.refreshSession();
+    await Promise.resolve();
+    await Promise.resolve();
+    winnerResponse.resolve(jsonResponse({
+      access_token: 'new-access',
+      refresh_token: 'refresh-2',
+      expires_in: 3600,
+    }));
+
+    const sessions = await Promise.all([firstRefresh, secondRefresh]);
 
     expect(sessions.map((session) => session?.access_token)).toEqual(['new-access', 'new-access']);
     expect(readSession(storage, storageKey)?.refresh_token).toBe('refresh-2');
-    expect(refreshCalls).toBe(2);
+    expect(refreshCalls).toBe(1);
     first.destroy();
     second.destroy();
   });
@@ -692,6 +688,29 @@ describe('rotation-safe session lifecycle', () => {
     provider.destroy();
   });
 
+  test('retains the session on retryable 500 refresh failures', async () => {
+    const storage = createMemoryStorage();
+    const storageKey = 'retryable-500';
+    saveSession(storage, storageKey, {
+      access_token: 'old-access',
+      refresh_token: 'refresh-1',
+      expires_at: 1,
+      token_type: 'Bearer',
+    });
+    const provider = createProvider({
+      storage,
+      storageKey,
+      fetcher: asFetcher(() => jsonResponse({ message: 'server unavailable' }, 500)),
+    });
+
+    await expect(provider.refreshSession()).rejects.toMatchObject({
+      statusCode: 500,
+      retryable: true,
+    });
+    expect(readSession(storage, storageKey)?.refresh_token).toBe('refresh-1');
+    provider.destroy();
+  });
+
   test('clears the session for GoTrue refresh_token_not_found error_code responses', async () => {
     const storage = createMemoryStorage();
     const storageKey = 'terminal';
@@ -830,6 +849,29 @@ describe('rotation-safe session lifecycle', () => {
 });
 
 describe('authenticated fetch recovery', () => {
+  test('preserves the session token type in the authorization header', async () => {
+    const storage = createMemoryStorage();
+    const storageKey = 'token-type';
+    saveSession(storage, storageKey, {
+      access_token: 'proof-token',
+      token_type: 'DPoP',
+    });
+    let authorization = '';
+    const provider = createProvider({
+      storage,
+      storageKey,
+      fetcher: asFetcher((input) => {
+        authorization = requestHeaders(input).get('Authorization') ?? '';
+        return new Response(null, { status: 200 });
+      }),
+    });
+
+    await provider.createAuthenticatedFetch()('https://api.test/private');
+
+    expect(authorization).toBe('DPoP proof-token');
+    provider.destroy();
+  });
+
   test('replays one POST after 401 with the rotated token and intact body', async () => {
     const storage = createMemoryStorage();
     const storageKey = 'fetch-recovery';
@@ -1004,6 +1046,65 @@ describe('authenticated fetch recovery', () => {
 });
 
 describe('logout and SSR behavior', () => {
+  test('overwrites persisted tokens when storage removal fails', async () => {
+    const storage = createMemoryStorage();
+    const storageKey = 'logout-remove-failure';
+    saveSession(storage, storageKey, {
+      access_token: 'access',
+      refresh_token: 'refresh',
+      token_type: 'Bearer',
+    });
+    const originalRemoveItem = storage.removeItem;
+    storage.removeItem = (key) => {
+      if (key === sessionKey(storageKey)) throw new DOMException('blocked', 'SecurityError');
+      originalRemoveItem(key);
+    };
+    const provider = createProvider({
+      storage,
+      storageKey,
+      fetcher: asFetcher(() => { throw new TypeError('offline'); }),
+    });
+
+    const result = await provider.logout();
+
+    expect(result.success).toBe(true);
+    expect(storage.getItem(sessionKey(storageKey))).toBe('');
+    expect(await provider.getSession()).toBeNull();
+    provider.destroy();
+  });
+
+  test('fails closed in memory when storage cannot remove or overwrite tokens', async () => {
+    const storage = createMemoryStorage();
+    const storageKey = 'logout-persistence-failure';
+    saveSession(storage, storageKey, {
+      access_token: 'access',
+      refresh_token: 'refresh',
+      token_type: 'Bearer',
+    });
+    const originalSetItem = storage.setItem;
+    const originalRemoveItem = storage.removeItem;
+    storage.setItem = (key, value) => {
+      if (key === sessionKey(storageKey) && value === '') throw new DOMException('blocked', 'SecurityError');
+      originalSetItem(key, value);
+    };
+    storage.removeItem = (key) => {
+      if (key === sessionKey(storageKey)) throw new DOMException('blocked', 'SecurityError');
+      originalRemoveItem(key);
+    };
+    const provider = createProvider({
+      storage,
+      storageKey,
+      fetcher: asFetcher(() => { throw new TypeError('offline'); }),
+    });
+
+    await expect(provider.logout()).rejects.toMatchObject({
+      code: 'session_persistence_failed',
+      retryable: false,
+    });
+    expect(await provider.getSession()).toBeNull();
+    provider.destroy();
+  });
+
   test('clears local state before best-effort discovery failure', async () => {
     const storage = createMemoryStorage();
     const storageKey = 'logout';

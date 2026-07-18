@@ -1,7 +1,10 @@
 import { isTerminalSessionError, SSOAuthError } from './errors';
 
 const AUTO_REFRESH_RETRY_DELAY_MS = 30_000;
-const processLockTails = new Map<string, Promise<unknown>>();
+const STORAGE_LOCK_LEASE_MS = 30_000;
+const STORAGE_LOCK_RENEW_MS = 10_000;
+const STORAGE_LOCK_RETRY_MS = 20;
+const STORAGE_LOCK_TIMEOUT_MS = 10_000;
 
 export interface SSOSession {
   access_token: string;
@@ -23,22 +26,9 @@ export type AuthStateChangeCallback = (
 ) => void | Promise<void>;
 
 export interface RefreshLock {
+  /** Serialize every context that shares the same token storage. */
   request<T>(name: string, operation: () => Promise<T>): Promise<T>;
 }
-
-const PROCESS_LOCAL_REFRESH_LOCK: RefreshLock = {
-  async request<T>(name: string, operation: () => Promise<T>): Promise<T> {
-    const previous = processLockTails.get(name) ?? Promise.resolve();
-    const current = previous.catch(() => undefined).then(operation);
-    processLockTails.set(name, current);
-
-    try {
-      return await current;
-    } finally {
-      if (processLockTails.get(name) === current) processLockTails.delete(name);
-    }
-  },
-};
 
 interface SessionManagerOptions {
   storage: TokenStorageLike;
@@ -65,6 +55,11 @@ interface StorageKeys {
   tokens: string;
   pkceVerifier: string;
   state: string;
+}
+
+interface StorageRefreshLease {
+  owner: string;
+  expiresAt: number;
 }
 
 type RefreshRaceResolution =
@@ -163,19 +158,126 @@ function hasStorageEvents(): boolean {
     && typeof window.removeEventListener === 'function';
 }
 
+function clearStorageValue(storage: TokenStorageLike, key: string): unknown | null {
+  try {
+    storage.removeItem(key);
+    return null;
+  } catch (removeError) {
+    try {
+      storage.setItem(key, '');
+      return null;
+    } catch {
+      return removeError;
+    }
+  }
+}
+
+function parseStorageLease(raw: string | null): StorageRefreshLease | null {
+  if (!raw) return null;
+  try {
+    const lease = JSON.parse(raw) as Partial<StorageRefreshLease>;
+    return typeof lease.owner === 'string'
+      && typeof lease.expiresAt === 'number'
+      && Number.isFinite(lease.expiresAt)
+      ? lease as StorageRefreshLease
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function createLockOwner(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}:${Math.random()}`;
+}
+
+function waitForLockRetry(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, STORAGE_LOCK_RETRY_MS));
+}
+
+function ownsStorageLease(storage: TokenStorageLike, key: string, owner: string): boolean {
+  return parseStorageLease(storage.getItem(key))?.owner === owner;
+}
+
+function tryAcquireStorageLease(storage: TokenStorageLike, key: string, owner: string): boolean {
+  const now = Date.now();
+  const current = parseStorageLease(storage.getItem(key));
+  if (current && current.owner !== owner && current.expiresAt > now) return false;
+  storage.setItem(key, JSON.stringify({ owner, expiresAt: now + STORAGE_LOCK_LEASE_MS }));
+  return ownsStorageLease(storage, key, owner);
+}
+
+async function acquireStorageLease(storage: TokenStorageLike, key: string, owner: string): Promise<void> {
+  const deadline = Date.now() + STORAGE_LOCK_TIMEOUT_MS;
+  while (!tryAcquireStorageLease(storage, key, owner)) {
+    if (Date.now() >= deadline) throw new Error('Shared refresh lock timed out');
+    await waitForLockRetry();
+  }
+}
+
+function renewStorageLease(storage: TokenStorageLike, key: string, owner: string): void {
+  try {
+    if (!ownsStorageLease(storage, key, owner)) return;
+    storage.setItem(key, JSON.stringify({ owner, expiresAt: Date.now() + STORAGE_LOCK_LEASE_MS }));
+  } catch {
+    // The in-flight operation will still run its storage CAS before persistence.
+  }
+}
+
+function releaseStorageLease(storage: TokenStorageLike, key: string, owner: string): void {
+  try {
+    if (ownsStorageLease(storage, key, owner)) storage.removeItem(key);
+  } catch {
+    try { storage.setItem(key, JSON.stringify({ owner, expiresAt: 0 })); } catch { /* lease expires */ }
+  }
+}
+
+function createStorageRefreshLock(storage: TokenStorageLike, storageKey: string): RefreshLock {
+  const leaseKey = `${storageKey}_refresh_lock`;
+  return {
+    async request<T>(_name: string, operation: () => Promise<T>): Promise<T> {
+      const owner = createLockOwner();
+      await acquireStorageLease(storage, leaseKey, owner);
+      const renewal = setInterval(
+        () => renewStorageLease(storage, leaseKey, owner),
+        STORAGE_LOCK_RENEW_MS,
+      );
+      try {
+        return await operation();
+      } finally {
+        clearInterval(renewal);
+        releaseStorageLease(storage, leaseKey, owner);
+      }
+    },
+  };
+}
+
+function combineRefreshLocks(outer: RefreshLock, inner: RefreshLock): RefreshLock {
+  return {
+    request<T>(name: string, operation: () => Promise<T>): Promise<T> {
+      return outer.request(name, () => inner.request(name, operation));
+    },
+  };
+}
+
 export function createSessionManager(options: SessionManagerOptions): SessionManager {
   const keys = createStorageKeys(options.storageKey);
   const legacyKeys = options.legacyStorageKey && options.legacyStorageKey !== options.storageKey
     ? createStorageKeys(options.legacyStorageKey)
     : null;
-  const listeners = new Set<AuthStateChangeCallback>();
-  const lock = options.refreshLock ?? getBrowserRefreshLock() ?? PROCESS_LOCAL_REFRESH_LOCK;
   const lockName = `${options.storageKey}:refresh`;
+  const storageLock = createStorageRefreshLock(options.storage, options.storageKey);
+  const configuredLock = options.refreshLock ?? getBrowserRefreshLock();
+  const lock = configuredLock ? combineRefreshLocks(configuredLock, storageLock) : storageLock;
+  const listeners = new Set<AuthStateChangeCallback>();
   const channel = getBroadcastChannel(`${options.storageKey}:auth`);
 
   let refreshTimer: ReturnType<typeof setTimeout> | null = null;
   let refreshingPromise: Promise<SSOSession | null> | null = null;
   let destroyed = false;
+  let locallySignedOut = false;
   function migrateLegacyStorage(): void {
     if (!legacyKeys || options.storage.getItem(keys.tokens)) return;
 
@@ -200,6 +302,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
   let lastObservedRaw = options.storage.getItem(keys.tokens);
 
   function getSession(): SSOSession | null {
+    if (locallySignedOut) return null;
     return parseSession(options.storage.getItem(keys.tokens));
   }
 
@@ -281,11 +384,8 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
       // 单次 setItem 写入完整 token set，避免轮换只落盘一半。
       options.storage.setItem(keys.tokens, raw);
     } catch (error) {
-      try {
-        options.storage.removeItem(keys.tokens);
-      } catch {
-        // 尽力清理；原始持久化错误仍需返回给调用方。
-      }
+      clearStorageValue(options.storage, keys.tokens);
+      locallySignedOut = true;
       lastObservedRaw = null;
       clearRefreshTimer();
       emit('SIGNED_OUT', null);
@@ -296,6 +396,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
         cause: error,
       });
     }
+    locallySignedOut = false;
     lastObservedRaw = raw;
     scheduleRefresh(session);
 
@@ -306,17 +407,25 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
   }
 
   function clearSession(): void {
-    options.storage.removeItem(keys.tokens);
-    options.storage.removeItem(keys.pkceVerifier);
-    options.storage.removeItem(keys.state);
+    const failures = [keys.tokens, keys.pkceVerifier, keys.state]
+      .map((key) => clearStorageValue(options.storage, key));
+    const persistenceFailure = failures.find((error) => error !== null);
+    locallySignedOut = true;
     lastObservedRaw = null;
     clearRefreshTimer();
     emit('SIGNED_OUT', null);
     broadcast('SIGNED_OUT');
+    if (persistenceFailure !== undefined && persistenceFailure !== null) {
+      throw new SSOAuthError('Session could not be cleared', 0, {
+        code: 'session_persistence_failed',
+        retryable: false,
+        cause: persistenceFailure,
+      });
+    }
   }
 
   function resolveRefreshRace(expectedRaw: string): RefreshRaceResolution {
-    const currentRaw = options.storage.getItem(keys.tokens);
+    const currentRaw = locallySignedOut ? null : options.storage.getItem(keys.tokens);
     if (currentRaw === expectedRaw) return { changed: false };
     if (currentRaw === null) return { changed: true, session: null };
 
@@ -400,7 +509,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
   function refreshSession(): Promise<SSOSession | null> {
     if (refreshingPromise) return refreshingPromise;
 
-    const initialRaw = options.storage.getItem(keys.tokens);
+    const initialRaw = locallySignedOut ? null : options.storage.getItem(keys.tokens);
     const initialSession = parseSession(initialRaw);
     if (!initialRaw || !initialSession?.refresh_token) {
       return Promise.resolve(null);
@@ -439,6 +548,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     if (raw === lastObservedRaw) return;
 
     if (raw === null) {
+      locallySignedOut = true;
       lastObservedRaw = null;
       clearRefreshTimer();
       emit('SIGNED_OUT', null);
@@ -446,8 +556,12 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     }
 
     const session = parseSession(raw);
-    if (!session) return;
+    if (!session) {
+      syncRemoteChange('SIGNED_OUT', null);
+      return;
+    }
 
+    locallySignedOut = false;
     lastObservedRaw = raw;
     scheduleRefresh(session);
     emit(event, session);
@@ -457,14 +571,19 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     const data = message.data;
     if (!data || data.storageKey !== options.storageKey) return;
     const currentRaw = options.storage.getItem(keys.tokens);
-    if (data.event === 'SIGNED_OUT' && currentRaw !== null) return;
+    if (data.event === 'SIGNED_OUT') {
+      if (parseSession(currentRaw)) return;
+      syncRemoteChange('SIGNED_OUT', null);
+      return;
+    }
     if (data.event === 'TOKEN_REFRESHED' && currentRaw === null) return;
     syncRemoteChange(data.event, currentRaw);
   }
 
   function onStorage(event: StorageEvent): void {
     if (event.key !== keys.tokens) return;
-    syncRemoteChange(event.newValue === null ? 'SIGNED_OUT' : 'TOKEN_REFRESHED', event.newValue);
+    const remoteSession = parseSession(event.newValue);
+    syncRemoteChange(remoteSession ? 'TOKEN_REFRESHED' : 'SIGNED_OUT', remoteSession ? event.newValue : null);
   }
 
   function onVisibilityChange(): void {

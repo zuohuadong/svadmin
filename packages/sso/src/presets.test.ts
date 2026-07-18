@@ -137,6 +137,7 @@ describe('SSO presets', () => {
     const provider = createGoogleAuth('legacy-client', {
       redirectUri: 'http://localhost/callback',
       storage,
+      legacyStorageKey: 'svadmin_sso',
       autoRefresh: false,
     });
 
@@ -145,6 +146,26 @@ describe('SSO presets', () => {
     expect(storage.getItem(
       `svadmin_sso:${encodeURIComponent('https://accounts.google.com')}:${encodeURIComponent('legacy-client')}_tokens`,
     )).toContain('legacy-access');
+    provider.destroy();
+  });
+
+  test('does not claim an ambiguous legacy session by default', async () => {
+    const { createGoogleAuth } = await import('./presets');
+    const storage = createMemoryStorage();
+    storage.setItem('svadmin_sso_tokens', JSON.stringify({
+      access_token: 'legacy-access',
+      refresh_token: 'legacy-refresh',
+      token_type: 'Bearer',
+    }));
+
+    const provider = createGoogleAuth('new-client', {
+      redirectUri: 'http://localhost/callback',
+      storage,
+      autoRefresh: false,
+    });
+
+    expect(await provider.getSession()).toBeNull();
+    expect(storage.getItem('svadmin_sso_tokens')).toContain('legacy-access');
     provider.destroy();
   });
 });

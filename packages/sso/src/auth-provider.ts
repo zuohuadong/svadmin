@@ -36,8 +36,10 @@ export interface SSOConfig {
   postLogoutRedirectUri?: string;
   /** Token storage backend. Default: 'local' (localStorage) */
   storage?: 'local' | 'session' | TokenStorage;
-  /** Storage namespace. Default keeps compatibility with svadmin_sso_* keys. */
+  /** Storage namespace. Defaults to an issuer/client-specific key. */
   storageKey?: string;
+  /** Explicit legacy namespace to migrate after confirming it belongs to this provider. */
+  legacyStorageKey?: string;
   /** Custom identity mapper — transform OIDC userinfo to svadmin Identity */
   mapIdentity?: (userinfo: Record<string, unknown>) => Identity;
   /** Auto-refresh tokens before expiry. Default: true */
@@ -46,7 +48,7 @@ export interface SSOConfig {
   refreshBuffer?: number;
   /** Additional authorization request parameters, e.g. audience or prompt. */
   authorizationParams?: Record<string, string>;
-  /** Injectable lock used for refresh coordination. Defaults to navigator.locks. */
+  /** Optional extra lock; shared storage still provides the final refresh lease. */
   refreshLock?: RefreshLock;
   /** Injectable fetch implementation for testing and SSR runtimes. */
   fetcher?: typeof fetch;
@@ -396,7 +398,7 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     refreshBuffer,
     refreshLock: config.refreshLock,
     refresh: performRefresh,
-    legacyStorageKey: config.storageKey ? undefined : DEFAULT_STORAGE_KEY,
+    legacyStorageKey: config.legacyStorageKey,
   });
 
   async function exchangeCode(code: string): Promise<SSOSession> {
@@ -551,6 +553,7 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     },
 
     async getIdentity(): Promise<Identity | null> {
+      if (!sessions.getSession()) return null;
       try {
         const endpoints = await discover();
         const response = await provider.createAuthenticatedFetch()(endpoints.userinfo_endpoint);
@@ -577,7 +580,15 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     refreshSession: () => sessions.refreshSession(),
     getAccessToken: (options) => sessions.getAccessToken(options),
     onAuthStateChange: (callback) => sessions.onAuthStateChange(callback),
-    createAuthenticatedFetch: (fetcher) => buildAuthenticatedFetch(provider, fetcher ?? getFetcher()),
+    createAuthenticatedFetch: (fetcher) => buildAuthenticatedFetch({
+      getAuthorizationHeader: async (options) => {
+        const accessToken = await sessions.getAccessToken(options);
+        const session = sessions.getSession();
+        return accessToken && session?.access_token === accessToken
+          ? `${session.token_type} ${accessToken}`
+          : null;
+      },
+    }, fetcher ?? getFetcher()),
     destroy: () => sessions.destroy(),
 
     async onError(error) {

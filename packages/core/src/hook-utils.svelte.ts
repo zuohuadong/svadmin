@@ -20,7 +20,7 @@ export async function checkError(
       const result = await authProvider.onError(error);
       if (!result) return;
       if (result.logout) {
-        try { await authProvider.logout?.(); } catch { /* logout failure should not block redirect */ }
+        await authProvider.logout?.();
         await adminContext.navigate(result.redirectTo ?? '/login');
       } else if (result.redirectTo) {
         await adminContext.navigate(result.redirectTo);
