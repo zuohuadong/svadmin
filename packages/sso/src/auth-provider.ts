@@ -100,6 +100,42 @@ interface TokenResponseDefaults {
 
 type TokenStringField = 'access_token' | 'refresh_token' | 'token_type';
 
+const REQUIRED_OIDC_ENDPOINTS = [
+  'authorization_endpoint',
+  'token_endpoint',
+  'userinfo_endpoint',
+] as const;
+
+function readOIDCConfig(body: unknown): OIDCConfig {
+  const discovery = typeof body === 'object' && body !== null && !Array.isArray(body)
+    ? body as Record<string, unknown>
+    : {};
+  const missingEndpoints = REQUIRED_OIDC_ENDPOINTS.filter((endpoint) => {
+    const value = discovery[endpoint];
+    return typeof value !== 'string' || value.length === 0;
+  });
+  if (missingEndpoints.length > 0) {
+    throw new SSOAuthError(
+      `OIDC discovery returned incomplete endpoints: missing ${missingEndpoints.join(', ')}`,
+      502,
+      {
+        code: 'invalid_discovery_document',
+        body,
+      },
+    );
+  }
+
+  return {
+    authorization_endpoint: discovery.authorization_endpoint as string,
+    token_endpoint: discovery.token_endpoint as string,
+    userinfo_endpoint: discovery.userinfo_endpoint as string,
+    ...(typeof discovery.end_session_endpoint === 'string'
+      && discovery.end_session_endpoint.length > 0
+      ? { end_session_endpoint: discovery.end_session_endpoint }
+      : {}),
+  };
+}
+
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
   if (!token) return null;
   const parts = token.split('.');
@@ -318,9 +354,9 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     }
     if (!response.ok) throw await createSSOAuthResponseError(response, 'OIDC discovery failed');
 
-    let discovered: Partial<OIDCConfig>;
+    let discovered: unknown;
     try {
-      discovered = await response.json() as Partial<OIDCConfig>;
+      discovered = await response.json() as unknown;
     } catch (error) {
       throw new SSOAuthError('OIDC discovery returned invalid JSON', 502, {
         code: 'invalid_discovery_document',
@@ -328,17 +364,7 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
         cause: error,
       });
     }
-    if (
-      typeof discovered.authorization_endpoint !== 'string'
-      || typeof discovered.token_endpoint !== 'string'
-      || typeof discovered.userinfo_endpoint !== 'string'
-    ) {
-      throw new SSOAuthError('OIDC discovery returned incomplete endpoints', 502, {
-        code: 'invalid_discovery_document',
-        body: discovered,
-      });
-    }
-    oidcConfig = discovered as OIDCConfig;
+    oidcConfig = readOIDCConfig(discovered);
     return oidcConfig;
   }
 
@@ -553,7 +579,15 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
     },
 
     async check() {
-      const existingSession = sessions.getSession();
+      let existingSession = sessions.getSession();
+      if (!existingSession) {
+        try {
+          await sessions.clearInvalidSession();
+          existingSession = sessions.getSession();
+        } catch (error) {
+          return { authenticated: false, error: getErrorResult(error) };
+        }
+      }
       if (typeof window === 'undefined') {
         const now = Math.floor(Date.now() / 1000);
         return existingSession && (

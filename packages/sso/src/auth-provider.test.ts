@@ -203,6 +203,29 @@ describe('createSSOAuthProvider', () => {
     expect(new URL(window.location.href).origin).toBe('https://idp.test');
   });
 
+  test('rejects discovery documents missing required endpoints', async () => {
+    const storage = createMemoryStorage();
+    const calls = installFetch(() => jsonResponse({
+      authorization_endpoint: manualEndpoints.authorization_endpoint,
+    }));
+    const provider = createSSOAuthProvider({
+      issuer: 'https://issuer.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+    });
+
+    const loginResult = await provider.login({});
+
+    expect(loginResult.success).toBe(false);
+    expect(loginResult.error?.message).toBe(
+      'OIDC discovery returned incomplete endpoints: missing token_endpoint, userinfo_endpoint',
+    );
+    expect(calls).toHaveLength(1);
+    expect(window.location.href).toBe('http://app.test/');
+  });
+
   test('exchanges callback code, stores tokens, and preserves unrelated URL parts', async () => {
     const storage = createMemoryStorage();
     storage.setItem(`${STORAGE_PREFIX}pkce_verifier`, 'verifier-123');
@@ -499,6 +522,77 @@ describe('createSSOAuthProvider', () => {
     expect(result).toEqual({ authenticated: true });
     expect(calls).toHaveLength(1);
     expect(await provider.getAccessToken()).toBe('fresh-access');
+  });
+
+  test('rejects and removes malformed persisted token sets', async () => {
+    const storage = createMemoryStorage();
+    storage.setItem(`${STORAGE_PREFIX}tokens`, JSON.stringify({
+      access_token: 42,
+      token_type: 'Bearer',
+    }));
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    const authCheck = await provider.check();
+
+    expect(authCheck).toEqual({ authenticated: false, logout: true });
+    expect(storage.getItem(`${STORAGE_PREFIX}tokens`)).toBeNull();
+    expect(await provider.getAccessToken()).toBeNull();
+  });
+
+  test('treats empty storage as logged out when browser Web Locks are unavailable', async () => {
+    Object.assign(window, { document: {}, navigator: {} });
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage: createMemoryStorage(),
+      autoRefresh: false,
+      manualEndpoints,
+    });
+
+    expect(await provider.check()).toEqual({ authenticated: false, logout: true });
+    provider.destroy();
+  });
+
+  test('does not clear a newer session while removing malformed persisted tokens', async () => {
+    const storage = createMemoryStorage();
+    storage.setItem(`${STORAGE_PREFIX}tokens`, JSON.stringify({
+      access_token: 42,
+      token_type: 'Bearer',
+    }));
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'http://app.test/callback',
+      storage,
+      autoRefresh: false,
+      manualEndpoints,
+    });
+    const originalGetItem = storage.getItem;
+    let replaced = false;
+    storage.getItem = (key) => {
+      const value = originalGetItem(key);
+      if (!replaced && key === `${STORAGE_PREFIX}tokens`) {
+        replaced = true;
+        storage.setItem(key, JSON.stringify({
+          access_token: 'new-access',
+          token_type: 'Bearer',
+        }));
+      }
+      return value;
+    };
+
+    expect(await provider.getAccessToken()).toBeNull();
+    expect(JSON.parse(originalGetItem(`${STORAGE_PREFIX}tokens`) ?? '{}')).toMatchObject({
+      access_token: 'new-access',
+    });
   });
 
   test('maps identity from userinfo endpoint', async () => {

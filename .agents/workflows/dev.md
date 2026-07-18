@@ -32,11 +32,20 @@ If the task creates, expands, or materially depends on a technical stack, fullst
 - For high-risk changes (auth, data migration, production): consider `/deep-review` first
 
 ## 2.5 Delegation Gate
-Use subagents when the task is medium/high risk, spans multiple subsystems, touches architecture/API/data/state/security/production behavior, needs independent research, or requires review of your own completion claim.
+Resolve `orchestration.mode` before dispatch:
+
+- `adaptive` becomes `native` only when the six native capabilities are explicitly overridden by Task Contract/project config or evidenced by the model-catalog and current host/runtime intersection; otherwise use `managed`.
+- `native`: one owner/writer, low risk external=0, medium risk at most one risk-triggered verifier.
+- `managed`: dispatch only the explorer/executor/verifier lanes actually needed, inside the configured external-agent, round, and wall-clock budget.
+- `panel`: high-risk, review-high, or explicit reviewer-disagreement work uses one writer plus at most three isolated read-only reviewers and normally at most two rounds; ordinary review status alone does not escalate.
+- `human-loop`: do not auto-start execution/review lanes for product direction, aesthetics/taste, business choices, or irreversible judgement.
+
+Explicit legacy `collaboration.mode` remains compatible and resolves to managed. Every mode still requires deterministic tests/build/typecheck/diff evidence, approvals, and recovery evidence where applicable.
 
 Default model mapping:
-- Use `gpt-5.3-codex` for implementation and normal explorer/critic/verifier sidecars.
-- Use `gpt-5.5` only for arbitration, high-risk review, and unresolved reviewer disagreement; record `escalation_reason`.
+- Use the routine profile for implementation and explorer work; balanced/pro prefer `gpt-5.3-codex-spark`.
+- Use the verification/review-loop profile for normal critic/verifier work; balanced/pro default to `glm-5.2`.
+- Use `review_class: review-high` only for arbitration, high-risk review, and unresolved reviewer disagreement; record `escalation_reason`. The default OpenAI fallback is `gpt-5.6-sol`; legacy `needs_model: gpt-5.5` remains compatible.
 
 Useful roles:
 - `explorer`: read-only codebase or external-source research
@@ -44,7 +53,7 @@ Useful roles:
 - `verifier`: independently check the implemented result and evidence
 - `browser`: visual/runtime verification for UI work
 
-Skip subagents for low-risk single-file fixes, simple commands, or cases where secrets/destructive operations require staying in the current session. Record the skip reason.
+Low-risk native work normally needs no external agent. Record `safe_skip_reason` only when Delegation Gate itself is skipped, not merely because the resolver chose native ownership.
 
 Subagent requests must include role, exact scope, read/write ownership, allowed files/directories, verification command, output schema, and whether the result must be persisted in `.mailbox/`. Do not run multiple writers unless file ownership is explicitly disjoint.
 
@@ -92,5 +101,5 @@ critic/verifier 子智能体应把以上作为标准审查项。发现过度设�
 ## Notes
 - For complex tasks: decompose into sub-tasks and use focused subagents for independent work
 - For simple tasks: just do it directly, don't over-engineer the process
-- Always check `progress.md` at project root if working in multi-agent mode
+- In coordination DB v2 projects, use `agmesh context` / `agmesh automation status`; check `progress.md` only for legacy multi-agent projects
 - Apply Reasoning Effort tiers: LOW for simple lookups, STANDARD for features, HIGH for architecture
