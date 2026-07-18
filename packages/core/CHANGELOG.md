@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.0](https://github.com/zuohuadong/svadmin/compare/core-v0.31.2...core-v0.32.0) (2026-07-18)
+
+
+### 🚀 Features
+
+* **sso:** add rotation-safe browser session lifecycle ([#185](https://github.com/zuohuadong/svadmin/issues/185)) ([9fa0881](https://github.com/zuohuadong/svadmin/commit/9fa08818ed175958669e2e227d29d381f115b0de))
+
 ## [0.31.2](https://github.com/zuohuadong/svadmin/compare/core-v0.31.1...core-v0.31.2) (2026-07-15)
 
 
