@@ -50,6 +50,7 @@ export interface TokenStorageLike {
 interface SessionBroadcastMessage {
   storageKey: string;
   event: AuthStateChangeEvent;
+  preserveAuthAttempt?: boolean;
 }
 
 interface StorageKeys {
@@ -226,6 +227,16 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
   let destroyed = false;
   let locallySignedOut = false;
   let authGeneration = 0;
+
+  function hasPendingAuthAttempt(): boolean {
+    return options.storage.getItem(keys.state) !== null;
+  }
+
+  function getSessionSnapshot(): { raw: string | null; session: SSOSession | null } {
+    const raw = locallySignedOut ? null : options.storage.getItem(keys.tokens);
+    return { raw, session: parseSession(raw) };
+  }
+
   function migrateLegacyStorage(): void {
     if (!legacyKeys || options.storage.getItem(keys.tokens)) return;
 
@@ -250,8 +261,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
   let lastObservedRaw = options.storage.getItem(keys.tokens);
 
   function getSession(): SSOSession | null {
-    if (locallySignedOut) return null;
-    return parseSession(options.storage.getItem(keys.tokens));
+    return getSessionSnapshot().session;
   }
 
   function emit(event: AuthStateChangeEvent, session: SSOSession | null): void {
@@ -272,12 +282,13 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     }
   }
 
-  function broadcast(event: AuthStateChangeEvent): void {
+  function broadcast(event: AuthStateChangeEvent, preserveAuthAttempt = false): void {
     if (destroyed) return;
     try {
       channel?.postMessage({
         storageKey: options.storageKey,
         event,
+        ...(preserveAuthAttempt ? { preserveAuthAttempt: true } : {}),
       } satisfies SessionBroadcastMessage);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -377,12 +388,17 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
 
   function clearTokenSession(): void {
     const persistenceFailure = clearStorageValue(options.storage, keys.tokens);
-    authGeneration += 1;
-    locallySignedOut = true;
+    // 仅 token 失效不能取消已经持有 PKCE/state 的新认证尝试。
+    // 显式 logout 会走 clearSession()，仍会清理完整状态并推进 generation。
+    const preservesAuthAttempt = hasPendingAuthAttempt();
+    if (!preservesAuthAttempt) {
+      authGeneration += 1;
+      locallySignedOut = true;
+    }
     lastObservedRaw = null;
     clearRefreshTimer();
-    emit('SIGNED_OUT', null);
-    broadcast('SIGNED_OUT');
+    if (!preservesAuthAttempt) emit('SIGNED_OUT', null);
+    broadcast('SIGNED_OUT', preservesAuthAttempt);
     if (persistenceFailure !== null) {
       throw new SSOAuthError('Session could not be cleared', 0, {
         code: 'session_persistence_failed',
@@ -485,6 +501,15 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     throw normalizeTerminalRefreshError(error);
   }
 
+  function clearTokenSessionIfCurrent(expectedRaw: string): Promise<SSOSession | null> {
+    return runAuthMutation(async () => {
+      const race = resolveRefreshRace(expectedRaw);
+      if (race.changed) return race.session;
+      clearTokenSession();
+      return null;
+    });
+  }
+
   async function executeRefresh(initialRaw: string): Promise<SSOSession | null> {
     return runWithRefreshLock(async () => {
       const lockRace = resolveRefreshRace(initialRaw);
@@ -533,8 +558,9 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
   async function getAccessToken(
     accessOptions: GetAccessTokenOptions = {},
   ): Promise<string | null> {
-    const session = getSession();
-    if (!session) return null;
+    const snapshot = getSessionSnapshot();
+    if (!snapshot.raw || !snapshot.session) return null;
+    const { raw: initialRaw, session } = snapshot;
 
     const minValiditySeconds = Math.max(0, accessOptions.minValiditySeconds ?? 0);
     const now = Math.floor(Date.now() / 1000);
@@ -546,8 +572,18 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     }
 
     if (!session.refresh_token) {
-      if (expiresSoon) clearTokenSession();
-      return null;
+      if (!expiresSoon) return null;
+
+      const latestSession = await clearTokenSessionIfCurrent(initialRaw);
+      if (!latestSession) return null;
+
+      const latestExpiresSoon = latestSession.expires_at !== undefined
+        && latestSession.expires_at <= now + minValiditySeconds;
+      if (!accessOptions.forceRefresh && !latestExpiresSoon) {
+        return latestSession.access_token;
+      }
+      if (!latestSession.refresh_token) return null;
+      return (await refreshSession())?.access_token ?? null;
     }
 
     return (await refreshSession())?.access_token ?? null;
@@ -557,15 +593,20 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     event: AuthStateChangeEvent,
     raw: string | null,
     force = false,
+    preserveAuthAttempt = false,
   ): void {
     if (!force && raw === lastObservedRaw) return;
 
     if (raw === null) {
-      authGeneration += 1;
-      locallySignedOut = true;
+      // token-only 失效可与新 callback 并发；共享 state 存在时不能把它误判为 logout。
+      const shouldPreserveAuthAttempt = preserveAuthAttempt && hasPendingAuthAttempt();
+      if (!shouldPreserveAuthAttempt) {
+        authGeneration += 1;
+        locallySignedOut = true;
+      }
       lastObservedRaw = null;
       clearRefreshTimer();
-      emit('SIGNED_OUT', null);
+      if (!shouldPreserveAuthAttempt) emit('SIGNED_OUT', null);
       return;
     }
 
@@ -590,7 +631,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     const currentRaw = options.storage.getItem(keys.tokens);
     if (data.event === 'SIGNED_OUT') {
       if (parseSession(currentRaw)) return;
-      syncRemoteChange('SIGNED_OUT', null, true);
+      syncRemoteChange('SIGNED_OUT', null, true, data.preserveAuthAttempt === true);
       return;
     }
     if (data.event === 'TOKEN_REFRESHED' && currentRaw === null) return;
@@ -603,6 +644,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
     syncRemoteChange(
       remoteSession ? 'TOKEN_REFRESHED' : 'SIGNED_OUT',
       remoteSession ? event.newValue : null,
+      !remoteSession,
       !remoteSession,
     );
   }

@@ -614,8 +614,14 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
       const now = Math.floor(Date.now() / 1000);
       if (session.expires_at !== undefined && session.expires_at <= now) {
         if (!session.refresh_token) {
-          sessions.clearSession();
-          return { authenticated: false, logout: true };
+          try {
+            if (await sessions.getAccessToken()) return { authenticated: true };
+            return sessions.getLoginState()
+              ? { authenticated: false }
+              : { authenticated: false, logout: true };
+          } catch (error) {
+            return { authenticated: false, error: getErrorResult(error) };
+          }
         }
 
         try {

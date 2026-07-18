@@ -466,6 +466,168 @@ describe('rotation-safe session lifecycle', () => {
     newerProvider.destroy();
   });
 
+  test('does not let a terminal refresh broadcast cancel an in-flight callback', async () => {
+    const storage = createMemoryStorage();
+    const storageKey = 'terminal-refresh-vs-callback';
+    const stateKey = `${storageKey}_state`;
+    const verifierKey = `${storageKey}_pkce_verifier`;
+    saveSession(storage, storageKey, {
+      access_token: 'old-access',
+      refresh_token: 'refresh-1',
+      expires_at: 1,
+      token_type: 'Bearer',
+    });
+    storage.setItem(stateKey, 'callback-state');
+    storage.setItem(verifierKey, 'callback-verifier');
+    const location = {
+      href: 'https://app.test/callback?code=new-code&state=callback-state',
+    };
+    Object.defineProperty(globalThis, 'window', {
+      value: {
+        location,
+        navigator: {},
+        BroadcastChannel: FakeBroadcastChannel,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        history: {
+          replaceState: (_state: unknown, _title: string, url: string) => {
+            location.href = new URL(url, location.href).href;
+          },
+        },
+      } as unknown as Window,
+      configurable: true,
+    });
+    const lock = createImmediateSerialLock();
+    const refreshStarted = createSignal();
+    const refreshResponse = createDeferred<Response>();
+    const refreshingProvider = createProvider({
+      storage,
+      storageKey,
+      refreshLock: lock,
+      fetcher: asFetcher(() => {
+        refreshStarted.resolve();
+        return refreshResponse.promise;
+      }),
+    });
+    const callbackStarted = createSignal();
+    const callbackResponse = createDeferred<Response>();
+    const callbackProvider = createProvider({
+      storage,
+      storageKey,
+      refreshLock: lock,
+      fetcher: asFetcher(() => {
+        callbackStarted.resolve();
+        return callbackResponse.promise;
+      }),
+    });
+
+    const refresh = refreshingProvider.refreshSession();
+    await refreshStarted.promise;
+    const callback = callbackProvider.check();
+    await callbackStarted.promise;
+    refreshResponse.resolve(jsonResponse({
+      error: 'invalid_grant',
+      message: 'Refresh token already used',
+    }, 400));
+    await expect(refresh).rejects.toMatchObject({ code: 'invalid_grant' });
+
+    callbackResponse.resolve(jsonResponse({
+      access_token: 'new-login-access',
+      refresh_token: 'new-login-refresh',
+      expires_in: 3600,
+    }));
+
+    expect(await callback).toEqual({ authenticated: true });
+    expect(readSession(storage, storageKey)?.access_token).toBe('new-login-access');
+    expect(storage.getItem(stateKey)).toBeNull();
+    expect(storage.getItem(verifierKey)).toBeNull();
+    refreshingProvider.destroy();
+    callbackProvider.destroy();
+  });
+
+  test('does not let an expired check erase a concurrent login attempt', async () => {
+    const storage = createMemoryStorage();
+    const storageKey = 'expired-check-vs-login';
+    const tokenKey = sessionKey(storageKey);
+    const stateKey = `${storageKey}_state`;
+    const verifierKey = `${storageKey}_pkce_verifier`;
+    saveSession(storage, storageKey, {
+      access_token: 'expired-access',
+      expires_at: 1,
+      token_type: 'Bearer',
+    });
+    const location = { href: 'https://app.test/' };
+    Object.defineProperty(globalThis, 'window', {
+      value: { location } as unknown as Window,
+      configurable: true,
+    });
+    const lock = createImmediateSerialLock();
+    const staleProvider = createProvider({
+      storage,
+      storageKey,
+      refreshLock: lock,
+      fetcher: asFetcher(() => { throw new TypeError('unexpected request'); }),
+    });
+    const newerProvider = createProvider({
+      storage,
+      storageKey,
+      refreshLock: lock,
+      fetcher: asFetcher(() => { throw new TypeError('unexpected request'); }),
+    });
+    const originalGetItem = storage.getItem;
+    let tokenReads = 0;
+    let newerLogin: ReturnType<typeof newerProvider.login> | undefined;
+    storage.getItem = (key) => {
+      const value = originalGetItem(key);
+      if (key === tokenKey && ++tokenReads === 2) {
+        newerLogin = newerProvider.login({});
+      }
+      return value;
+    };
+
+    expect(await staleProvider.check()).toEqual({ authenticated: false });
+    expect((await newerLogin)?.success).toBe(true);
+    expect(originalGetItem(tokenKey)).toBeNull();
+    expect(originalGetItem(stateKey)).not.toBeNull();
+    expect(originalGetItem(verifierKey)).not.toBe('');
+    staleProvider.destroy();
+    newerProvider.destroy();
+  });
+
+  test('does not let a stale access-token read clear a newer session', async () => {
+    const storage = createMemoryStorage();
+    const storageKey = 'expired-token-read-vs-new-session';
+    const tokenKey = sessionKey(storageKey);
+    saveSession(storage, storageKey, {
+      access_token: 'expired-access',
+      expires_at: 1,
+      token_type: 'Bearer',
+    });
+    const provider = createProvider({
+      storage,
+      storageKey,
+      fetcher: asFetcher(() => { throw new TypeError('unexpected request'); }),
+    });
+    const originalGetItem = storage.getItem;
+    let replaced = false;
+    storage.getItem = (key) => {
+      const value = originalGetItem(key);
+      if (!replaced && key === tokenKey) {
+        replaced = true;
+        saveSession(storage, storageKey, {
+          access_token: 'new-access',
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+          token_type: 'Bearer',
+        });
+      }
+      return value;
+    };
+
+    expect(await provider.getAccessToken()).toBe('new-access');
+    expect(readSession(storage, storageKey)?.access_token).toBe('new-access');
+    provider.destroy();
+  });
+
   test('reuses a new login that wins while an older refresh is in flight', async () => {
     const storage = createMemoryStorage();
     const storageKey = 'login-during-refresh';

@@ -344,6 +344,8 @@ describe('createSSOAuthProvider', () => {
 
     const check = provider.check();
     await exchangeStarted.promise;
+    storage.removeItem(`${STORAGE_PREFIX}pkce_verifier`);
+    storage.removeItem(`${STORAGE_PREFIX}state`);
     storageListener?.({
       key: `${STORAGE_PREFIX}tokens`,
       newValue: null,
