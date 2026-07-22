@@ -918,6 +918,7 @@ describe('rotation-safe session lifecycle', () => {
         access_token: 'new-access',
         refresh_token: 'refresh-2',
         expires_in: 3600,
+        token_type: 'bearer',
       })),
     });
 
@@ -925,6 +926,7 @@ describe('rotation-safe session lifecycle', () => {
 
     expect(session?.id_token).toBe('original-id-token');
     expect(session?.refresh_token).toBe('refresh-2');
+    expect(session?.token_type).toBe('Bearer');
     provider.destroy();
   });
 
@@ -1294,6 +1296,29 @@ describe('authenticated fetch recovery', () => {
     provider.destroy();
   });
 
+  test('normalizes a persisted lowercase bearer authorization scheme', async () => {
+    const storage = createMemoryStorage();
+    const storageKey = 'lowercase-bearer';
+    saveSession(storage, storageKey, {
+      access_token: 'access-token',
+      token_type: 'bearer',
+    });
+    let authorization = '';
+    const provider = createProvider({
+      storage,
+      storageKey,
+      fetcher: asFetcher((input) => {
+        authorization = requestHeaders(input).get('Authorization') ?? '';
+        return new Response(null, { status: 200 });
+      }),
+    });
+
+    await provider.createAuthenticatedFetch()('https://api.test/private');
+
+    expect(authorization).toBe('Bearer access-token');
+    provider.destroy();
+  });
+
   test('replays one POST after 401 with the rotated token and intact body', async () => {
     const storage = createMemoryStorage();
     const storageKey = 'fetch-recovery';
@@ -1517,7 +1542,7 @@ describe('logout and SSR behavior', () => {
     saveSession(storage, storageKey, {
       access_token: 'access',
       id_token: 'id-token',
-      token_type: 'Bearer',
+      token_type: 'bearer',
     });
     let discoveryCalls = 0;
     const provider = createSSOAuthProvider({
