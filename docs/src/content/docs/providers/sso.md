@@ -53,6 +53,8 @@ interface SSOConfig {
   scopes?: string[];
   /** Redirect after logout */
   postLogoutRedirectUri?: string;
+  /** Public RP-Initiated Logout endpoint override */
+  endSessionEndpoint?: string;
   /** Token storage. Default: 'local' (localStorage) */
   storage?: 'local' | 'session' | TokenStorage;
   /** Storage namespace. Defaults to an issuer/client-specific key. */
