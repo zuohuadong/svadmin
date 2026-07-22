@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.5](https://github.com/zuohuadong/svadmin/compare/supabase-v0.11.4...supabase-v0.11.5) (2026-07-22)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump dependencies and bun to 1.3.14 ([35c8b2a](https://github.com/zuohuadong/svadmin/commit/35c8b2a1f599bb70fd2a0733225f48788eba62c3))
+
 ## [0.11.4](https://github.com/zuohuadong/svadmin/compare/supabase-v0.11.3...supabase-v0.11.4) (2026-07-11)
 
 

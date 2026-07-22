@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.10](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.9...lite-v0.3.10) (2026-07-22)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump dependencies and bun to 1.3.14 ([35c8b2a](https://github.com/zuohuadong/svadmin/commit/35c8b2a1f599bb70fd2a0733225f48788eba62c3))
+
 ## [0.3.9](https://github.com/zuohuadong/svadmin/compare/lite-v0.3.8...lite-v0.3.9) (2026-07-15)
 
 

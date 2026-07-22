@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.11](https://github.com/zuohuadong/svadmin/compare/simple-rest-v0.9.10...simple-rest-v0.9.11) (2026-07-22)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump dependencies and bun to 1.3.14 ([35c8b2a](https://github.com/zuohuadong/svadmin/commit/35c8b2a1f599bb70fd2a0733225f48788eba62c3))
+
 ## [0.9.10](https://github.com/zuohuadong/svadmin/compare/simple-rest-v0.9.9...simple-rest-v0.9.10) (2026-07-11)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.3](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.12.2...create-svadmin-v0.12.3) (2026-07-22)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump dependencies and bun to 1.3.14 ([35c8b2a](https://github.com/zuohuadong/svadmin/commit/35c8b2a1f599bb70fd2a0733225f48788eba62c3))
+
 ## [0.12.2](https://github.com/zuohuadong/svadmin/compare/create-svadmin-v0.12.1...create-svadmin-v0.12.2) (2026-07-15)
 
 
