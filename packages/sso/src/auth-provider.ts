@@ -202,6 +202,10 @@ function readOptionalTokenString(
     : requireTokenString(response, field, fallbackMessage);
 }
 
+function authorizationScheme(tokenType: string): string {
+  return tokenType.toLowerCase() === 'bearer' ? 'Bearer' : tokenType;
+}
+
 function normalizeTokenResponse(
   body: unknown,
   defaults: TokenResponseDefaults,
@@ -219,12 +223,14 @@ function normalizeTokenResponse(
       fallbackMessage,
     ),
     expires_at: getAccessTokenExpiry(response, accessToken),
-    token_type: readOptionalTokenString(
-      response,
-      'token_type',
-      defaults.tokenType,
-      fallbackMessage,
-    ) ?? defaults.tokenType,
+    token_type: authorizationScheme(
+      readOptionalTokenString(
+        response,
+        'token_type',
+        defaults.tokenType,
+        fallbackMessage,
+      ) ?? defaults.tokenType,
+    ),
   };
 }
 
@@ -500,7 +506,7 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
       const accessToken = await sessions.getAccessToken(options);
       const session = sessions.getSession();
       return accessToken && session?.access_token === accessToken
-        ? `${session.token_type} ${accessToken}`
+        ? `${authorizationScheme(session.token_type)} ${accessToken}`
         : null;
     },
   };
@@ -565,9 +571,10 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
       }
 
       try {
-        const endpoints = await discover();
-        if (typeof window !== 'undefined' && endpoints.end_session_endpoint) {
-          const logoutUrl = new URL(endpoints.end_session_endpoint, window.location.href);
+        const endSessionEndpoint = config.endSessionEndpoint
+          ?? (await discover()).end_session_endpoint;
+        if (typeof window !== 'undefined' && endSessionEndpoint) {
+          const logoutUrl = new URL(endSessionEndpoint, window.location.href);
           logoutUrl.searchParams.set('client_id', config.clientId);
           logoutUrl.searchParams.delete('id_token_hint');
           if (session?.id_token) logoutUrl.searchParams.set('id_token_hint', session.id_token);

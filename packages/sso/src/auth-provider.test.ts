@@ -237,7 +237,7 @@ describe('createSSOAuthProvider', () => {
       id_token: jwt({ roles: ['admin'] }),
       refresh_token: 'refresh-123',
       expires_in: 3600,
-      token_type: 'Bearer',
+      token_type: 'bearer',
     }));
     const provider = createSSOAuthProvider({
       issuer: 'https://idp.test',
@@ -263,6 +263,7 @@ describe('createSSOAuthProvider', () => {
     expect(storage.getItem(`${STORAGE_PREFIX}pkce_verifier`)).toBeNull();
     expect(storage.getItem(`${STORAGE_PREFIX}state`)).toBeNull();
     expect(await provider.getAccessToken()).toBe('access-123');
+    expect((await provider.getSession())?.token_type).toBe('Bearer');
     expect(await provider.getPermissions?.()).toEqual(['admin']);
   });
 
@@ -599,7 +600,7 @@ describe('createSSOAuthProvider', () => {
     const storage = createMemoryStorage();
     storage.setItem(`${STORAGE_PREFIX}tokens`, JSON.stringify({
       access_token: 'access-123',
-      token_type: 'Bearer',
+      token_type: 'bearer',
     }));
     const calls = installFetch((url, init) => {
       expect(url).toBe(manualEndpoints.userinfo_endpoint);
