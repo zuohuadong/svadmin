@@ -58,6 +58,6 @@
     "@svadmin/refine-adapter": "workspace:*"
   },
   "devDependencies": {
-    "@supabase/supabase-js": "^2.0.0"
+    "@supabase/supabase-js": "^2.110.7"
   }
 }

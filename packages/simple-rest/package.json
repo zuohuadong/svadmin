@@ -21,7 +21,7 @@
   },
   "peerDependencies": {
     "@svadmin/core": "workspace:*",
-    "@refinedev/simple-rest": "^5.0.0"
+    "@refinedev/simple-rest": "^6.0.1"
   },
   "license": "MIT",
   "author": "zuohuadong",
@@ -46,6 +46,7 @@
     "@svadmin/refine-adapter": "workspace:*"
   },
   "devDependencies": {
-    "@refinedev/simple-rest": "^5.0.0"
+    "@refinedev/core": "^5.0.12",
+    "@refinedev/simple-rest": "^6.0.1"
   }
 }
