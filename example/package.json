@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@internationalized/date": "^3.12.2",
-    "@lucide/svelte": "^1.24.0",
+    "@lucide/svelte": "^1.25.0",
     "@svadmin/core": "workspace:*",
     "@svadmin/editor": "workspace:*",
     "@svadmin/mcp": "workspace:*",
@@ -25,17 +25,17 @@
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.2.0",
-    "@tailwindcss/vite": "^4.3.2",
+    "@tailwindcss/vite": "^4.3.3",
     "highlight.js": "^11.11.1",
-    "happy-dom": "^20.10.6",
-    "isomorphic-dompurify": "^3.15.0",
+    "happy-dom": "^20.11.0",
+    "isomorphic-dompurify": "^3.19.0",
     "marked": "^18.0.6",
     "marked-highlight": "^2.2.4",
-    "svelte": "^5.56.1",
-    "svelte-check": "^4.7.2",
-    "tailwindcss": "^4.3.2",
+    "svelte": "^5.56.6",
+    "svelte-check": "^4.7.3",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "vite": "^8.1.4",
+    "vite": "^8.1.5",
     "vitest": "^4.1.10"
   }
 }
