@@ -1468,6 +1468,125 @@ describe('authenticated fetch recovery', () => {
 });
 
 describe('logout and SSR behavior', () => {
+  test('navigates the discovered end-session endpoint without an ID token hint', async () => {
+    const location = { href: 'https://app.test/' };
+    Object.defineProperty(globalThis, 'window', {
+      value: { location } as unknown as Window,
+      configurable: true,
+    });
+    const storage = createMemoryStorage();
+    const storageKey = 'logout-without-id-token';
+    saveSession(storage, storageKey, {
+      access_token: 'access',
+      refresh_token: 'refresh',
+      token_type: 'Bearer',
+    });
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'https://app.test/callback',
+      postLogoutRedirectUri: 'https://app.test/signed-out',
+      storage,
+      storageKey,
+      autoRefresh: false,
+      manualEndpoints: endpoints,
+    });
+
+    expect(await provider.logout()).toEqual({ success: true });
+    const logoutUrl = new URL(location.href);
+    expect(`${logoutUrl.origin}${logoutUrl.pathname}`).toBe(endpoints.end_session_endpoint);
+    expect(logoutUrl.searchParams.get('client_id')).toBe('admin-console');
+    expect(logoutUrl.searchParams.get('id_token_hint')).toBeNull();
+    expect(logoutUrl.searchParams.get('post_logout_redirect_uri')).toBe(
+      'https://app.test/signed-out',
+    );
+    expect(storage.getItem(sessionKey(storageKey))).toBeNull();
+    provider.destroy();
+  });
+
+  test('uses an explicit end-session endpoint when discovery omits it', async () => {
+    const location = { href: 'https://app.test/' };
+    Object.defineProperty(globalThis, 'window', {
+      value: { location } as unknown as Window,
+      configurable: true,
+    });
+    const storage = createMemoryStorage();
+    const storageKey = 'explicit-end-session-endpoint';
+    saveSession(storage, storageKey, {
+      access_token: 'access',
+      id_token: 'id-token',
+      token_type: 'Bearer',
+    });
+    let discoveryCalls = 0;
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'https://app.test/callback',
+      postLogoutRedirectUri: 'https://app.test/signed-out',
+      endSessionEndpoint: 'https://public-idp.test/logout?tenant=default#signed-out',
+      storage,
+      storageKey,
+      autoRefresh: false,
+      fetcher: asFetcher(() => {
+        discoveryCalls += 1;
+        return jsonResponse({
+          authorization_endpoint: endpoints.authorization_endpoint,
+          token_endpoint: endpoints.token_endpoint,
+          userinfo_endpoint: endpoints.userinfo_endpoint,
+        });
+      }),
+    });
+
+    expect(await provider.logout()).toEqual({ success: true });
+    const logoutUrl = new URL(location.href);
+    expect(`${logoutUrl.origin}${logoutUrl.pathname}`).toBe('https://public-idp.test/logout');
+    expect(logoutUrl.searchParams.get('tenant')).toBe('default');
+    expect(logoutUrl.searchParams.get('client_id')).toBe('admin-console');
+    expect(logoutUrl.searchParams.get('id_token_hint')).toBe('id-token');
+    expect(logoutUrl.searchParams.get('post_logout_redirect_uri')).toBe(
+      'https://app.test/signed-out',
+    );
+    expect(logoutUrl.hash).toBe('#signed-out');
+    expect(discoveryCalls).toBe(1);
+    expect(storage.getItem(sessionKey(storageKey))).toBeNull();
+    provider.destroy();
+  });
+
+  test('explicit end-session endpoint overrides the discovered endpoint', async () => {
+    const location = { href: 'https://app.test/' };
+    Object.defineProperty(globalThis, 'window', {
+      value: { location } as unknown as Window,
+      configurable: true,
+    });
+    const storage = createMemoryStorage();
+    const storageKey = 'override-discovered-end-session-endpoint';
+    saveSession(storage, storageKey, {
+      access_token: 'access',
+      id_token: 'id-token',
+      token_type: 'Bearer',
+    });
+    const provider = createSSOAuthProvider({
+      issuer: 'https://idp.test',
+      clientId: 'admin-console',
+      redirectUri: 'https://app.test/callback',
+      endSessionEndpoint: 'https://public-idp.test/configured-logout',
+      storage,
+      storageKey,
+      autoRefresh: false,
+      fetcher: asFetcher(() => jsonResponse({
+        authorization_endpoint: endpoints.authorization_endpoint,
+        token_endpoint: endpoints.token_endpoint,
+        userinfo_endpoint: endpoints.userinfo_endpoint,
+        end_session_endpoint: 'https://discovered-idp.test/logout',
+      })),
+    });
+
+    expect(await provider.logout()).toEqual({ success: true });
+    expect(new URL(location.href).origin).toBe('https://public-idp.test');
+    expect(new URL(location.href).pathname).toBe('/configured-logout');
+    provider.destroy();
+  });
+
   test('overwrites persisted tokens when storage removal fails', async () => {
     const storage = createMemoryStorage();
     const storageKey = 'logout-remove-failure';

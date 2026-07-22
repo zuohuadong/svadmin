@@ -53,6 +53,8 @@ interface SSOConfig {
   scopes?: string[];
   /** 登出后重定向地址 */
   postLogoutRedirectUri?: string;
+  /** 覆盖 discovery 的公开 RP-Initiated Logout 端点 */
+  endSessionEndpoint?: string;
   /** Token 存储方式，默认: 'local' (localStorage) */
   storage?: 'local' | 'session' | TokenStorage;
   /** 自定义身份映射函数 */

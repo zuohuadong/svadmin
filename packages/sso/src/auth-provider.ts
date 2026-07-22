@@ -34,6 +34,8 @@ export interface SSOConfig {
   scopes?: string[];
   /** Where to redirect after logout */
   postLogoutRedirectUri?: string;
+  /** Optional public RP-initiated logout endpoint override. */
+  endSessionEndpoint?: string;
   /** Token storage backend. Default: 'local' (localStorage) */
   storage?: 'local' | 'session' | TokenStorage;
   /** Storage namespace. Defaults to an issuer/client-specific key. */
@@ -341,7 +343,10 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
   async function discover(): Promise<OIDCConfig> {
     if (oidcConfig) return oidcConfig;
     if (config.manualEndpoints) {
-      oidcConfig = config.manualEndpoints;
+      oidcConfig = {
+        ...config.manualEndpoints,
+        ...(config.endSessionEndpoint ? { end_session_endpoint: config.endSessionEndpoint } : {}),
+      };
       return oidcConfig;
     }
 
@@ -364,7 +369,10 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
         cause: error,
       });
     }
-    oidcConfig = readOIDCConfig(discovered);
+    const discoveredConfig = readOIDCConfig(discovered);
+    oidcConfig = config.endSessionEndpoint
+      ? { ...discoveredConfig, end_session_endpoint: config.endSessionEndpoint }
+      : discoveredConfig;
     return oidcConfig;
   }
 
@@ -558,14 +566,15 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
 
       try {
         const endpoints = await discover();
-        if (typeof window !== 'undefined' && endpoints.end_session_endpoint && session?.id_token) {
-          const params = new URLSearchParams({
-            id_token_hint: session.id_token,
-            ...(config.postLogoutRedirectUri
-              ? { post_logout_redirect_uri: config.postLogoutRedirectUri }
-              : {}),
-          });
-          window.location.href = `${endpoints.end_session_endpoint}?${params}`;
+        if (typeof window !== 'undefined' && endpoints.end_session_endpoint) {
+          const logoutUrl = new URL(endpoints.end_session_endpoint, window.location.href);
+          logoutUrl.searchParams.set('client_id', config.clientId);
+          logoutUrl.searchParams.delete('id_token_hint');
+          if (session?.id_token) logoutUrl.searchParams.set('id_token_hint', session.id_token);
+          if (config.postLogoutRedirectUri) {
+            logoutUrl.searchParams.set('post_logout_redirect_uri', config.postLogoutRedirectUri);
+          }
+          window.location.href = logoutUrl.href;
           return { success: true };
         }
       } catch {
