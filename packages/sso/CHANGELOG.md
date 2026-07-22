@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.3](https://github.com/zuohuadong/svadmin/compare/sso-v0.11.2...sso-v0.11.3) (2026-07-22)
+
+
+### 🐛 Bug Fixes
+
+* **sso:** harden logout and bearer interoperability ([#193](https://github.com/zuohuadong/svadmin/issues/193)) ([0be9d16](https://github.com/zuohuadong/svadmin/commit/0be9d16c3332711fc8d42a6d37cea12d2ad66228))
+
 ## [0.11.2](https://github.com/zuohuadong/svadmin/compare/sso-v0.11.1...sso-v0.11.2) (2026-07-22)
 
 
