@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.11.2](https://github.com/zuohuadong/svadmin/compare/sso-v0.11.1...sso-v0.11.2) (2026-07-22)
+
+
+### 🐛 Bug Fixes
+
+* **sso:** complete RP-initiated logout ([#190](https://github.com/zuohuadong/svadmin/issues/190)) ([6314043](https://github.com/zuohuadong/svadmin/commit/631404328fe66fefa0936c318271377352033f5f))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump dependencies and bun to 1.3.14 ([35c8b2a](https://github.com/zuohuadong/svadmin/commit/35c8b2a1f599bb70fd2a0733225f48788eba62c3))
+
 ## [0.11.1](https://github.com/zuohuadong/svadmin/compare/sso-v0.11.0...sso-v0.11.1) (2026-07-18)
 
 

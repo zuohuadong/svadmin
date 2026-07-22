@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.7](https://github.com/zuohuadong/svadmin/compare/auth-utils-v0.7.6...auth-utils-v0.7.7) (2026-07-22)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump dependencies and bun to 1.3.14 ([35c8b2a](https://github.com/zuohuadong/svadmin/commit/35c8b2a1f599bb70fd2a0733225f48788eba62c3))
+
 ## [0.7.6](https://github.com/zuohuadong/svadmin/compare/auth-utils-v0.7.5...auth-utils-v0.7.6) (2026-07-11)
 
 
