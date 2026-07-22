@@ -565,9 +565,10 @@ export function createSSOAuthProvider(config: SSOConfig): SSOAuthProvider {
       }
 
       try {
-        const endpoints = await discover();
-        if (typeof window !== 'undefined' && endpoints.end_session_endpoint) {
-          const logoutUrl = new URL(endpoints.end_session_endpoint, window.location.href);
+        const endSessionEndpoint = config.endSessionEndpoint
+          ?? (await discover()).end_session_endpoint;
+        if (typeof window !== 'undefined' && endSessionEndpoint) {
+          const logoutUrl = new URL(endSessionEndpoint, window.location.href);
           logoutUrl.searchParams.set('client_id', config.clientId);
           logoutUrl.searchParams.delete('id_token_hint');
           if (session?.id_token) logoutUrl.searchParams.set('id_token_hint', session.id_token);

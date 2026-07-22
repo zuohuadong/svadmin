@@ -1504,7 +1504,7 @@ describe('logout and SSR behavior', () => {
     provider.destroy();
   });
 
-  test('uses an explicit end-session endpoint when discovery omits it', async () => {
+  test('uses an explicit end-session endpoint without discovery', async () => {
     const location = { href: 'https://app.test/' };
     Object.defineProperty(globalThis, 'window', {
       value: { location } as unknown as Window,
@@ -1512,6 +1512,8 @@ describe('logout and SSR behavior', () => {
     });
     const storage = createMemoryStorage();
     const storageKey = 'explicit-end-session-endpoint';
+    storage.setItem(`${storageKey}_state`, 'pending-state');
+    storage.setItem(`${storageKey}_pkce_verifier`, 'pending-verifier');
     saveSession(storage, storageKey, {
       access_token: 'access',
       id_token: 'id-token',
@@ -1529,11 +1531,7 @@ describe('logout and SSR behavior', () => {
       autoRefresh: false,
       fetcher: asFetcher(() => {
         discoveryCalls += 1;
-        return jsonResponse({
-          authorization_endpoint: endpoints.authorization_endpoint,
-          token_endpoint: endpoints.token_endpoint,
-          userinfo_endpoint: endpoints.userinfo_endpoint,
-        });
+        throw new TypeError('discovery unavailable');
       }),
     });
 
@@ -1547,8 +1545,10 @@ describe('logout and SSR behavior', () => {
       'https://app.test/signed-out',
     );
     expect(logoutUrl.hash).toBe('#signed-out');
-    expect(discoveryCalls).toBe(1);
+    expect(discoveryCalls).toBe(0);
     expect(storage.getItem(sessionKey(storageKey))).toBeNull();
+    expect(storage.getItem(`${storageKey}_state`)).toBeNull();
+    expect(storage.getItem(`${storageKey}_pkce_verifier`)).toBeNull();
     provider.destroy();
   });
 
